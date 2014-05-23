@@ -17,6 +17,8 @@ from xbob.io.base.test_utils import datafile
 
 from . import GMMStats, GMMMachine
 
+from . import HDF5File as OldHDF5File
+
 def test_GMMStats():
   # Test a GMMStats
 
@@ -40,8 +42,8 @@ def test_GMMStats():
 
   # Saves and reads from file
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(xbob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats(xbob.io.base.HDF5File(filename))
+  gs.save(OldHDF5File(filename, 'w'))
+  gs_loaded = GMMStats(OldHDF5File(filename))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
   assert gs.is_similar_to(gs_loaded)
@@ -190,7 +192,7 @@ def test_GMMMachine_2():
   stats = GMMStats(2, 2)
   gmm.acc_statistics(arrayset, stats)
 
-  stats_ref = GMMStats(xbob.io.base.HDF5File(datafile("stats.hdf5", __name__)))
+  stats_ref = GMMStats(OldHDF5File(datafile("stats.hdf5", __name__)))
 
   assert stats.t == stats_ref.t
   assert numpy.allclose(stats.n, stats_ref.n, atol=1e-10)

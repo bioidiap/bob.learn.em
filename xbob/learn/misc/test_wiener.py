@@ -17,6 +17,8 @@ import xbob.io.base
 
 from . import WienerMachine
 
+from . import HDF5File as OldHDF5File
+
 def test_initialization():
 
   # Getters/Setters
@@ -65,8 +67,8 @@ def test_load_save():
 
   # Save and read from file
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = WienerMachine(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = WienerMachine(OldHDF5File(filename))
   assert m == m_loaded
   assert (m != m_loaded ) is False
   assert m.is_similar_to(m_loaded)

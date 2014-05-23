@@ -15,7 +15,9 @@ import tempfile
 
 import xbob.io.base
 
-from . import GMMMachine, GMMStats, JFABase, ISVBase
+from . import GMMMachine, GMMStats, JFABase, ISVBase, ISVMachine, JFAMachine
+
+from . import HDF5File as OldHDF5File
 
 def estimate_x(dim_c, dim_d, mean, sigma, U, N, F):
   # Compute helper values
@@ -83,8 +85,8 @@ def test_JFABase():
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = JFABase(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = JFABase(OldHDF5File(filename))
   m_loaded.ubm = ubm
   assert m == m_loaded
   assert (m != m_loaded) is False
@@ -144,8 +146,8 @@ def test_ISVBase():
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = ISVBase(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = ISVBase(OldHDF5File(filename))
   m_loaded.ubm = ubm
   assert m == m_loaded
   assert (m != m_loaded) is False
@@ -208,8 +210,8 @@ def test_JFAMachine():
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = JFAMachine(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = JFAMachine(OldHDF5File(filename))
   m_loaded.jfa_base = base
   assert m == m_loaded
   assert (m != m_loaded) is False
@@ -304,8 +306,8 @@ def test_ISVMachine():
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = ISVMachine(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = ISVMachine(OldHDF5File(filename))
   m_loaded.isv_base = base
   assert m == m_loaded
   assert (m != m_loaded) is False

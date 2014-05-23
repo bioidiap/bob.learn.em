@@ -80,6 +80,8 @@ setup(
           "xbob/learn/misc/ndarray.cpp",
           "xbob/learn/misc/ndarray_numpy.cpp",
           "xbob/learn/misc/tinyvector.cpp",
+          "xbob/learn/misc/hdf5.cpp",
+          "xbob/learn/misc/random.cpp",
 
           "xbob/learn/misc/main.cpp",
         ],

@@ -13,7 +13,9 @@
 void bind_core_tinyvector();
 void bind_core_ndarray_numpy();
 void bind_core_bz_numpy();
+void bind_core_random();
 void bind_ip_gabor_wavelet_transform();
+void bind_io_hdf5();
 
 /** machine bindings **/
 void bind_machine_base();
@@ -50,6 +52,8 @@ BOOST_PYTHON_MODULE(_library) {
   bind_core_ndarray_numpy();
   bind_core_bz_numpy();
   bind_ip_gabor_wavelet_transform();
+  bind_io_hdf5();
+  bind_core_random();
 
   /** machine bindings **/
   bind_machine_base();

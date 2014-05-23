@@ -9,81 +9,88 @@
 """
 
 import numpy
+import nose.tools
 from . import BICMachine, BICTrainer
+
+eps = 1e-5
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
 
-class BICTrainerAndMachineTest(unittest.TestCase):
-  """Performs various BIC trainer and machine tests."""
+def training_data():
+  data = numpy.array([
+    (10., 4., 6., 8., 2.),
+    (8., 2., 4., 6., 0.),
+    (12., 6., 8., 10., 4.),
+    (11., 3., 7., 7., 3.),
+    (9., 5., 5., 9., 1.)], dtype='float64')
 
-  def training_data(self):
-    data = numpy.array([
-      (10., 4., 6., 8., 2.),
-      (8., 2., 4., 6., 0.),
-      (12., 6., 8., 10., 4.),
-      (11., 3., 7., 7., 3.),
-      (9., 5., 5., 9., 1.)], dtype='float64')
+  return data, -1. * data
 
-    return data, -1. * data
+def eval_data(which):
+  eval_data = numpy.ndarray((5,), dtype=numpy.float64)
+  if which == 0:
+    eval_data.fill(0.)
+  elif which == 1:
+    eval_data.fill(10.)
 
-  def eval_data(self, which):
-    eval_data = numpy.ndarray((5,), dtype=numpy.float64)
-    if which == 0:
-      eval_data.fill(0.)
-    elif which == 1:
-      eval_data.fill(10.)
+  return eval_data
 
-    return eval_data
+def test_IEC():
+  # Tests the IEC training of the BICTrainer
+  intra_data, extra_data = training_data()
 
-  def test_IEC(self):
-    # Tests the IEC training of the BICTrainer
-    intra_data, extra_data = self.training_data()
+  # train BIC machine
+  machine = BICMachine()
+  trainer = BICTrainer()
 
-    # train BIC machine
-    machine = BICMachine()
-    trainer = BICTrainer()
+  # train machine with intrapersonal data only
+  trainer.train(machine, intra_data, intra_data)
+  # => every result should be zero
+  assert abs(machine(eval_data(0))) < eps
+  assert abs(machine(eval_data(1))) < eps
 
-    # train machine with intrapersonal data only
-    trainer.train(machine, intra_data, intra_data)
-    # => every result should be zero
-    self.assertAlmostEqual(machine(self.eval_data(0)), 0.)
-    self.assertAlmostEqual(machine(self.eval_data(1)), 0.)
+  # re-train the machine with intra- and extrapersonal data
+  trainer.train(machine, intra_data, extra_data)
+  # now, only the input vector 0 should give log-likelihood 0
+  assert abs(machine(eval_data(0))) < eps
+  # while a positive vector should give a positive result
+  assert machine(eval_data(1)) > 0.
 
-    # re-train the machine with intra- and extrapersonal data
-    trainer.train(machine, intra_data, extra_data)
-    # now, only the input vector 0 should give log-likelihood 0
-    self.assertAlmostEqual(machine(self.eval_data(0)), 0.)
-    # while a positive vector should give a positive result
-    self.assertTrue(machine(self.eval_data(1)) > 0.)
+@nose.tools.raises(RuntimeError)
+def test_raises():
 
-  def test_BIC(self):
-    # Tests the BIC training of the BICTrainer
-    intra_data, extra_data = self.training_data()
+  # Tests the BIC training of the BICTrainer
+  intra_data, extra_data = training_data()
 
-    # train BIC machine
-    trainer = BICTrainer(2,2)
+  # train BIC machine
+  trainer = BICTrainer(2,2)
 
-    # The data are chosen such that the third eigenvalue is zero.
-    # Hence, calculating rho (i.e., using the Distance From Feature Space) is impossible
-    machine = BICMachine(True)
-    def should_raise():
-      trainer.train(machine, intra_data, intra_data)
-    self.assertRaises(RuntimeError, should_raise)
+  # The data are chosen such that the third eigenvalue is zero.
+  # Hence, calculating rho (i.e., using the Distance From Feature Space) is impossible
+  machine = BICMachine(True)
+  trainer.train(machine, intra_data, intra_data)
 
-    # So, now without rho...
-    machine = BICMachine(False)
+def test_BIC():
+  # Tests the BIC training of the BICTrainer
+  intra_data, extra_data = training_data()
 
-    # First, train the machine with intrapersonal data only
-    trainer.train(machine, intra_data, intra_data)
+  # train BIC machine
+  trainer = BICTrainer(2,2)
 
-    # => every result should be zero
-    self.assertAlmostEqual(machine(self.eval_data(0)), 0.)
-    self.assertAlmostEqual(machine(self.eval_data(1)), 0.)
+  # So, now without rho...
+  machine = BICMachine(False)
 
-    # re-train the machine with intra- and extrapersonal data
-    trainer.train(machine, intra_data, extra_data)
-    # now, only the input vector 0 should give log-likelihood 0
-    self.assertAlmostEqual(machine(self.eval_data(0)), 0.)
-    # while a positive vector should give a positive result
-    self.assertTrue(machine(self.eval_data(1)) > 0.)
+  # First, train the machine with intrapersonal data only
+  trainer.train(machine, intra_data, intra_data)
+
+  # => every result should be zero
+  assert abs(machine(eval_data(0))) < eps
+  assert abs(machine(eval_data(1))) < eps
+
+  # re-train the machine with intra- and extrapersonal data
+  trainer.train(machine, intra_data, extra_data)
+  # now, only the input vector 0 should give log-likelihood 0
+  assert abs(machine(eval_data(0))) < eps
+  # while a positive vector should give a positive result
+  assert machine(eval_data(1)) > 0.

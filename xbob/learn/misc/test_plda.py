@@ -13,10 +13,13 @@ import tempfile
 import math
 import numpy
 import numpy.linalg
+import nose.tools
 
 import xbob.io.base
 
 from . import PLDABase, PLDAMachine
+
+from . import HDF5File as OldHDF5File
 
 # Defines common variables globally
 # Dimensionalities
@@ -291,8 +294,8 @@ def test_plda_basemachine():
 
   # Saves to file, loads and compares to original
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = PLDABase(xbob.io.base.HDF5File(filename))
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = PLDABase(OldHDF5File(filename))
 
   # Compares the values loaded with the former ones
   assert m_loaded == m
@@ -368,8 +371,7 @@ def test_plda_basemachine_loglikelihood_pointestimate():
   m.g = C_G
   m.sigma = sigma
 
-  self.assertTrue(equals(m.compute_log_likelihood_point_estimate(xij, hi, wij),
-                         compute_log_likelihood_point_estimate(xij, mu, C_F, C_G, sigma, hi, wij), 1e-6))
+  assert equals(m.compute_log_likelihood_point_estimate(xij, hi, wij), compute_log_likelihood_point_estimate(xij, mu, C_F, C_G, sigma, hi, wij), 1e-6)
 
 
 def test_plda_machine():
@@ -417,8 +419,8 @@ def test_plda_machine():
 
   # Saves to file, loads and compares to original
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(xbob.io.base.HDF5File(filename, 'w'))
-  m_loaded = PLDAMachine(xbob.io.base.HDF5File(filename), mb)
+  m.save(OldHDF5File(filename, 'w'))
+  m_loaded = PLDAMachine(OldHDF5File(filename), mb)
 
   # Compares the values loaded with the former ones
   assert m_loaded == m
@@ -443,12 +445,12 @@ def test_plda_machine():
 
   # Check exceptions
   m_loaded2 = PLDAMachine()
-  m_loaded2.load(xbob.io.base.HDF5File(filename))
-  self.assertRaises(RuntimeError, getattr, m_loaded2, 'dim_d')
-  self.assertRaises(RuntimeError, getattr, m_loaded2, 'dim_f')
-  self.assertRaises(RuntimeError, getattr, m_loaded2, 'dim_g')
-  self.assertRaises(RuntimeError, m_loaded2.forward, [1.])
-  self.assertRaises(RuntimeError, m_loaded2.compute_log_likelihood, [1.])
+  m_loaded2.load(OldHDF5File(filename))
+  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_d')
+  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_f')
+  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_g')
+  nose.tools.assert_raises(RuntimeError, m_loaded2.forward, [1.])
+  nose.tools.assert_raises(RuntimeError, m_loaded2.compute_log_likelihood, [1.])
 
   # Clean-up
   os.unlink(filename)

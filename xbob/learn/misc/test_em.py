@@ -13,10 +13,13 @@ import numpy
 import xbob.io.base
 from xbob.io.base.test_utils import datafile
 
-from . import KMeansMachine, GMMMachine
+from . import KMeansMachine, GMMMachine, KMeansTrainer, \
+    ML_GMMTrainer, MAP_GMMTrainer
+
+from . import HDF5File as OldHDF5File
 
 def loadGMM():
-  gmm = bob.machine.GMMMachine(2, 2)
+  gmm = GMMMachine(2, 2)
 
   gmm.weights = xbob.io.base.load(datafile('gmm.init_weights.hdf5', __name__))
   gmm.means = xbob.io.base.load(datafile('gmm.init_means.hdf5', __name__))
@@ -28,10 +31,11 @@ def loadGMM():
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
 
-class MyTrainer1(bob.trainer.KMeansTrainer):
+class MyTrainer1(KMeansTrainer):
   """Simple example of python trainer: """
-  def __init__():
-    bob.trainer.KMeansTrainer.__init__()
+
+  def __init__(self):
+    KMeansTrainer.__init__(self)
 
   def train(self, machine, data):
     a = numpy.ndarray((2, 2), 'float64')
@@ -47,15 +51,15 @@ def test_gmm_ML_1():
 
   gmm = loadGMM()
 
-  ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True)
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True)
   ml_gmmtrainer.train(gmm, ar)
 
-  #config = xbob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
+  #config = OldHDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
   #gmm.save(config)
 
-  gmm_ref = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML.hdf5', __name__)))
-  gmm_ref_32bit_debug = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__)))
-  gmm_ref_32bit_release = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__)))
+  gmm_ref = GMMMachine(OldHDF5File(datafile('gmm_ML.hdf5', __name__)))
+  gmm_ref_32bit_debug = GMMMachine(OldHDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__)))
+  gmm_ref_32bit_release = GMMMachine(OldHDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__)))
 
   assert (gmm == gmm_ref) or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_debug)
 
@@ -66,7 +70,7 @@ def test_gmm_ML_2():
   ar = xbob.io.base.load(datafile('dataNormalized.hdf5', __name__))
 
   # Initialize GMMMachine
-  gmm = bob.machine.GMMMachine(5, 45)
+  gmm = GMMMachine(5, 45)
   gmm.means = xbob.io.base.load(datafile('meansAfterKMeans.hdf5', __name__)).astype('float64')
   gmm.variances = xbob.io.base.load(datafile('variancesAfterKMeans.hdf5', __name__)).astype('float64')
   gmm.weights = numpy.exp(xbob.io.base.load(datafile('weightsAfterKMeans.hdf5', __name__)).astype('float64'))
@@ -78,7 +82,7 @@ def test_gmm_ML_2():
   prior = 0.001
   max_iter_gmm = 25
   accuracy = 0.00001
-  ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True, prior)
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior)
   ml_gmmtrainer.max_iterations = max_iter_gmm
   ml_gmmtrainer.convergence_threshold = accuracy
 
@@ -102,18 +106,18 @@ def test_gmm_MAP_1():
 
   ar = xbob.io.base.load(datafile('faithful.torch3_f64.hdf5', __name__))
 
-  gmm = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
-  gmmprior = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
+  gmm = GMMMachine(OldHDF5File(datafile("gmm_ML.hdf5", __name__)))
+  gmmprior = GMMMachine(OldHDF5File(datafile("gmm_ML.hdf5", __name__)))
 
-  map_gmmtrainer = bob.trainer.MAP_GMMTrainer(16)
+  map_gmmtrainer = MAP_GMMTrainer(16)
   map_gmmtrainer.set_prior_gmm(gmmprior)
   map_gmmtrainer.train(gmm, ar)
 
-  #config = xbob.io.base.HDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
+  #config = OldHDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
   #gmm.save(config)
 
-  gmm_ref = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_MAP.hdf5', __name__)))
-  #gmm_ref_32bit_release = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_MAP_32bit_release.hdf5', __name__)))
+  gmm_ref = GMMMachine(OldHDF5File(datafile('gmm_MAP.hdf5', __name__)))
+  #gmm_ref_32bit_release = GMMMachine(OldHDF5File(datafile('gmm_MAP_32bit_release.hdf5', __name__)))
 
   assert (equals(gmm.means,gmm_ref.means,1e-3) and equals(gmm.variances,gmm_ref.variances,1e-3) and equals(gmm.weights,gmm_ref.weights,1e-3))
 
@@ -121,21 +125,21 @@ def test_gmm_MAP_2():
 
   # Train a GMMMachine with MAP_GMMTrainer and compare with matlab reference
 
-  map_adapt = bob.trainer.MAP_GMMTrainer(4., True, False, False, 0.)
-  data = xbob.io.base.load(datafile('data.hdf5', 'machine', __name__))
+  map_adapt = MAP_GMMTrainer(4., True, False, False, 0.)
+  data = xbob.io.base.load(datafile('data.hdf5', __name__))
   data = data.reshape((1, data.shape[0])) # make a 2D array out of it
-  means = xbob.io.base.load(datafile('means.hdf5', 'machine', __name__))
-  variances = xbob.io.base.load(datafile('variances.hdf5', 'machine', __name__))
-  weights = xbob.io.base.load(datafile('weights.hdf5', 'machine', __name__))
+  means = xbob.io.base.load(datafile('means.hdf5', __name__))
+  variances = xbob.io.base.load(datafile('variances.hdf5', __name__))
+  weights = xbob.io.base.load(datafile('weights.hdf5', __name__))
 
-  gmm = bob.machine.GMMMachine(2,50)
+  gmm = GMMMachine(2,50)
   gmm.means = means
   gmm.variances = variances
   gmm.weights = weights
 
   map_adapt.set_prior_gmm(gmm)
 
-  gmm_adapted = bob.machine.GMMMachine(2,50)
+  gmm_adapted = GMMMachine(2,50)
   gmm_adapted.means = means
   gmm_adapted.variances = variances
   gmm_adapted.weights = weights
@@ -159,7 +163,7 @@ def test_gmm_MAP_3():
   # Initialize GMMMachine
   n_gaussians = 5
   n_inputs = 45
-  prior_gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  prior_gmm = GMMMachine(n_gaussians, n_inputs)
   prior_gmm.means = xbob.io.base.load(datafile('meansAfterML.hdf5', __name__))
   prior_gmm.variances = xbob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
   prior_gmm.weights = xbob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
@@ -173,13 +177,13 @@ def test_gmm_MAP_3():
   max_iter_gmm = 1
   accuracy = 0.00001
   map_factor = 0.5
-  map_gmmtrainer = bob.trainer.MAP_GMMTrainer(relevance_factor, True, False, False, prior)
+  map_gmmtrainer = MAP_GMMTrainer(relevance_factor, True, False, False, prior)
   map_gmmtrainer.max_iterations = max_iter_gmm
   map_gmmtrainer.convergence_threshold = accuracy
   map_gmmtrainer.set_prior_gmm(prior_gmm)
   map_gmmtrainer.set_t3_map(map_factor);
 
-  gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  gmm = GMMMachine(n_gaussians, n_inputs)
   gmm.set_variance_thresholds(threshold)
 
   # Train
@@ -209,7 +213,7 @@ def test_gmm_test():
   # Initialize GMMMachine
   n_gaussians = 5
   n_inputs = 45
-  gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  gmm = GMMMachine(n_gaussians, n_inputs)
   gmm.means = xbob.io.base.load(datafile('meansAfterML.hdf5', __name__))
   gmm.variances = xbob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
   gmm.weights = xbob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
@@ -234,7 +238,7 @@ def test_custom_trainer():
 
   mytrainer = MyTrainer1()
 
-  machine = bob.machine.KMeansMachine(2, 2)
+  machine = KMeansMachine(2, 2)
   mytrainer.train(machine, ar)
 
   for i in range(0, 2):

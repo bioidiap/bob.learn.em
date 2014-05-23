@@ -11,7 +11,10 @@
 import numpy
 import numpy.linalg
 
-from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine
+from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, \
+    JFATrainer, ISVTrainer
+
+from . import mt19937 as old_mt19937
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
@@ -78,7 +81,7 @@ def test_JFATrainer_updateYandV():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = bob.trainer.JFATrainer(10)
+  t = JFATrainer(10)
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -112,7 +115,7 @@ def test_JFATrainer_updateXandU():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = bob.trainer.JFATrainer(10)
+  t = JFATrainer(10)
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -145,7 +148,7 @@ def test_JFATrainer_updateZandD():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = bob.trainer.JFATrainer(10)
+  t = JFATrainer(10)
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -170,7 +173,7 @@ def test_JFATrainAndEnrol():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   mb = JFABase(ubm, 2, 2)
-  t = bob.trainer.JFATrainer(10)
+  t = JFATrainer(10)
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
   mb.v = M_v
@@ -222,7 +225,7 @@ def test_ISVTrainAndEnrol():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   mb = ISVBase(ubm,2)
-  t = bob.trainer.ISVTrainer(10, 4.)
+  t = ISVTrainer(10, 4.)
   #t.train(mb, TRAINING_STATS)
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
@@ -263,8 +266,8 @@ def test_JFATrainInitialize():
   ## JFA
   jb = JFABase(ubm, 2, 2)
   # first round
-  rng = bob.core.random.mt19937(0)
-  jt = bob.trainer.JFATrainer(10)
+  rng = old_mt19937(0)
+  jt = JFATrainer(10)
   jt.rng = rng
   jt.initialize(jb, TRAINING_STATS)
   u1 = jb.u
@@ -272,7 +275,7 @@ def test_JFATrainInitialize():
   d1 = jb.d
 
   # second round
-  rng = bob.core.random.mt19937(0)
+  rng = old_mt19937(0)
   jt.rng = rng
   jt.initialize(jb, TRAINING_STATS)
   u2 = jb.u
@@ -296,15 +299,15 @@ def test_ISVTrainInitialize():
   ## ISV
   ib = ISVBase(ubm, 2)
   # first round
-  rng = bob.core.random.mt19937(0)
-  it = bob.trainer.ISVTrainer(10)
+  rng = old_mt19937(0)
+  it = ISVTrainer(10)
   it.rng = rng
   it.initialize(ib, TRAINING_STATS)
   u1 = ib.u
   d1 = ib.d
 
   # second round
-  rng = bob.core.random.mt19937(0)
+  rng = old_mt19937(0)
   it.rng = rng
   it.initialize(ib, TRAINING_STATS)
   u2 = ib.u

@@ -16,6 +16,8 @@ import xbob.io.base
 
 from . import Gaussian
 
+from . import HDF5File as OldHDF5File
+
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon)
 
@@ -47,8 +49,8 @@ def test_GaussianMachine():
 
   # Save and read from file
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  g.save(xbob.io.base.HDF5File(filename, 'w'))
-  g_loaded = Gaussian(xbob.io.base.HDF5File(filename))
+  g.save(OldHDF5File(filename, 'w'))
+  g_loaded = Gaussian(OldHDF5File(filename))
   assert g == g_loaded
   assert (g != g_loaded ) is False
   assert g.is_similar_to(g_loaded)
