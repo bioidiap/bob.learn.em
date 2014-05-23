@@ -2,17 +2,15 @@
 # vim: set fileencoding=utf-8 :
 # Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
 #
-# Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
+# Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 """Tests the WienerTrainer
 """
 
-import os, sys
-import unittest
-import math
-import bob
-import numpy, numpy.random
-import tempfile
+import numpy
+import xbob.sp
+
+from . import WienerMachine, WienerTrainer
 
 def train_wiener_ps(training_set):
 
@@ -24,7 +22,7 @@ def train_wiener_ps(training_set):
 
   for n in range(n_samples):
     sample = (training_set[n,:,:]).astype(numpy.complex128)
-    training_fftabs[n,:,:] = numpy.absolute(bob.sp.fft(sample))
+    training_fftabs[n,:,:] = numpy.absolute(xbob.sp.fft(sample))
 
   mean = numpy.mean(training_fftabs, axis=0)
 
@@ -37,42 +35,39 @@ def train_wiener_ps(training_set):
   return var_ps
 
 
-class WienerTrainerTest(unittest.TestCase):
-  """Performs various WienerTrainer tests."""
+def test_initialization():
 
-  def test01_initialization(self):
-
-    # Constructors and comparison operators
-    t1 = bob.trainer.WienerTrainer()
-    t2 = bob.trainer.WienerTrainer()
-    t3 = bob.trainer.WienerTrainer(t2)
-    t4 = t3
-    self.assertTrue( t1 == t2)
-    self.assertFalse( t1 != t2)
-    self.assertTrue( t1.is_similar_to(t2) )
-    self.assertTrue( t1 == t3)
-    self.assertFalse( t1 != t3)
-    self.assertTrue( t1.is_similar_to(t3) )
-    self.assertTrue( t1 == t4)
-    self.assertFalse( t1 != t4)
-    self.assertTrue( t1.is_similar_to(t4) )
+  # Constructors and comparison operators
+  t1 = WienerTrainer()
+  t2 = WienerTrainer()
+  t3 = WienerTrainer(t2)
+  t4 = t3
+  assert t1 == t2
+  assert (t1 != t2) is False
+  assert t1.is_similar_to(t2)
+  assert t1 == t3
+  assert (t1 != t3) is False
+  assert t1.is_similar_to(t3)
+  assert t1 == t4
+  assert (t1 != t4) is False
+  assert t1.is_similar_to(t4)
 
 
-  def test02_train(self):
+def test_train():
 
-    n_samples = 20
-    height = 5
-    width = 6
-    training_set = 0.2 + numpy.fabs(numpy.random.randn(n_samples, height, width))
+  n_samples = 20
+  height = 5
+  width = 6
+  training_set = 0.2 + numpy.fabs(numpy.random.randn(n_samples, height, width))
 
-    # Python implementation
-    var_ps = train_wiener_ps(training_set)
-    # Bob C++ implementation (variant 1) + comparison against python one
-    t = bob.trainer.WienerTrainer()
-    m1 = t.train(training_set)
-    self.assertTrue( numpy.allclose(var_ps, m1.ps) )
-    # Bob C++ implementation (variant 2) + comparison against python one
-    m2 = bob.machine.WienerMachine(height, width, 0.)
-    t.train(m2, training_set)
-    self.assertTrue( numpy.allclose(var_ps, m2.ps) )
+  # Python implementation
+  var_ps = train_wiener_ps(training_set)
+  # Bob C++ implementation (variant 1) + comparison against python one
+  t = WienerTrainer()
+  m1 = t.train(training_set)
+  assert numpy.allclose(var_ps, m1.ps)
+  # Bob C++ implementation (variant 2) + comparison against python one
+  m2 = WienerMachine(height, width, 0.)
+  t.train(m2, training_set)
+  assert numpy.allclose(var_ps, m2.ps)
 

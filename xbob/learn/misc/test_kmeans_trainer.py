@@ -3,23 +3,15 @@
 # Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
 # Fri Jan 18 12:46:00 2013 +0200
 #
-# Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
+# Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 """Test K-Means algorithm
 """
-import os, sys
-import unittest
-import bob
-import random
 import numpy
-import pkg_resources
 
-def F(f, module=None):
-  """Returns the test file on the "data" subdirectory"""
-  if module is None:
-    return pkg_resources.resource_filename(__name__, os.path.join('data', f))
-  return pkg_resources.resource_filename('bob.%s.test' % module, 
-      os.path.join('data', f))
+import xbob.core
+import xbob.io
+from xbob.io.base.test_utils import datafile
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
@@ -27,8 +19,8 @@ def equals(x, y, epsilon):
 def kmeans_plus_plus(machine, data, seed):
   """Python implementation of K-Means++ (initialization)"""
   n_data = data.shape[0]
-  mt = bob.core.random.mt19937(seed)
-  rng = bob.core.random.uniform_int32(0, n_data-1)
+  mt = xbob.core.random.mt19937(seed)
+  rng = xbob.core.random.uniform_int32(0, n_data-1)
   index = rng(mt)
   machine.set_mean(0, data[index,:])
   weights = numpy.zeros(shape=(n_data,), dtype=numpy.float64)
@@ -42,13 +34,13 @@ def kmeans_plus_plus(machine, data, seed):
       weights[s] = w_cur
     weights *= weights
     weights /= numpy.sum(weights)
-    rng_d = bob.core.random.discrete_int32(weights)
+    rng_d = xbob.core.random.discrete_int32(weights)
     index = rng_d(mt)
     machine.set_mean(m, data[index,:])
 
 
 def NormalizeStdArray(path):
-  array = bob.io.load(path).astype('float64')
+  array = xbob.io.base.load(path).astype('float64')
   std = array.std(axis=0)
   return (array/std, std)
 
@@ -65,123 +57,119 @@ def flipRows(array):
   else:
     raise Exception('Input type not supportd by flipRows')
 
-class KMeansTest(unittest.TestCase):
-  """Performs various trainer tests."""
-  
-  if hasattr(bob.trainer.KMeansTrainer, 'KMEANS_PLUS_PLUS'):
-    def test00_kmeans_plus_plus(self):
+if hasattr(bob.trainer.KMeansTrainer, 'KMEANS_PLUS_PLUS'):
+  def test_kmeans_plus_plus():
 
-      # Tests the K-Means++ initialization
-      dim_c = 5
-      dim_d = 7
-      n_samples = 150
-      data = numpy.random.randn(n_samples,dim_d)
-      seed = 0
-      
-      # C++ implementation
-      machine = bob.machine.KMeansMachine(dim_c, dim_d)
-      trainer = bob.trainer.KMeansTrainer()
-      trainer.rng = bob.core.random.mt19937(seed)
-      trainer.initialization_method = bob.trainer.KMeansTrainer.KMEANS_PLUS_PLUS
-      trainer.initialize(machine, data)
-
-      # Python implementation
-      py_machine = bob.machine.KMeansMachine(dim_c, dim_d)
-      kmeans_plus_plus(py_machine, data, seed)
-      self.assertTrue(equals(machine.means, py_machine.means, 1e-8))
-
-  def test01_kmeans_noduplicate(self):
-    # Data/dimensions
-    dim_c = 2
-    dim_d = 3
+    # Tests the K-Means++ initialization
+    dim_c = 5
+    dim_d = 7
+    n_samples = 150
+    data = numpy.random.randn(n_samples,dim_d)
     seed = 0
-    data = numpy.array([[1,2,3],[1,2,3],[1,2,3],[4,5,6.]])
-    # Defines machine and trainer
+
+    # C++ implementation
     machine = bob.machine.KMeansMachine(dim_c, dim_d)
     trainer = bob.trainer.KMeansTrainer()
-    trainer.rng = bob.core.random.mt19937(seed)
-    trainer.initialization_method = bob.trainer.KMeansTrainer.RANDOM_NO_DUPLICATE
+    trainer.rng = xbob.core.random.mt19937(seed)
+    trainer.initialization_method = bob.trainer.KMeansTrainer.KMEANS_PLUS_PLUS
     trainer.initialize(machine, data)
-    # Makes sure that the two initial mean vectors selected are different
-    self.assertFalse(equals(machine.get_mean(0), machine.get_mean(1), 1e-8))
- 
-  def test02_kmeans_a(self):
 
-    # Trains a KMeansMachine
-    # This files contains draws from two 1D Gaussian distributions:
-    #   * 100 samples from N(-10,1)
-    #   * 100 samples from N(10,1)
-    data = bob.io.load(F("samplesFrom2G_f64.hdf5"))
+    # Python implementation
+    py_machine = bob.machine.KMeansMachine(dim_c, dim_d)
+    kmeans_plus_plus(py_machine, data, seed)
+    assert equals(machine.means, py_machine.means, 1e-8)
 
-    machine = bob.machine.KMeansMachine(2, 1)
+def test_kmeans_noduplicate():
+  # Data/dimensions
+  dim_c = 2
+  dim_d = 3
+  seed = 0
+  data = numpy.array([[1,2,3],[1,2,3],[1,2,3],[4,5,6.]])
+  # Defines machine and trainer
+  machine = bob.machine.KMeansMachine(dim_c, dim_d)
+  trainer = bob.trainer.KMeansTrainer()
+  trainer.rng = xbob.core.random.mt19937(seed)
+  trainer.initialization_method = bob.trainer.KMeansTrainer.RANDOM_NO_DUPLICATE
+  trainer.initialize(machine, data)
+  # Makes sure that the two initial mean vectors selected are different
+  assert (equals(machine.get_mean(0), machine.get_mean(1), 1e-8)) is False
 
-    trainer = bob.trainer.KMeansTrainer()
-    trainer.train(machine, data)
+def test_kmeans_a():
 
-    [variances, weights] = machine.get_variances_and_weights_for_each_cluster(data)
-    variances_b = numpy.ndarray(shape=(2,1), dtype=numpy.float64)
-    weights_b = numpy.ndarray(shape=(2,), dtype=numpy.float64)
-    machine.__get_variances_and_weights_for_each_cluster_init__(variances_b, weights_b)
-    machine.__get_variances_and_weights_for_each_cluster_acc__(data, variances_b, weights_b)
-    machine.__get_variances_and_weights_for_each_cluster_fin__(variances_b, weights_b)
-    m1 = machine.get_mean(0)
-    m2 = machine.get_mean(1)
+  # Trains a KMeansMachine
+  # This files contains draws from two 1D Gaussian distributions:
+  #   * 100 samples from N(-10,1)
+  #   * 100 samples from N(10,1)
+  data = xbob.io.base.load(datafile("samplesFrom2G_f64.hdf5", __name__))
 
-    # Check means [-10,10] / variances [1,1] / weights [0.5,0.5]
-    if(m1<m2): means=numpy.array(([m1[0],m2[0]]), 'float64')
-    else: means=numpy.array(([m2[0],m1[0]]), 'float64')
-    self.assertTrue(equals(means, numpy.array([-10.,10.]), 2e-1))
-    self.assertTrue(equals(variances, numpy.array([1.,1.]), 2e-1))
-    self.assertTrue(equals(weights, numpy.array([0.5,0.5]), 1e-3))
+  machine = bob.machine.KMeansMachine(2, 1)
 
-    self.assertTrue(equals(variances, variances_b, 1e-8))
-    self.assertTrue(equals(weights, weights_b, 1e-8))
+  trainer = bob.trainer.KMeansTrainer()
+  trainer.train(machine, data)
 
-  def test03_kmeans_b(self):
+  [variances, weights] = machine.get_variances_and_weights_for_each_cluster(data)
+  variances_b = numpy.ndarray(shape=(2,1), dtype=numpy.float64)
+  weights_b = numpy.ndarray(shape=(2,), dtype=numpy.float64)
+  machine.__get_variances_and_weights_for_each_cluster_init__(variances_b, weights_b)
+  machine.__get_variances_and_weights_for_each_cluster_acc__(data, variances_b, weights_b)
+  machine.__get_variances_and_weights_for_each_cluster_fin__(variances_b, weights_b)
+  m1 = machine.get_mean(0)
+  m2 = machine.get_mean(1)
 
-    # Trains a KMeansMachine
-    (arStd,std) = NormalizeStdArray(F("faithful.torch3.hdf5"))
+  # Check means [-10,10] / variances [1,1] / weights [0.5,0.5]
+  if(m1<m2): means=numpy.array(([m1[0],m2[0]]), 'float64')
+  else: means=numpy.array(([m2[0],m1[0]]), 'float64')
+  assert equals(means, numpy.array([-10.,10.]), 2e-1)
+  assert equals(variances, numpy.array([1.,1.]), 2e-1)
+  assert equals(weights, numpy.array([0.5,0.5]), 1e-3)
 
-    machine = bob.machine.KMeansMachine(2, 2)
+  assert equals(variances, variances_b, 1e-8)
+  assert equals(weights, weights_b, 1e-8)
 
-    trainer = bob.trainer.KMeansTrainer()
-    #trainer.seed = 1337
-    trainer.train(machine, arStd)
+def test_kmeans_b():
 
-    [variances, weights] = machine.get_variances_and_weights_for_each_cluster(arStd)
-    means = machine.means
+  # Trains a KMeansMachine
+  (arStd,std) = NormalizeStdArray(datafile("faithful.torch3.hdf5", __name__))
 
-    multiplyVectorsByFactors(means, std)
-    multiplyVectorsByFactors(variances, std ** 2)
+  machine = bob.machine.KMeansMachine(2, 2)
 
-    gmmWeights = bob.io.load(F('gmm.init_weights.hdf5'))
-    gmmMeans = bob.io.load(F('gmm.init_means.hdf5'))
-    gmmVariances = bob.io.load(F('gmm.init_variances.hdf5'))
+  trainer = bob.trainer.KMeansTrainer()
+  #trainer.seed = 1337
+  trainer.train(machine, arStd)
 
-    if (means[0, 0] < means[1, 0]):
-      means = flipRows(means)
-      variances = flipRows(variances)
-      weights = flipRows(weights)
-   
-    self.assertTrue(equals(means, gmmMeans, 1e-3))
-    self.assertTrue(equals(weights, gmmWeights, 1e-3))
-    self.assertTrue(equals(variances, gmmVariances, 1e-3))
+  [variances, weights] = machine.get_variances_and_weights_for_each_cluster(arStd)
+  means = machine.means
 
-    # Check comparison operators
-    trainer1 = bob.trainer.KMeansTrainer()
-    trainer2 = bob.trainer.KMeansTrainer()
-    trainer1.rng = trainer2.rng
-    self.assertTrue( trainer1 == trainer2)
-    self.assertFalse( trainer1 != trainer2)
-    trainer1.max_iterations = 1337
-    self.assertFalse( trainer1 == trainer2)
-    self.assertTrue( trainer1 != trainer2)
+  multiplyVectorsByFactors(means, std)
+  multiplyVectorsByFactors(variances, std ** 2)
 
-    # Check that there is no duplicate means during initialization
-    machine = bob.machine.KMeansMachine(2, 1)
-    trainer = bob.trainer.KMeansTrainer()
-    trainer.initialization_method = bob.trainer.KMeansTrainer.RANDOM_NO_DUPLICATE
-    data = numpy.array([[1.], [1.], [1.], [1.], [1.], [1.], [2.], [3.]])
-    trainer.train(machine, data)
-    self.assertFalse( numpy.isnan(machine.means).any())
+  gmmWeights = xbob.io.base.load(datafile('gmm.init_weights.hdf5', __name__))
+  gmmMeans = xbob.io.base.load(datafile('gmm.init_means.hdf5', __name__))
+  gmmVariances = xbob.io.base.load(datafile('gmm.init_variances.hdf5', __name__))
 
+  if (means[0, 0] < means[1, 0]):
+    means = flipRows(means)
+    variances = flipRows(variances)
+    weights = flipRows(weights)
+
+  assert equals(means, gmmMeans, 1e-3)
+  assert equals(weights, gmmWeights, 1e-3)
+  assert equals(variances, gmmVariances, 1e-3)
+
+  # Check comparison operators
+  trainer1 = bob.trainer.KMeansTrainer()
+  trainer2 = bob.trainer.KMeansTrainer()
+  trainer1.rng = trainer2.rng
+  assert trainer1 == trainer2
+  assert (trainer1 != trainer2) is False
+  trainer1.max_iterations = 1337
+  assert (trainer1 == trainer2) is False
+  assert trainer1 != trainer2
+
+  # Check that there is no duplicate means during initialization
+  machine = bob.machine.KMeansMachine(2, 1)
+  trainer = bob.trainer.KMeansTrainer()
+  trainer.initialization_method = bob.trainer.KMeansTrainer.RANDOM_NO_DUPLICATE
+  data = numpy.array([[1.], [1.], [1.], [1.], [1.], [1.], [2.], [3.]])
+  trainer.train(machine, data)
+  assert (numpy.isnan(machine.means).any()) is False

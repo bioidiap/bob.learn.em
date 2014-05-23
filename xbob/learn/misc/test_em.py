@@ -7,26 +7,20 @@
 
 """Test trainer package
 """
-import os, sys
 import unittest
-import bob
-import random
 import numpy
-import pkg_resources
 
-def F(f, module=None):
-  """Returns the test file on the "data" subdirectory"""
-  if module is None:
-    return pkg_resources.resource_filename(__name__, os.path.join('data', f))
-  return pkg_resources.resource_filename('bob.%s.test' % module, 
-      os.path.join('data', f))
+import xbob.io.base
+from xbob.io.base.test_utils import datafile
+
+from . import KMeansMachine, GMMMachine
 
 def loadGMM():
   gmm = bob.machine.GMMMachine(2, 2)
 
-  gmm.weights = bob.io.load(F('gmm.init_weights.hdf5'))
-  gmm.means = bob.io.load(F('gmm.init_means.hdf5'))
-  gmm.variances = bob.io.load(F('gmm.init_variances.hdf5'))
+  gmm.weights = xbob.io.base.load(datafile('gmm.init_weights.hdf5', __name__))
+  gmm.means = xbob.io.base.load(datafile('gmm.init_means.hdf5', __name__))
+  gmm.variances = xbob.io.base.load(datafile('gmm.init_variances.hdf5', __name__))
   gmm.variance_threshold = numpy.array([0.001, 0.001], 'float64')
 
   return gmm
@@ -36,215 +30,212 @@ def equals(x, y, epsilon):
 
 class MyTrainer1(bob.trainer.KMeansTrainer):
   """Simple example of python trainer: """
-  def __init__(self):
-    bob.trainer.KMeansTrainer.__init__(self)
-  
+  def __init__():
+    bob.trainer.KMeansTrainer.__init__()
+
   def train(self, machine, data):
     a = numpy.ndarray((2, 2), 'float64')
     a[0, :] = data[1]
     a[1, :] = data[2]
     machine.means = a
 
-class GMMTest(unittest.TestCase):
-  """Performs various trainer tests."""
-      
-  def test01_gmm_ML(self):
+def test_gmm_ML_1():
 
-    # Trains a GMMMachine with ML_GMMTrainer
-    
-    ar = bob.io.load(F("faithful.torch3_f64.hdf5"))
-    
-    gmm = loadGMM()
+  # Trains a GMMMachine with ML_GMMTrainer
 
-    ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True)
-    ml_gmmtrainer.train(gmm, ar)
+  ar = xbob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__))
 
-    #config = bob.io.HDF5File(F('gmm_ML.hdf5", 'w'))
-    #gmm.save(config)
+  gmm = loadGMM()
 
-    gmm_ref = bob.machine.GMMMachine(bob.io.HDF5File(F('gmm_ML.hdf5')))
-    gmm_ref_32bit_debug = bob.machine.GMMMachine(bob.io.HDF5File(F('gmm_ML_32bit_debug.hdf5')))
-    gmm_ref_32bit_release = bob.machine.GMMMachine(bob.io.HDF5File(F('gmm_ML_32bit_release.hdf5')))
+  ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True)
+  ml_gmmtrainer.train(gmm, ar)
 
-    self.assertTrue((gmm == gmm_ref) or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_debug))
+  #config = xbob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
+  #gmm.save(config)
 
-  def test02_gmm_ML(self):
+  gmm_ref = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML.hdf5', __name__)))
+  gmm_ref_32bit_debug = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__)))
+  gmm_ref_32bit_release = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__)))
 
-    # Trains a GMMMachine with ML_GMMTrainer; compares to an old reference
-   
-    ar = bob.io.load(F('dataNormalized.hdf5')) 
+  assert (gmm == gmm_ref) or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_debug)
 
-    # Initialize GMMMachine
-    gmm = bob.machine.GMMMachine(5, 45)
-    gmm.means = bob.io.load(F('meansAfterKMeans.hdf5')).astype('float64')
-    gmm.variances = bob.io.load(F('variancesAfterKMeans.hdf5')).astype('float64')
-    gmm.weights = numpy.exp(bob.io.load(F('weightsAfterKMeans.hdf5')).astype('float64'))
-   
-    threshold = 0.001
-    gmm.set_variance_thresholds(threshold)
-    
-    # Initialize ML Trainer
-    prior = 0.001
-    max_iter_gmm = 25
-    accuracy = 0.00001
-    ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True, prior)
-    ml_gmmtrainer.max_iterations = max_iter_gmm
-    ml_gmmtrainer.convergence_threshold = accuracy
+def test_gmm_ML_2():
 
-    # Run ML
-    ml_gmmtrainer.train(gmm, ar)
+  # Trains a GMMMachine with ML_GMMTrainer; compares to an old reference
 
-    # Test results
-    # Load torch3vision reference
-    meansML_ref = bob.io.load(F('meansAfterML.hdf5'))
-    variancesML_ref = bob.io.load(F('variancesAfterML.hdf5'))
-    weightsML_ref = bob.io.load(F('weightsAfterML.hdf5'))
+  ar = xbob.io.base.load(datafile('dataNormalized.hdf5', __name__))
 
-    # Compare to current results
-    self.assertTrue(equals(gmm.means, meansML_ref, 3e-3))
-    self.assertTrue(equals(gmm.variances, variancesML_ref, 3e-3))
-    self.assertTrue(equals(gmm.weights, weightsML_ref, 1e-4))
-    
-  def test03_gmm_MAP(self):
+  # Initialize GMMMachine
+  gmm = bob.machine.GMMMachine(5, 45)
+  gmm.means = xbob.io.base.load(datafile('meansAfterKMeans.hdf5', __name__)).astype('float64')
+  gmm.variances = xbob.io.base.load(datafile('variancesAfterKMeans.hdf5', __name__)).astype('float64')
+  gmm.weights = numpy.exp(xbob.io.base.load(datafile('weightsAfterKMeans.hdf5', __name__)).astype('float64'))
 
-    # Train a GMMMachine with MAP_GMMTrainer
-    
-    ar = bob.io.load(F('faithful.torch3_f64.hdf5'))
-    
-    gmm = bob.machine.GMMMachine(bob.io.HDF5File(F("gmm_ML.hdf5")))
-    gmmprior = bob.machine.GMMMachine(bob.io.HDF5File(F("gmm_ML.hdf5")))
-    
-    map_gmmtrainer = bob.trainer.MAP_GMMTrainer(16)
-    map_gmmtrainer.set_prior_gmm(gmmprior)
-    map_gmmtrainer.train(gmm, ar)
+  threshold = 0.001
+  gmm.set_variance_thresholds(threshold)
 
-    #config = bob.io.HDF5File(F('gmm_MAP.hdf5", 'w'))
-    #gmm.save(config)
-    
-    gmm_ref = bob.machine.GMMMachine(bob.io.HDF5File(F('gmm_MAP.hdf5')))
-    #gmm_ref_32bit_release = bob.machine.GMMMachine(bob.io.HDF5File(F('gmm_MAP_32bit_release.hdf5')))
+  # Initialize ML Trainer
+  prior = 0.001
+  max_iter_gmm = 25
+  accuracy = 0.00001
+  ml_gmmtrainer = bob.trainer.ML_GMMTrainer(True, True, True, prior)
+  ml_gmmtrainer.max_iterations = max_iter_gmm
+  ml_gmmtrainer.convergence_threshold = accuracy
 
-    self.assertTrue((equals(gmm.means,gmm_ref.means,1e-3) and equals(gmm.variances,gmm_ref.variances,1e-3) and equals(gmm.weights,gmm_ref.weights,1e-3)))
-    
-  def test04_gmm_MAP(self):
+  # Run ML
+  ml_gmmtrainer.train(gmm, ar)
 
-    # Train a GMMMachine with MAP_GMMTrainer and compare with matlab reference
+  # Test results
+  # Load torch3vision reference
+  meansML_ref = xbob.io.base.load(datafile('meansAfterML.hdf5', __name__))
+  variancesML_ref = xbob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
+  weightsML_ref = xbob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
 
-    map_adapt = bob.trainer.MAP_GMMTrainer(4., True, False, False, 0.)
-    data = bob.io.load(F('data.hdf5', 'machine'))
-    data = data.reshape((1, data.shape[0])) # make a 2D array out of it
-    means = bob.io.load(F('means.hdf5', 'machine'))
-    variances = bob.io.load(F('variances.hdf5', 'machine'))
-    weights = bob.io.load(F('weights.hdf5', 'machine'))
+  # Compare to current results
+  assert equals(gmm.means, meansML_ref, 3e-3)
+  assert equals(gmm.variances, variancesML_ref, 3e-3)
+  assert equals(gmm.weights, weightsML_ref, 1e-4)
 
-    gmm = bob.machine.GMMMachine(2,50)
-    gmm.means = means
-    gmm.variances = variances
-    gmm.weights = weights
+def test_gmm_MAP_1():
 
-    map_adapt.set_prior_gmm(gmm)
+  # Train a GMMMachine with MAP_GMMTrainer
 
-    gmm_adapted = bob.machine.GMMMachine(2,50)
-    gmm_adapted.means = means
-    gmm_adapted.variances = variances
-    gmm_adapted.weights = weights
+  ar = xbob.io.base.load(datafile('faithful.torch3_f64.hdf5', __name__))
 
-    map_adapt.max_iterations = 1
-    print(data.shape)
-    map_adapt.train(gmm_adapted, data)
+  gmm = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
+  gmmprior = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
 
-    new_means = bob.io.load(F('new_adapted_mean.hdf5'))
+  map_gmmtrainer = bob.trainer.MAP_GMMTrainer(16)
+  map_gmmtrainer.set_prior_gmm(gmmprior)
+  map_gmmtrainer.train(gmm, ar)
 
-    # Compare to matlab reference
-    self.assertTrue(equals(new_means[0,:], gmm_adapted.means[:,0], 1e-4))
-    self.assertTrue(equals(new_means[1,:], gmm_adapted.means[:,1], 1e-4))
-   
-  def test05_gmm_MAP(self):
-    
-    # Train a GMMMachine with MAP_GMMTrainer; compares to old reference
-   
-    ar = bob.io.load(F('dataforMAP.hdf5')) 
+  #config = xbob.io.base.HDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
+  #gmm.save(config)
 
-    # Initialize GMMMachine
-    n_gaussians = 5
-    n_inputs = 45
-    prior_gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
-    prior_gmm.means = bob.io.load(F('meansAfterML.hdf5'))
-    prior_gmm.variances = bob.io.load(F('variancesAfterML.hdf5'))
-    prior_gmm.weights = bob.io.load(F('weightsAfterML.hdf5'))
-  
-    threshold = 0.001
-    prior_gmm.set_variance_thresholds(threshold)
-    
-    # Initialize MAP Trainer
-    relevance_factor = 0.1
-    prior = 0.001
-    max_iter_gmm = 1
-    accuracy = 0.00001
-    map_factor = 0.5
-    map_gmmtrainer = bob.trainer.MAP_GMMTrainer(relevance_factor, True, False, False, prior)
-    map_gmmtrainer.max_iterations = max_iter_gmm
-    map_gmmtrainer.convergence_threshold = accuracy
-    map_gmmtrainer.set_prior_gmm(prior_gmm) 
-    map_gmmtrainer.set_t3_map(map_factor); 
+  gmm_ref = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_MAP.hdf5', __name__)))
+  #gmm_ref_32bit_release = bob.machine.GMMMachine(xbob.io.base.HDF5File(datafile('gmm_MAP_32bit_release.hdf5', __name__)))
 
-    gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
-    gmm.set_variance_thresholds(threshold)
+  assert (equals(gmm.means,gmm_ref.means,1e-3) and equals(gmm.variances,gmm_ref.variances,1e-3) and equals(gmm.weights,gmm_ref.weights,1e-3))
 
-    # Train
-    map_gmmtrainer.train(gmm, ar)
- 
-    # Test results
-    # Load torch3vision reference
-    meansMAP_ref = bob.io.load(F('meansAfterMAP.hdf5'))
-    variancesMAP_ref = bob.io.load(F('variancesAfterMAP.hdf5'))
-    weightsMAP_ref = bob.io.load(F('weightsAfterMAP.hdf5'))
+def test_gmm_MAP_2():
 
-    # Compare to current results
-    # Gaps are quite large. This might be explained by the fact that there is no 
-    # adaptation of a given Gaussian in torch3 when the corresponding responsibilities
-    # are below the responsibilities threshold
-    self.assertTrue(equals(gmm.means, meansMAP_ref, 2e-1))
-    self.assertTrue(equals(gmm.variances, variancesMAP_ref, 1e-4))
-    self.assertTrue(equals(gmm.weights, weightsMAP_ref, 1e-4))
+  # Train a GMMMachine with MAP_GMMTrainer and compare with matlab reference
 
-  def test06_gmm_test(self):
+  map_adapt = bob.trainer.MAP_GMMTrainer(4., True, False, False, 0.)
+  data = xbob.io.base.load(datafile('data.hdf5', 'machine', __name__))
+  data = data.reshape((1, data.shape[0])) # make a 2D array out of it
+  means = xbob.io.base.load(datafile('means.hdf5', 'machine', __name__))
+  variances = xbob.io.base.load(datafile('variances.hdf5', 'machine', __name__))
+  weights = xbob.io.base.load(datafile('weights.hdf5', 'machine', __name__))
 
-    # Tests a GMMMachine by computing scores against a model and compare to 
-    # an old reference
-   
-    ar = bob.io.load(F('dataforMAP.hdf5')) 
+  gmm = bob.machine.GMMMachine(2,50)
+  gmm.means = means
+  gmm.variances = variances
+  gmm.weights = weights
 
-    # Initialize GMMMachine
-    n_gaussians = 5
-    n_inputs = 45
-    gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
-    gmm.means = bob.io.load(F('meansAfterML.hdf5'))
-    gmm.variances = bob.io.load(F('variancesAfterML.hdf5'))
-    gmm.weights = bob.io.load(F('weightsAfterML.hdf5'))
-  
-    threshold = 0.001
-    gmm.set_variance_thresholds(threshold)
-    
-    # Test against the model
-    score_mean_ref = -1.50379e+06
-    score = 0.
-    for v in ar: score += gmm.forward(v)
-    score /= len(ar)
-  
-    # Compare current results to torch3vision
-    self.assertTrue(abs(score-score_mean_ref)/score_mean_ref<1e-4)
- 
-  def test07_custom_trainer(self):
+  map_adapt.set_prior_gmm(gmm)
 
-    # Custom python trainer
-    
-    ar = bob.io.load(F("faithful.torch3_f64.hdf5"))
-    
-    mytrainer = MyTrainer1()
+  gmm_adapted = bob.machine.GMMMachine(2,50)
+  gmm_adapted.means = means
+  gmm_adapted.variances = variances
+  gmm_adapted.weights = weights
 
-    machine = bob.machine.KMeansMachine(2, 2)
-    mytrainer.train(machine, ar)
-    
-    for i in range(0, 2):
-      self.assertTrue((ar[i+1] == machine.means[i, :]).all())
+  map_adapt.max_iterations = 1
+  print(data.shape)
+  map_adapt.train(gmm_adapted, data)
+
+  new_means = xbob.io.base.load(datafile('new_adapted_mean.hdf5', __name__))
+
+  # Compare to matlab reference
+  assert equals(new_means[0,:], gmm_adapted.means[:,0], 1e-4)
+  assert equals(new_means[1,:], gmm_adapted.means[:,1], 1e-4)
+
+def test_gmm_MAP_3():
+
+  # Train a GMMMachine with MAP_GMMTrainer; compares to old reference
+
+  ar = xbob.io.base.load(datafile('dataforMAP.hdf5', __name__))
+
+  # Initialize GMMMachine
+  n_gaussians = 5
+  n_inputs = 45
+  prior_gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  prior_gmm.means = xbob.io.base.load(datafile('meansAfterML.hdf5', __name__))
+  prior_gmm.variances = xbob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
+  prior_gmm.weights = xbob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
+
+  threshold = 0.001
+  prior_gmm.set_variance_thresholds(threshold)
+
+  # Initialize MAP Trainer
+  relevance_factor = 0.1
+  prior = 0.001
+  max_iter_gmm = 1
+  accuracy = 0.00001
+  map_factor = 0.5
+  map_gmmtrainer = bob.trainer.MAP_GMMTrainer(relevance_factor, True, False, False, prior)
+  map_gmmtrainer.max_iterations = max_iter_gmm
+  map_gmmtrainer.convergence_threshold = accuracy
+  map_gmmtrainer.set_prior_gmm(prior_gmm)
+  map_gmmtrainer.set_t3_map(map_factor);
+
+  gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  gmm.set_variance_thresholds(threshold)
+
+  # Train
+  map_gmmtrainer.train(gmm, ar)
+
+  # Test results
+  # Load torch3vision reference
+  meansMAP_ref = xbob.io.base.load(datafile('meansAfterMAP.hdf5', __name__))
+  variancesMAP_ref = xbob.io.base.load(datafile('variancesAfterMAP.hdf5', __name__))
+  weightsMAP_ref = xbob.io.base.load(datafile('weightsAfterMAP.hdf5', __name__))
+
+  # Compare to current results
+  # Gaps are quite large. This might be explained by the fact that there is no
+  # adaptation of a given Gaussian in torch3 when the corresponding responsibilities
+  # are below the responsibilities threshold
+  assert equals(gmm.means, meansMAP_ref, 2e-1)
+  assert equals(gmm.variances, variancesMAP_ref, 1e-4)
+  assert equals(gmm.weights, weightsMAP_ref, 1e-4)
+
+def test_gmm_test():
+
+  # Tests a GMMMachine by computing scores against a model and compare to
+  # an old reference
+
+  ar = xbob.io.base.load(datafile('dataforMAP.hdf5', __name__))
+
+  # Initialize GMMMachine
+  n_gaussians = 5
+  n_inputs = 45
+  gmm = bob.machine.GMMMachine(n_gaussians, n_inputs)
+  gmm.means = xbob.io.base.load(datafile('meansAfterML.hdf5', __name__))
+  gmm.variances = xbob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
+  gmm.weights = xbob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
+
+  threshold = 0.001
+  gmm.set_variance_thresholds(threshold)
+
+  # Test against the model
+  score_mean_ref = -1.50379e+06
+  score = 0.
+  for v in ar: score += gmm.forward(v)
+  score /= len(ar)
+
+  # Compare current results to torch3vision
+  assert abs(score-score_mean_ref)/score_mean_ref<1e-4
+
+def test_custom_trainer():
+
+  # Custom python trainer
+
+  ar = xbob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__))
+
+  mytrainer = MyTrainer1()
+
+  machine = bob.machine.KMeansMachine(2, 2)
+  mytrainer.train(machine, ar)
+
+  for i in range(0, 2):
+    assert (ar[i+1] == machine.means[i, :]).all()

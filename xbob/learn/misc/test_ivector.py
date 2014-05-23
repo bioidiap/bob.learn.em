@@ -3,14 +3,17 @@
 # Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
 # Mon Apr 2 11:19:00 2013 +0200
 #
-# Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
+# Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 
 """Tests the I-Vector machine
 """
 
-import unittest
-import bob, numpy, numpy.linalg, numpy.random
+import numpy
+import numpy.linalg
+import numpy.random
+
+from . import GMMMachine, GMMStats, IVectorMachine
 
 
 ### Test class inspired by an implementation of Chris McCool
@@ -53,7 +56,7 @@ class IVectorMachinePy():
 
   def get_ubm(self):
     return self.m_ubm
- 
+
   def set_t(self, t):
     # @warning: no dimensions check
     self.m_t = t
@@ -62,7 +65,7 @@ class IVectorMachinePy():
 
   def get_t(self):
     return self.m_t
-    
+
   def set_sigma(self, sigma):
     # @warning: no dimensions check
     self.m_sigma = sigma
@@ -71,7 +74,7 @@ class IVectorMachinePy():
 
   def get_sigma(self):
     return self.m_sigma
-  
+
 
   def _get_TtSigmaInv_Fnorm(self, N, F):
     # Initialization
@@ -94,12 +97,12 @@ class IVectorMachinePy():
     dim_c = self.m_ubm.dim_c
     dim_d = self.m_ubm.dim_d
 
-    TtSigmaInvNT = numpy.eye(self.m_dim_t, dtype=numpy.float64) 
+    TtSigmaInvNT = numpy.eye(self.m_dim_t, dtype=numpy.float64)
     for c in range(dim_c):
       TtSigmaInvNT = TtSigmaInvNT + self.m_cache_TtSigmaInvT[c] * N[c]
 
     return TtSigmaInvNT
- 
+
   def forward(self, gmmstats):
     if self.m_ubm and not (self.m_t == None) and not (self.m_sigma == None):
       N = gmmstats.n
@@ -111,46 +114,43 @@ class IVectorMachinePy():
       return numpy.linalg.solve(TtSigmaInvNT, TtSigmaInv_Fnorm)
 
 
+def test_machine():
 
-class IVectorTests(unittest.TestCase):
+  # Ubm
+  ubm = GMMMachine(2,3)
+  ubm.weights = numpy.array([0.4,0.6])
+  ubm.means = numpy.array([[1.,7,4],[4,5,3]])
+  ubm.variances = numpy.array([[0.5,1.,1.5],[1.,1.5,2.]])
 
-  def test01_machine(self):
-    # Ubm
-    ubm = bob.machine.GMMMachine(2,3)
-    ubm.weights = numpy.array([0.4,0.6])
-    ubm.means = numpy.array([[1.,7,4],[4,5,3]])
-    ubm.variances = numpy.array([[0.5,1.,1.5],[1.,1.5,2.]])
+  # Defines GMMStats
+  gs = GMMStats(2,3)
+  log_likelihood = -3.
+  T = 1
+  n = numpy.array([0.4, 0.6], numpy.float64)
+  sumpx = numpy.array([[1., 2., 3.], [2., 4., 3.]], numpy.float64)
+  sumpxx = numpy.array([[10., 20., 30.], [40., 50., 60.]], numpy.float64)
+  gs.log_likelihood = log_likelihood
+  gs.t = T
+  gs.n = n
+  gs.sum_px = sumpx
+  gs.sum_pxx = sumpxx
 
-    # Defines GMMStats
-    gs = bob.machine.GMMStats(2,3)
-    log_likelihood = -3. 
-    T = 1 
-    n = numpy.array([0.4, 0.6], numpy.float64)
-    sumpx = numpy.array([[1., 2., 3.], [2., 4., 3.]], numpy.float64)
-    sumpxx = numpy.array([[10., 20., 30.], [40., 50., 60.]], numpy.float64)
-    gs.log_likelihood = log_likelihood
-    gs.t = T 
-    gs.n = n 
-    gs.sum_px = sumpx
-    gs.sum_pxx = sumpxx
+  # IVector (Python)
+  m = IVectorMachinePy(ubm, 2)
+  t = numpy.array([[1.,2],[4,1],[0,3],[5,8],[7,10],[11,1]])
+  m.set_t(t)
+  sigma = numpy.array([1.,2.,1.,3.,2.,4.])
+  m.set_sigma(sigma)
 
-    # IVector (Python)
-    m = IVectorMachinePy(ubm, 2)
-    t = numpy.array([[1.,2],[4,1],[0,3],[5,8],[7,10],[11,1]])
-    m.set_t(t)
-    sigma = numpy.array([1.,2.,1.,3.,2.,4.])
-    m.set_sigma(sigma)
+  wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
+  wij = m.forward(gs)
+  assert numpy.allclose(wij_ref, wij, 1e-5)
 
-    wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
-    wij = m.forward(gs)
-    self.assertTrue(numpy.allclose(wij_ref, wij, 1e-5))
+  # IVector (C++)
+  mc = IVectorMachine(ubm, 2)
+  mc.t = t
+  mc.sigma = sigma
 
-    # IVector (C++)
-    mc = bob.machine.IVectorMachine(ubm, 2)
-    mc.t = t
-    mc.sigma = sigma
-
-    wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
-    wij = mc.forward(gs)
-    self.assertTrue(numpy.allclose(wij_ref, wij, 1e-5))
-
+  wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
+  wij = mc.forward(gs)
+  assert numpy.allclose(wij_ref, wij, 1e-5)

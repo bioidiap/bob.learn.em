@@ -5,7 +5,7 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
-#include "ndarray"
+#include "ndarray.h"
 
 #include <bob/machine/KMeansMachine.h>
 

@@ -32,7 +32,9 @@ setup(
     install_requires=[
       'setuptools',
       'xbob.blitz',
+      'xbob.core',
       'xbob.io.base',
+      'xbob.sp',
       ],
 
     namespace_packages=[
@@ -53,7 +55,6 @@ setup(
         [
           "xbob/learn/misc/bic.cpp",
           "xbob/learn/misc/bic_trainer.cpp",
-          "xbob/learn/misc/blitz_numpy.cpp",
           "xbob/learn/misc/empca_trainer.cpp",
           "xbob/learn/misc/gabor.cpp",
           "xbob/learn/misc/gaussian.cpp",
@@ -65,16 +66,21 @@ setup(
           "xbob/learn/misc/jfa_trainer.cpp",
           "xbob/learn/misc/kmeans.cpp",
           "xbob/learn/misc/kmeans_trainer.cpp",
+          "xbob/learn/misc/machine.cpp",
           "xbob/learn/misc/linearscoring.cpp",
-          "xbob/learn/misc/main.cpp",
-          "xbob/learn/misc/ndarray.cpp",
-          "xbob/learn/misc/ndarray_numpy.cpp",
           "xbob/learn/misc/plda.cpp",
           "xbob/learn/misc/plda_trainer.cpp",
-          "xbob/learn/misc/tinyvector.cpp",
           "xbob/learn/misc/wiener.cpp",
           "xbob/learn/misc/wiener_trainer.cpp",
           "xbob/learn/misc/ztnorm.cpp",
+
+          # external requirements as boost::python bindings
+          "xbob/learn/misc/GaborWaveletTransform.cpp",
+          "xbob/learn/misc/blitz_numpy.cpp",
+          "xbob/learn/misc/ndarray.cpp",
+          "xbob/learn/misc/ndarray_numpy.cpp",
+          "xbob/learn/misc/tinyvector.cpp",
+
           "xbob/learn/misc/main.cpp",
         ],
         packages = packages,

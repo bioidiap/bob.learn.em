@@ -13,6 +13,7 @@
 void bind_core_tinyvector();
 void bind_core_ndarray_numpy();
 void bind_core_bz_numpy();
+void bind_ip_gabor_wavelet_transform();
 
 /** machine bindings **/
 void bind_machine_base();
@@ -48,6 +49,7 @@ BOOST_PYTHON_MODULE(_library) {
   bind_core_tinyvector();
   bind_core_ndarray_numpy();
   bind_core_bz_numpy();
+  bind_ip_gabor_wavelet_transform();
 
   /** machine bindings **/
   bind_machine_base();
@@ -64,7 +66,6 @@ BOOST_PYTHON_MODULE(_library) {
   bind_machine_wiener();
 
   /** trainer bindings **/
-
   bind_trainer_gmm();
   bind_trainer_kmeans();
   bind_trainer_jfa();

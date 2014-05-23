@@ -3,15 +3,13 @@
 # Manuel Guenther <Manuel.Guenther@idiap.ch>
 # Thu Jun 14 14:45:06 CEST 2012
 #
-# Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
+# Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 """Test BIC trainer and machine
 """
 
-import os, sys
-import unittest
-import bob
 import numpy
+from . import BICMachine, BICTrainer
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
@@ -43,8 +41,8 @@ class BICTrainerAndMachineTest(unittest.TestCase):
     intra_data, extra_data = self.training_data()
 
     # train BIC machine
-    machine = bob.machine.BICMachine()
-    trainer = bob.trainer.BICTrainer()
+    machine = BICMachine()
+    trainer = BICTrainer()
 
     # train machine with intrapersonal data only
     trainer.train(machine, intra_data, intra_data)
@@ -64,17 +62,17 @@ class BICTrainerAndMachineTest(unittest.TestCase):
     intra_data, extra_data = self.training_data()
 
     # train BIC machine
-    trainer = bob.trainer.BICTrainer(2,2)
+    trainer = BICTrainer(2,2)
 
     # The data are chosen such that the third eigenvalue is zero.
     # Hence, calculating rho (i.e., using the Distance From Feature Space) is impossible
-    machine = bob.machine.BICMachine(True)
+    machine = BICMachine(True)
     def should_raise():
       trainer.train(machine, intra_data, intra_data)
     self.assertRaises(RuntimeError, should_raise)
 
     # So, now without rho...
-    machine = bob.machine.BICMachine(False)
+    machine = BICMachine(False)
 
     # First, train the machine with intrapersonal data only
     trainer.train(machine, intra_data, intra_data)
