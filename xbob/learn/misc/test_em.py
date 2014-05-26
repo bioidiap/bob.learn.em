@@ -145,7 +145,6 @@ def test_gmm_MAP_2():
   gmm_adapted.weights = weights
 
   map_adapt.max_iterations = 1
-  print(data.shape)
   map_adapt.train(gmm_adapted, data)
 
   new_means = xbob.io.base.load(datafile('new_adapted_mean.hdf5', __name__))

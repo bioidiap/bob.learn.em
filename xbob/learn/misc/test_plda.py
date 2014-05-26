@@ -247,7 +247,6 @@ def test_plda_basemachine():
     for jj in range(m.__alpha__.shape[1]):
       absdiff = abs(m.__alpha__[ii,jj]- alpha_ref[ii,jj])
       assert absdiff < 1e-10, 'PLDABase alpha matrix does not match reference at (%d,%d) to 10^-10: |%g-%g| = %g' % (ii, jj, m.__alpha__[ii,jj], alpha_ref[ii,jj], absdiff)
-  print(m.__alpha__ - alpha_ref)
   assert equals(m.__alpha__, alpha_ref, 1e-10)
   assert equals(m.__beta__, beta_ref, 1e-10)
   assert equals(gamma3, gamma3_ref, 1e-10)
