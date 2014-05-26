@@ -8,7 +8,7 @@
 """
 
 import numpy
-import xbob.sp
+import bob.sp
 
 from . import WienerMachine, WienerTrainer
 
@@ -22,7 +22,7 @@ def train_wiener_ps(training_set):
 
   for n in range(n_samples):
     sample = (training_set[n,:,:]).astype(numpy.complex128)
-    training_fftabs[n,:,:] = numpy.absolute(xbob.sp.fft(sample))
+    training_fftabs[n,:,:] = numpy.absolute(bob.sp.fft(sample))
 
   mean = numpy.mean(training_fftabs, axis=0)
 

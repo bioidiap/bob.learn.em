@@ -12,8 +12,8 @@ import numpy
 import tempfile
 import nose.tools
 
-import xbob.sp
-import xbob.io.base
+import bob.sp
+import bob.io.base
 
 from . import WienerMachine
 
@@ -88,10 +88,10 @@ def test_forward():
 
   # Python way
   sample = numpy.random.randn(5,6)
-  sample_fft = xbob.sp.fft(sample.astype(numpy.complex128))
+  sample_fft = bob.sp.fft(sample.astype(numpy.complex128))
   w = m.w
   sample_fft_filtered = sample_fft * m.w
-  sample_filtered_py = numpy.absolute(xbob.sp.ifft(sample_fft_filtered))
+  sample_filtered_py = numpy.absolute(bob.sp.ifft(sample_fft_filtered))
 
   # Bob c++ way
   sample_filtered0 = m.forward(sample)

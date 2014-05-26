@@ -12,8 +12,8 @@ import os
 import numpy
 import tempfile
 
-import xbob.io.base
-from xbob.io.base.test_utils import datafile
+import bob.io.base
+from bob.io.base.test_utils import datafile
 
 from . import GMMStats, GMMMachine
 
@@ -182,7 +182,7 @@ def test_GMMMachine_1():
 def test_GMMMachine_2():
   # Test a GMMMachine (statistics)
 
-  arrayset = xbob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__))
+  arrayset = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__))
   gmm = GMMMachine(2, 2)
   gmm.weights   = numpy.array([0.5, 0.5], 'float64')
   gmm.means     = numpy.array([[3, 70], [4, 72]], 'float64')
@@ -204,11 +204,11 @@ def test_GMMMachine_2():
 def test_GMMMachine_3():
   # Test a GMMMachine (log-likelihood computation)
 
-  data = xbob.io.base.load(datafile('data.hdf5', __name__))
+  data = bob.io.base.load(datafile('data.hdf5', __name__))
   gmm = GMMMachine(2, 50)
-  gmm.weights   = xbob.io.base.load(datafile('weights.hdf5', __name__))
-  gmm.means     = xbob.io.base.load(datafile('means.hdf5', __name__))
-  gmm.variances = xbob.io.base.load(datafile('variances.hdf5', __name__))
+  gmm.weights   = bob.io.base.load(datafile('weights.hdf5', __name__))
+  gmm.means     = bob.io.base.load(datafile('means.hdf5', __name__))
+  gmm.variances = bob.io.base.load(datafile('variances.hdf5', __name__))
 
   # Compare the log-likelihood with the one obtained using Chris Matlab
   # implementation

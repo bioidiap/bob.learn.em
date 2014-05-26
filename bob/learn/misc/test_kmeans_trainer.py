@@ -9,9 +9,9 @@
 """
 import numpy
 
-import xbob.core
-import xbob.io
-from xbob.io.base.test_utils import datafile
+import bob.core
+import bob.io
+from bob.io.base.test_utils import datafile
 
 from . import KMeansMachine, KMeansTrainer
 
@@ -23,8 +23,8 @@ def equals(x, y, epsilon):
 def kmeans_plus_plus(machine, data, seed):
   """Python implementation of K-Means++ (initialization)"""
   n_data = data.shape[0]
-  rng = xbob.core.random.mt19937(seed)
-  u = xbob.core.random.uniform('int32', 0, n_data-1)
+  rng = bob.core.random.mt19937(seed)
+  u = bob.core.random.uniform('int32', 0, n_data-1)
   index = u(rng)
   machine.set_mean(0, data[index,:])
   weights = numpy.zeros(shape=(n_data,), dtype=numpy.float64)
@@ -38,13 +38,13 @@ def kmeans_plus_plus(machine, data, seed):
       weights[s] = w_cur
     weights *= weights
     weights /= numpy.sum(weights)
-    d = xbob.core.random.discrete('int32', weights)
+    d = bob.core.random.discrete('int32', weights)
     index = d(rng)
     machine.set_mean(m, data[index,:])
 
 
 def NormalizeStdArray(path):
-  array = xbob.io.base.load(path).astype('float64')
+  array = bob.io.base.load(path).astype('float64')
   std = array.std(axis=0)
   return (array/std, std)
 
@@ -104,7 +104,7 @@ def test_kmeans_a():
   # This files contains draws from two 1D Gaussian distributions:
   #   * 100 samples from N(-10,1)
   #   * 100 samples from N(10,1)
-  data = xbob.io.base.load(datafile("samplesFrom2G_f64.hdf5", __name__))
+  data = bob.io.base.load(datafile("samplesFrom2G_f64.hdf5", __name__))
 
   machine = KMeansMachine(2, 1)
 
@@ -147,9 +147,9 @@ def test_kmeans_b():
   multiplyVectorsByFactors(means, std)
   multiplyVectorsByFactors(variances, std ** 2)
 
-  gmmWeights = xbob.io.base.load(datafile('gmm.init_weights.hdf5', __name__))
-  gmmMeans = xbob.io.base.load(datafile('gmm.init_means.hdf5', __name__))
-  gmmVariances = xbob.io.base.load(datafile('gmm.init_variances.hdf5', __name__))
+  gmmWeights = bob.io.base.load(datafile('gmm.init_weights.hdf5', __name__))
+  gmmMeans = bob.io.base.load(datafile('gmm.init_means.hdf5', __name__))
+  gmmVariances = bob.io.base.load(datafile('gmm.init_variances.hdf5', __name__))
 
   if (means[0, 0] < means[1, 0]):
     means = flipRows(means)

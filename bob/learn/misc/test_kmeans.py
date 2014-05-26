@@ -12,7 +12,7 @@ import os
 import numpy
 import tempfile
 
-import xbob.io.base
+import bob.io.base
 from . import KMeansMachine
 
 from . import HDF5File as OldHDF5File

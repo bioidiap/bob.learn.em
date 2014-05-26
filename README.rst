@@ -2,16 +2,16 @@
 .. Andre Anjos <andre.anjos@idiap.ch>
 .. Thu 22 May 2014 15:39:03 CEST
 
-.. image:: https://travis-ci.org/bioidiap/xbob.learn.misc.svg?branch=master
-   :target: https://travis-ci.org/bioidiap/xbob.learn.misc
-.. image:: https://coveralls.io/repos/bioidiap/xbob.learn.misc/badge.png
-   :target: https://coveralls.io/r/bioidiap/xbob.learn.misc
-.. image:: http://img.shields.io/github/tag/bioidiap/xbob.learn.misc.png
-   :target: https://github.com/bioidiap/xbob.learn.misc
-.. image:: http://img.shields.io/pypi/v/xbob.learn.misc.png
-   :target: https://pypi.python.org/pypi/xbob.learn.misc
-.. image:: http://img.shields.io/pypi/dm/xbob.learn.misc.png
-   :target: https://pypi.python.org/pypi/xbob.learn.misc
+.. image:: https://travis-ci.org/bioidiap/bob.learn.misc.svg?branch=master
+   :target: https://travis-ci.org/bioidiap/bob.learn.misc
+.. image:: https://coveralls.io/repos/bioidiap/bob.learn.misc/badge.png
+   :target: https://coveralls.io/r/bioidiap/bob.learn.misc
+.. image:: http://img.shields.io/github/tag/bioidiap/bob.learn.misc.png
+   :target: https://github.com/bioidiap/bob.learn.misc
+.. image:: http://img.shields.io/pypi/v/bob.learn.misc.png
+   :target: https://pypi.python.org/pypi/bob.learn.misc
+.. image:: http://img.shields.io/pypi/dm/bob.learn.misc.png
+   :target: https://pypi.python.org/pypi/bob.learn.misc
 
 ========================================================
  Python Bindings for Miscelaneous Machines and Trainers
@@ -42,7 +42,7 @@ Testing
 
 You can run a set of tests using the nose test runner::
 
-  $ nosetests -sv xbob.learn.misc
+  $ nosetests -sv bob.learn.misc
 
 .. warning::
 
@@ -59,7 +59,7 @@ You can run our documentation tests using sphinx itself::
 
 You can test overall test coverage with::
 
-  $ nosetests --with-coverage --cover-package=xbob.learn.misc
+  $ nosetests --with-coverage --cover-package=bob.learn.misc
 
 The ``coverage`` egg must be installed for this to work properly.
 

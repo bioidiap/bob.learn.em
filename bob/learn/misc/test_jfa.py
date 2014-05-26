@@ -13,7 +13,7 @@ import numpy
 import numpy.linalg
 import tempfile
 
-import xbob.io.base
+import bob.io.base
 
 from . import GMMMachine, GMMStats, JFABase, ISVBase, ISVMachine, JFAMachine
 

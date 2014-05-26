@@ -11,8 +11,8 @@
 
 import numpy
 
-from xbob.io.base.test_utils import datafile
-import xbob.io.base
+from bob.io.base.test_utils import datafile
+import bob.io.base
 
 from . import znorm, tnorm, ztnorm
 
@@ -68,13 +68,13 @@ def test_ztnorm_simple():
   assert (abs(scores - ref_scores) < 1e-7).all()
 
 def test_ztnorm_big():
-  my_A = xbob.io.base.load(datafile("ztnorm_eval_eval.hdf5", __name__))
-  my_B = xbob.io.base.load(datafile("ztnorm_znorm_eval.hdf5", __name__))
-  my_C = xbob.io.base.load(datafile("ztnorm_eval_tnorm.hdf5", __name__))
-  my_D = xbob.io.base.load(datafile("ztnorm_znorm_tnorm.hdf5", __name__))
+  my_A = bob.io.base.load(datafile("ztnorm_eval_eval.hdf5", __name__))
+  my_B = bob.io.base.load(datafile("ztnorm_znorm_eval.hdf5", __name__))
+  my_C = bob.io.base.load(datafile("ztnorm_eval_tnorm.hdf5", __name__))
+  my_D = bob.io.base.load(datafile("ztnorm_znorm_tnorm.hdf5", __name__))
 
   # ZT-Norm
-  ref_scores = xbob.io.base.load(datafile("ztnorm_result.hdf5", __name__))
+  ref_scores = bob.io.base.load(datafile("ztnorm_result.hdf5", __name__))
   scores = ztnorm(my_A, my_B, my_C, my_D)
   assert (abs(scores - ref_scores) < 1e-7).all()
 

@@ -15,7 +15,7 @@ import numpy
 import numpy.linalg
 import nose.tools
 
-import xbob.io.base
+import bob.io.base
 
 from . import PLDABase, PLDAMachine
 

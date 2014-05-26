@@ -9,12 +9,12 @@
    import numpy
    numpy.set_printoptions(precision=3, suppress=True)
 
-   import xbob.learn.misc
+   import bob.learn.misc
 
    import os
    import tempfile
    current_directory = os.path.realpath(os.curdir)
-   temp_dir = tempfile.mkdtemp(prefix='xbob_doctest_')
+   temp_dir = tempfile.mkdtemp(prefix='bob_doctest_')
    os.chdir(temp_dir)
 
 ============
@@ -38,12 +38,12 @@ K-means machines
 method which aims to partition a set of observations into :math:`k` clusters.
 The `training` procedure is described further below. Here, we explain only how
 to use the resulting machine. For the sake of example, we create a new
-:py:class:`xbob.learn.misc.KMeansMachine` as follows:
+:py:class:`bob.learn.misc.KMeansMachine` as follows:
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> machine = xbob.learn.misc.KMeansMachine(2,3) # Two clusters with a feature dimensionality of 3
+   >>> machine = bob.learn.misc.KMeansMachine(2,3) # Two clusters with a feature dimensionality of 3
    >>> machine.means = numpy.array([[1,0,0],[0,0,1]], 'float64') # Defines the two clusters
 
 Then, given some input data, it is possible to determine to which cluster the
@@ -60,7 +60,7 @@ data is the closest as well as the min distance.
 Gaussian machines
 =================
 
-The :py:class:`xbob.learn.misc.Gaussian` represents a `multivariate diagonal
+The :py:class:`bob.learn.misc.Gaussian` represents a `multivariate diagonal
 Gaussian (or normal) distribution
 <http://en.wikipedia.org/wiki/Multivariate_normal_distribution>`_. In this
 context, a *diagonal* Gaussian refers to the covariance matrix of the
@@ -68,13 +68,13 @@ distribution being diagonal. When the covariance matrix is diagonal, each
 variable in the distribution is independent of the others.
 
 Objects of this class are normally used as building blocks for more complex
-:py:class:`xbob.learn.misc.GMMMachine` or GMM objects, but can also be used
+:py:class:`bob.learn.misc.GMMMachine` or GMM objects, but can also be used
 individually. Here is how to create one multivariate diagonal Gaussian
 distribution:
 
 .. doctest::
 
-  >>> g = xbob.learn.misc.Gaussian(2) #bi-variate diagonal normal distribution
+  >>> g = bob.learn.misc.Gaussian(2) #bi-variate diagonal normal distribution
   >>> g.mean = numpy.array([0.3, 0.7], 'float64')
   >>> g.mean
   array([ 0.3,  0.7])
@@ -82,7 +82,7 @@ distribution:
   >>> g.variance
   array([ 0.2,  0.1])
 
-Once the :py:class:`xbob.learn.misc.Gaussian` has been set, you can use it to
+Once the :py:class:`bob.learn.misc.Gaussian` has been set, you can use it to
 estimate the log-likelihood of an input feature vector with a matching number
 of dimensions:
 
@@ -91,25 +91,25 @@ of dimensions:
   >>> log_likelihood = g(numpy.array([0.4, 0.4], 'float64'))
 
 As with other machines you can save and re-load machines of this type using
-:py:meth:`xbob.learn.misc.Gaussian.save` and the class constructor
+:py:meth:`bob.learn.misc.Gaussian.save` and the class constructor
 respectively.
 
 Gaussian mixture models
 =======================
 
-The :py:class:`xbob.learn.misc.GMMMachine` represents a Gaussian `mixture model
+The :py:class:`bob.learn.misc.GMMMachine` represents a Gaussian `mixture model
 <http://en.wikipedia.org/wiki/Mixture_model>`_ (GMM), which consists of a
-mixture of weighted :py:class:`xbob.learn.misc.Gaussian`\s.
+mixture of weighted :py:class:`bob.learn.misc.Gaussian`\s.
 
 .. doctest::
 
-  >>> gmm = xbob.learn.misc.GMMMachine(2,3) # Mixture of two diagonal Gaussian of dimension 3
+  >>> gmm = bob.learn.misc.GMMMachine(2,3) # Mixture of two diagonal Gaussian of dimension 3
 
 By default, the diagonal Gaussian distributions of the GMM are initialized with
 zero mean and unit variance, and the weights are identical. This can be updated
-using the :py:attr:`xbob.learn.misc.GMMMachine.means`,
-:py:attr:`xbob.learn.misc.GMMMachine.variances` or
-:py:attr:`xbob.learn.misc.GMMMachine.weights`.
+using the :py:attr:`bob.learn.misc.GMMMachine.means`,
+:py:attr:`bob.learn.misc.GMMMachine.variances` or
+:py:attr:`bob.learn.misc.GMMMachine.weights`.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
@@ -121,7 +121,7 @@ using the :py:attr:`xbob.learn.misc.GMMMachine.means`,
   array([[ 1.,  6.,  2.],
        [ 4.,  3.,  2.]])
 
-Once the :py:class:`xbob.learn.misc.GMMMachine` has been set, you can use it to
+Once the :py:class:`bob.learn.misc.GMMMachine` has been set, you can use it to
 estimate the log-likelihood of an input feature vector with a matching number
 of dimensions:
 
@@ -130,12 +130,12 @@ of dimensions:
   >>> log_likelihood = gmm(numpy.array([5.1, 4.7, -4.9], 'float64'))
 
 As with other machines you can save and re-load machines of this type using
-:py:meth:`xbob.learn.misc.GMMMachine.save` and the class constructor respectively.
+:py:meth:`bob.learn.misc.GMMMachine.save` and the class constructor respectively.
 
 Gaussian mixture models Statistics
 ==================================
 
-The :py:class:`xbob.learn.misc.GMMStats` is a container for the sufficient
+The :py:class:`bob.learn.misc.GMMStats` is a container for the sufficient
 statistics of a GMM distribution.
 
 Given a GMM, the sufficient statistics of a sample can be computed as
@@ -144,7 +144,7 @@ follows:
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> gs = xbob.learn.misc.GMMStats(2,3)
+  >>> gs = bob.learn.misc.GMMStats(2,3)
   >>> sample = numpy.array([0.5, 4.5, 1.5])
   >>> gmm.acc_statistics(sample, gs)
   >>> print(gs) # doctest: +SKIP
@@ -155,7 +155,7 @@ considering the following attributes.
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> gs = xbob.learn.misc.GMMStats(2,3)
+  >>> gs = bob.learn.misc.GMMStats(2,3)
   >>> log_likelihood = -3. # log-likelihood of the accumulated samples
   >>> T = 1 # Number of samples used to accumulate statistics
   >>> n = numpy.array([0.4, 0.6], 'float64') # zeroth order stats
@@ -176,19 +176,19 @@ a within-class subspace :math:`U`, a between-class subspace :math:`V`, and a
 subspace for the residuals :math:`D` to capture and suppress a significant
 portion of between-class variation.
 
-An instance of :py:class:`xbob.learn.misc.JFABase` carries information about
+An instance of :py:class:`bob.learn.misc.JFABase` carries information about
 the matrices :math:`U`, :math:`V` and :math:`D`, which can be shared between
 several classes.  In contrast, after the enrolment phase, an instance of
-:py:class:`xbob.learn.misc.JFAMachine` carries class-specific information about
+:py:class:`bob.learn.misc.JFAMachine` carries class-specific information about
 the latent variables :math:`y` and :math:`z`.
 
-An instance of :py:class:`xbob.learn.misc.JFABase` can be initialized as
+An instance of :py:class:`bob.learn.misc.JFABase` can be initialized as
 follows, given an existing GMM:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> jfa_base = xbob.learn.misc.JFABase(gmm,2,2) # dimensions of U and V are both equal to 2
+  >>> jfa_base = bob.learn.misc.JFABase(gmm,2,2) # dimensions of U and V are both equal to 2
   >>> U = numpy.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], 'float64')
   >>> V = numpy.array([[6, 5], [4, 3], [2, 1], [1, 2], [3, 4], [5, 6]], 'float64')
   >>> d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
@@ -196,33 +196,33 @@ follows, given an existing GMM:
   >>> jfa_base.v = V
   >>> jfa_base.d = d
 
-Next, this :py:class:`xbob.learn.misc.JFABase` can be shared by several
-instances of :py:class:`xbob.learn.misc.JFAMachine`, the initialization being
+Next, this :py:class:`bob.learn.misc.JFABase` can be shared by several
+instances of :py:class:`bob.learn.misc.JFAMachine`, the initialization being
 as follows:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> m = xbob.learn.misc.JFAMachine(jfa_base)
+  >>> m = bob.learn.misc.JFAMachine(jfa_base)
   >>> m.y = numpy.array([1,2], 'float64')
   >>> m.z = numpy.array([3,4,1,2,0,1], 'float64')
 
 
-Once the :py:class:`xbob.learn.misc.JFAMachine` has been configured for a
+Once the :py:class:`bob.learn.misc.JFAMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`xbob.learn.misc.JFAMachine:forward` on the sufficient statistics.
+:py:meth:`bob.learn.misc.JFAMachine:forward` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> gs = xbob.learn.misc.GMMStats(2,3)
+  >>> gs = bob.learn.misc.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
   >>> score = m.forward(gs)
 
 As with other machines you can save and re-load machines of this type using
-:py:meth:`xbob.learn.misc.JFAMachine.save` and the class constructor
+:py:meth:`bob.learn.misc.JFAMachine.save` and the class constructor
 respectively.
 
 
@@ -236,47 +236,47 @@ the Gaussian mixture modelling approach. It utilises a within-class subspace
 significant portion of between-class variation. The main difference compared to
 JFA is the absence of the between-class subspace :math:`V`.
 
-Similarly to JFA, an instance of :py:class:`xbob.learn.misc.JFABase` carries
+Similarly to JFA, an instance of :py:class:`bob.learn.misc.JFABase` carries
 information about the matrices :math:`U` and :math:`D`, which can be shared
 between several classes, whereas an instance of
-:py:class:`xbob.learn.misc.JFAMachine` carries class-specific information about
+:py:class:`bob.learn.misc.JFAMachine` carries class-specific information about
 the latent variable :math:`z`.
 
-An instance of :py:class:`xbob.learn.misc.ISVBase` can be initialized as
+An instance of :py:class:`bob.learn.misc.ISVBase` can be initialized as
 follows, given an existing GMM:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> isv_base = xbob.learn.misc.ISVBase(gmm,2) # dimension of U is equal to 2
+  >>> isv_base = bob.learn.misc.ISVBase(gmm,2) # dimension of U is equal to 2
   >>> isv_base.u = U
   >>> isv_base.d = d
 
-Next, this :py:class:`xbob.learn.misc.ISVBase` can be shared by several
-instances of :py:class:`xbob.learn.misc.ISVMachine`, the initialization being
+Next, this :py:class:`bob.learn.misc.ISVBase` can be shared by several
+instances of :py:class:`bob.learn.misc.ISVMachine`, the initialization being
 as follows:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> m = xbob.learn.misc.ISVMachine(isv_base)
+  >>> m = bob.learn.misc.ISVMachine(isv_base)
   >>> m.z = numpy.array([3,4,1,2,0,1], 'float64')
 
-Once the :py:class:`xbob.learn.misc.ISVMachine` has been configured for a
+Once the :py:class:`bob.learn.misc.ISVMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`xbob.learn.misc.ISVMachine:forward` on the sufficient statistics.
+:py:meth:`bob.learn.misc.ISVMachine:forward` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> gs = xbob.learn.misc.GMMStats(2,3)
+  >>> gs = bob.learn.misc.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
   >>> score = m.forward(gs)
 
 As with other machines you can save and re-load machines of this type using
-:py:meth:`xbob.learn.misc.ISVMachine.save` and the class constructor
+:py:meth:`bob.learn.misc.ISVMachine.save` and the class constructor
 respectively.
 
 
@@ -289,30 +289,30 @@ dimensionality called ``i-vectors``. The model consists of a subspace :math:`T`
 and a residual diagonal covariance matrix :math:`\Sigma`, that are then used to
 extract i-vectors, and is built upon the GMM approach.
 
-An instance of the class :py:class:`xbob.learn.misc.IVectorMachine` carries
+An instance of the class :py:class:`bob.learn.misc.IVectorMachine` carries
 information about these two matrices. This can be initialized as follows:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> m = xbob.learn.misc.IVectorMachine(gmm, 2)
+  >>> m = bob.learn.misc.IVectorMachine(gmm, 2)
   >>> m.t = numpy.array([[1.,2],[4,1],[0,3],[5,8],[7,10],[11,1]])
   >>> m.sigma = numpy.array([1.,2.,1.,3.,2.,4.])
 
 
-Once the :py:class:`xbob.learn.misc.IVectorMachine` has been set, the
+Once the :py:class:`bob.learn.misc.IVectorMachine` has been set, the
 extraction of an i-vector :math:`w_ij` can be done in two steps, by first
 extracting the GMM sufficient statistics, and then estimating the i-vector:
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
 
-  >>> gs = xbob.learn.misc.GMMStats(2,3)
+  >>> gs = bob.learn.misc.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
   >>> w_ij = m.forward(gs)
 
 As with other machines you can save and re-load machines of this type using
-:py:meth:`xbob.learn.misc.IVectorMachine.save` and the class constructor
+:py:meth:`bob.learn.misc.IVectorMachine.save` and the class constructor
 respectively.
 
 
@@ -332,22 +332,22 @@ diagonal covariance matrix :math:`\Sigma`, the model assumes that a sample
 
 Information about a PLDA model (:math:`\mu`, :math:`F`, :math:`G` and
 :math:`\Sigma`) are carried out by an instance of the class
-:py:class:`xbob.learn.misc.PLDABase`.
+:py:class:`bob.learn.misc.PLDABase`.
 
 .. doctest::
 
    >>> ### This creates a PLDABase container for input feature of dimensionality 3,
    >>> ### and with subspaces F and G of rank 1 and 2 respectively.
-   >>> pldabase = xbob.learn.misc.PLDABase(3,1,2)
+   >>> pldabase = bob.learn.misc.PLDABase(3,1,2)
 
 Class-specific information (usually from enrollment samples) are contained in
-an instance of :py:class:`xbob.learn.misc.PLDAMachine`, that must be attached
-to a given :py:class:`xbob.learn.misc.PLDABase`. Once done, log-likelihood
+an instance of :py:class:`bob.learn.misc.PLDAMachine`, that must be attached
+to a given :py:class:`bob.learn.misc.PLDABase`. Once done, log-likelihood
 computations can be performed.
 
 .. doctest::
 
-   >>> plda = xbob.learn.misc.PLDAMachine(pldabase)
+   >>> plda = bob.learn.misc.PLDAMachine(pldabase)
    >>> samples = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
    >>> loglike = plda.compute_log_likelihood(samples)
 
@@ -373,13 +373,13 @@ container.
    >>> data = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64')
 
 The training procedure will learn the `means` for the
-:py:class:`xbob.learn.misc.KMeansMachine`. The number :math:`k` of `means` is given
+:py:class:`bob.learn.misc.KMeansMachine`. The number :math:`k` of `means` is given
 when creating the `machine`, as well as the dimensionality of the features.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> kmeans = xbob.learn.misc.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
+   >>> kmeans = bob.learn.misc.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
 
 Then training procedure for `k-means` is an **Expectation-Maximization**-based
 [8]_ algorithm. There are several options that can be set such as the maximum
@@ -390,7 +390,7 @@ be called.
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> kmeansTrainer = xbob.learn.misc.KMeansTrainer()
+   >>> kmeansTrainer = bob.learn.misc.KMeansTrainer()
    >>> kmeansTrainer.max_iterations = 200
    >>> kmeansTrainer.convergence_threshold = 1e-5
 
@@ -407,18 +407,18 @@ A Gaussian **mixture model** (GMM) [9]_ is a common probabilistic model. In
 order to train the parameters of such a model it is common to use a
 **maximum-likelihood** (ML) approach [10]_. To do this we use an
 **Expectation-Maximization** (EM) algorithm [8]_. Let's first start by creating
-a :py:class:`xbob.learn.misc.GMMMachine`. By default, all of the Gaussian's have
+a :py:class:`bob.learn.misc.GMMMachine`. By default, all of the Gaussian's have
 zero-mean and unit variance, and all the weights are equal. As a starting
 point, we could set the mean to the one obtained with **k-means** [7]_.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> gmm = xbob.learn.misc.GMMMachine(2,3) # Create a machine with 2 Gaussian and feature dimensionality 3
+   >>> gmm = bob.learn.misc.GMMMachine(2,3) # Create a machine with 2 Gaussian and feature dimensionality 3
    >>> gmm.means = kmeans.means # Set the means to the one obtained with k-means
 
 The |project| class to learn the parameters of a GMM [9]_ using ML [10]_ is
-:py:class:`xbob.learn.misc.ML_GMMTrainer`. It uses an **EM**-based [8]_ algorithm
+:py:class:`bob.learn.misc.ML_GMMTrainer`. It uses an **EM**-based [8]_ algorithm
 and requires the user to specify which parameters of the GMM are updated at
 each iteration (means, variances and/or weights). In addition, and as for
 **k-means** [7]_, it has parameters such as the maximum number of iterations
@@ -427,7 +427,7 @@ and the criterion used to determine if the parameters have converged.
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> trainer = xbob.learn.misc.ML_GMMTrainer(True, True, True) # update means/variances/weights at each iteration
+   >>> trainer = bob.learn.misc.ML_GMMTrainer(True, True, True) # update means/variances/weights at each iteration
    >>> trainer.convergence_threshold = 1e-5
    >>> trainer.max_iterations = 200
    >>> trainer.train(gmm, data)
@@ -459,7 +459,7 @@ The training data used to compute the MAP estimate [11]_ is again stored in a
    >>> dataMAP = numpy.array([[7,-7,102], [6,-6,103], [-3.5,3.5,-97]], dtype='float64')
 
 The |project| class used to perform MAP adaptation training [11]_ is
-:py:class:`xbob.learn.misc.MAP_GMMTrainer`. As with the ML estimate [10]_, it uses
+:py:class:`bob.learn.misc.MAP_GMMTrainer`. As with the ML estimate [10]_, it uses
 an **EM**-based [8]_ algorithm and requires the user to specify which parts of
 the GMM are adapted at each iteration (means, variances and/or weights). In
 addition, it also has parameters such as the maximum number of iterations and
@@ -472,12 +472,12 @@ set.
    :options: +NORMALIZE_WHITESPACE
 
    >>> relevance_factor = 4.
-   >>> trainer = xbob.learn.misc.MAP_GMMTrainer(relevance_factor, True, False, False) # mean adaptation only
+   >>> trainer = bob.learn.misc.MAP_GMMTrainer(relevance_factor, True, False, False) # mean adaptation only
    >>> trainer.convergence_threshold = 1e-5
    >>> trainer.max_iterations = 200
    >>> trainer.set_prior_gmm(gmm)
    True
-   >>> gmmAdapted = xbob.learn.misc.GMMMachine(2,3) # Create a new machine for the MAP estimate
+   >>> gmmAdapted = bob.learn.misc.GMMMachine(2,3) # Create a new machine for the MAP estimate
    >>> trainer.train(gmmAdapted, dataMAP)
    >>> print(gmmAdapted) # doctest: +SKIP
 
@@ -501,40 +501,40 @@ done, we get a training set of GMM statistics:
    >>> N2 = numpy.array([0.1069, 0.9397, 0.6164, 0.3545]).reshape((2,2))
    >>> N=[N1, N2]
 
-   >>> gs11 = xbob.learn.misc.GMMStats(2,3)
+   >>> gs11 = bob.learn.misc.GMMStats(2,3)
    >>> gs11.n = N1[:,0]
    >>> gs11.sum_px = F1[:,0].reshape(2,3)
-   >>> gs12 = xbob.learn.misc.GMMStats(2,3)
+   >>> gs12 = bob.learn.misc.GMMStats(2,3)
    >>> gs12.n = N1[:,1]
    >>> gs12.sum_px = F1[:,1].reshape(2,3)
 
-   >>> gs21 = xbob.learn.misc.GMMStats(2,3)
+   >>> gs21 = bob.learn.misc.GMMStats(2,3)
    >>> gs21.n = N2[:,0]
    >>> gs21.sum_px = F2[:,0].reshape(2,3)
-   >>> gs22 = xbob.learn.misc.GMMStats(2,3)
+   >>> gs22 = bob.learn.misc.GMMStats(2,3)
    >>> gs22.n = N2[:,1]
    >>> gs22.sum_px = F2[:,1].reshape(2,3)
 
    >>> TRAINING_STATS = [[gs11, gs12], [gs21, gs22]]
 
-In the following, we will allocate a :py:class:`xbob.learn.misc.JFABase` machine,
+In the following, we will allocate a :py:class:`bob.learn.misc.JFABase` machine,
 that will then be trained.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-    >>> jfa_base = xbob.learn.misc.JFABase(gmm, 2, 2) # the dimensions of U and V are both equal to 2
+    >>> jfa_base = bob.learn.misc.JFABase(gmm, 2, 2) # the dimensions of U and V are both equal to 2
 
 Next, we initialize a trainer, which is an instance of
-:py:class:`xbob.learn.misc.JFATrainer`, as follows:
+:py:class:`bob.learn.misc.JFATrainer`, as follows:
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> jfa_trainer = xbob.learn.misc.JFATrainer(10) # 10 is the number of iterations
+   >>> jfa_trainer = bob.learn.misc.JFATrainer(10) # 10 is the number of iterations
 
 The training process is started by calling the
-:py:meth:`xbob.learn.misc.JFATrainer.train`.
+:py:meth:`bob.learn.misc.JFATrainer.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -552,10 +552,10 @@ the following.
 
    >>> Ne = numpy.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2,2))
    >>> Fe = numpy.array([0.1579, 0.1925, 0.3242, 0.1234, 0.2354, 0.2734, 0.2514, 0.5874, 0.3345, 0.2463, 0.4789, 0.5236]).reshape((6,2))
-   >>> gse1 = xbob.learn.misc.GMMStats(2,3)
+   >>> gse1 = bob.learn.misc.GMMStats(2,3)
    >>> gse1.n = Ne[:,0]
    >>> gse1.sum_px = Fe[:,0].reshape(2,3)
-   >>> gse2 = xbob.learn.misc.GMMStats(2,3)
+   >>> gse2 = bob.learn.misc.GMMStats(2,3)
    >>> gse2.n = Ne[:,1]
    >>> gse2.sum_px = Fe[:,1].reshape(2,3)
    >>> gse = [gse1, gse2]
@@ -566,7 +566,7 @@ the class-specific latent variables :math:`y` and :math:`z`:
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> m = xbob.learn.misc.JFAMachine(jfa_base)
+   >>> m = bob.learn.misc.JFAMachine(jfa_base)
    >>> jfa_trainer.enrol(m, gse, 5) # where 5 is the number of enrollment iterations
 
 More information about the training process can be found in [12]_ and [13]_.
@@ -579,23 +579,23 @@ The training of the subspace :math:`U` and :math:`D` of an Inter-Session
 Variability model, is performed in two steps. As for JFA, GMM sufficient
 statistics of the training samples should be computed against the UBM GMM. Once
 done, we get a training set of GMM statistics.  Next, we will allocate an
-:py:class:`xbob.learn.misc.ISVBase` machine, that will then be trained.
+:py:class:`bob.learn.misc.ISVBase` machine, that will then be trained.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-    >>> isv_base = xbob.learn.misc.ISVBase(gmm, 2) # the dimensions of U is equal to 2
+    >>> isv_base = bob.learn.misc.ISVBase(gmm, 2) # the dimensions of U is equal to 2
 
 Next, we initialize a trainer, which is an instance of
-:py:class:`xbob.learn.misc.ISVTrainer`, as follows:
+:py:class:`bob.learn.misc.ISVTrainer`, as follows:
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> isv_trainer = xbob.learn.misc.ISVTrainer(10, 4.) # 10 is the number of iterations, and 4 is the relevance factor
+   >>> isv_trainer = bob.learn.misc.ISVTrainer(10, 4.) # 10 is the number of iterations, and 4 is the relevance factor
 
 The training process is started by calling the
-:py:meth:`xbob.learn.misc.ISVTrainer.train`.
+:py:meth:`bob.learn.misc.ISVTrainer.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -611,7 +611,7 @@ estimate the class-specific latent variable :math:`z`:
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> m = xbob.learn.misc.ISVMachine(isv_base)
+   >>> m = bob.learn.misc.ISVMachine(isv_base)
    >>> isv_trainer.enrol(m, gse, 5) # where 5 is the number of iterations
 
 More information about the training process can be found in [14]_ and [13]_.
@@ -624,27 +624,27 @@ The training of the subspace :math:`T` and :math:`\Sigma` of a Total
 Variability model, is performed in two steps. As for JFA and ISV, GMM
 sufficient statistics of the training samples should be computed against the
 UBM GMM. Once done, we get a training set of GMM statistics.  Next, we will
-allocate an instance of :py:class:`xbob.learn.misc.IVectorMachine`, that will
+allocate an instance of :py:class:`bob.learn.misc.IVectorMachine`, that will
 then be trained.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-    >>> m = xbob.learn.misc.IVectorMachine(gmm, 2)
+    >>> m = bob.learn.misc.IVectorMachine(gmm, 2)
     >>> m.variance_threshold = 1e-5
 
 
 Next, we initialize a trainer, which is an instance of
-:py:class:`xbob.learn.misc.IVectorTrainer`, as follows:
+:py:class:`bob.learn.misc.IVectorTrainer`, as follows:
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> ivec_trainer = xbob.learn.misc.IVectorTrainer(update_sigma=True, max_iterations=10)
+   >>> ivec_trainer = bob.learn.misc.IVectorTrainer(update_sigma=True, max_iterations=10)
    >>> TRAINING_STATS_flatten = [gs11, gs12, gs21, gs22]
 
 The training process is started by calling the
-:py:meth:`xbob.learn.misc.IVectorTrainer.train`.
+:py:meth:`bob.learn.misc.IVectorTrainer.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -671,7 +671,7 @@ diagonal covariance matrix :math:`\Sigma`, the model assumes that a sample
 An Expectaction-Maximization algorithm can be used to learn the parameters of
 this model :math:`\mu`, :math:`F` :math:`G` and :math:`\Sigma`. As these
 parameters can be shared between classes, there is a specific container class
-for this purpose, which is :py:class:`xbob.learn.misc.PLDABase`. The process is
+for this purpose, which is :py:class:`bob.learn.misc.PLDABase`. The process is
 described in detail in [17]_.
 
 Let us consider a training set of two classes, each with 3 samples of
@@ -685,43 +685,43 @@ dimensionality 3.
    >>> data = [data1,data2]
 
 Learning a PLDA model can be performed by instantiating the class
-:py:class:`xbob.learn.misc.PLDATrainer`, and calling the
-:py:meth:`xbob.learn.misc.PLDATrainer.train()` method.
+:py:class:`bob.learn.misc.PLDATrainer`, and calling the
+:py:meth:`bob.learn.misc.PLDATrainer.train()` method.
 
 .. doctest::
 
    >>> ### This creates a PLDABase container for input feature of dimensionality 3,
    >>> ### and with subspaces F and G of rank 1 and 2 respectively.
-   >>> pldabase = xbob.learn.misc.PLDABase(3,1,2)
+   >>> pldabase = bob.learn.misc.PLDABase(3,1,2)
 
-   >>> trainer = xbob.learn.misc.PLDATrainer()
+   >>> trainer = bob.learn.misc.PLDATrainer()
    >>> trainer.train(pldabase, data)
 
 Once trained, this PLDA model can be used to compute the log-likelihood of a
 set of samples given some hypothesis. For this purpose, a
-:py:class:`xbob.learn.misc.PLDAMachine` should be instantiated. Then, the
+:py:class:`bob.learn.misc.PLDAMachine` should be instantiated. Then, the
 log-likelihood that a set of samples share the same latent identity variable
 :math:`h_{i}` (i.e. the samples are coming from the same identity/class) is
 obtained by calling the
-:py:meth:`xbob.learn.misc.PLDAMachine.compute_log_likelihood()` method.
+:py:meth:`bob.learn.misc.PLDAMachine.compute_log_likelihood()` method.
 
 .. doctest::
 
-   >>> plda = xbob.learn.misc.PLDAMachine(pldabase)
+   >>> plda = bob.learn.misc.PLDAMachine(pldabase)
    >>> samples = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
    >>> loglike = plda.compute_log_likelihood(samples)
 
 If separate models for different classes need to be enrolled, each of them with
 a set of enrolment samples, then, several instances of
-:py:class:`xbob.learn.misc.PLDAMachine` need to be created and enroled using
-the :py:meth:`xbob.learn.misc.PLDATrainer.enrol()` method as follows.
+:py:class:`bob.learn.misc.PLDAMachine` need to be created and enroled using
+the :py:meth:`bob.learn.misc.PLDATrainer.enrol()` method as follows.
 
 .. doctest::
 
-   >>> plda1 = xbob.learn.misc.PLDAMachine(pldabase)
+   >>> plda1 = bob.learn.misc.PLDAMachine(pldabase)
    >>> samples1 = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
    >>> trainer.enrol(plda1, samples1)
-   >>> plda2 = xbob.learn.misc.PLDAMachine(pldabase)
+   >>> plda2 = bob.learn.misc.PLDAMachine(pldabase)
    >>> samples2 = numpy.array([[3.5,7,-49], [4.5,8.9,-99]], dtype=numpy.float64)
    >>> trainer.enrol(plda2, samples2)
 
@@ -738,8 +738,8 @@ separately for each model.
 In a verification scenario, there are two possible hypotheses: 1.
 :math:`x_{test}` and :math:`x_{enrol}` share the same class.  2.
 :math:`x_{test}` and :math:`x_{enrol}` are from different classes.  Using the
-methods :py:meth:`xbob.learn.misc.PLDAMachine:call()` or
-:py:meth:`xbob.learn.misc.PLDAMachine:forward()`, the corresponding
+methods :py:meth:`bob.learn.misc.PLDAMachine:call()` or
+:py:meth:`bob.learn.misc.PLDAMachine:forward()`, the corresponding
 log-likelihood ratio will be computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enrol})) - \ln(P(x_{test})P(x_{enrol}))`
 
