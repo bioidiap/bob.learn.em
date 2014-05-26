@@ -20,14 +20,14 @@ before_install:
   - if [ -n "${NUMPYSPEC}" ]; then sudo apt-get install -qq libatlas-dev libatlas-base-dev liblapack-dev gfortran; fi
   - if [ -n "${NUMPYSPEC}" ]; then pip install --upgrade pip setuptools; fi
   - if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC sphinx nose; fi
-  - pip install coveralls
+  - pip install cpp-coveralls
 install:
   - "python bootstrap.py"
-  - "./bin/buildout"
+  - "CFLAGS=-coverage ./bin/buildout"
 script:
-  - "./bin/python -c 'from xbob.learn.activation import get_config; print(get_config())'"
-  - "./bin/coverage run --source=xbob.learn.activation ./bin/nosetests -sv"
+  - "./bin/python -c 'from xbob.learn.misc import get_config; print(get_config())'"
+  - "./bin/coverage run --source=xbob.learn.misc ./bin/nosetests -sv"
   - "./bin/sphinx-build -b doctest doc sphinx"
   - "./bin/sphinx-build -b html doc sphinx"
 after_success:
-  - "coveralls"
+  - "coveralls --build-root=`pwd` --exclude=src"
