@@ -362,8 +362,8 @@ def test_plda_EM_vs_Python():
 
   # Runs the PLDA trainer EM-steps (2 steps)
   # Defines base trainer and machine
-  t = PLDATrainer(1)
-  t_py = PythonPLDATrainer(max_iterations=1)
+  t = PLDATrainer(10)
+  t_py = PythonPLDATrainer(max_iterations=10)
   m = PLDABase(D,nf,ng)
   m_py = PLDABase(D,nf,ng)
 
@@ -375,8 +375,6 @@ def test_plda_EM_vs_Python():
   t.train(m, l)
   t_py.train(m_py, l)
   assert numpy.allclose(m.mu, m_py.mu)
-  print(m.f)
-  print(m_py.f)
   assert numpy.allclose(m.f, m_py.f)
   assert numpy.allclose(m.g, m_py.g)
   assert numpy.allclose(m.sigma, m_py.sigma)
