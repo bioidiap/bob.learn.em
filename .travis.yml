@@ -12,9 +12,6 @@ matrix:
     - python: 3.2
       env:
         - NUMPYSPEC===1.7.1
-    - python: 3.3
-      env:
-        - NUMPYSPEC===1.8.0
 before_install:
   - sudo add-apt-repository -y ppa:biometrics/bob
   - sudo add-apt-repository -y ppa:biometrics/bob.preview
