@@ -375,6 +375,8 @@ def test_plda_EM_vs_Python():
   t.train(m, l)
   t_py.train(m_py, l)
   assert numpy.allclose(m.mu, m_py.mu)
+  print(m.f)
+  print(m_py.f)
   assert numpy.allclose(m.f, m_py.f)
   assert numpy.allclose(m.g, m_py.g)
   assert numpy.allclose(m.sigma, m_py.sigma)
