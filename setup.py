@@ -56,7 +56,6 @@ setup(
           "bob/learn/misc/bic.cpp",
           "bob/learn/misc/bic_trainer.cpp",
           "bob/learn/misc/empca_trainer.cpp",
-          "bob/learn/misc/gabor.cpp",
           "bob/learn/misc/gaussian.cpp",
           "bob/learn/misc/gmm.cpp",
           "bob/learn/misc/gmm_trainer.cpp",
@@ -75,7 +74,6 @@ setup(
           "bob/learn/misc/ztnorm.cpp",
 
           # external requirements as boost::python bindings
-          "bob/learn/misc/GaborWaveletTransform.cpp",
           "bob/learn/misc/blitz_numpy.cpp",
           "bob/learn/misc/ndarray.cpp",
           "bob/learn/misc/ndarray_numpy.cpp",
