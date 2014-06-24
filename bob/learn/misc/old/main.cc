@@ -39,7 +39,7 @@ void bind_trainer_wiener();
 void bind_trainer_empca();
 void bind_trainer_bic();
 
-BOOST_PYTHON_MODULE(_library) {
+BOOST_PYTHON_MODULE(_old_library) {
 
   boost::python::docstring_options docopt(true, true, false);
 
