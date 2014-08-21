@@ -10,8 +10,8 @@
 
 #include "ndarray.h"
 #include <boost/python/stl_iterator.hpp>
-#include <bob/machine/PLDAMachine.h>
-#include <bob/trainer/PLDATrainer.h>
+#include <bob.learn.misc/PLDAMachine.h>
+#include <bob.learn.misc/PLDATrainer.h>
 
 using namespace boost::python;
 

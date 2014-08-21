@@ -7,7 +7,7 @@
  */
 
 #include "ndarray.h"
-#include <bob/trainer/BICTrainer.h>
+#include <bob.learn.misc/BICTrainer.h>
 
 void py_train(const bob::trainer::BICTrainer& t,
   bob::machine::BICMachine& m, bob::python::const_ndarray intra_differences,

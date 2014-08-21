@@ -15,8 +15,6 @@ import tempfile
 import bob.io.base
 from . import KMeansMachine
 
-from . import HDF5File as OldHDF5File
-
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon)
 
@@ -50,8 +48,8 @@ def test_KMeansMachine():
 
   # Loads and saves
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  km.save(OldHDF5File(filename, 'w'))
-  km_loaded = KMeansMachine(OldHDF5File(filename))
+  km.save(bob.io.base.HDF5File(filename, 'w'))
+  km_loaded = KMeansMachine(bob.io.base.HDF5File(filename))
   assert km == km_loaded
 
   # Resize

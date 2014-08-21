@@ -19,8 +19,6 @@ import bob.io.base
 
 from . import PLDABase, PLDAMachine
 
-from . import HDF5File as OldHDF5File
-
 # Defines common variables globally
 # Dimensionalities
 C_dim_d = 7
@@ -293,8 +291,8 @@ def test_plda_basemachine():
 
   # Saves to file, loads and compares to original
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(OldHDF5File(filename, 'w'))
-  m_loaded = PLDABase(OldHDF5File(filename))
+  m.save(bob.io.base.HDF5File(filename, 'w'))
+  m_loaded = PLDABase(bob.io.base.HDF5File(filename))
 
   # Compares the values loaded with the former ones
   assert m_loaded == m
@@ -418,8 +416,8 @@ def test_plda_machine():
 
   # Saves to file, loads and compares to original
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  m.save(OldHDF5File(filename, 'w'))
-  m_loaded = PLDAMachine(OldHDF5File(filename), mb)
+  m.save(bob.io.base.HDF5File(filename, 'w'))
+  m_loaded = PLDAMachine(bob.io.base.HDF5File(filename), mb)
 
   # Compares the values loaded with the former ones
   assert m_loaded == m
@@ -444,7 +442,7 @@ def test_plda_machine():
 
   # Check exceptions
   m_loaded2 = PLDAMachine()
-  m_loaded2.load(OldHDF5File(filename))
+  m_loaded2.load(bob.io.base.HDF5File(filename))
   nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_d')
   nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_f')
   nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_g')

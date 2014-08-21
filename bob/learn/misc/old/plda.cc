@@ -7,8 +7,12 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
-#include <bob/machine/PLDAMachine.h>
+#include <bob.learn.misc/PLDAMachine.h>
 
 using namespace boost::python;
 
@@ -54,7 +58,7 @@ static void py_set_sigma(bob::machine::PLDABase& machine,
 static double computeLogLikelihood(bob::machine::PLDAMachine& plda,
   bob::python::const_ndarray samples, bool with_enrolled_samples=true)
 {
-  const bob::core::array::typeinfo& info = samples.type();
+  const bob::io::base::array::typeinfo& info = samples.type();
   switch (info.nd) {
     case 1:
       return plda.computeLogLikelihood(samples.bz<double,1>(), with_enrolled_samples);
@@ -68,7 +72,7 @@ static double computeLogLikelihood(bob::machine::PLDAMachine& plda,
 static double plda_forward_sample(bob::machine::PLDAMachine& m,
   bob::python::const_ndarray samples)
 {
-  const bob::core::array::typeinfo& info = samples.type();
+  const bob::io::base::array::typeinfo& info = samples.type();
   switch (info.nd) {
     case 1:
       {
@@ -99,17 +103,55 @@ static double py_log_likelihood_point_estimate(bob::machine::PLDABase& plda,
 
 BOOST_PYTHON_FUNCTION_OVERLOADS(computeLogLikelihood_overloads, computeLogLikelihood, 2, 3)
 
+
+static boost::shared_ptr<bob::machine::PLDABase> b_init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::PLDABase>(new bob::machine::PLDABase(*hdf5->f));
+}
+
+static void b_load(bob::machine::PLDABase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void b_save(const bob::machine::PLDABase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
+static boost::shared_ptr<bob::machine::PLDAMachine> m_init(boost::python::object file, boost::shared_ptr<bob::machine::PLDABase> b){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::PLDAMachine>(new bob::machine::PLDAMachine(*hdf5->f, b));
+}
+
+static void m_load(bob::machine::PLDAMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void m_save(const bob::machine::PLDAMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
 void bind_machine_plda()
 {
   class_<bob::machine::PLDABase, boost::shared_ptr<bob::machine::PLDABase> >("PLDABase", "A PLDABase can be seen as a container for the subspaces F, G, the diagonal covariance matrix sigma (stored as a 1D array) and the mean vector mu when performing Probabilistic Linear Discriminant Analysis (PLDA). PLDA is a probabilistic model that incorporates components describing both between-class and within-class variations. A PLDABase can be shared between several PLDAMachine that contains class-specific information (information about the enrolment samples).\n\nReferences:\n1. 'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition', Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel, TPAMI'2013\n2. 'Probabilistic Linear Discriminant Analysis for Inference About Identity', Prince and Elder, ICCV'2007.\n3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed, Elder and Prince, TPAMI'2012.", init<const size_t, const size_t, const size_t, optional<const double> >((arg("self"), arg("dim_d"), arg("dim_f"), arg("dim_g"), arg("variance_flooring")=0.), "Builds a new PLDABase. dim_d is the dimensionality of the input features, dim_f is the dimensionality of the F subspace and dim_g the dimensionality of the G subspace. The variance flooring threshold is the minimum value that the variance sigma can reach, as this diagonal matrix is inverted."))
     .def(init<>((arg("self")), "Constructs a new empty PLDABase."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new PLDABase from a configuration file."))
+    .def("__init__", boost::python::make_constructor(&b_init), "Constructs a new PLDABase from a configuration file.")
     .def(init<const bob::machine::PLDABase&>((arg("self"), arg("machine")), "Copy constructs a PLDABase"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::PLDABase::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this PLDABase with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::PLDABase::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::PLDABase::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &b_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &b_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .add_property("dim_d", &bob::machine::PLDABase::getDimD, &py_set_dim_d, "Dimensionality of the input feature vectors")
     .add_property("dim_f", &bob::machine::PLDABase::getDimF, &py_set_dim_f, "Dimensionality of the F subspace/matrix of the PLDA model")
     .add_property("dim_g", &bob::machine::PLDABase::getDimG, &py_set_dim_g, "Dimensionality of the G subspace/matrix of the PLDA model")
@@ -145,13 +187,13 @@ void bind_machine_plda()
 
   class_<bob::machine::PLDAMachine, boost::shared_ptr<bob::machine::PLDAMachine> >("PLDAMachine", "A PLDAMachine contains class-specific information (from the enrolment samples) when performing Probabilistic Linear Discriminant Analysis (PLDA). It should be attached to a PLDABase that contains information such as the subspaces F and G.\n\nReferences:\n1. 'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition', Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel, TPAMI'2013\n2. 'Probabilistic Linear Discriminant Analysis for Inference About Identity', Prince and Elder, ICCV'2007.\n3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed, Elder and Prince, TPAMI'2012.", init<boost::shared_ptr<bob::machine::PLDABase> >((arg("self"), arg("plda_base")), "Builds a new PLDAMachine. An attached PLDABase should be provided, that can be shared by several PLDAMachine."))
     .def(init<>((arg("self")), "Constructs a new empty (invalid) PLDAMachine. A PLDABase should then be set using the 'plda_base' attribute of this object."))
-    .def(init<bob::io::HDF5File&, boost::shared_ptr<bob::machine::PLDABase> >((arg("self"), arg("config"), arg("plda_base")), "Constructs a new PLDAMachine from a configuration file (and a PLDABase object)."))
+    .def("__init__", make_constructor(&m_init), "Constructs a new PLDAMachine from a configuration file (and a PLDABase object).")
     .def(init<const bob::machine::PLDAMachine&>((arg("self"), arg("machine")), "Copy constructs a PLDAMachine"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::PLDAMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this PLDAMachine with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::PLDAMachine::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file. The PLDABase will not be loaded, and has to be set manually using the 'plda_base' attribute.")
-    .def("save", &bob::machine::PLDAMachine::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file. The PLDABase will not be saved, and has to be saved separately, as it can be shared by several PLDAMachines.")
+    .def("load", &m_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file. The PLDABase will not be loaded, and has to be set manually using the 'plda_base' attribute.")
+    .def("save", &m_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file. The PLDABase will not be saved, and has to be saved separately, as it can be shared by several PLDAMachines.")
     .add_property("plda_base", &bob::machine::PLDAMachine::getPLDABase, &bob::machine::PLDAMachine::setPLDABase)
     .add_property("dim_d", &bob::machine::PLDAMachine::getDimD, "Dimensionality of the input feature vectors")
     .add_property("dim_f", &bob::machine::PLDAMachine::getDimF, "Dimensionality of the F subspace/matrix of the PLDA model")

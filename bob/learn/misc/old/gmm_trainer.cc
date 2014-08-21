@@ -8,9 +8,9 @@
 #include "ndarray.h"
 
 #include <limits>
-#include <bob/trainer/GMMTrainer.h>
-#include <bob/trainer/MAP_GMMTrainer.h>
-#include <bob/trainer/ML_GMMTrainer.h>
+#include <bob.learn.misc/GMMTrainer.h>
+#include <bob.learn.misc/MAP_GMMTrainer.h>
+#include <bob.learn.misc/ML_GMMTrainer.h>
 
 using namespace boost::python;
 

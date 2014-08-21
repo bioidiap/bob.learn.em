@@ -10,7 +10,7 @@
 
 #include "ndarray.h"
 
-#include <bob/machine/ZTNorm.h>
+#include <bob.learn.misc/ZTNorm.h>
 
 using namespace boost::python;
 
@@ -33,7 +33,7 @@ static object ztnorm1(
     mask_zprobes_vs_tmodels_istruetrial.bz<bool,2>();
 
   // allocate output
-  bob::python::ndarray ret(bob::core::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
+  bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
   bob::machine::ztNorm(rawscores_probes_vs_models_,
@@ -62,7 +62,7 @@ static object ztnorm2(
     rawscores_zprobes_vs_tmodels.bz<double,2>();
 
   // allocate output
-  bob::python::ndarray ret(bob::core::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
+  bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
   bob::machine::ztNorm(rawscores_probes_vs_models_,
@@ -84,7 +84,7 @@ static object tnorm(
     rawscores_probes_vs_tmodels.bz<double,2>();
 
   // allocate output
-  bob::python::ndarray ret(bob::core::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
+  bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
   bob::machine::tNorm(rawscores_probes_vs_models_,
@@ -104,7 +104,7 @@ static object znorm(
     rawscores_zprobes_vs_models.bz<double,2>();
 
   // allocate output
-  bob::python::ndarray ret(bob::core::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
+  bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
   bob::machine::zNorm(rawscores_probes_vs_models_,

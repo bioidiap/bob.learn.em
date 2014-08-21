@@ -7,6 +7,14 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#ifdef NO_IMPORT_ARRAY
+#undef NO_IMPORT_ARRAY
+#endif
+
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
 
 /** extra bindings required for compatibility **/
@@ -14,7 +22,6 @@ void bind_core_tinyvector();
 void bind_core_ndarray_numpy();
 void bind_core_bz_numpy();
 void bind_core_random();
-void bind_io_hdf5();
 
 /** machine bindings **/
 void bind_machine_base();
@@ -41,6 +48,18 @@ void bind_trainer_bic();
 
 BOOST_PYTHON_MODULE(_old_library) {
 
+  if (import_bob_blitz() < 0) {
+    PyErr_Print();
+    PyErr_Format(PyExc_ImportError, "cannot import `bob.blitz'");
+    return;
+  }
+
+  if (import_bob_io_base() < 0) {
+    PyErr_Print();
+    PyErr_Format(PyExc_ImportError, "cannot import `bob.io.base'");
+    return;
+  }
+
   boost::python::docstring_options docopt(true, true, false);
 
   bob::python::setup_python("miscelaneous machines and trainers not yet ported into the new framework");
@@ -49,7 +68,6 @@ BOOST_PYTHON_MODULE(_old_library) {
   bind_core_tinyvector();
   bind_core_ndarray_numpy();
   bind_core_bz_numpy();
-  bind_io_hdf5();
   bind_core_random();
 
   /** machine bindings **/

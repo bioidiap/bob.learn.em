@@ -1,4 +1,14 @@
+# import Libraries of other lib packages
+import bob.io.base
+import bob.math
+import bob.learn.linear
+
+# import our own Library
+import bob.extension
+bob.extension.load_bob_library('bob.learn.misc', __file__)
+
 from ._old_library import *
+#from ._library import *
 from . import version
 from .version import module as __version__
 

@@ -5,17 +5,21 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
 
-#include <bob/machine/KMeansMachine.h>
+#include <bob.learn.misc/KMeansMachine.h>
 
 using namespace boost::python;
 
 static tuple py_getVariancesAndWeightsForEachCluster(const bob::machine::KMeansMachine& machine, bob::python::const_ndarray ar) {
   size_t n_means = machine.getNMeans();
   size_t n_inputs = machine.getNInputs();
-  bob::python::ndarray variances(bob::core::array::t_float64, n_means, n_inputs);
-  bob::python::ndarray weights(bob::core::array::t_float64, n_means);
+  bob::python::ndarray variances(bob::io::base::array::t_float64, n_means, n_inputs);
+  bob::python::ndarray weights(bob::io::base::array::t_float64, n_means);
   blitz::Array<double,2> variances_ = variances.bz<double,2>();
   blitz::Array<double,1> weights_ = weights.bz<double,1>();
   machine.getVariancesAndWeightsForEachCluster(ar.bz<double,2>(), variances_, weights_);
@@ -41,7 +45,7 @@ static void py_getVariancesAndWeightsForEachClusterFin(const bob::machine::KMean
 }
 
 static object py_getMean(const bob::machine::KMeansMachine& kMeansMachine, const size_t i) {
-  bob::python::ndarray mean(bob::core::array::t_float64, kMeansMachine.getNInputs());
+  bob::python::ndarray mean(bob::io::base::array::t_float64, kMeansMachine.getNInputs());
   blitz::Array<double,1> mean_ = mean.bz<double,1>();
   kMeansMachine.getMean(i, mean_);
   return mean.self();
@@ -77,6 +81,25 @@ static void py_setCacheMeans(bob::machine::KMeansMachine& machine, bob::python::
   machine.setCacheMeans(cache_means.bz<double,2>());
 }
 
+
+static boost::shared_ptr<bob::machine::KMeansMachine> _init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::KMeansMachine>(new bob::machine::KMeansMachine(*hdf5->f));
+}
+
+static void _load(bob::machine::KMeansMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void _save(const bob::machine::KMeansMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
 void bind_machine_kmeans()
 {
   class_<bob::machine::KMeansMachine, boost::shared_ptr<bob::machine::KMeansMachine>,
@@ -84,9 +107,9 @@ void bind_machine_kmeans()
       "This class implements a k-means classifier.\n"
       "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006",
       init<>((arg("self"))))
+    .def("__init__", boost::python::make_constructor(&_init))
     .def(init<const size_t, const size_t>((arg("self"), arg("n_means"), arg("n_inputs"))))
     .def(init<bob::machine::KMeansMachine&>((arg("self"), arg("other"))))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config"))))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::KMeansMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this KMeansMachine with the 'other' one to be approximately the same.")
@@ -116,8 +139,8 @@ void bind_machine_kmeans()
     .def("__get_variances_and_weights_for_each_cluster_fin__", &py_getVariancesAndWeightsForEachClusterFin, (arg("self"), arg("variances"), arg("weights")),
         "For the parallel version of get_variances_and_weights_for_each_cluster()\n"
         "Finalization step")
-    .def("load", &bob::machine::KMeansMachine::load, (arg("self"), arg("config")), "Load from a Configuration")
-    .def("save", &bob::machine::KMeansMachine::save, (arg("self"), arg("config")), "Save to a Configuration")
+    .def("load", &_load, (arg("self"), arg("config")), "Load from a Configuration")
+    .def("save", &_save, (arg("self"), arg("config")), "Save to a Configuration")
     .def(self_ns::str(self_ns::self))
   ;
 }

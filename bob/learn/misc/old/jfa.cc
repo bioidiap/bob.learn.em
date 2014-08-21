@@ -7,10 +7,14 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
 
-#include <bob/machine/JFAMachine.h>
-#include <bob/machine/GMMMachine.h>
+#include <bob.learn.misc/JFAMachine.h>
+#include <bob.learn.misc/GMMMachine.h>
 
 using namespace boost::python;
 
@@ -135,6 +139,81 @@ static void py_gen2b_forward_(const bob::machine::Machine<bob::machine::GMMStats
 }
 
 
+static boost::shared_ptr<bob::machine::JFABase> jb_init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::JFABase>(new bob::machine::JFABase(*hdf5->f));
+}
+
+static void jb_load(bob::machine::JFABase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void jb_save(const bob::machine::JFABase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
+static boost::shared_ptr<bob::machine::JFAMachine> jm_init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::JFAMachine>(new bob::machine::JFAMachine(*hdf5->f));
+}
+
+static void jm_load(bob::machine::JFAMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void jm_save(const bob::machine::JFAMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
+static boost::shared_ptr<bob::machine::ISVBase> ib_init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::ISVBase>(new bob::machine::ISVBase(*hdf5->f));
+}
+
+static void ib_load(bob::machine::ISVBase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void ib_save(const bob::machine::ISVBase& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
+static boost::shared_ptr<bob::machine::ISVMachine> im_init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::ISVMachine>(new bob::machine::ISVMachine(*hdf5->f));
+}
+
+static void im_load(bob::machine::ISVMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void im_save(const bob::machine::ISVMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
 void bind_machine_jfa()
 {
   class_<bob::machine::Machine<bob::machine::GMMStats, double>, boost::noncopyable>("MachineGMMStatsScalarBase",
@@ -152,15 +231,16 @@ void bind_machine_jfa()
   ;
 
 
-  class_<bob::machine::JFABase, boost::shared_ptr<bob::machine::JFABase>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("JFABase", "A JFABase instance can be seen as a container for U, V and D when performing Joint Factor Analysis (JFA).\n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<const boost::shared_ptr<bob::machine::GMMMachine>, optional<const size_t, const size_t> >((arg("self"), arg("ubm"), arg("ru")=1, arg("rv")=1), "Builds a new JFABase."))
+  class_<bob::machine::JFABase, boost::shared_ptr<bob::machine::JFABase>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("JFABase", "A JFABase instance can be seen as a container for U, V and D when performing Joint Factor Analysis (JFA).\n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", no_init)
+    .def("__init__", boost::python::make_constructor(&jb_init), "Constructs a new JFABaseMachine from a configuration file.")
+    .def(init<const boost::shared_ptr<bob::machine::GMMMachine>, optional<const size_t, const size_t> >((arg("self"), arg("ubm"), arg("ru")=1, arg("rv")=1), "Builds a new JFABase."))
     .def(init<>((arg("self")), "Constructs a 1x1 JFABase instance. You have to set a UBM GMM and resize the U, V and D subspaces afterwards."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new JFABaseMachine from a configuration file."))
     .def(init<const bob::machine::JFABase&>((arg("self"), arg("machine")), "Copy constructs a JFABase"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::JFABase::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this JFABase with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::JFABase::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::JFABase::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &jb_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &jb_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .def("resize", &bob::machine::JFABase::resize, (arg("self"), arg("ru"), arg("rv")), "Reset the dimensionality of the subspaces U and V.")
     .add_property("ubm", &bob::machine::JFABase::getUbm, &bob::machine::JFABase::setUbm, "The UBM GMM attached to this Joint Factor Analysis model")
     .add_property("u", make_function(&bob::machine::JFABase::getU, return_value_policy<copy_const_reference>()), &py_jfa_setU, "The subspace U for within-class variations")
@@ -173,15 +253,16 @@ void bind_machine_jfa()
     .add_property("dim_rv", &bob::machine::JFABase::getDimRv, "The dimensionality of the between-class variations subspace (rank of V)")
   ;
 
-  class_<bob::machine::JFAMachine, boost::shared_ptr<bob::machine::JFAMachine>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("JFAMachine", "A JFAMachine. An attached JFABase should be provided for Joint Factor Analysis. The JFAMachine carries information about the speaker factors y and z, whereas a JFABase carries information about the matrices U, V and D.\n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<const boost::shared_ptr<bob::machine::JFABase> >((arg("self"), arg("jfa_base")), "Builds a new JFAMachine."))
+  class_<bob::machine::JFAMachine, boost::shared_ptr<bob::machine::JFAMachine>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("JFAMachine", "A JFAMachine. An attached JFABase should be provided for Joint Factor Analysis. The JFAMachine carries information about the speaker factors y and z, whereas a JFABase carries information about the matrices U, V and D.\n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", no_init)
+    .def("__init__", boost::python::make_constructor(&jm_init), "Constructs a new JFAMachine from a configuration file.")
     .def(init<>((arg("self")), "Constructs a 1x1 JFAMachine instance. You have to set a JFABase afterwards."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new JFAMachine from a configuration file."))
+    .def(init<const boost::shared_ptr<bob::machine::JFABase> >((arg("self"), arg("jfa_base")), "Builds a new JFAMachine."))
     .def(init<const bob::machine::JFAMachine&>((arg("self"), arg("machine")), "Copy constructs a JFAMachine"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::JFAMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this JFABase with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::JFAMachine::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::JFAMachine::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &jm_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &jm_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .def("estimate_x", &py_jfa_estimateX, (arg("self"), arg("stats"), arg("x")), "Estimates the session offset x (LPT assumption) given GMM statistics.")
     .def("estimate_ux", &py_jfa_estimateUx, (arg("self"), arg("stats"), arg("ux")), "Estimates Ux (LPT assumption) given GMM statistics.")
     .def("forward_ux", &py_jfa_forwardUx, (arg("self"), arg("stats"), arg("ux")), "Processes the GMM statistics and Ux to return a score.")
@@ -196,15 +277,16 @@ void bind_machine_jfa()
     .add_property("dim_rv", &bob::machine::JFAMachine::getDimRv, "The dimensionality of the between-class variations subspace (rank of V)")
   ;
 
-  class_<bob::machine::ISVBase, boost::shared_ptr<bob::machine::ISVBase>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("ISVBase", "An ISVBase instance can be seen as a container for U and D when performing Joint Factor Analysis (ISV). \n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<const boost::shared_ptr<bob::machine::GMMMachine>, optional<const size_t> >((arg("self"), arg("ubm"), arg("ru")=1), "Builds a new ISVBase."))
+  class_<bob::machine::ISVBase, boost::shared_ptr<bob::machine::ISVBase>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("ISVBase", "An ISVBase instance can be seen as a container for U and D when performing Joint Factor Analysis (ISV). \n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", no_init)
+    .def("__init__", boost::python::make_constructor(&ib_init), "Constructs a new ISVBaseMachine from a configuration file.")
+    .def(init<const boost::shared_ptr<bob::machine::GMMMachine>, optional<const size_t> >((arg("self"), arg("ubm"), arg("ru")=1), "Builds a new ISVBase."))
     .def(init<>((arg("self")), "Constructs a 1 ISVBase instance. You have to set a UBM GMM and resize the U and D subspaces afterwards."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new ISVBaseMachine from a configuration file."))
     .def(init<const bob::machine::ISVBase&>((arg("self"), arg("machine")), "Copy constructs an ISVBase"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::ISVBase::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this ISVBase with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::ISVBase::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::ISVBase::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &ib_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &ib_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .def("resize", &bob::machine::ISVBase::resize, (arg("self"), arg("ru")), "Reset the dimensionality of the subspaces U.")
     .add_property("ubm", &bob::machine::ISVBase::getUbm, &bob::machine::ISVBase::setUbm, "The UBM GMM attached to this Joint Factor Analysis model")
     .add_property("u", make_function(&bob::machine::ISVBase::getU, return_value_policy<copy_const_reference>()), &py_isv_setU, "The subspace U for within-class variations")
@@ -215,15 +297,16 @@ void bind_machine_jfa()
     .add_property("dim_ru", &bob::machine::ISVBase::getDimRu, "The dimensionality of the within-class variations subspace (rank of U)")
   ;
 
-  class_<bob::machine::ISVMachine, boost::shared_ptr<bob::machine::ISVMachine>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("ISVMachine", "An ISVMachine. An attached ISVBase should be provided for Inter-session Variability Modelling. The ISVMachine carries information about the speaker factors z, whereas a ISVBase carries information about the matrices U and D. \n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<const boost::shared_ptr<bob::machine::ISVBase> >((arg("self"), arg("isv_base")), "Builds a new ISVMachine."))
+  class_<bob::machine::ISVMachine, boost::shared_ptr<bob::machine::ISVMachine>, bases<bob::machine::Machine<bob::machine::GMMStats, double> > >("ISVMachine", "An ISVMachine. An attached ISVBase should be provided for Inter-session Variability Modelling. The ISVMachine carries information about the speaker factors z, whereas a ISVBase carries information about the matrices U and D. \n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", no_init)
+    .def("__init__", boost::python::make_constructor(&im_init), "Constructs a new ISVMachine from a configuration file.")
     .def(init<>((arg("self")), "Constructs a 1 ISVMachine instance. You have to set a ISVBase afterwards."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new ISVMachine from a configuration file."))
+    .def(init<const boost::shared_ptr<bob::machine::ISVBase> >((arg("self"), arg("isv_base")), "Builds a new ISVMachine."))
     .def(init<const bob::machine::ISVMachine&>((arg("self"), arg("machine")), "Copy constructs an ISVMachine"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::ISVMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this ISVBase with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::ISVMachine::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::ISVMachine::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &im_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &im_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .def("estimate_x", &py_isv_estimateX, (arg("self"), arg("stats"), arg("x")), "Estimates the session offset x (LPT assumption) given GMM statistics.")
     .def("estimate_ux", &py_isv_estimateUx, (arg("self"), arg("stats"), arg("ux")), "Estimates Ux (LPT assumption) given GMM statistics.")
     .def("forward_ux", &py_isv_forwardUx, (arg("self"), arg("stats"), arg("ux")), "Processes the GMM statistics and Ux to return a score.")

@@ -5,8 +5,12 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
-#include <bob/machine/Gaussian.h>
+#include <bob.learn.misc/Gaussian.h>
 
 
 using namespace boost::python;
@@ -56,13 +60,34 @@ static double py_logLikelihood_(const bob::machine::Gaussian& machine,
   return output;
 }
 
+
+static boost::shared_ptr<bob::machine::Gaussian> _init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::Gaussian>(new bob::machine::Gaussian(*hdf5->f));
+}
+
+static void _load(bob::machine::Gaussian& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void _save(const bob::machine::Gaussian& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
 void bind_machine_gaussian()
 {
   class_<bob::machine::Gaussian, boost::shared_ptr<bob::machine::Gaussian>, bases<bob::machine::Machine<blitz::Array<double,1>, double> > >("Gaussian",
-    "This class implements a multivariate diagonal Gaussian distribution.", init<>(arg("self")))
+    "This class implements a multivariate diagonal Gaussian distribution.", no_init)
+    .def("__init__", boost::python::make_constructor(&_init))
+    .def(init<>(arg("self")))
     .def(init<const size_t>((arg("self"), arg("n_inputs"))))
     .def(init<bob::machine::Gaussian&>((arg("self"), arg("other"))))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config"))))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::Gaussian::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this Gaussian with the 'other' one to be approximately the same.")
@@ -79,8 +104,8 @@ void bind_machine_gaussian()
     .def("resize", &bob::machine::Gaussian::resize, (arg("self"), arg("dim_d")), "Set the input dimensionality, reset the mean to zero and the variance to one.")
     .def("log_likelihood", &py_logLikelihood, (arg("self"), arg("sample")), "Output the log likelihood of the sample, x. The input size is checked.")
     .def("log_likelihood_", &py_logLikelihood_, (arg("self"), arg("sample")), "Output the log likelihood of the sample, x. The input size is NOT checked.")
-    .def("save", &bob::machine::Gaussian::save, (arg("self"), arg("config")), "Save to a Configuration")
-    .def("load", &bob::machine::Gaussian::load, (arg("self"), arg("config")),"Load from a Configuration")
+    .def("save", &_save, (arg("self"), arg("config")), "Save to a Configuration")
+    .def("load", &_load, (arg("self"), arg("config")),"Load from a Configuration")
     .def(self_ns::str(self_ns::self))
   ;
 }

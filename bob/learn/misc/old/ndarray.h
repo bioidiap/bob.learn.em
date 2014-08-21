@@ -4,7 +4,7 @@
  * @author André Anjos <andre.anjos@idiap.ch>
  *
  * @brief A boost::python extension object that plays the role of a NumPy
- * ndarray (PyArrayObject*) and bob::core::array::interface at the same time.
+ * ndarray (PyArrayObject*) and bob::io::base::array::interface at the same time.
  *
  * Copyright (C) 2011-2013 Idiap Research Institute, Martigny, Switzerland
  */
@@ -20,8 +20,8 @@
 #include <numpy/arrayobject.h>
 
 #include "exception.h"
-#include <bob/core/array.h>
-#include <bob/core/cast.h>
+#include <bob.io.base/array.h>
+#include <bob.core/cast.h>
 
 #include <blitz/array.h>
 #include <stdint.h>
@@ -63,12 +63,12 @@ namespace bob { namespace python {
    * @brief A generic method to convert from ndarray type_num to bob's
    * ElementType
    */
-  bob::core::array::ElementType num_to_type(int num);
+  bob::io::base::array::ElementType num_to_type(int num);
 
   /**
    * @brief A method to retrieve the type of element of an array
    */
-  bob::core::array::ElementType array_to_type(const boost::python::numeric::array& a);
+  bob::io::base::array::ElementType array_to_type(const boost::python::numeric::array& a);
 
   /**
    * @brief Retrieves the number of dimensions in an array
@@ -79,7 +79,7 @@ namespace bob { namespace python {
    * @brief Converts from C/C++ type to ndarray type_num.
    */
   template <typename T> int ctype_to_num(void) {
-    PYTHON_ERROR(TypeError, "unsupported C/C++ type (%s)", bob::core::array::stringize<T>());
+    PYTHON_ERROR(TypeError, "unsupported C/C++ type (%s)", bob::io::base::array::stringize<T>());
   }
 
   // The C/C++ types we support should be declared here.
@@ -108,7 +108,7 @@ namespace bob { namespace python {
   /**
    * @brief Converts from bob's Element type to ndarray type_num
    */
-  int type_to_num(bob::core::array::ElementType type);
+  int type_to_num(bob::io::base::array::ElementType type);
 
   /**
    * @brief Handles conversion checking possibilities
@@ -126,14 +126,14 @@ namespace bob { namespace python {
    * ndarray. An exception may be thrown otherwise.
    */
   void typeinfo_ndarray (const boost::python::object& o,
-      bob::core::array::typeinfo& i);
+      bob::io::base::array::typeinfo& i);
 
   /**
    * @brief This is the same as above, but does not run any check on the input
    * object "o".
    */
   void typeinfo_ndarray_ (const boost::python::object& o,
-      bob::core::array::typeinfo& i);
+      bob::io::base::array::typeinfo& i);
 
   /**
    * @brief Checks if an array-like object is convertible to become a NumPy
@@ -172,7 +172,7 @@ namespace bob { namespace python {
    *             be able to implement write-back.
    */
   convert_t convertible(boost::python::object array_like,
-      bob::core::array::typeinfo& info, bool writeable=true,
+      bob::io::base::array::typeinfo& info, bool writeable=true,
       bool behaved=true);
 
   /**
@@ -187,7 +187,7 @@ namespace bob { namespace python {
    * 3. If 2. holds, shape values are checked if has_valid_shape() is 'true'
    */
   convert_t convertible_to (boost::python::object array_like,
-      const bob::core::array::typeinfo& info, bool writeable=true,
+      const bob::io::base::array::typeinfo& info, bool writeable=true,
       bool behaved=true);
 
   /**
@@ -228,7 +228,7 @@ namespace bob { namespace python {
       /**
        * @brief Builds a new dtype object from a bob element type
        */
-      dtype(bob::core::array::ElementType eltype);
+      dtype(bob::io::base::array::ElementType eltype);
 
       /**
        * @brief Copy constructor
@@ -254,12 +254,12 @@ namespace bob { namespace python {
        * @brief Some checks
        */
       bool has_native_byteorder() const; ///< byte order is native
-      bool has_type(bob::core::array::ElementType eltype) const; ///< matches
+      bool has_type(bob::io::base::array::ElementType eltype) const; ///< matches
 
       /**
        * @brief Returns the current element type
        */
-      bob::core::array::ElementType eltype() const;
+      bob::io::base::array::ElementType eltype() const;
 
       /**
        * @brief Returns the current type num or -1, if I'm None
@@ -293,7 +293,7 @@ namespace bob { namespace python {
 
   };
 
-  class py_array: public bob::core::array::interface {
+  class py_array: public bob::io::base::array::interface {
 
     public: //api
 
@@ -313,44 +313,44 @@ namespace bob { namespace python {
       /**
        * @brief Builds a new array copying the data of an existing buffer.
        */
-      py_array(const bob::core::array::interface& buffer);
+      py_array(const bob::io::base::array::interface& buffer);
 
       /**
        * @brief Builds a new array by referring to the data of an existing
        * buffer.
        */
-      py_array(boost::shared_ptr<bob::core::array::interface> buffer);
+      py_array(boost::shared_ptr<bob::io::base::array::interface> buffer);
 
       /**
        * @brief Builds a new array from scratch using the typeinfo. This array
        * will be a NumPy ndarray internally.
        */
-      py_array(const bob::core::array::typeinfo& info);
+      py_array(const bob::io::base::array::typeinfo& info);
 
       template <typename T>
-      py_array(bob::core::array::ElementType t, T d0) {
-        set(bob::core::array::typeinfo(t, (T)1, &d0));
+      py_array(bob::io::base::array::ElementType t, T d0) {
+        set(bob::io::base::array::typeinfo(t, (T)1, &d0));
       }
       template <typename T>
-      py_array(bob::core::array::ElementType t, T d0, T d1) {
+      py_array(bob::io::base::array::ElementType t, T d0, T d1) {
         T shape[2] = {d0, d1};
-        set(bob::core::array::typeinfo(t, (T)2, &shape[0]));
+        set(bob::io::base::array::typeinfo(t, (T)2, &shape[0]));
       }
       template <typename T>
-      py_array(bob::core::array::ElementType t, T d0, T d1, T d2) {
+      py_array(bob::io::base::array::ElementType t, T d0, T d1, T d2) {
         T shape[3] = {d0, d1, d2};
-        set(bob::core::array::typeinfo(t, (T)3, &shape[0]));
+        set(bob::io::base::array::typeinfo(t, (T)3, &shape[0]));
       }
       template <typename T>
-      py_array(bob::core::array::ElementType t, T d0, T d1, T d2, T d3) {
+      py_array(bob::io::base::array::ElementType t, T d0, T d1, T d2, T d3) {
         T shape[4] = {d0, d1, d2, d3};
-        set(bob::core::array::typeinfo(t, (T)4, &shape[0]));
+        set(bob::io::base::array::typeinfo(t, (T)4, &shape[0]));
       }
       template <typename T>
-      py_array(bob::core::array::ElementType t, T d0, T d1, T d2, T d3, T d4)
+      py_array(bob::io::base::array::ElementType t, T d0, T d1, T d2, T d3, T d4)
       {
         T shape[5] = {d0, d1, d2, d3, d4};
-        set(bob::core::array::typeinfo(t, (T)5, &shape[0]));
+        set(bob::io::base::array::typeinfo(t, (T)5, &shape[0]));
       }
 
       /**
@@ -361,23 +361,23 @@ namespace bob { namespace python {
       /**
        * @brief Copies the data from another buffer.
        */
-      virtual void set(const bob::core::array::interface& buffer);
+      virtual void set(const bob::io::base::array::interface& buffer);
 
       /**
        * @brief Refers to the data of another buffer.
        */
-      virtual void set(boost::shared_ptr<bob::core::array::interface> buffer);
+      virtual void set(boost::shared_ptr<bob::io::base::array::interface> buffer);
 
       /**
        * @brief Re-allocates this buffer taking into consideration new
        * requirements. The internal memory should be considered uninitialized.
        */
-      virtual void set (const bob::core::array::typeinfo& req);
+      virtual void set (const bob::io::base::array::typeinfo& req);
 
       /**
        * @brief Type information for this buffer.
        */
-      virtual const bob::core::array::typeinfo& type() const { return m_type; }
+      virtual const bob::io::base::array::typeinfo& type() const { return m_type; }
 
       /**
        * @brief Borrows a reference from the underlying memory. This means
@@ -425,7 +425,7 @@ namespace bob { namespace python {
 
     private: //representation
 
-      bob::core::array::typeinfo m_type; ///< type information
+      bob::io::base::array::typeinfo m_type; ///< type information
       void* m_ptr; ///< pointer to the data
       bool m_is_numpy; ///< true if initiated with a NumPy array
       boost::shared_ptr<void> m_data; ///< Pointer to the data owner
@@ -466,22 +466,22 @@ namespace bob { namespace python {
       /**
        * @brief Builds a new array from scratch using a type and shape
        */
-      ndarray(const bob::core::array::typeinfo& info);
+      ndarray(const bob::io::base::array::typeinfo& info);
 
       template <typename T>
-      ndarray(bob::core::array::ElementType t, T d0)
+      ndarray(bob::io::base::array::ElementType t, T d0)
         : px(new py_array(t, d0)) { }
       template <typename T>
-      ndarray(bob::core::array::ElementType t, T d0, T d1)
+      ndarray(bob::io::base::array::ElementType t, T d0, T d1)
         : px(new py_array(t, d0, d1)) { }
       template <typename T>
-      ndarray(bob::core::array::ElementType t, T d0, T d1, T d2)
+      ndarray(bob::io::base::array::ElementType t, T d0, T d1, T d2)
         : px(new py_array(t, d0, d1, d2)) { }
       template <typename T>
-      ndarray(bob::core::array::ElementType t, T d0, T d1, T d2, T d3)
+      ndarray(bob::io::base::array::ElementType t, T d0, T d1, T d2, T d3)
         : px(new py_array(t, d0, d1, d2, d3)) { }
       template <typename T>
-      ndarray(bob::core::array::ElementType t, T d0, T d1, T d2, T d3, T d4)
+      ndarray(bob::io::base::array::ElementType t, T d0, T d1, T d2, T d3, T d4)
         : px(new py_array(t, d0, d1, d2, d3, d4)) { }
 
       /**
@@ -492,7 +492,7 @@ namespace bob { namespace python {
       /**
        * @brief Returns the type information
        */
-      virtual const bob::core::array::typeinfo& type() const;
+      virtual const bob::io::base::array::typeinfo& type() const;
 
       /**
        * @brief Returns the underlying python representation.
@@ -517,19 +517,19 @@ namespace bob { namespace python {
         typedef blitz::Array<T,N> array_type;
         typedef blitz::TinyVector<int,N> shape_type;
 
-        const bob::core::array::typeinfo& info = px->type();
+        const bob::io::base::array::typeinfo& info = px->type();
 
         if (info.nd != N) {
           boost::format mesg("cannot wrap numpy.ndarray(%s,%d) as blitz::Array<%s,%s> - dimensions do not match");
-          mesg % bob::core::array::stringize(info.dtype) % info.nd;
-          mesg % bob::core::array::stringize<T>() % N;
+          mesg % bob::io::base::array::stringize(info.dtype) % info.nd;
+          mesg % bob::io::base::array::stringize<T>() % N;
           throw std::runtime_error(mesg.str().c_str());
         }
 
-        if (info.dtype != bob::core::array::getElementType<T>()) {
+        if (info.dtype != bob::io::base::array::getElementType<T>()) {
           boost::format mesg("cannot wrap numpy.ndarray(%s,%d) as blitz::Array<%s,%s> - data type does not match");
-          mesg % bob::core::array::stringize(info.dtype) % info.nd;
-          mesg % bob::core::array::stringize<T>() % N;
+          mesg % bob::io::base::array::stringize(info.dtype) % info.nd;
+          mesg % bob::io::base::array::stringize<T>() % N;
           throw std::runtime_error(mesg.str().c_str());
         }
 
@@ -587,16 +587,16 @@ namespace bob { namespace python {
        * ndarray outlives the blitz::Array<>, in case the data is not copied.
        */
       template <typename T, int N> const blitz::Array<T,N> cast() {
-        const bob::core::array::typeinfo& info = px->type();
+        const bob::io::base::array::typeinfo& info = px->type();
 
         if (info.nd != N) {
           boost::format mesg("cannot wrap numpy.ndarray(%s,%d) as blitz::Array<%s,%s> - dimensions do not match");
-          mesg % bob::core::array::stringize(info.dtype) % info.nd;
-          mesg % bob::core::array::stringize<T>() % N;
+          mesg % bob::io::base::array::stringize(info.dtype) % info.nd;
+          mesg % bob::io::base::array::stringize<T>() % N;
           throw std::runtime_error(mesg.str().c_str());
         }
 
-        if (info.dtype == bob::core::array::getElementType<T>()) {
+        if (info.dtype == bob::io::base::array::getElementType<T>()) {
           // Type and shape matches, return the shallow copy of the array.
           return bz<T,N>();
         }
@@ -605,29 +605,29 @@ namespace bob { namespace python {
         // call the correct version of the cast function
         switch(info.dtype){
           // boolean types
-          case bob::core::array::t_bool: return bob::core::array::cast<T>(bz<bool,N>());
+          case bob::io::base::array::t_bool: return bob::core::array::cast<T>(bz<bool,N>());
 
           // integral types
-          case bob::core::array::t_int8: return bob::core::array::cast<T>(bz<int8_t,N>());
-          case bob::core::array::t_int16: return bob::core::array::cast<T>(bz<int16_t,N>());
-          case bob::core::array::t_int32: return bob::core::array::cast<T>(bz<int32_t,N>());
-          case bob::core::array::t_int64: return bob::core::array::cast<T>(bz<int64_t,N>());
+          case bob::io::base::array::t_int8: return bob::core::array::cast<T>(bz<int8_t,N>());
+          case bob::io::base::array::t_int16: return bob::core::array::cast<T>(bz<int16_t,N>());
+          case bob::io::base::array::t_int32: return bob::core::array::cast<T>(bz<int32_t,N>());
+          case bob::io::base::array::t_int64: return bob::core::array::cast<T>(bz<int64_t,N>());
 
           // unsigned integral types
-          case bob::core::array::t_uint8: return bob::core::array::cast<T>(bz<uint8_t,N>());
-          case bob::core::array::t_uint16: return bob::core::array::cast<T>(bz<uint16_t,N>());
-          case bob::core::array::t_uint32: return bob::core::array::cast<T>(bz<uint32_t,N>());
-          case bob::core::array::t_uint64: return bob::core::array::cast<T>(bz<uint64_t,N>());
+          case bob::io::base::array::t_uint8: return bob::core::array::cast<T>(bz<uint8_t,N>());
+          case bob::io::base::array::t_uint16: return bob::core::array::cast<T>(bz<uint16_t,N>());
+          case bob::io::base::array::t_uint32: return bob::core::array::cast<T>(bz<uint32_t,N>());
+          case bob::io::base::array::t_uint64: return bob::core::array::cast<T>(bz<uint64_t,N>());
 
           // floating point types
-          case bob::core::array::t_float32: return bob::core::array::cast<T>(bz<float,N>());
-          case bob::core::array::t_float64: return bob::core::array::cast<T>(bz<double,N>());
-          case bob::core::array::t_float128: return bob::core::array::cast<T>(bz<long double,N>());
+          case bob::io::base::array::t_float32: return bob::core::array::cast<T>(bz<float,N>());
+          case bob::io::base::array::t_float64: return bob::core::array::cast<T>(bz<double,N>());
+          case bob::io::base::array::t_float128: return bob::core::array::cast<T>(bz<long double,N>());
 
           // complex types
-          case bob::core::array::t_complex64: return bob::core::array::cast<T>(bz<std::complex<float>,N>());
-          case bob::core::array::t_complex128: return bob::core::array::cast<T>(bz<std::complex<double>,N>());
-          case bob::core::array::t_complex256: return bob::core::array::cast<T>(bz<std::complex<long double>,N>());
+          case bob::io::base::array::t_complex64: return bob::core::array::cast<T>(bz<std::complex<float>,N>());
+          case bob::io::base::array::t_complex128: return bob::core::array::cast<T>(bz<std::complex<double>,N>());
+          case bob::io::base::array::t_complex256: return bob::core::array::cast<T>(bz<std::complex<long double>,N>());
 
           default: throw std::runtime_error("cast to the given (unknown) data type is not possible yet");
         }

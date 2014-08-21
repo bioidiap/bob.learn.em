@@ -7,8 +7,12 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
-#include <bob/machine/WienerMachine.h>
+#include <bob.learn.misc/WienerMachine.h>
 
 using namespace boost::python;
 
@@ -29,8 +33,8 @@ static void py_forward1(const bob::machine::WienerMachine& m,
 static object py_forward2(const bob::machine::WienerMachine& m,
   bob::python::const_ndarray input)
 {
-  const bob::core::array::typeinfo& info = input.type();
-  bob::python::ndarray output(bob::core::array::t_float64, info.shape[0], info.shape[1]);
+  const bob::io::base::array::typeinfo& info = input.type();
+  bob::python::ndarray output(bob::io::base::array::t_float64, info.shape[0], info.shape[1]);
   blitz::Array<double,2> output_ = output.bz<double,2>();
   m.forward(input.bz<double,2>(), output_);
   return output.self();
@@ -53,18 +57,38 @@ static void py_set_ps(bob::machine::WienerMachine& m,
   m.setPs(ps.bz<double,2>());
 }
 
+
+static boost::shared_ptr<bob::machine::WienerMachine> _init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::WienerMachine>(new bob::machine::WienerMachine(*hdf5->f));
+}
+
+static void _load(bob::machine::WienerMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void _save(const bob::machine::WienerMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
+
 void bind_machine_wiener()
 {
   class_<bob::machine::WienerMachine, boost::shared_ptr<bob::machine::WienerMachine> >("WienerMachine", "A Wiener filter.\nReference:\n'Computer Vision: Algorithms and Applications', Richard Szeliski, (Part 3.4.3)", init<const size_t, const size_t, const double, optional<const double> >((arg("self"), arg("height"), arg("width"), arg("pn"), arg("variance_threshold")=1e-8), "Constructs a new Wiener filter dedicated to images of the given dimensions. The filter is initialized with zero values."))
     .def(init<const blitz::Array<double,2>&, const double> ((arg("self"), arg("ps"), arg("pn")), "Constructs a new WienerMachine from a set of variance estimates ps, a noise level pn."))
     .def(init<>((arg("self")), "Default constructor, builds a machine as with 'WienerMachine(0,0,0)'."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new WienerMachine from a configuration file."))
+    .def("__init__", boost::python::make_constructor(&_init), "Constructs a new WienerMachine from a configuration file.")
     .def(init<const bob::machine::WienerMachine&>((arg("self"), arg("machine")), "Copy constructs an WienerMachine"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::WienerMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this WienerMachine with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::WienerMachine::load, (arg("self"), arg("config")), "Loads the filter from a configuration file.")
-    .def("save", &bob::machine::WienerMachine::save, (arg("self"), arg("config")), "Saves the filter to a configuration file.")
+    .def("load", &_load, (arg("self"), arg("config")), "Loads the filter from a configuration file.")
+    .def("save", &_save, (arg("self"), arg("config")), "Saves the filter to a configuration file.")
     .add_property("pn", &bob::machine::WienerMachine::getPn, &bob::machine::WienerMachine::setPn, "Noise level Pn")
     .add_property("variance_threshold", &bob::machine::WienerMachine::getVarianceThreshold, &bob::machine::WienerMachine::setVarianceThreshold, "Variance flooring threshold (min variance value)")
     .add_property("ps",make_function(&bob::machine::WienerMachine::getPs, return_value_policy<copy_const_reference>()), &py_set_ps, "Variance Ps estimated at each frequency")

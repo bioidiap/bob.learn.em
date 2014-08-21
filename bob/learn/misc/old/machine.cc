@@ -6,7 +6,7 @@
  */
 
 #include "ndarray.h"
-#include <bob/machine/Machine.h>
+#include <bob.learn.misc/Machine.h>
 
 using namespace boost::python;
 

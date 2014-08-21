@@ -8,7 +8,7 @@
 #include "ndarray.h"
 
 #include <vector>
-#include <bob/machine/LinearScoring.h>
+#include <bob.learn.misc/LinearScoring.h>
 #include <boost/python/stl_iterator.hpp>
 
 using namespace boost::python;
@@ -55,7 +55,7 @@ static object linearScoring1(object models,
   std::vector<boost::shared_ptr<const bob::machine::GMMStats> > test_stats_c;
   convertGMMStatsList(test_stats, test_stats_c);
 
-  bob::python::ndarray ret(bob::core::array::t_float64, models_c.size(), test_stats_c.size());
+  bob::python::ndarray ret(bob::io::base::array::t_float64, models_c.size(), test_stats_c.size());
   blitz::Array<double,2> ret_ = ret.bz<double,2>();
   if (test_channelOffset.ptr() == Py_None || len(test_channelOffset) == 0) { //list is empty
     bob::machine::linearScoring(models_c, ubm_mean_, ubm_variance_, test_stats_c, frame_length_normalisation, ret_);
@@ -80,7 +80,7 @@ static object linearScoring2(object models,
   std::vector<boost::shared_ptr<const bob::machine::GMMStats> > test_stats_c;
   convertGMMStatsList(test_stats, test_stats_c);
 
-  bob::python::ndarray ret(bob::core::array::t_float64, models_c.size(), test_stats_c.size());
+  bob::python::ndarray ret(bob::io::base::array::t_float64, models_c.size(), test_stats_c.size());
   blitz::Array<double,2> ret_ = ret.bz<double,2>();
   if (test_channelOffset.ptr() == Py_None || len(test_channelOffset) == 0) { //list is empty
     bob::machine::linearScoring(models_c, ubm, test_stats_c, frame_length_normalisation, ret_);

@@ -5,9 +5,13 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
 
-#include <bob/machine/IVectorMachine.h>
+#include <bob.learn.misc/IVectorMachine.h>
 
 using namespace boost::python;
 
@@ -33,7 +37,7 @@ static void py_computeIdTtSigmaInvT1(const bob::machine::IVectorMachine& machine
 static object py_computeIdTtSigmaInvT2(const bob::machine::IVectorMachine& machine,
   const bob::machine::GMMStats& gs)
 {
-  bob::python::ndarray output(bob::core::array::t_float64, machine.getDimRt(), machine.getDimRt());
+  bob::python::ndarray output(bob::io::base::array::t_float64, machine.getDimRt(), machine.getDimRt());
   blitz::Array<double,2> output_ = output.bz<double,2>();
   machine.computeIdTtSigmaInvT(gs, output_);
   return output.self();
@@ -49,7 +53,7 @@ static void py_computeTtSigmaInvFnorm1(const bob::machine::IVectorMachine& machi
 static object py_computeTtSigmaInvFnorm2(const bob::machine::IVectorMachine& machine,
   const bob::machine::GMMStats& gs)
 {
-  bob::python::ndarray output(bob::core::array::t_float64, machine.getDimRt());
+  bob::python::ndarray output(bob::io::base::array::t_float64, machine.getDimRt());
   blitz::Array<double,1> output_ = output.bz<double,1>();
   machine.computeTtSigmaInvFnorm(gs, output_);
   return output.self();
@@ -72,25 +76,44 @@ static void py_iv_forward1_(const bob::machine::IVectorMachine& machine,
 static object py_iv_forward2(const bob::machine::IVectorMachine& machine,
   const bob::machine::GMMStats& gs)
 {
-  bob::python::ndarray ivector(bob::core::array::t_float64, machine.getDimRt());
+  bob::python::ndarray ivector(bob::io::base::array::t_float64, machine.getDimRt());
   blitz::Array<double,1> ivector_ = ivector.bz<double,1>();
   machine.forward(gs, ivector_);
   return ivector.self();
 }
 
 
+
+static boost::shared_ptr<bob::machine::IVectorMachine> _init(boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  return boost::shared_ptr<bob::machine::IVectorMachine>(new bob::machine::IVectorMachine(*hdf5->f));
+}
+
+static void _load(bob::machine::IVectorMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.load(*hdf5->f);
+}
+
+static void _save(const bob::machine::IVectorMachine& self, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  self.save(*hdf5->f);
+}
+
 void bind_machine_ivector()
 {
   // TODO: reuse binding from generic machine
   class_<bob::machine::IVectorMachine, boost::shared_ptr<bob::machine::IVectorMachine> >("IVectorMachine", "An IVectorMachine to extract i-vector.\n\nReferences:\n[1] 'Front End Factor Analysis for Speaker Verification', N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet, IEEE Transactions on Audio, Speech and Language Processing, 2010, vol. 19, issue 4, pp. 788-798", init<boost::shared_ptr<bob::machine::GMMMachine>, optional<const size_t, const size_t> >((arg("self"), arg("ubm"), arg("rt")=1, arg("variance_threshold")=1e-10), "Builds a new IVectorMachine."))
     .def(init<>((arg("self")), "Constructs a new empty IVectorMachine."))
-    .def(init<bob::io::HDF5File&>((arg("self"), arg("config")), "Constructs a new IVectorMachine from a configuration file."))
+    .def("__init__", boost::python::make_constructor(&_init), "Constructs a new IVectorMachine from a configuration file.")
     .def(init<const bob::machine::IVectorMachine&>((arg("self"), arg("machine")), "Copy constructs an IVectorMachine"))
     .def(self == self)
     .def(self != self)
     .def("is_similar_to", &bob::machine::IVectorMachine::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this IVectorMachine with the 'other' one to be approximately the same.")
-    .def("load", &bob::machine::IVectorMachine::load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
-    .def("save", &bob::machine::IVectorMachine::save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
+    .def("load", &_load, (arg("self"), arg("config")), "Loads the configuration parameters from a configuration file.")
+    .def("save", &_save, (arg("self"), arg("config")), "Saves the configuration parameters to a configuration file.")
     .def("resize", &bob::machine::IVectorMachine::resize, (arg("self"), arg("rt")), "Reset the dimensionality of the Total Variability subspace T.")
     .add_property("ubm", &bob::machine::IVectorMachine::getUbm, &bob::machine::IVectorMachine::setUbm, "The UBM GMM attached to this Joint Factor Analysis model")
     .add_property("t", make_function(&bob::machine::IVectorMachine::getT, return_value_policy<copy_const_reference>()), &py_iv_setT, "The subspace T (Total Variability matrix)")

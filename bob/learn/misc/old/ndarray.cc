@@ -12,9 +12,9 @@
 #include <stdexcept>
 #include <dlfcn.h>
 
-#ifdef NO_IMPORT_ARRAY
-#undef NO_IMPORT_ARRAY
-#endif
+//#ifdef NO_IMPORT_ARRAY
+//#undef NO_IMPORT_ARRAY
+//#endif
 #include "ndarray.h"
 
 #define TP_ARRAY(x) ((PyArrayObject*)x.ptr())
@@ -24,16 +24,16 @@
 #define NUMPY16_API 0x00000006
 #define NUMPY14_API 0x00000004
 
-#include <bob/core/logging.h>
+#include <bob.core/logging.h>
 
 #if PY_VERSION_HEX >= 0x03000000
 static void* wrap_import_array() {
-  import_array();
+//  import_array();
   return 0;
 }
 #else
 static void wrap_import_array() {
-  import_array();
+//  import_array();
   return;
 }
 #endif
@@ -80,83 +80,83 @@ void bob::python::setup_python(const char* module_docstring) {
  * Dtype (PyArray_Descr) manipulations                                     *
  ***************************************************************************/
 
-int bob::python::type_to_num(bob::core::array::ElementType type) {
+int bob::python::type_to_num(bob::io::base::array::ElementType type) {
 
   switch(type) {
-    case bob::core::array::t_bool:
+    case bob::io::base::array::t_bool:
       return NPY_BOOL;
-    case bob::core::array::t_int8:
+    case bob::io::base::array::t_int8:
       return NPY_INT8;
-    case bob::core::array::t_int16:
+    case bob::io::base::array::t_int16:
       return NPY_INT16;
-    case bob::core::array::t_int32:
+    case bob::io::base::array::t_int32:
       return NPY_INT32;
-    case bob::core::array::t_int64:
+    case bob::io::base::array::t_int64:
       return NPY_INT64;
-    case bob::core::array::t_uint8:
+    case bob::io::base::array::t_uint8:
       return NPY_UINT8;
-    case bob::core::array::t_uint16:
+    case bob::io::base::array::t_uint16:
       return NPY_UINT16;
-    case bob::core::array::t_uint32:
+    case bob::io::base::array::t_uint32:
       return NPY_UINT32;
-    case bob::core::array::t_uint64:
+    case bob::io::base::array::t_uint64:
       return NPY_UINT64;
-    case bob::core::array::t_float32:
+    case bob::io::base::array::t_float32:
       return NPY_FLOAT32;
-    case bob::core::array::t_float64:
+    case bob::io::base::array::t_float64:
       return NPY_FLOAT64;
 #ifdef NPY_FLOAT128
-    case bob::core::array::t_float128:
+    case bob::io::base::array::t_float128:
       return NPY_FLOAT128;
 #endif
-    case bob::core::array::t_complex64:
+    case bob::io::base::array::t_complex64:
       return NPY_COMPLEX64;
-    case bob::core::array::t_complex128:
+    case bob::io::base::array::t_complex128:
       return NPY_COMPLEX128;
 #ifdef NPY_COMPLEX256
-    case bob::core::array::t_complex256:
+    case bob::io::base::array::t_complex256:
       return NPY_COMPLEX256;
 #endif
     default:
-      PYTHON_ERROR(TypeError, "unsupported C++ element type (%s)", bob::core::array::stringize(type));
+      PYTHON_ERROR(TypeError, "unsupported C++ element type (%s)", bob::io::base::array::stringize(type));
   }
 
 }
 
-static bob::core::array::ElementType signed_integer_type(int bits) {
+static bob::io::base::array::ElementType signed_integer_type(int bits) {
   switch(bits) {
     case 8:
-      return bob::core::array::t_int8;
+      return bob::io::base::array::t_int8;
     case 16:
-      return bob::core::array::t_int16;
+      return bob::io::base::array::t_int16;
     case 32:
-      return bob::core::array::t_int32;
+      return bob::io::base::array::t_int32;
     case 64:
-      return bob::core::array::t_int64;
+      return bob::io::base::array::t_int64;
     default:
       PYTHON_ERROR(TypeError, "unsupported signed integer element type with %d bits", bits);
   }
 }
 
-static bob::core::array::ElementType unsigned_integer_type(int bits) {
+static bob::io::base::array::ElementType unsigned_integer_type(int bits) {
   switch(bits) {
     case 8:
-      return bob::core::array::t_uint8;
+      return bob::io::base::array::t_uint8;
     case 16:
-      return bob::core::array::t_uint16;
+      return bob::io::base::array::t_uint16;
     case 32:
-      return bob::core::array::t_uint32;
+      return bob::io::base::array::t_uint32;
     case 64:
-      return bob::core::array::t_uint64;
+      return bob::io::base::array::t_uint64;
     default:
       PYTHON_ERROR(TypeError, "unsupported unsigned integer element type with %d bits", bits);
   }
 }
 
-bob::core::array::ElementType bob::python::num_to_type(int num) {
+bob::io::base::array::ElementType bob::python::num_to_type(int num) {
   switch(num) {
     case NPY_BOOL:
-      return bob::core::array::t_bool;
+      return bob::io::base::array::t_bool;
 
     //signed integers
     case NPY_BYTE:
@@ -184,22 +184,22 @@ bob::core::array::ElementType bob::python::num_to_type(int num) {
 
     //floats
     case NPY_FLOAT32:
-      return bob::core::array::t_float32;
+      return bob::io::base::array::t_float32;
     case NPY_FLOAT64:
-      return bob::core::array::t_float64;
+      return bob::io::base::array::t_float64;
 #ifdef NPY_FLOAT128
     case NPY_FLOAT128:
-      return bob::core::array::t_float128;
+      return bob::io::base::array::t_float128;
 #endif
 
     //complex
     case NPY_COMPLEX64:
-      return bob::core::array::t_complex64;
+      return bob::io::base::array::t_complex64;
     case NPY_COMPLEX128:
-      return bob::core::array::t_complex128;
+      return bob::io::base::array::t_complex128;
 #ifdef NPY_COMPLEX256
     case NPY_COMPLEX256:
-      return bob::core::array::t_complex256;
+      return bob::io::base::array::t_complex256;
 #endif
 
     default:
@@ -246,7 +246,7 @@ template <> int bob::python::ctype_to_num<std::complex<long double> >(void)
 #endif
 //! @endcond SKIP_DOXYGEN_WARNINGS
 
-bob::core::array::ElementType bob::python::array_to_type(const boost::python::numeric::array& a) {
+bob::io::base::array::ElementType bob::python::array_to_type(const boost::python::numeric::array& a) {
   return bob::python::num_to_type(PyArray_DESCR(TP_ARRAY(a))->type_num);
 }
 
@@ -279,8 +279,8 @@ bob::python::dtype::dtype(int typenum) {
   m_self = boost::python::object(hdl);
 }
 
-bob::python::dtype::dtype(bob::core::array::ElementType eltype) {
-  if (eltype != bob::core::array::t_unknown) {
+bob::python::dtype::dtype(bob::io::base::array::ElementType eltype) {
+  if (eltype != bob::io::base::array::t_unknown) {
     PyArray_Descr* tmp = PyArray_DescrFromType(bob::python::type_to_num(eltype));
     boost::python::handle<> hdl(boost::python::borrowed((PyObject*)tmp));
     m_self = boost::python::object(hdl);
@@ -305,12 +305,12 @@ bool bob::python::dtype::has_native_byteorder() const {
   return TPY_ISNONE(m_self)? false : (PyArray_EquivByteorders(TP_DESCR(m_self)->byteorder, NPY_NATIVE) || TP_DESCR(m_self)->elsize == 1);
 }
 
-bool bob::python::dtype::has_type(bob::core::array::ElementType _eltype) const {
+bool bob::python::dtype::has_type(bob::io::base::array::ElementType _eltype) const {
   return eltype() == _eltype;
 }
 
-bob::core::array::ElementType bob::python::dtype::eltype() const {
-  return TPY_ISNONE(m_self)? bob::core::array::t_unknown :
+bob::io::base::array::ElementType bob::python::dtype::eltype() const {
+  return TPY_ISNONE(m_self)? bob::io::base::array::t_unknown :
     bob::python::num_to_type(TP_DESCR(m_self)->type_num);
 }
 
@@ -334,14 +334,14 @@ PyArray_Descr* bob::python::dtype::descr() {
  * Free methods                                                             *
  ****************************************************************************/
 
-void bob::python::typeinfo_ndarray_ (const boost::python::object& o, bob::core::array::typeinfo& i) {
+void bob::python::typeinfo_ndarray_ (const boost::python::object& o, bob::io::base::array::typeinfo& i) {
   PyArrayObject* npy = TP_ARRAY(o);
   npy_intp strides[NPY_MAXDIMS];
   for (int k=0; k<PyArray_NDIM(npy); ++k) strides[k] = PyArray_STRIDES(npy)[k]/PyArray_DESCR(npy)->elsize;
   i.set<npy_intp>(bob::python::num_to_type(PyArray_DESCR(npy)->type_num), PyArray_NDIM(npy), PyArray_DIMS(npy), strides);
 }
 
-void bob::python::typeinfo_ndarray (const boost::python::object& o, bob::core::array::typeinfo& i) {
+void bob::python::typeinfo_ndarray (const boost::python::object& o, bob::io::base::array::typeinfo& i) {
   if (!PyArray_Check(o.ptr())) {
     throw std::runtime_error("invalid input: cannot extract typeinfo object from anything else than ndarray");
   }
@@ -423,7 +423,7 @@ static int _GetArrayParamsFromObject(PyObject* op,
 }
 #endif
 
-bob::python::convert_t bob::python::convertible(boost::python::object array_like, bob::core::array::typeinfo& info,
+bob::python::convert_t bob::python::convertible(boost::python::object array_like, bob::io::base::array::typeinfo& info,
     bool writeable, bool behaved) {
 
   int ndim = 0;
@@ -471,7 +471,7 @@ bob::python::convert_t bob::python::convertible(boost::python::object array_like
 }
 
 bob::python::convert_t bob::python::convertible_to (boost::python::object array_like,
-    const bob::core::array::typeinfo& info, bool writeable, bool behaved) {
+    const bob::io::base::array::typeinfo& info, bool writeable, bool behaved) {
 
   bob::python::dtype req_dtype(info.dtype);
 
@@ -783,15 +783,15 @@ bob::python::py_array::py_array(boost::python::object o, boost::python::object _
   m_ptr = static_cast<void*>(PyArray_DATA(TP_ARRAY(mine)));
 }
 
-bob::python::py_array::py_array(const bob::core::array::interface& other) {
+bob::python::py_array::py_array(const bob::io::base::array::interface& other) {
   set(other);
 }
 
-bob::python::py_array::py_array(boost::shared_ptr<bob::core::array::interface> other) {
+bob::python::py_array::py_array(boost::shared_ptr<bob::io::base::array::interface> other) {
   set(other);
 }
 
-bob::python::py_array::py_array(const bob::core::array::typeinfo& info) {
+bob::python::py_array::py_array(const bob::io::base::array::typeinfo& info) {
   set(info);
 }
 
@@ -801,7 +801,7 @@ bob::python::py_array::~py_array() {
 /**
  * Wrap a C-style pointer with a PyArrayObject
  */
-static boost::python::object wrap_data (void* data, const bob::core::array::typeinfo& ti,
+static boost::python::object wrap_data (void* data, const bob::io::base::array::typeinfo& ti,
     bool writeable=true) {
 
   npy_intp shape[NPY_MAXDIMS];
@@ -847,13 +847,13 @@ static boost::python::object copy_array (const boost::python::object& array) {
 /**
  * Copies a data pointer and type into a new numpy array.
  */
-static boost::python::object copy_data (const void* data, const bob::core::array::typeinfo& ti) {
+static boost::python::object copy_data (const void* data, const bob::io::base::array::typeinfo& ti) {
   boost::python::object wrapped = wrap_data(const_cast<void*>(data), ti);
   boost::python::object retval = copy_array (wrapped);
   return retval;
 }
 
-void bob::python::py_array::set(const bob::core::array::interface& other) {
+void bob::python::py_array::set(const bob::io::base::array::interface& other) {
   TDEBUG1("[non-optimal] buffer copying operation being performed for "
       << other.type().str());
 
@@ -872,7 +872,7 @@ void bob::python::py_array::set(const bob::core::array::interface& other) {
   m_is_numpy = true;
 }
 
-void bob::python::py_array::set(boost::shared_ptr<bob::core::array::interface> other) {
+void bob::python::py_array::set(boost::shared_ptr<bob::io::base::array::interface> other) {
   m_type = other->type();
   m_is_numpy = false;
   m_ptr = other->ptr();
@@ -882,7 +882,7 @@ void bob::python::py_array::set(boost::shared_ptr<bob::core::array::interface> o
 /**
  * Creates a new numpy array from a bob::io::typeinfo object.
  */
-static boost::python::object new_from_type (const bob::core::array::typeinfo& ti) {
+static boost::python::object new_from_type (const bob::io::base::array::typeinfo& ti) {
   npy_intp shape[NPY_MAXDIMS];
   npy_intp stride[NPY_MAXDIMS];
   for (size_t k=0; k<ti.nd; ++k) {
@@ -896,7 +896,7 @@ static boost::python::object new_from_type (const bob::core::array::typeinfo& ti
   return retval;
 }
 
-void bob::python::py_array::set (const bob::core::array::typeinfo& req) {
+void bob::python::py_array::set (const bob::io::base::array::typeinfo& req) {
   if (m_type.is_compatible(req)) return; ///< nothing to do!
 
   TDEBUG1("[non-optimal?] buffer re-size being performed from " << m_type.str()
@@ -943,7 +943,7 @@ static void DeleteSharedPointer (PyObject* ptr) {
 }
 #endif
 
-static boost::python::object make_readonly (const void* data, const bob::core::array::typeinfo& ti,
+static boost::python::object make_readonly (const void* data, const bob::io::base::array::typeinfo& ti,
     boost::shared_ptr<const void> owner) {
 
   boost::python::object retval = wrap_data(const_cast<void*>(data), ti, false);
@@ -995,13 +995,13 @@ bob::python::ndarray::ndarray(boost::python::object array_like)
   : px(new bob::python::py_array(array_like, boost::python::object())) {
   }
 
-bob::python::ndarray::ndarray(const bob::core::array::typeinfo& info)
+bob::python::ndarray::ndarray(const bob::io::base::array::typeinfo& info)
   : px(new bob::python::py_array(info)) {
   }
 
 bob::python::ndarray::~ndarray() { }
 
-const bob::core::array::typeinfo& bob::python::ndarray::type() const {
+const bob::io::base::array::typeinfo& bob::python::ndarray::type() const {
   return px->type();
 }
 

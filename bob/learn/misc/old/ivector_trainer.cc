@@ -7,9 +7,9 @@
 
 #include "ndarray.h"
 
-#include <bob/trainer/IVectorTrainer.h>
-#include <bob/machine/IVectorMachine.h>
-#include <bob/trainer/EMTrainer.h>
+#include <bob.learn.misc/IVectorTrainer.h>
+#include <bob.learn.misc/IVectorMachine.h>
+#include <bob.learn.misc/EMTrainer.h>
 #include <boost/python/stl_iterator.hpp>
 
 using namespace boost::python;

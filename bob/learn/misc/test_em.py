@@ -16,8 +16,6 @@ from bob.io.base.test_utils import datafile
 from . import KMeansMachine, GMMMachine, KMeansTrainer, \
     ML_GMMTrainer, MAP_GMMTrainer
 
-from . import HDF5File as OldHDF5File
-
 def loadGMM():
   gmm = GMMMachine(2, 2)
 
@@ -54,12 +52,12 @@ def test_gmm_ML_1():
   ml_gmmtrainer = ML_GMMTrainer(True, True, True)
   ml_gmmtrainer.train(gmm, ar)
 
-  #config = OldHDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
+  #config = bob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
   #gmm.save(config)
 
-  gmm_ref = GMMMachine(OldHDF5File(datafile('gmm_ML.hdf5', __name__)))
-  gmm_ref_32bit_debug = GMMMachine(OldHDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__)))
-  gmm_ref_32bit_release = GMMMachine(OldHDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__)))
+  gmm_ref = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML.hdf5', __name__)))
+  gmm_ref_32bit_debug = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__)))
+  gmm_ref_32bit_release = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__)))
 
   assert (gmm == gmm_ref) or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_debug)
 
@@ -106,18 +104,18 @@ def test_gmm_MAP_1():
 
   ar = bob.io.base.load(datafile('faithful.torch3_f64.hdf5', __name__))
 
-  gmm = GMMMachine(OldHDF5File(datafile("gmm_ML.hdf5", __name__)))
-  gmmprior = GMMMachine(OldHDF5File(datafile("gmm_ML.hdf5", __name__)))
+  gmm = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
+  gmmprior = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
 
   map_gmmtrainer = MAP_GMMTrainer(16)
   map_gmmtrainer.set_prior_gmm(gmmprior)
   map_gmmtrainer.train(gmm, ar)
 
-  #config = OldHDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
+  #config = bob.io.base.HDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
   #gmm.save(config)
 
-  gmm_ref = GMMMachine(OldHDF5File(datafile('gmm_MAP.hdf5', __name__)))
-  #gmm_ref_32bit_release = GMMMachine(OldHDF5File(datafile('gmm_MAP_32bit_release.hdf5', __name__)))
+  gmm_ref = GMMMachine(bob.io.base.HDF5File(datafile('gmm_MAP.hdf5', __name__)))
+  #gmm_ref_32bit_release = GMMMachine(bob.io.base.HDF5File(datafile('gmm_MAP_32bit_release.hdf5', __name__)))
 
   assert (equals(gmm.means,gmm_ref.means,1e-3) and equals(gmm.variances,gmm_ref.variances,1e-3) and equals(gmm.weights,gmm_ref.weights,1e-3))
 

@@ -8,8 +8,8 @@
  */
 
 #include "ndarray.h"
-#include <bob/trainer/WienerTrainer.h>
-#include <bob/machine/WienerMachine.h>
+#include <bob.learn.misc/WienerTrainer.h>
+#include <bob.learn.misc/WienerMachine.h>
 
 using namespace boost::python;
 

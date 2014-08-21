@@ -6,22 +6,22 @@
  */
 
 #include "ndarray.h"
-#include <bob/trainer/KMeansTrainer.h>
+#include <bob.learn.misc/KMeansTrainer.h>
 
 using namespace boost::python;
 
 typedef bob::trainer::EMTrainer<bob::machine::KMeansMachine, blitz::Array<double,2> > EMTrainerKMeansBase;
 
 static void py_setZeroethOrderStats(bob::trainer::KMeansTrainer& op, bob::python::const_ndarray stats) {
-  const bob::core::array::typeinfo& info = stats.type();
-  if(info.dtype != bob::core::array::t_float64 || info.nd != 1)
+  const bob::io::base::array::typeinfo& info = stats.type();
+  if(info.dtype != bob::io::base::array::t_float64 || info.nd != 1)
     PYTHON_ERROR(TypeError, "cannot set array of type '%s'", info.str().c_str());
   op.setZeroethOrderStats(stats.bz<double,1>());
 }
 
 static void py_setFirstOrderStats(bob::trainer::KMeansTrainer& op, bob::python::const_ndarray stats) {
-  const bob::core::array::typeinfo& info = stats.type();
-  if(info.dtype != bob::core::array::t_float64 || info.nd != 2)
+  const bob::io::base::array::typeinfo& info = stats.type();
+  if(info.dtype != bob::io::base::array::t_float64 || info.nd != 2)
     PYTHON_ERROR(TypeError, "cannot set array of type '%s'", info.str().c_str());
   op.setFirstOrderStats(stats.bz<double,2>());
 }

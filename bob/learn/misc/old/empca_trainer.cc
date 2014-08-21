@@ -6,38 +6,39 @@
  */
 #include "ndarray.h"
 
-#include <bob/trainer/EMPCATrainer.h>
+#include <bob.learn.linear/pca.h>
+#include <bob.learn.misc/EMPCATrainer.h>
 
 using namespace boost::python;
 
-typedef bob::trainer::EMTrainer<bob::machine::LinearMachine, blitz::Array<double,2> > EMTrainerLinearBase;
+typedef bob::trainer::EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> > EMTrainerLinearBase;
 
 static void py_train(EMTrainerLinearBase& trainer,
-  bob::machine::LinearMachine& machine, bob::python::const_ndarray data)
+  bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
 {
   trainer.train(machine, data.bz<double,2>());
 }
 
 static void py_initialize(EMTrainerLinearBase& trainer,
-  bob::machine::LinearMachine& machine, bob::python::const_ndarray data)
+  bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
 {
   trainer.initialize(machine, data.bz<double,2>());
 }
 
 static void py_finalize(EMTrainerLinearBase& trainer,
-  bob::machine::LinearMachine& machine, bob::python::const_ndarray data)
+  bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
 {
   trainer.finalize(machine, data.bz<double,2>());
 }
 
 static void py_eStep(EMTrainerLinearBase& trainer,
-  bob::machine::LinearMachine& machine, bob::python::const_ndarray data)
+  bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
 {
   trainer.eStep(machine, data.bz<double,2>());
 }
 
 static void py_mStep(EMTrainerLinearBase& trainer,
-  bob::machine::LinearMachine& machine, bob::python::const_ndarray data)
+  bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
 {
   trainer.mStep(machine, data.bz<double,2>());
 }

@@ -78,7 +78,7 @@ template <typename T, int N> struct bz_from_npy {
     boost::python::handle<> hdl(boost::python::borrowed(boost::python::allow_null(obj_ptr)));
     boost::python::object obj(hdl);
 
-    bob::core::array::typeinfo tinfo(bob::core::array::getElementType<T>(), N);
+    bob::io::base::array::typeinfo tinfo(bob::io::base::array::getElementType<T>(), N);
 
     bob::python::convert_t result = bob::python::convertible_to(obj, tinfo, false, true);
 
@@ -90,7 +90,7 @@ template <typename T, int N> struct bz_from_npy {
     PyArrayObject* arr = reinterpret_cast<PyArrayObject*>(obj_ptr);
     if (result == bob::python::WITHARRAYCOPY &&
         bob::python::ctype_to_num<T>() == PyArray_DESCR(arr)->type_num) {
-      PYTHON_ERROR(RuntimeError, "The bindings you are trying to use to this C++ method require a numpy.ndarray -> blitz::Array<%s,%d> conversion, but the array you passed, despite the correct type, is not C-style contiguous and/or properly aligned, so I cannot automatically wrap it. You can check this by yourself by printing the flags on such a variable with the command 'print(<varname>.flags)'. The only way to circumvent this problem, from python, is to create a copy the variable by issuing '<varname>.copy()' before calling the bound method. Otherwise, if you wish the copy to be executed automatically, you have to re-bind the method to use our custom 'const_ndarray' type.", bob::core::array::stringize<T>(), N);
+      PYTHON_ERROR(RuntimeError, "The bindings you are trying to use to this C++ method require a numpy.ndarray -> blitz::Array<%s,%d> conversion, but the array you passed, despite the correct type, is not C-style contiguous and/or properly aligned, so I cannot automatically wrap it. You can check this by yourself by printing the flags on such a variable with the command 'print(<varname>.flags)'. The only way to circumvent this problem, from python, is to create a copy the variable by issuing '<varname>.copy()' before calling the bound method. Otherwise, if you wish the copy to be executed automatically, you have to re-bind the method to use our custom 'const_ndarray' type.", bob::io::base::array::stringize<T>(), N);
     }
 
     return 0;

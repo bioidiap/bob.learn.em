@@ -9,7 +9,7 @@
 
 #include "ndarray.h"
 #include <boost/python/stl_iterator.hpp>
-#include <bob/trainer/JFATrainer.h>
+#include <bob.learn.misc/JFATrainer.h>
 
 using namespace boost::python;
 

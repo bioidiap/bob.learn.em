@@ -5,8 +5,12 @@
  * Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
  */
 
+#include <bob.blitz/capi.h>
+#include <bob.blitz/cleanup.h>
+#include <bob.io.base/api.h>
+
 #include "ndarray.h"
-#include <bob/machine/BICMachine.h>
+#include <bob.learn.misc/BICMachine.h>
 
 static double bic_call_(const bob::machine::BICMachine& machine, bob::python::const_ndarray input){
   double o;
@@ -19,6 +23,19 @@ static double bic_call(const bob::machine::BICMachine& machine, bob::python::con
   machine.forward(input.bz<double,1>(), o);
   return o;
 }
+
+static void bic_load(bob::machine::BICMachine& machine, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  machine.load(*hdf5->f);
+}
+
+static void bic_save(const bob::machine::BICMachine& machine, boost::python::object file){
+  if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
+  PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
+  machine.save(*hdf5->f);
+}
+
 
 void bind_machine_bic(){
 
@@ -63,14 +80,14 @@ void bind_machine_bic(){
 
     .def(
       "load",
-      &bob::machine::BICMachine::load,
+      &bic_load,
       (boost::python::arg("self"), boost::python::arg("file")),
       "Loads the configuration parameters from an hdf5 file."
     )
 
     .def(
       "save",
-      &bob::machine::BICMachine::save,
+      &bic_save,
       (boost::python::arg("self"), boost::python::arg("file")),
       "Saves the configuration parameters to an hdf5 file."
     )
