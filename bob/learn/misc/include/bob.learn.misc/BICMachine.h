@@ -6,19 +6,14 @@
  */
 
 
-#ifndef BOB_MACHINE_BICMACHINE_H
-#define BOB_MACHINE_BICMACHINE_H
+#ifndef BOB_LEARN_MISC_BICMACHINE_H
+#define BOB_LEARN_MISC_BICMACHINE_H
 
 #include <blitz/array.h>
 #include <bob.io.base/HDF5File.h>
 #include <bob.learn.misc/Machine.h>
 
-namespace bob { namespace machine {
-  /**
-   * @ingroup MACHINE
-   * @{
-   */
-
+namespace bob { namespace learn { namespace misc {
   /**
    * This class computes the Bayesian Intrapersonal/Extrapersonal Classifier (BIC),
    * (see "Beyond Eigenfaces: Probabilistic Matching for Face Recognition" from Moghaddam, Wahid and Pentland)
@@ -109,9 +104,6 @@ namespace bob { namespace machine {
 
   };
 
-  /**
-   * @}
-   */
-}}
+} } } // namespaces
 
-#endif // BOB_MACHINE_BICMACHINE_H
+#endif // BOB_LEARN_MISC_BICMACHINE_H

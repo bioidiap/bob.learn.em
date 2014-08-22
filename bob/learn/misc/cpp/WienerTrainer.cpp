@@ -10,44 +10,44 @@
 #include <bob.sp/FFT2D.h>
 #include <complex>
 
-bob::trainer::WienerTrainer::WienerTrainer()
+bob::learn::misc::WienerTrainer::WienerTrainer()
 {
 }
 
-bob::trainer::WienerTrainer::WienerTrainer(const bob::trainer::WienerTrainer& other)
+bob::learn::misc::WienerTrainer::WienerTrainer(const bob::learn::misc::WienerTrainer& other)
 {
 }
 
-bob::trainer::WienerTrainer::~WienerTrainer()
+bob::learn::misc::WienerTrainer::~WienerTrainer()
 {
 }
 
-bob::trainer::WienerTrainer& bob::trainer::WienerTrainer::operator=
-(const bob::trainer::WienerTrainer& other)
+bob::learn::misc::WienerTrainer& bob::learn::misc::WienerTrainer::operator=
+(const bob::learn::misc::WienerTrainer& other)
 {
   return *this;
 }
 
-bool bob::trainer::WienerTrainer::operator==
-  (const bob::trainer::WienerTrainer& other) const
+bool bob::learn::misc::WienerTrainer::operator==
+  (const bob::learn::misc::WienerTrainer& other) const
 {
   return true;
 }
 
-bool bob::trainer::WienerTrainer::operator!=
-  (const bob::trainer::WienerTrainer& other) const
+bool bob::learn::misc::WienerTrainer::operator!=
+  (const bob::learn::misc::WienerTrainer& other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::WienerTrainer::is_similar_to
-  (const bob::trainer::WienerTrainer& other, const double r_epsilon,
+bool bob::learn::misc::WienerTrainer::is_similar_to
+  (const bob::learn::misc::WienerTrainer& other, const double r_epsilon,
    const double a_epsilon) const
 {
   return true;
 }
 
-void bob::trainer::WienerTrainer::train(bob::machine::WienerMachine& machine,
+void bob::learn::misc::WienerTrainer::train(bob::learn::misc::WienerMachine& machine,
     const blitz::Array<double,3>& ar)
 {
   // Data is checked now and conforms, just proceed w/o any further checks.

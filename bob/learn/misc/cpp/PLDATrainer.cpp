@@ -18,15 +18,15 @@
 #include <vector>
 #include <limits>
 
-bob::trainer::PLDATrainer::PLDATrainer(const size_t max_iterations,
+bob::learn::misc::PLDATrainer::PLDATrainer(const size_t max_iterations,
     const bool use_sum_second_order):
-  EMTrainer<bob::machine::PLDABase, std::vector<blitz::Array<double,2> > >
+  EMTrainer<bob::learn::misc::PLDABase, std::vector<blitz::Array<double,2> > >
     (0.001, max_iterations, false),
   m_dim_d(0), m_dim_f(0), m_dim_g(0),
   m_use_sum_second_order(use_sum_second_order),
-  m_initF_method(bob::trainer::PLDATrainer::RANDOM_F), m_initF_ratio(1.),
-  m_initG_method(bob::trainer::PLDATrainer::RANDOM_G), m_initG_ratio(1.),
-  m_initSigma_method(bob::trainer::PLDATrainer::RANDOM_SIGMA),
+  m_initF_method(bob::learn::misc::PLDATrainer::RANDOM_F), m_initF_ratio(1.),
+  m_initG_method(bob::learn::misc::PLDATrainer::RANDOM_G), m_initG_ratio(1.),
+  m_initSigma_method(bob::learn::misc::PLDATrainer::RANDOM_SIGMA),
   m_initSigma_ratio(1.),
   m_cache_S(0,0),
   m_cache_z_first_order(0), m_cache_sum_z_second_order(0,0), m_cache_z_second_order(0),
@@ -38,8 +38,8 @@ bob::trainer::PLDATrainer::PLDATrainer(const size_t max_iterations,
 {
 }
 
-bob::trainer::PLDATrainer::PLDATrainer(const bob::trainer::PLDATrainer& other):
-  EMTrainer<bob::machine::PLDABase, std::vector<blitz::Array<double,2> > >
+bob::learn::misc::PLDATrainer::PLDATrainer(const bob::learn::misc::PLDATrainer& other):
+  EMTrainer<bob::learn::misc::PLDABase, std::vector<blitz::Array<double,2> > >
     (other.m_convergence_threshold, other.m_max_iterations,
      other.m_compute_likelihood),
   m_dim_d(other.m_dim_d), m_dim_f(other.m_dim_f), m_dim_g(other.m_dim_g),
@@ -65,14 +65,14 @@ bob::trainer::PLDATrainer::PLDATrainer(const bob::trainer::PLDATrainer& other):
   resizeTmp();
 }
 
-bob::trainer::PLDATrainer::~PLDATrainer() {}
+bob::learn::misc::PLDATrainer::~PLDATrainer() {}
 
-bob::trainer::PLDATrainer& bob::trainer::PLDATrainer::operator=
-(const bob::trainer::PLDATrainer& other)
+bob::learn::misc::PLDATrainer& bob::learn::misc::PLDATrainer::operator=
+(const bob::learn::misc::PLDATrainer& other)
 {
   if(this != &other)
   {
-    bob::trainer::EMTrainer<bob::machine::PLDABase,
+    bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
       std::vector<blitz::Array<double,2> > >::operator=(other);
     m_dim_d = other.m_dim_d;
     m_dim_f = other.m_dim_f;
@@ -100,10 +100,10 @@ bob::trainer::PLDATrainer& bob::trainer::PLDATrainer::operator=
   return *this;
 }
 
-bool bob::trainer::PLDATrainer::operator==
-  (const bob::trainer::PLDATrainer& other) const
+bool bob::learn::misc::PLDATrainer::operator==
+  (const bob::learn::misc::PLDATrainer& other) const
 {
-  return bob::trainer::EMTrainer<bob::machine::PLDABase,
+  return bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
            std::vector<blitz::Array<double,2> > >::operator==(other) &&
          m_dim_d == other.m_dim_d &&
          m_dim_f == other.m_dim_f &&
@@ -129,17 +129,17 @@ bool bob::trainer::PLDATrainer::operator==
          bob::core::array::isEqual(m_cache_iota, other.m_cache_iota);
 }
 
-bool bob::trainer::PLDATrainer::operator!=
-  (const bob::trainer::PLDATrainer &other) const
+bool bob::learn::misc::PLDATrainer::operator!=
+  (const bob::learn::misc::PLDATrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::PLDATrainer::is_similar_to
-  (const bob::trainer::PLDATrainer &other, const double r_epsilon,
+bool bob::learn::misc::PLDATrainer::is_similar_to
+  (const bob::learn::misc::PLDATrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::EMTrainer<bob::machine::PLDABase,
+  return bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
            std::vector<blitz::Array<double,2> > >::is_similar_to(other, r_epsilon, a_epsilon) &&
          m_dim_d == other.m_dim_d &&
          m_dim_f == other.m_dim_f &&
@@ -166,7 +166,7 @@ bool bob::trainer::PLDATrainer::is_similar_to
          bob::core::array::isClose(m_cache_iota, other.m_cache_iota, r_epsilon, a_epsilon);
 }
 
-void bob::trainer::PLDATrainer::initialize(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::initialize(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Checks training data
@@ -190,7 +190,7 @@ void bob::trainer::PLDATrainer::initialize(bob::machine::PLDABase& machine,
   initFGSigma(machine, v_ar);
 }
 
-void bob::trainer::PLDATrainer::finalize(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::finalize(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Precomputes constant parts of the log likelihood and (gamma_a)
@@ -200,7 +200,7 @@ void bob::trainer::PLDATrainer::finalize(bob::machine::PLDABase& machine,
   machine.getAddLogLikeConstTerm(1);
 }
 
-void bob::trainer::PLDATrainer::checkTrainingData(const std::vector<blitz::Array<double,2> >& v_ar)
+void bob::learn::misc::PLDATrainer::checkTrainingData(const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Checks that the vector of Arraysets is not empty
   if (v_ar.size() == 0) {
@@ -219,7 +219,7 @@ void bob::trainer::PLDATrainer::checkTrainingData(const std::vector<blitz::Array
   }
 }
 
-void bob::trainer::PLDATrainer::initMembers(const std::vector<blitz::Array<double,2> >& v_ar)
+void bob::learn::misc::PLDATrainer::initMembers(const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Gets dimension (first Arrayset)
   const size_t n_features = v_ar[0].extent(1); // dimensionality of the data
@@ -268,7 +268,7 @@ void bob::trainer::PLDATrainer::initMembers(const std::vector<blitz::Array<doubl
   resizeTmp();
 }
 
-void bob::trainer::PLDATrainer::resizeTmp()
+void bob::learn::misc::PLDATrainer::resizeTmp()
 {
   m_tmp_nf_1.resize(m_dim_f);
   m_tmp_nf_2.resize(m_dim_f);
@@ -280,7 +280,7 @@ void bob::trainer::PLDATrainer::resizeTmp()
   m_tmp_D_nfng_2.resize(m_dim_d, m_dim_f+m_dim_g);
 }
 
-void bob::trainer::PLDATrainer::computeMeanVariance(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::computeMeanVariance(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   blitz::Array<double,1>& mu = machine.updateMu();
@@ -312,7 +312,7 @@ void bob::trainer::PLDATrainer::computeMeanVariance(bob::machine::PLDABase& mach
   }
 }
 
-void bob::trainer::PLDATrainer::initFGSigma(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::initFGSigma(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Initializes F, G and sigma
@@ -324,14 +324,14 @@ void bob::trainer::PLDATrainer::initFGSigma(bob::machine::PLDABase& machine,
   machine.precompute();
 }
 
-void bob::trainer::PLDATrainer::initF(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::initF(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   blitz::Array<double,2>& F = machine.updateF();
   blitz::Range a = blitz::Range::all();
 
   // 1: between-class scatter
-  if (m_initF_method == bob::trainer::PLDATrainer::BETWEEN_SCATTER)
+  if (m_initF_method == bob::learn::misc::PLDATrainer::BETWEEN_SCATTER)
   {
     if (machine.getDimF() > v_ar.size()) {
       boost::format m("The rank of the matrix F ('%ld') can't be larger than the number of classes in the training set ('%ld')");
@@ -383,14 +383,14 @@ void bob::trainer::PLDATrainer::initF(bob::machine::PLDABase& machine,
   }
 }
 
-void bob::trainer::PLDATrainer::initG(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::initG(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   blitz::Array<double,2>& G = machine.updateG();
   blitz::Range a = blitz::Range::all();
 
   // 1: within-class scatter
-  if (m_initG_method == bob::trainer::PLDATrainer::WITHIN_SCATTER)
+  if (m_initG_method == bob::learn::misc::PLDATrainer::WITHIN_SCATTER)
   {
     // a/ Computes within-class scatter matrix
     blitz::firstIndex bi;
@@ -450,14 +450,14 @@ void bob::trainer::PLDATrainer::initG(bob::machine::PLDABase& machine,
   }
 }
 
-void bob::trainer::PLDATrainer::initSigma(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::initSigma(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   blitz::Array<double,1>& sigma = machine.updateSigma();
   blitz::Range a = blitz::Range::all();
 
   // 1: percentage of the variance of G
-  if (m_initSigma_method == bob::trainer::PLDATrainer::VARIANCE_G) {
+  if (m_initSigma_method == bob::learn::misc::PLDATrainer::VARIANCE_G) {
     const blitz::Array<double,2>& G = machine.getG();
     blitz::secondIndex bj;
     m_tmp_D_1 = blitz::mean(G, bj);
@@ -465,11 +465,11 @@ void bob::trainer::PLDATrainer::initSigma(bob::machine::PLDABase& machine,
     sigma = blitz::fabs(m_tmp_D_1) * m_initSigma_ratio;
   }
   // 2: constant value
-  else if (m_initSigma_method == bob::trainer::PLDATrainer::CONSTANT) {
+  else if (m_initSigma_method == bob::learn::misc::PLDATrainer::CONSTANT) {
     sigma = m_initSigma_ratio;
   }
   // 3: percentage of the variance of the data
-  else if (m_initSigma_method == bob::trainer::PLDATrainer::VARIANCE_DATA) {
+  else if (m_initSigma_method == bob::learn::misc::PLDATrainer::VARIANCE_DATA) {
     // a/ Computes the global mean
     //    m_tmp_D_1 = 1/N sum_i x_i
     m_tmp_D_1 = 0.;
@@ -499,7 +499,7 @@ void bob::trainer::PLDATrainer::initSigma(bob::machine::PLDABase& machine,
   machine.applyVarianceThreshold();
 }
 
-void bob::trainer::PLDATrainer::eStep(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::eStep(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Precomputes useful variables using current estimates of F,G, and sigma
@@ -594,7 +594,7 @@ void bob::trainer::PLDATrainer::eStep(bob::machine::PLDABase& machine,
   }
 }
 
-void bob::trainer::PLDATrainer::precomputeFromFGSigma(bob::machine::PLDABase& machine)
+void bob::learn::misc::PLDATrainer::precomputeFromFGSigma(bob::learn::misc::PLDABase& machine)
 {
   // Blitz compatibility: ugly fix (const_cast, as old blitz version does not
   // provide a non-const version of transpose())
@@ -636,7 +636,7 @@ void bob::trainer::PLDATrainer::precomputeFromFGSigma(bob::machine::PLDABase& ma
   }
 }
 
-void bob::trainer::PLDATrainer::precomputeLogLike(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::precomputeLogLike(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // Precomputes the log determinant of alpha and sigma
@@ -654,7 +654,7 @@ void bob::trainer::PLDATrainer::precomputeLogLike(bob::machine::PLDABase& machin
 }
 
 
-void bob::trainer::PLDATrainer::mStep(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::mStep(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   // 1/ New estimate of B = {F G}
@@ -669,7 +669,7 @@ void bob::trainer::PLDATrainer::mStep(bob::machine::PLDABase& machine,
   precomputeFromFGSigma(machine);
 }
 
-void bob::trainer::PLDATrainer::updateFG(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::updateFG(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   /// Computes the B matrix (B = [F G])
@@ -708,7 +708,7 @@ void bob::trainer::PLDATrainer::updateFG(bob::machine::PLDABase& machine,
   G = m_cache_B(a, blitz::Range(m_dim_f, m_dim_f+m_dim_g-1));
 }
 
-void bob::trainer::PLDATrainer::updateSigma(bob::machine::PLDABase& machine,
+void bob::learn::misc::PLDATrainer::updateSigma(bob::learn::misc::PLDABase& machine,
   const std::vector<blitz::Array<double,2> >& v_ar)
 {
   /// Computes the Sigma matrix
@@ -746,14 +746,14 @@ void bob::trainer::PLDATrainer::updateSigma(bob::machine::PLDABase& machine,
   machine.applyVarianceThreshold();
 }
 
-double bob::trainer::PLDATrainer::computeLikelihood(bob::machine::PLDABase& machine)
+double bob::learn::misc::PLDATrainer::computeLikelihood(bob::learn::misc::PLDABase& machine)
 {
   double llh = 0.;
   // TODO: implement log likelihood computation
   return llh;
 }
 
-void bob::trainer::PLDATrainer::enrol(bob::machine::PLDAMachine& plda_machine,
+void bob::learn::misc::PLDATrainer::enrol(bob::learn::misc::PLDAMachine& plda_machine,
   const blitz::Array<double,2>& ar) const
 {
   // Gets dimension

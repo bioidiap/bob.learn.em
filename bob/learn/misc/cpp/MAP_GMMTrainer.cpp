@@ -8,29 +8,29 @@
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 #include <bob.core/check.h>
 
-bob::trainer::MAP_GMMTrainer::MAP_GMMTrainer(const double relevance_factor,
+bob::learn::misc::MAP_GMMTrainer::MAP_GMMTrainer(const double relevance_factor,
     const bool update_means, const bool update_variances,
     const bool update_weights, const double mean_var_update_responsibilities_threshold):
   GMMTrainer(update_means, update_variances, update_weights, mean_var_update_responsibilities_threshold),
   m_relevance_factor(relevance_factor),
-  m_prior_gmm(boost::shared_ptr<bob::machine::GMMMachine>()),
+  m_prior_gmm(boost::shared_ptr<bob::learn::misc::GMMMachine>()),
   m_T3_alpha(0.), m_T3_adaptation(false)
 {
 }
 
-bob::trainer::MAP_GMMTrainer::MAP_GMMTrainer(const bob::trainer::MAP_GMMTrainer& b):
-  bob::trainer::GMMTrainer(b),
+bob::learn::misc::MAP_GMMTrainer::MAP_GMMTrainer(const bob::learn::misc::MAP_GMMTrainer& b):
+  bob::learn::misc::GMMTrainer(b),
   m_relevance_factor(b.m_relevance_factor),
   m_prior_gmm(b.m_prior_gmm),
   m_T3_alpha(b.m_T3_alpha), m_T3_adaptation(b.m_T3_adaptation)
 {
 }
 
-bob::trainer::MAP_GMMTrainer::~MAP_GMMTrainer()
+bob::learn::misc::MAP_GMMTrainer::~MAP_GMMTrainer()
 {
 }
 
-void bob::trainer::MAP_GMMTrainer::initialize(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::MAP_GMMTrainer::initialize(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
   // Check that the prior GMM has been specified
@@ -38,7 +38,7 @@ void bob::trainer::MAP_GMMTrainer::initialize(bob::machine::GMMMachine& gmm,
     throw std::runtime_error("MAP_GMMTrainer: Prior GMM distribution has not been set");
 
   // Allocate memory for the sufficient statistics and initialise
-  bob::trainer::GMMTrainer::initialize(gmm, data);
+  bob::learn::misc::GMMTrainer::initialize(gmm, data);
 
   const size_t n_gaussians = gmm.getNGaussians();
   // TODO: check size?
@@ -54,14 +54,14 @@ void bob::trainer::MAP_GMMTrainer::initialize(bob::machine::GMMMachine& gmm,
   m_cache_ml_weights.resize(n_gaussians);
 }
 
-bool bob::trainer::MAP_GMMTrainer::setPriorGMM(boost::shared_ptr<bob::machine::GMMMachine> prior_gmm)
+bool bob::learn::misc::MAP_GMMTrainer::setPriorGMM(boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm)
 {
   if (!prior_gmm) return false;
   m_prior_gmm = prior_gmm;
   return true;
 }
 
-void bob::trainer::MAP_GMMTrainer::mStep(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::MAP_GMMTrainer::mStep(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
   // Read options and variables
@@ -140,12 +140,12 @@ void bob::trainer::MAP_GMMTrainer::mStep(bob::machine::GMMMachine& gmm,
   }
 }
 
-bob::trainer::MAP_GMMTrainer& bob::trainer::MAP_GMMTrainer::operator=
-  (const bob::trainer::MAP_GMMTrainer &other)
+bob::learn::misc::MAP_GMMTrainer& bob::learn::misc::MAP_GMMTrainer::operator=
+  (const bob::learn::misc::MAP_GMMTrainer &other)
 {
   if (this != &other)
   {
-    bob::trainer::GMMTrainer::operator=(other);
+    bob::learn::misc::GMMTrainer::operator=(other);
     m_relevance_factor = other.m_relevance_factor;
     m_prior_gmm = other.m_prior_gmm;
     m_T3_alpha = other.m_T3_alpha;
@@ -156,27 +156,27 @@ bob::trainer::MAP_GMMTrainer& bob::trainer::MAP_GMMTrainer::operator=
   return *this;
 }
 
-bool bob::trainer::MAP_GMMTrainer::operator==
-  (const bob::trainer::MAP_GMMTrainer &other) const
+bool bob::learn::misc::MAP_GMMTrainer::operator==
+  (const bob::learn::misc::MAP_GMMTrainer &other) const
 {
-  return bob::trainer::GMMTrainer::operator==(other) &&
+  return bob::learn::misc::GMMTrainer::operator==(other) &&
          m_relevance_factor == other.m_relevance_factor &&
          m_prior_gmm == other.m_prior_gmm &&
          m_T3_alpha == other.m_T3_alpha &&
          m_T3_adaptation == other.m_T3_adaptation;
 }
 
-bool bob::trainer::MAP_GMMTrainer::operator!=
-  (const bob::trainer::MAP_GMMTrainer &other) const
+bool bob::learn::misc::MAP_GMMTrainer::operator!=
+  (const bob::learn::misc::MAP_GMMTrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::MAP_GMMTrainer::is_similar_to
-  (const bob::trainer::MAP_GMMTrainer &other, const double r_epsilon,
+bool bob::learn::misc::MAP_GMMTrainer::is_similar_to
+  (const bob::learn::misc::MAP_GMMTrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::GMMTrainer::is_similar_to(other, r_epsilon, a_epsilon) &&
+  return bob::learn::misc::GMMTrainer::is_similar_to(other, r_epsilon, a_epsilon) &&
          bob::core::isClose(m_relevance_factor, other.m_relevance_factor, r_epsilon, a_epsilon) &&
          m_prior_gmm == other.m_prior_gmm &&
          bob::core::isClose(m_T3_alpha, other.m_T3_alpha, r_epsilon, a_epsilon) &&

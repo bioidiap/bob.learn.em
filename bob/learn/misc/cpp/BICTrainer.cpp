@@ -21,7 +21,7 @@ static double sqr(const double& x){
  * @param  machine  The machine to be trained.
  * @param  differences  A set of (intra/extra)-personal difference vectors that should be trained.
  */
-void bob::trainer::BICTrainer::train_single(bool clazz, bob::machine::BICMachine& machine, const blitz::Array<double,2>& differences) const {
+void bob::learn::misc::BICTrainer::train_single(bool clazz, bob::learn::misc::BICMachine& machine, const blitz::Array<double,2>& differences) const {
   int subspace_dim = clazz ? m_M_E : m_M_I;
   int input_dim = differences.extent(1);
   int data_count = differences.extent(0);

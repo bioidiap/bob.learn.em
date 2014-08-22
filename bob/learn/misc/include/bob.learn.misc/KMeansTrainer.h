@@ -5,18 +5,14 @@
  *
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
-#ifndef BOB_TRAINER_KMEANSTRAINER_H
-#define BOB_TRAINER_KMEANSTRAINER_H
+#ifndef BOB_LEARN_MISC_KMEANSTRAINER_H
+#define BOB_LEARN_MISC_KMEANSTRAINER_H
 
 #include <bob.learn.misc/KMeansMachine.h>
 #include <bob.learn.misc/EMTrainer.h>
 #include <boost/version.hpp>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * Trains a KMeans machine.
@@ -24,7 +20,7 @@ namespace bob { namespace trainer {
  * @details See Section 9.1 of Bishop, "Pattern recognition and machine learning", 2006
  *          It uses a random initialisation of the means followed by the expectation-maximization algorithm
  */
-class KMeansTrainer: public EMTrainer<bob::machine::KMeansMachine, blitz::Array<double,2> >
+class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >
 {
   public:
     /**
@@ -89,7 +85,7 @@ class KMeansTrainer: public EMTrainer<bob::machine::KMeansMachine, blitz::Array<
      * Data is split into as many chunks as there are means,
      * then each mean is set to a random example within each chunk.
      */
-    virtual void initialize(bob::machine::KMeansMachine& kMeansMachine,
+    virtual void initialize(bob::learn::misc::KMeansMachine& kMeansMachine,
       const blitz::Array<double,2>& sampler);
 
     /**
@@ -98,31 +94,31 @@ class KMeansTrainer: public EMTrainer<bob::machine::KMeansMachine, blitz::Array<
      * - average (Square Euclidean) distance from the closest mean
      * Implements EMTrainer::eStep(double &)
      */
-    virtual void eStep(bob::machine::KMeansMachine& kmeans,
+    virtual void eStep(bob::learn::misc::KMeansMachine& kmeans,
       const blitz::Array<double,2>& data);
 
     /**
      * @brief Updates the mean based on the statistics from the E-step.
      */
-    virtual void mStep(bob::machine::KMeansMachine& kmeans,
+    virtual void mStep(bob::learn::misc::KMeansMachine& kmeans,
       const blitz::Array<double,2>&);
 
     /**
      * @brief This functions returns the average min (Square Euclidean)
      * distance (average distance to the closest mean)
      */
-    virtual double computeLikelihood(bob::machine::KMeansMachine& kmeans);
+    virtual double computeLikelihood(bob::learn::misc::KMeansMachine& kmeans);
 
     /**
      * @brief Function called at the end of the training
      */
-    virtual void finalize(bob::machine::KMeansMachine& kMeansMachine, const blitz::Array<double,2>& sampler);
+    virtual void finalize(bob::learn::misc::KMeansMachine& kMeansMachine, const blitz::Array<double,2>& sampler);
 
     /**
      * @brief Reset the statistics accumulators
      * to the correct size and a value of zero.
      */
-    bool resetAccumulators(bob::machine::KMeansMachine& kMeansMachine);
+    bool resetAccumulators(bob::learn::misc::KMeansMachine& kMeansMachine);
 
     /**
      * @brief Sets the Random Number Generator
@@ -192,9 +188,6 @@ class KMeansTrainer: public EMTrainer<bob::machine::KMeansMachine, blitz::Array<
     blitz::Array<double,2> m_firstOrderStats;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif // BOB_TRAINER_KMEANSTRAINER_H
+#endif // BOB_LEARN_MISC_KMEANSTRAINER_H

@@ -8,18 +8,14 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_EMPCA_TRAINER_H
-#define BOB_TRAINER_EMPCA_TRAINER_H
+#ifndef BOB_LEARN_MISC_EMPCA_TRAINER_H
+#define BOB_LEARN_MISC_EMPCA_TRAINER_H
 
 #include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.linear/machine.h>
 #include <blitz/array.h>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief Trains a linear machine using an Expectation-Maximization algorithm
@@ -189,9 +185,6 @@ class EMPCATrainer: public EMTrainer<bob::learn::linear::Machine, blitz::Array<d
        const blitz::Array<double,2>& ar);
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif /* BOB_TRAINER_EMPCA_TRAINER_H */
+#endif /* BOB_LEARN_MISC_EMPCA_TRAINER_H */

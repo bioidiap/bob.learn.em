@@ -8,19 +8,15 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_GMMTRAINER_H
-#define BOB_TRAINER_GMMTRAINER_H
+#ifndef BOB_LEARN_MISC_GMMTRAINER_H
+#define BOB_LEARN_MISC_GMMTRAINER_H
 
 #include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.misc/GMMMachine.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <limits>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements the E-step of the expectation-maximisation
@@ -28,7 +24,7 @@ namespace bob { namespace trainer {
  * @details See Section 9.2.2 of Bishop,
  *   "Pattern recognition and machine learning", 2006
  */
-class GMMTrainer: public EMTrainer<bob::machine::GMMMachine, blitz::Array<double,2> >
+class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<double,2> >
 {
   public:
     /**
@@ -52,7 +48,7 @@ class GMMTrainer: public EMTrainer<bob::machine::GMMMachine, blitz::Array<double
     /**
      * @brief Initialization before the EM steps
      */
-    virtual void initialize(bob::machine::GMMMachine& gmm,
+    virtual void initialize(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -64,19 +60,19 @@ class GMMTrainer: public EMTrainer<bob::machine::GMMMachine, blitz::Array<double
      * The statistics, m_ss, will be used in the mStep() that follows.
      * Implements EMTrainer::eStep(double &)
      */
-    virtual void eStep(bob::machine::GMMMachine& gmm,
+    virtual void eStep(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
      * @brief Computes the likelihood using current estimates of the latent
      * variables
      */
-    virtual double computeLikelihood(bob::machine::GMMMachine& gmm);
+    virtual double computeLikelihood(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Finalization after the EM steps
      */
-    virtual void finalize(bob::machine::GMMMachine& gmm,
+    virtual void finalize(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -104,21 +100,21 @@ class GMMTrainer: public EMTrainer<bob::machine::GMMMachine, blitz::Array<double
      * @brief Returns the internal GMM statistics. Useful to parallelize the
      * E-step
      */
-    const bob::machine::GMMStats& getGMMStats() const
+    const bob::learn::misc::GMMStats& getGMMStats() const
     { return m_ss; }
 
     /**
      * @brief Sets the internal GMM statistics. Useful to parallelize the
      * E-step
      */
-    void setGMMStats(const bob::machine::GMMStats& stats);
+    void setGMMStats(const bob::learn::misc::GMMStats& stats);
 
   protected:
     /**
      * These are the sufficient statistics, calculated during the
      * E-step and used during the M-step
      */
-    bob::machine::GMMStats m_ss;
+    bob::learn::misc::GMMStats m_ss;
 
     /**
      * update means on each iteration
@@ -144,9 +140,6 @@ class GMMTrainer: public EMTrainer<bob::machine::GMMMachine, blitz::Array<double
     double m_mean_var_update_responsibilities_threshold;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_GMMTRAINER_H

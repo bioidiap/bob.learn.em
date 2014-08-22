@@ -9,35 +9,35 @@
 #include <bob.core/assert.h>
 #include <bob.core/check.h>
 
-bob::trainer::GMMTrainer::GMMTrainer(const bool update_means,
+bob::learn::misc::GMMTrainer::GMMTrainer(const bool update_means,
     const bool update_variances, const bool update_weights,
     const double mean_var_update_responsibilities_threshold):
-  bob::trainer::EMTrainer<bob::machine::GMMMachine, blitz::Array<double,2> >(),
+  bob::learn::misc::EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<double,2> >(),
   m_update_means(update_means), m_update_variances(update_variances),
   m_update_weights(update_weights),
   m_mean_var_update_responsibilities_threshold(mean_var_update_responsibilities_threshold)
 {
 }
 
-bob::trainer::GMMTrainer::GMMTrainer(const bob::trainer::GMMTrainer& b):
-  bob::trainer::EMTrainer<bob::machine::GMMMachine, blitz::Array<double,2> >(b),
+bob::learn::misc::GMMTrainer::GMMTrainer(const bob::learn::misc::GMMTrainer& b):
+  bob::learn::misc::EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<double,2> >(b),
   m_update_means(b.m_update_means), m_update_variances(b.m_update_variances),
   m_mean_var_update_responsibilities_threshold(b.m_mean_var_update_responsibilities_threshold)
 {
 }
 
-bob::trainer::GMMTrainer::~GMMTrainer()
+bob::learn::misc::GMMTrainer::~GMMTrainer()
 {
 }
 
-void bob::trainer::GMMTrainer::initialize(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::GMMTrainer::initialize(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
   // Allocate memory for the sufficient statistics and initialise
   m_ss.resize(gmm.getNGaussians(),gmm.getNInputs());
 }
 
-void bob::trainer::GMMTrainer::eStep(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::GMMTrainer::eStep(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
   m_ss.init();
@@ -45,22 +45,22 @@ void bob::trainer::GMMTrainer::eStep(bob::machine::GMMMachine& gmm,
   gmm.accStatistics(data, m_ss);
 }
 
-double bob::trainer::GMMTrainer::computeLikelihood(bob::machine::GMMMachine& gmm)
+double bob::learn::misc::GMMTrainer::computeLikelihood(bob::learn::misc::GMMMachine& gmm)
 {
   return m_ss.log_likelihood / m_ss.T;
 }
 
-void bob::trainer::GMMTrainer::finalize(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::GMMTrainer::finalize(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
 }
 
-bob::trainer::GMMTrainer& bob::trainer::GMMTrainer::operator=
-  (const bob::trainer::GMMTrainer &other)
+bob::learn::misc::GMMTrainer& bob::learn::misc::GMMTrainer::operator=
+  (const bob::learn::misc::GMMTrainer &other)
 {
   if (this != &other)
   {
-    bob::trainer::EMTrainer<bob::machine::GMMMachine,
+    bob::learn::misc::EMTrainer<bob::learn::misc::GMMMachine,
       blitz::Array<double,2> >::operator=(other);
     m_ss = other.m_ss;
     m_update_means = other.m_update_means;
@@ -71,10 +71,10 @@ bob::trainer::GMMTrainer& bob::trainer::GMMTrainer::operator=
   return *this;
 }
 
-bool bob::trainer::GMMTrainer::operator==
-  (const bob::trainer::GMMTrainer &other) const
+bool bob::learn::misc::GMMTrainer::operator==
+  (const bob::learn::misc::GMMTrainer &other) const
 {
-  return bob::trainer::EMTrainer<bob::machine::GMMMachine,
+  return bob::learn::misc::EMTrainer<bob::learn::misc::GMMMachine,
            blitz::Array<double,2> >::operator==(other) &&
          m_ss == other.m_ss &&
          m_update_means == other.m_update_means &&
@@ -83,17 +83,17 @@ bool bob::trainer::GMMTrainer::operator==
          m_mean_var_update_responsibilities_threshold == other.m_mean_var_update_responsibilities_threshold;
 }
 
-bool bob::trainer::GMMTrainer::operator!=
-  (const bob::trainer::GMMTrainer &other) const
+bool bob::learn::misc::GMMTrainer::operator!=
+  (const bob::learn::misc::GMMTrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::GMMTrainer::is_similar_to
-  (const bob::trainer::GMMTrainer &other, const double r_epsilon,
+bool bob::learn::misc::GMMTrainer::is_similar_to
+  (const bob::learn::misc::GMMTrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::EMTrainer<bob::machine::GMMMachine,
+  return bob::learn::misc::EMTrainer<bob::learn::misc::GMMMachine,
            blitz::Array<double,2> >::operator==(other) &&
   // TODO: use is similar to method for the accumulator m_ss
          m_ss == other.m_ss &&
@@ -104,7 +104,7 @@ bool bob::trainer::GMMTrainer::is_similar_to
           other.m_mean_var_update_responsibilities_threshold, r_epsilon, a_epsilon);
 }
 
-void bob::trainer::GMMTrainer::setGMMStats(const bob::machine::GMMStats& stats)
+void bob::learn::misc::GMMTrainer::setGMMStats(const bob::learn::misc::GMMStats& stats)
 {
   bob::core::array::assertSameShape(m_ss.sumPx, stats.sumPx);
   m_ss = stats;

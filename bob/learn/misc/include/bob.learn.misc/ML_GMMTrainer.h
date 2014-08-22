@@ -8,17 +8,13 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_ML_GMMTRAINER_H
-#define BOB_TRAINER_ML_GMMTRAINER_H
+#ifndef BOB_LEARN_MISC_ML_GMMTRAINER_H
+#define BOB_LEARN_MISC_ML_GMMTRAINER_H
 
 #include <bob.learn.misc/GMMTrainer.h>
 #include <limits>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements the maximum likelihood M-step of the
@@ -49,7 +45,7 @@ class ML_GMMTrainer: public GMMTrainer {
     /**
      * @brief Initialisation before the EM steps
      */
-    virtual void initialize(bob::machine::GMMMachine& gmm,
+    virtual void initialize(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -57,7 +53,7 @@ class ML_GMMTrainer: public GMMTrainer {
      * using the accumulated statistics in m_ss
      * Implements EMTrainer::mStep()
      */
-    virtual void mStep(bob::machine::GMMMachine& gmm,
+    virtual void mStep(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -89,9 +85,6 @@ class ML_GMMTrainer: public GMMTrainer {
     mutable blitz::Array<double,1> m_cache_ss_n_thresholded;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_ML_GMMTRAINER_H

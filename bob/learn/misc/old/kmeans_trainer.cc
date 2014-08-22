@@ -10,16 +10,16 @@
 
 using namespace boost::python;
 
-typedef bob::trainer::EMTrainer<bob::machine::KMeansMachine, blitz::Array<double,2> > EMTrainerKMeansBase;
+typedef bob::learn::misc::EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> > EMTrainerKMeansBase;
 
-static void py_setZeroethOrderStats(bob::trainer::KMeansTrainer& op, bob::python::const_ndarray stats) {
+static void py_setZeroethOrderStats(bob::learn::misc::KMeansTrainer& op, bob::python::const_ndarray stats) {
   const bob::io::base::array::typeinfo& info = stats.type();
   if(info.dtype != bob::io::base::array::t_float64 || info.nd != 1)
     PYTHON_ERROR(TypeError, "cannot set array of type '%s'", info.str().c_str());
   op.setZeroethOrderStats(stats.bz<double,1>());
 }
 
-static void py_setFirstOrderStats(bob::trainer::KMeansTrainer& op, bob::python::const_ndarray stats) {
+static void py_setFirstOrderStats(bob::learn::misc::KMeansTrainer& op, bob::python::const_ndarray stats) {
   const bob::io::base::array::typeinfo& info = stats.type();
   if(info.dtype != bob::io::base::array::t_float64 || info.nd != 2)
     PYTHON_ERROR(TypeError, "cannot set array of type '%s'", info.str().c_str());
@@ -27,31 +27,31 @@ static void py_setFirstOrderStats(bob::trainer::KMeansTrainer& op, bob::python::
 }
 
 static void py_train(EMTrainerKMeansBase& trainer,
-  bob::machine::KMeansMachine& machine, bob::python::const_ndarray sample)
+  bob::learn::misc::KMeansMachine& machine, bob::python::const_ndarray sample)
 {
   trainer.train(machine, sample.bz<double,2>());
 }
 
 static void py_initialize(EMTrainerKMeansBase& trainer,
-  bob::machine::KMeansMachine& machine, bob::python::const_ndarray sample)
+  bob::learn::misc::KMeansMachine& machine, bob::python::const_ndarray sample)
 {
   trainer.initialize(machine, sample.bz<double,2>());
 }
 
 static void py_finalize(EMTrainerKMeansBase& trainer,
-  bob::machine::KMeansMachine& machine, bob::python::const_ndarray sample)
+  bob::learn::misc::KMeansMachine& machine, bob::python::const_ndarray sample)
 {
   trainer.finalize(machine, sample.bz<double,2>());
 }
 
 static void py_eStep(EMTrainerKMeansBase& trainer,
-  bob::machine::KMeansMachine& machine, bob::python::const_ndarray sample)
+  bob::learn::misc::KMeansMachine& machine, bob::python::const_ndarray sample)
 {
   trainer.eStep(machine, sample.bz<double,2>());
 }
 
 static void py_mStep(EMTrainerKMeansBase& trainer,
-  bob::machine::KMeansMachine& machine, bob::python::const_ndarray sample)
+  bob::learn::misc::KMeansMachine& machine, bob::python::const_ndarray sample)
 {
   trainer.mStep(machine, sample.bz<double,2>());
 }
@@ -79,7 +79,7 @@ void bind_trainer_kmeans()
   ;
 
   // Starts binding the KMeansTrainer
-  class_<bob::trainer::KMeansTrainer, boost::shared_ptr<bob::trainer::KMeansTrainer>, boost::noncopyable, bases<EMTrainerKMeansBase> > KMT("KMeansTrainer",
+  class_<bob::learn::misc::KMeansTrainer, boost::shared_ptr<bob::learn::misc::KMeansTrainer>, boost::noncopyable, bases<EMTrainerKMeansBase> > KMT("KMeansTrainer",
       "Trains a KMeans machine.\n"
       "This class implements the expectation-maximization algorithm for a k-means machine.\n"
       "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006\n"
@@ -90,26 +90,26 @@ void bind_trainer_kmeans()
   // Binds methods that does not have nested enum values as default parameters
   KMT.def(self == self)
      .def(self != self)
-     .add_property("initialization_method", &bob::trainer::KMeansTrainer::getInitializationMethod, &bob::trainer::KMeansTrainer::setInitializationMethod, "The initialization method to generate the initial means.")
-     .add_property("rng", &bob::trainer::KMeansTrainer::getRng, &bob::trainer::KMeansTrainer::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of the means.")
-     .add_property("average_min_distance", &bob::trainer::KMeansTrainer::getAverageMinDistance, &bob::trainer::KMeansTrainer::setAverageMinDistance, "Average min (square Euclidean) distance. Useful to parallelize the E-step.")
-     .add_property("zeroeth_order_statistics", make_function(&bob::trainer::KMeansTrainer::getZeroethOrderStats, return_value_policy<copy_const_reference>()), &py_setZeroethOrderStats, "The zeroeth order statistics. Useful to parallelize the E-step.")
-     .add_property("first_order_statistics", make_function(&bob::trainer::KMeansTrainer::getFirstOrderStats, return_value_policy<copy_const_reference>()), &py_setFirstOrderStats, "The first order statistics. Useful to parallelize the E-step.")
+     .add_property("initialization_method", &bob::learn::misc::KMeansTrainer::getInitializationMethod, &bob::learn::misc::KMeansTrainer::setInitializationMethod, "The initialization method to generate the initial means.")
+     .add_property("rng", &bob::learn::misc::KMeansTrainer::getRng, &bob::learn::misc::KMeansTrainer::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of the means.")
+     .add_property("average_min_distance", &bob::learn::misc::KMeansTrainer::getAverageMinDistance, &bob::learn::misc::KMeansTrainer::setAverageMinDistance, "Average min (square Euclidean) distance. Useful to parallelize the E-step.")
+     .add_property("zeroeth_order_statistics", make_function(&bob::learn::misc::KMeansTrainer::getZeroethOrderStats, return_value_policy<copy_const_reference>()), &py_setZeroethOrderStats, "The zeroeth order statistics. Useful to parallelize the E-step.")
+     .add_property("first_order_statistics", make_function(&bob::learn::misc::KMeansTrainer::getFirstOrderStats, return_value_policy<copy_const_reference>()), &py_setFirstOrderStats, "The first order statistics. Useful to parallelize the E-step.")
     ;
 
   // Sets the scope to the one of the KMeansTrainer
   scope s(KMT);
 
   // Adds enum in the previously defined current scope
-  enum_<bob::trainer::KMeansTrainer::InitializationMethod>("initialization_method_type")
-    .value("RANDOM", bob::trainer::KMeansTrainer::RANDOM)
-    .value("RANDOM_NO_DUPLICATE", bob::trainer::KMeansTrainer::RANDOM_NO_DUPLICATE)
+  enum_<bob::learn::misc::KMeansTrainer::InitializationMethod>("initialization_method_type")
+    .value("RANDOM", bob::learn::misc::KMeansTrainer::RANDOM)
+    .value("RANDOM_NO_DUPLICATE", bob::learn::misc::KMeansTrainer::RANDOM_NO_DUPLICATE)
 #if BOOST_VERSION >= 104700
-    .value("KMEANS_PLUS_PLUS", bob::trainer::KMeansTrainer::KMEANS_PLUS_PLUS)
+    .value("KMEANS_PLUS_PLUS", bob::learn::misc::KMeansTrainer::KMEANS_PLUS_PLUS)
 #endif
     .export_values()
     ;
 
   // Binds methods that has nested enum values as default parameters
-  KMT.def(init<optional<double,int,bool,bob::trainer::KMeansTrainer::InitializationMethod> >((arg("self"), arg("convergence_threshold")=0.001, arg("max_iterations")=10, arg("compute_likelihood")=true, arg("initialization_method")=bob::trainer::KMeansTrainer::RANDOM)));
+  KMT.def(init<optional<double,int,bool,bob::learn::misc::KMeansTrainer::InitializationMethod> >((arg("self"), arg("convergence_threshold")=0.001, arg("max_iterations")=10, arg("compute_likelihood")=true, arg("initialization_method")=bob::learn::misc::KMeansTrainer::RANDOM)));
 }

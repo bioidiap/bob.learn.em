@@ -10,14 +10,14 @@
 
 using namespace boost::python;
 
-static double forward(const bob::machine::Machine<blitz::Array<double,1>, double>& m,
+static double forward(const bob::learn::misc::Machine<blitz::Array<double,1>, double>& m,
     bob::python::const_ndarray input) {
   double output;
   m.forward(input.bz<double,1>(), output);
   return output;
 }
 
-static double forward_(const bob::machine::Machine<blitz::Array<double,1>, double>& m,
+static double forward_(const bob::learn::misc::Machine<blitz::Array<double,1>, double>& m,
     bob::python::const_ndarray input) {
   double output;
   m.forward_(input.bz<double,1>(), output);
@@ -26,7 +26,7 @@ static double forward_(const bob::machine::Machine<blitz::Array<double,1>, doubl
 
 void bind_machine_base()
 {
-  class_<bob::machine::Machine<blitz::Array<double,1>, double>, boost::noncopyable>("MachineDoubleBase",
+  class_<bob::learn::misc::Machine<blitz::Array<double,1>, double>, boost::noncopyable>("MachineDoubleBase",
       "Root class for all Machine<blitz::Array<double,1>, double>", no_init)
     .def("__call__", &forward_, (arg("self"), arg("input")), "Executes the machine on the given 1D numpy array of float64, and returns the output. NO CHECK is performed.")
     .def("forward", &forward, (arg("self"), arg("input")), "Executes the machine on the given 1D numpy array of float64, and returns the output.")

@@ -9,8 +9,8 @@
 #include "ndarray.h"
 #include <bob.learn.misc/BICTrainer.h>
 
-void py_train(const bob::trainer::BICTrainer& t,
-  bob::machine::BICMachine& m, bob::python::const_ndarray intra_differences,
+void py_train(const bob::learn::misc::BICTrainer& t,
+  bob::learn::misc::BICMachine& m, bob::python::const_ndarray intra_differences,
   bob::python::const_ndarray extra_differences)
 {
   t.train(m, intra_differences.bz<double,2>(),
@@ -21,7 +21,7 @@ void py_train(const bob::trainer::BICTrainer& t,
 
 void bind_trainer_bic(){
 
-  boost::python::class_<bob::trainer::BICTrainer, boost::shared_ptr<bob::trainer::BICTrainer> > (
+  boost::python::class_<bob::learn::misc::BICTrainer, boost::shared_ptr<bob::learn::misc::BICTrainer> > (
       "BICTrainer",
       "A Trainer for a BICMachine. It trains either a BIC model (including projection matrix and eigenvalues), "
           "or an IEC model (containing mean and variance only). See :py:class:`bob.machine.BICMachine` for more details.",

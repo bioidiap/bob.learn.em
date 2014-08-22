@@ -7,8 +7,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_JFATRAINER_H
-#define BOB_TRAINER_JFATRAINER_H
+#ifndef BOB_LEARN_MISC_JFATRAINER_H
+#define BOB_LEARN_MISC_JFATRAINER_H
 
 #include <blitz/array.h>
 #include <bob.learn.misc/EMTrainer.h>
@@ -23,7 +23,7 @@
 #include <boost/random.hpp>
 #include <bob.core/logging.h>
 
-namespace bob { namespace trainer {
+namespace bob { namespace learn { namespace misc {
 
 class FABaseTrainer
 {
@@ -46,32 +46,32 @@ class FABaseTrainer
     /**
      * @brief Check that the dimensionality of the statistics match.
      */
-    void checkStatistics(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void checkStatistics(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
 
     /**
      * @brief Initialize the dimensionality, the UBM, the sums of the
      * statistics and the number of identities.
      */
-    void initUbmNidSumStatistics(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void initUbmNidSumStatistics(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
 
     /**
      * @brief Precomputes the sums of the zeroth order statistics over the
      * sessions for each client
      */
-    void precomputeSumStatisticsN(const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void precomputeSumStatisticsN(const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Precomputes the sums of the first order statistics over the
      * sessions for each client
      */
-    void precomputeSumStatisticsF(const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void precomputeSumStatisticsF(const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
 
     /**
      * @brief Initializes (allocates and sets to zero) the x, y, z speaker
      * factors
      */
-    void initializeXYZ(const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void initializeXYZ(const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
 
     /**
      * @brief Resets the x, y, z speaker factors to zero values
@@ -83,11 +83,11 @@ class FABaseTrainer
     /**
      * @brief Computes Vt * diag(sigma)^-1
      */
-    void computeVtSigmaInv(const bob::machine::FABase& m);
+    void computeVtSigmaInv(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes Vt_{c} * diag(sigma)^-1 * V_{c} for each Gaussian c
      */
-    void computeVProd(const bob::machine::FABase& m);
+    void computeVProd(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes (I+Vt*diag(sigma)^-1*Ni*V)^-1 which occurs in the y
      * estimation for the given person
@@ -97,8 +97,8 @@ class FABaseTrainer
      * @brief Computes sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i} - U*x_{i,h})
      * which occurs in the y estimation of the given person
      */
-    void computeFn_y_i(const bob::machine::FABase& m,
-      const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& stats,
+    void computeFn_y_i(const bob::learn::misc::FABase& m,
+      const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& stats,
       const size_t id);
     /**
      * @brief Updates y_i (of the current person) and the accumulators to
@@ -109,14 +109,14 @@ class FABaseTrainer
     /**
      * @brief Updates y and the accumulators to compute V
      */
-    void updateY(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void updateY(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Computes the accumulators m_acc_V_A1 and m_acc_V_A2 for V
      * V = A2 * A1^-1
      */
-    void computeAccumulatorsV(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void computeAccumulatorsV(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Updates V from the accumulators m_acc_V_A1 and m_acc_V_A2
      */
@@ -127,22 +127,22 @@ class FABaseTrainer
     /**
      * @brief Computes Ut * diag(sigma)^-1
      */
-    void computeUtSigmaInv(const bob::machine::FABase& m);
+    void computeUtSigmaInv(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes Ut_{c} * diag(sigma)^-1 * U_{c} for each Gaussian c
      */
-    void computeUProd(const bob::machine::FABase& m);
+    void computeUProd(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes (I+Ut*diag(sigma)^-1*Ni*U)^-1 which occurs in the x
      * estimation
      */
-    void computeIdPlusUProd_ih(const boost::shared_ptr<bob::machine::GMMStats>& stats);
+    void computeIdPlusUProd_ih(const boost::shared_ptr<bob::learn::misc::GMMStats>& stats);
     /**
      * @brief Computes sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i} - U*x_{i,h})
      * which occurs in the y estimation of the given person
      */
-    void computeFn_x_ih(const bob::machine::FABase& m,
-      const boost::shared_ptr<bob::machine::GMMStats>& stats, const size_t id);
+    void computeFn_x_ih(const bob::learn::misc::FABase& m,
+      const boost::shared_ptr<bob::learn::misc::GMMStats>& stats, const size_t id);
     /**
      * @brief Updates x_ih (of the current person/session) and the
      * accumulators to compute U with the cache values m_cache_IdPlusVprod_i,
@@ -152,14 +152,14 @@ class FABaseTrainer
     /**
      * @brief Updates x
      */
-    void updateX(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void updateX(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Computes the accumulators m_acc_U_A1 and m_acc_U_A2 for U
      * U = A2 * A1^-1
      */
-    void computeAccumulatorsU(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void computeAccumulatorsU(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Updates U from the accumulators m_acc_U_A1 and m_acc_U_A2
      */
@@ -170,11 +170,11 @@ class FABaseTrainer
     /**
      * @brief Computes diag(D) * diag(sigma)^-1
      */
-    void computeDtSigmaInv(const bob::machine::FABase& m);
+    void computeDtSigmaInv(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes Dt_{c} * diag(sigma)^-1 * D_{c} for each Gaussian c
      */
-    void computeDProd(const bob::machine::FABase& m);
+    void computeDProd(const bob::learn::misc::FABase& m);
     /**
      * @brief Computes (I+diag(d)t*diag(sigma)^-1*Ni*diag(d))^-1 which occurs
      * in the z estimation for the given person
@@ -184,8 +184,8 @@ class FABaseTrainer
      * @brief Computes sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i} - U*x_{i,h})
      * which occurs in the y estimation of the given person
      */
-    void computeFn_z_i(const bob::machine::FABase& m,
-      const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& stats, const size_t id);
+    void computeFn_z_i(const bob::learn::misc::FABase& m,
+      const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& stats, const size_t id);
     /**
      * @brief Updates z_i (of the current person) and the accumulators to
      * compute D with the cache values m_cache_IdPlusDProd_i, m_VtSigmaInv
@@ -195,14 +195,14 @@ class FABaseTrainer
     /**
      * @brief Updates z and the accumulators to compute D
      */
-    void updateZ(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void updateZ(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Computes the accumulators m_acc_D_A1 and m_acc_D_A2 for d
      * d = A2 * A1^-1
      */
-    void computeAccumulatorsD(const bob::machine::FABase& m,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats);
+    void computeAccumulatorsD(const bob::learn::misc::FABase& m,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats);
     /**
      * @brief Updates d from the accumulators m_acc_D_A1 and m_acc_D_A2
      */
@@ -399,74 +399,74 @@ class JFATrainer
     /**
      * @brief This methods performs some initialization before the EM loop.
      */
-    virtual void initialize(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void initialize(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief This methods performs the e-Step to train the first subspace V
      */
-    virtual void eStep1(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void eStep1(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the m-Step to train the first subspace V
      */
-    virtual void mStep1(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void mStep1(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the finalization after training the first
      * subspace V
      */
-    virtual void finalize1(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void finalize1(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the e-Step to train the second subspace U
      */
-    virtual void eStep2(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void eStep2(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the m-Step to train the second subspace U
      */
-    virtual void mStep2(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void mStep2(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the finalization after training the second
      * subspace U
      */
-    virtual void finalize2(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void finalize2(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the e-Step to train the third subspace d
      */
-    virtual void eStep3(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void eStep3(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the m-Step to train the third subspace d
      */
-    virtual void mStep3(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void mStep3(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs the finalization after training the third
      * subspace d
      */
-    virtual void finalize3(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void finalize3(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief This methods performs the main loops to train the subspaces U, V and d
      */
-    virtual void train_loop(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void train_loop(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods trains the subspaces U, V and d
      */
-    virtual void train(bob::machine::JFABase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void train(bob::learn::misc::JFABase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief Enrol a client
      */
-    void enrol(bob::machine::JFAMachine& machine,
-      const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& features,
+    void enrol(bob::learn::misc::JFAMachine& machine,
+      const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& features,
       const size_t n_iter);
 
     /**
@@ -550,11 +550,11 @@ class JFATrainer
     // Attributes
     size_t m_max_iterations;
     boost::shared_ptr<boost::mt19937> m_rng; ///< The random number generator for the inialization
-    bob::trainer::FABaseTrainer m_base_trainer;
+    bob::learn::misc::FABaseTrainer m_base_trainer;
 };
 
 
-class ISVTrainer: public EMTrainer<bob::machine::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >
+class ISVTrainer: public EMTrainer<bob::learn::misc::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >
 {
   public:
     /**
@@ -596,39 +596,39 @@ class ISVTrainer: public EMTrainer<bob::machine::ISVBase, std::vector<std::vecto
     /**
      * @brief This methods performs some initialization before the EM loop.
      */
-    virtual void initialize(bob::machine::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void initialize(bob::learn::misc::ISVBase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
     /**
      * @brief This methods performs some actions after the EM loop.
      */
-    virtual void finalize(bob::machine::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void finalize(bob::learn::misc::ISVBase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief Calculates and saves statistics across the dataset
      * The statistics will be used in the mStep() that follows.
      */
-    virtual void eStep(bob::machine::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void eStep(bob::learn::misc::ISVBase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief Performs a maximization step to update the parameters of the
      * factor analysis model.
      */
-    virtual void mStep(bob::machine::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar);
+    virtual void mStep(bob::learn::misc::ISVBase& machine,
+      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief Computes the average log likelihood using the current estimates
      * of the latent variables.
      */
-    virtual double computeLikelihood(bob::machine::ISVBase& machine);
+    virtual double computeLikelihood(bob::learn::misc::ISVBase& machine);
 
     /**
      * @brief Enrol a client
      */
-    void enrol(bob::machine::ISVMachine& machine,
-      const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& features,
+    void enrol(bob::learn::misc::ISVMachine& machine,
+      const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& features,
       const size_t n_iter);
 
     /**
@@ -674,14 +674,13 @@ class ISVTrainer: public EMTrainer<bob::machine::ISVBase, std::vector<std::vecto
     /**
      * @brief Initialize D to sqrt(ubm_var/relevance_factor)
      */
-    void initializeD(bob::machine::ISVBase& machine) const;
+    void initializeD(bob::learn::misc::ISVBase& machine) const;
 
     // Attributes
-    bob::trainer::FABaseTrainer m_base_trainer;
+    bob::learn::misc::FABaseTrainer m_base_trainer;
     double m_relevance_factor;
 };
 
+} } } // namespaces
 
-}}
-
-#endif /* BOB_TRAINER_FATRAINER_H */
+#endif /* BOB_LEARN_MISC_FATRAINER_H */

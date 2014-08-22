@@ -5,8 +5,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_MACHINE_H
-#define BOB_MACHINE_MACHINE_H
+#ifndef BOB_LEARN_MISC_MACHINE_H
+#define BOB_LEARN_MISC_MACHINE_H
 
 #include <cstring>
 
@@ -14,15 +14,7 @@
  * @addtogroup MACHINE machine
  * @brief Machine module API
  */
-namespace bob {
-/**
- * @ingroup MACHINE
- */
-namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * Root class for all machines
@@ -52,8 +44,6 @@ class Machine
     virtual void forward_(const T_input& input, T_output& output) const = 0;
 };
 
-/**
- * @}
- */
-}}
-#endif 
+} } } // namespaces
+
+#endif // BOB_LEARN_MISC_MACHINE_H

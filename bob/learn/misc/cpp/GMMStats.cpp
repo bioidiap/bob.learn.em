@@ -10,27 +10,27 @@
 #include <bob.core/logging.h>
 #include <bob.core/check.h>
 
-bob::machine::GMMStats::GMMStats() {
+bob::learn::misc::GMMStats::GMMStats() {
   resize(0,0);
 }
 
-bob::machine::GMMStats::GMMStats(const size_t n_gaussians, const size_t n_inputs) {
+bob::learn::misc::GMMStats::GMMStats(const size_t n_gaussians, const size_t n_inputs) {
   resize(n_gaussians,n_inputs);
 }
 
-bob::machine::GMMStats::GMMStats(bob::io::base::HDF5File& config) {
+bob::learn::misc::GMMStats::GMMStats(bob::io::base::HDF5File& config) {
   load(config);
 }
 
-bob::machine::GMMStats::GMMStats(const bob::machine::GMMStats& other) {
+bob::learn::misc::GMMStats::GMMStats(const bob::learn::misc::GMMStats& other) {
   copy(other);
 }
 
-bob::machine::GMMStats::~GMMStats() {
+bob::learn::misc::GMMStats::~GMMStats() {
 }
 
-bob::machine::GMMStats&
-bob::machine::GMMStats::operator=(const bob::machine::GMMStats& other) {
+bob::learn::misc::GMMStats&
+bob::learn::misc::GMMStats::operator=(const bob::learn::misc::GMMStats& other) {
   // protect against invalid self-assignment
   if (this != &other)
     copy(other);
@@ -39,7 +39,7 @@ bob::machine::GMMStats::operator=(const bob::machine::GMMStats& other) {
   return *this;
 }
 
-bool bob::machine::GMMStats::operator==(const bob::machine::GMMStats& b) const
+bool bob::learn::misc::GMMStats::operator==(const bob::learn::misc::GMMStats& b) const
 {
   return (T == b.T && log_likelihood == b.log_likelihood &&
           bob::core::array::isEqual(n, b.n) &&
@@ -48,12 +48,12 @@ bool bob::machine::GMMStats::operator==(const bob::machine::GMMStats& b) const
 }
 
 bool
-bob::machine::GMMStats::operator!=(const bob::machine::GMMStats& b) const
+bob::learn::misc::GMMStats::operator!=(const bob::learn::misc::GMMStats& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::machine::GMMStats::is_similar_to(const bob::machine::GMMStats& b,
+bool bob::learn::misc::GMMStats::is_similar_to(const bob::learn::misc::GMMStats& b,
   const double r_epsilon, const double a_epsilon) const
 {
   return (T == b.T &&
@@ -64,7 +64,7 @@ bool bob::machine::GMMStats::is_similar_to(const bob::machine::GMMStats& b,
 }
 
 
-void bob::machine::GMMStats::operator+=(const bob::machine::GMMStats& b) {
+void bob::learn::misc::GMMStats::operator+=(const bob::learn::misc::GMMStats& b) {
   // Check dimensions
   if(n.extent(0) != b.n.extent(0) ||
       sumPx.extent(0) != b.sumPx.extent(0) || sumPx.extent(1) != b.sumPx.extent(1) ||
@@ -80,7 +80,7 @@ void bob::machine::GMMStats::operator+=(const bob::machine::GMMStats& b) {
   sumPxx += b.sumPxx;
 }
 
-void bob::machine::GMMStats::copy(const GMMStats& other) {
+void bob::learn::misc::GMMStats::copy(const GMMStats& other) {
   // Resize arrays
   resize(other.sumPx.extent(0),other.sumPx.extent(1));
   // Copy content
@@ -91,14 +91,14 @@ void bob::machine::GMMStats::copy(const GMMStats& other) {
   sumPxx = other.sumPxx;
 }
 
-void bob::machine::GMMStats::resize(const size_t n_gaussians, const size_t n_inputs) {
+void bob::learn::misc::GMMStats::resize(const size_t n_gaussians, const size_t n_inputs) {
   n.resize(n_gaussians);
   sumPx.resize(n_gaussians, n_inputs);
   sumPxx.resize(n_gaussians, n_inputs);
   init();
 }
 
-void bob::machine::GMMStats::init() {
+void bob::learn::misc::GMMStats::init() {
   log_likelihood = 0;
   T = 0;
   n = 0.0;
@@ -106,7 +106,7 @@ void bob::machine::GMMStats::init() {
   sumPxx = 0.0;
 }
 
-void bob::machine::GMMStats::save(bob::io::base::HDF5File& config) const {
+void bob::learn::misc::GMMStats::save(bob::io::base::HDF5File& config) const {
   //please note we fix the output values to be of a precise type so they can be
   //retrieved at any platform with the exact same precision.
   // TODO: add versioning, replace int64_t by uint64_t and log_liklihood by log_likelihood
@@ -121,7 +121,7 @@ void bob::machine::GMMStats::save(bob::io::base::HDF5File& config) const {
   config.setArray("sumPxx", sumPxx); //Array2d
 }
 
-void bob::machine::GMMStats::load(bob::io::base::HDF5File& config) {
+void bob::learn::misc::GMMStats::load(bob::io::base::HDF5File& config) {
   log_likelihood = config.read<double>("log_liklihood");
   int64_t n_gaussians = config.read<int64_t>("n_gaussians");
   int64_t n_inputs = config.read<int64_t>("n_inputs");
@@ -138,16 +138,14 @@ void bob::machine::GMMStats::load(bob::io::base::HDF5File& config) {
   config.readArray("sumPxx", sumPxx);
 }
 
-namespace bob {
-  namespace machine {
-    std::ostream& operator<<(std::ostream& os, const GMMStats& g) {
-      os << "log_likelihood = " << g.log_likelihood << std::endl;
-      os << "T = " << g.T << std::endl;
-      os << "n = " << g.n;
-      os << "sumPx = " << g.sumPx;
-      os << "sumPxx = " << g.sumPxx;
+namespace bob { namespace learn { namespace misc {
+  std::ostream& operator<<(std::ostream& os, const GMMStats& g) {
+    os << "log_likelihood = " << g.log_likelihood << std::endl;
+    os << "T = " << g.T << std::endl;
+    os << "n = " << g.n;
+    os << "sumPx = " << g.sumPx;
+    os << "sumPxx = " << g.sumPxx;
 
-      return os;
-    }
+    return os;
   }
-}
+} } }

@@ -9,8 +9,8 @@
  */
 
 
-#ifndef BOB_TRAINER_EMTRAINER_H
-#define BOB_TRAINER_EMTRAINER_H
+#ifndef BOB_LEARN_MISC_EMTRAINER_H
+#define BOB_LEARN_MISC_EMTRAINER_H
 
 #include <bob.learn.misc/Trainer.h>
 
@@ -21,12 +21,7 @@
 #include <boost/random.hpp>
 
 
-namespace bob { namespace trainer {
-  /**
-   * @ingroup TRAINER
-   * @{
-   */
-
+namespace bob { namespace learn { namespace misc {
   /**
    * @brief This class implements the general Expectation-maximization algorithm.
    * @details See Section 9.3 of Bishop, "Pattern recognition and machine learning", 2006
@@ -255,9 +250,6 @@ namespace bob { namespace trainer {
     }
   };
 
-  /**
-   * @}
-   */
-}}
+} } } // namespaces
 
-#endif // BOB_TRAINER_EMTRAINER_H
+#endif // BOB_LEARN_MISC_EMTRAINER_H

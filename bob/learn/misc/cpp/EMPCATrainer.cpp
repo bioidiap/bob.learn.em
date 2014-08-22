@@ -18,7 +18,7 @@
 #include <bob.math/inv.h>
 #include <bob.math/stats.h>
 
-bob::trainer::EMPCATrainer::EMPCATrainer(double convergence_threshold,
+bob::learn::misc::EMPCATrainer::EMPCATrainer(double convergence_threshold,
     size_t max_iterations, bool compute_likelihood):
   EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> >(convergence_threshold,
     max_iterations, compute_likelihood),
@@ -32,7 +32,7 @@ bob::trainer::EMPCATrainer::EMPCATrainer(double convergence_threshold,
 {
 }
 
-bob::trainer::EMPCATrainer::EMPCATrainer(const bob::trainer::EMPCATrainer& other):
+bob::learn::misc::EMPCATrainer::EMPCATrainer(const bob::learn::misc::EMPCATrainer& other):
   EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> >(other.m_convergence_threshold,
     other.m_max_iterations, other.m_compute_likelihood),
   m_S(bob::core::array::ccopy(other.m_S)),
@@ -53,16 +53,16 @@ bob::trainer::EMPCATrainer::EMPCATrainer(const bob::trainer::EMPCATrainer& other
 {
 }
 
-bob::trainer::EMPCATrainer::~EMPCATrainer()
+bob::learn::misc::EMPCATrainer::~EMPCATrainer()
 {
 }
 
-bob::trainer::EMPCATrainer& bob::trainer::EMPCATrainer::operator=
-  (const bob::trainer::EMPCATrainer& other)
+bob::learn::misc::EMPCATrainer& bob::learn::misc::EMPCATrainer::operator=
+  (const bob::learn::misc::EMPCATrainer& other)
 {
   if (this != &other)
   {
-    bob::trainer::EMTrainer<bob::learn::linear::Machine,
+    bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
       blitz::Array<double,2> >::operator=(other);
     m_S = bob::core::array::ccopy(other.m_S);
     m_z_first_order = bob::core::array::ccopy(other.m_z_first_order);
@@ -84,10 +84,10 @@ bob::trainer::EMPCATrainer& bob::trainer::EMPCATrainer::operator=
   return *this;
 }
 
-bool bob::trainer::EMPCATrainer::operator==
-  (const bob::trainer::EMPCATrainer &other) const
+bool bob::learn::misc::EMPCATrainer::operator==
+  (const bob::learn::misc::EMPCATrainer &other) const
 {
-  return bob::trainer::EMTrainer<bob::learn::linear::Machine,
+  return bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
            blitz::Array<double,2> >::operator==(other) &&
         bob::core::array::isEqual(m_S, other.m_S) &&
         bob::core::array::isEqual(m_z_first_order, other.m_z_first_order) &&
@@ -98,17 +98,17 @@ bool bob::trainer::EMPCATrainer::operator==
         m_f_log2pi == other.m_f_log2pi;
 }
 
-bool bob::trainer::EMPCATrainer::operator!=
-  (const bob::trainer::EMPCATrainer &other) const
+bool bob::learn::misc::EMPCATrainer::operator!=
+  (const bob::learn::misc::EMPCATrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::EMPCATrainer::is_similar_to
-  (const bob::trainer::EMPCATrainer &other, const double r_epsilon,
+bool bob::learn::misc::EMPCATrainer::is_similar_to
+  (const bob::learn::misc::EMPCATrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::EMTrainer<bob::learn::linear::Machine,
+  return bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
            blitz::Array<double,2> >::is_similar_to(other, r_epsilon, a_epsilon) &&
         bob::core::array::isClose(m_S, other.m_S, r_epsilon, a_epsilon) &&
         bob::core::array::isClose(m_z_first_order, other.m_z_first_order, r_epsilon, a_epsilon) &&
@@ -119,7 +119,7 @@ bool bob::trainer::EMPCATrainer::is_similar_to
         bob::core::isClose(m_f_log2pi, other.m_f_log2pi, r_epsilon, a_epsilon);
 }
 
-void bob::trainer::EMPCATrainer::initialize(bob::learn::linear::Machine& machine,
+void bob::learn::misc::EMPCATrainer::initialize(bob::learn::linear::Machine& machine,
   const blitz::Array<double,2>& ar)
 {
   // reinitializes array members and checks dimensionality
@@ -137,12 +137,12 @@ void bob::trainer::EMPCATrainer::initialize(bob::learn::linear::Machine& machine
   computeInvM();
 }
 
-void bob::trainer::EMPCATrainer::finalize(bob::learn::linear::Machine& machine,
+void bob::learn::misc::EMPCATrainer::finalize(bob::learn::linear::Machine& machine,
   const blitz::Array<double,2>& ar)
 {
 }
 
-void bob::trainer::EMPCATrainer::initMembers(
+void bob::learn::misc::EMPCATrainer::initMembers(
   const bob::learn::linear::Machine& machine,
   const blitz::Array<double,2>& ar)
 {
@@ -195,7 +195,7 @@ void bob::trainer::EMPCATrainer::initMembers(
   }
 }
 
-void bob::trainer::EMPCATrainer::computeMeanVariance(bob::learn::linear::Machine& machine,
+void bob::learn::misc::EMPCATrainer::computeMeanVariance(bob::learn::linear::Machine& machine,
   const blitz::Array<double,2>& ar)
 {
   size_t n_samples = ar.extent(0);
@@ -218,7 +218,7 @@ void bob::trainer::EMPCATrainer::computeMeanVariance(bob::learn::linear::Machine
   }
 }
 
-void bob::trainer::EMPCATrainer::initRandomWSigma2(bob::learn::linear::Machine& machine)
+void bob::learn::misc::EMPCATrainer::initRandomWSigma2(bob::learn::linear::Machine& machine)
 {
   // Initializes the random number generator
   boost::uniform_01<> range01;
@@ -234,14 +234,14 @@ void bob::trainer::EMPCATrainer::initRandomWSigma2(bob::learn::linear::Machine& 
   m_sigma2 = die() * ratio;
 }
 
-void bob::trainer::EMPCATrainer::computeWtW(bob::learn::linear::Machine& machine)
+void bob::learn::misc::EMPCATrainer::computeWtW(bob::learn::linear::Machine& machine)
 {
   const blitz::Array<double,2> W = machine.getWeights();
   const blitz::Array<double,2> Wt = W.transpose(1,0);
   bob::math::prod(Wt, W, m_inW);
 }
 
-void bob::trainer::EMPCATrainer::computeInvM()
+void bob::learn::misc::EMPCATrainer::computeInvM()
 {
   // Compute inverse(M), where M = W^T * W + sigma2 * Id
   bob::math::eye(m_tmp_dxd_1); // m_tmp_dxd_1 = Id
@@ -252,7 +252,7 @@ void bob::trainer::EMPCATrainer::computeInvM()
 
 
 
-void bob::trainer::EMPCATrainer::eStep(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar)
+void bob::learn::misc::EMPCATrainer::eStep(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar)
 {
   // Gets mu and W from the machine
   const blitz::Array<double,1>& mu = machine.getInputSubtraction();
@@ -285,7 +285,7 @@ void bob::trainer::EMPCATrainer::eStep(bob::learn::linear::Machine& machine, con
   }
 }
 
-void bob::trainer::EMPCATrainer::mStep(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar)
+void bob::learn::misc::EMPCATrainer::mStep(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar)
 {
   // 1/ New estimate of W
   updateW(machine, ar);
@@ -297,7 +297,7 @@ void bob::trainer::EMPCATrainer::mStep(bob::learn::linear::Machine& machine, con
   computeInvM();
 }
 
-void bob::trainer::EMPCATrainer::updateW(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar) {
+void bob::learn::misc::EMPCATrainer::updateW(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar) {
   // Get the mean mu and the projection matrix W
   const blitz::Array<double,1>& mu = machine.getInputSubtraction();
   blitz::Array<double,2>& W = machine.updateWeights();
@@ -330,7 +330,7 @@ void bob::trainer::EMPCATrainer::updateW(bob::learn::linear::Machine& machine, c
   bob::math::prod(Wt, W, m_inW);
 }
 
-void bob::trainer::EMPCATrainer::updateSigma2(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar) {
+void bob::learn::misc::EMPCATrainer::updateSigma2(bob::learn::linear::Machine& machine, const blitz::Array<double,2>& ar) {
   // Get the mean mu and the projection matrix W
   const blitz::Array<double,1>& mu = machine.getInputSubtraction();
   const blitz::Array<double,2>& W = machine.getWeights();
@@ -366,7 +366,7 @@ void bob::trainer::EMPCATrainer::updateSigma2(bob::learn::linear::Machine& machi
   m_sigma2 /= (static_cast<double>(ar.extent(0)) * mu.extent(0));
 }
 
-double bob::trainer::EMPCATrainer::computeLikelihood(bob::learn::linear::Machine& machine)
+double bob::learn::misc::EMPCATrainer::computeLikelihood(bob::learn::linear::Machine& machine)
 {
   // Get W projection matrix
   const blitz::Array<double,2>& W = machine.getWeights();

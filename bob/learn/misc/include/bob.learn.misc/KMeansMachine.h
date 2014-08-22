@@ -5,8 +5,8 @@
  *
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
-#ifndef BOB_MACHINE_KMEANSMACHINE_H
-#define BOB_MACHINE_KMEANSMACHINE_H
+#ifndef BOB_LEARN_MISC_KMEANSMACHINE_H
+#define BOB_LEARN_MISC_KMEANSMACHINE_H
 
 #include <blitz/array.h>
 #include <cfloat>
@@ -14,11 +14,7 @@
 #include <bob.io.base/HDF5File.h>
 #include <bob.learn.misc/Machine.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements a k-means classifier.
@@ -244,8 +240,6 @@ class KMeansMachine: public Machine<blitz::Array<double,1>, double> {
     mutable blitz::Array<double,2> m_cache_means;
 };
 
-/**
- * @}
- */
-}}
-#endif
+} } } // namespaces
+
+#endif // BOB_LEARN_MISC_KMEANSMACHINE_H

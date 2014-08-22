@@ -19,13 +19,13 @@
 #include <boost/lexical_cast.hpp>
 #include <string>
 
-bob::machine::PLDABase::PLDABase():
+bob::learn::misc::PLDABase::PLDABase():
   m_variance_threshold(0.)
 {
   resizeNoInit(0, 0, 0);
 }
 
-bob::machine::PLDABase::PLDABase(const size_t dim_d, const size_t dim_f,
+bob::learn::misc::PLDABase::PLDABase(const size_t dim_d, const size_t dim_f,
     const size_t dim_g, const double variance_threshold):
   m_variance_threshold(variance_threshold)
 {
@@ -33,7 +33,7 @@ bob::machine::PLDABase::PLDABase(const size_t dim_d, const size_t dim_f,
 }
 
 
-bob::machine::PLDABase::PLDABase(const bob::machine::PLDABase& other):
+bob::learn::misc::PLDABase::PLDABase(const bob::learn::misc::PLDABase& other):
   m_dim_d(other.m_dim_d),
   m_dim_f(other.m_dim_f),
   m_dim_g(other.m_dim_g),
@@ -56,15 +56,15 @@ bob::machine::PLDABase::PLDABase(const bob::machine::PLDABase& other):
   resizeTmp();
 }
 
-bob::machine::PLDABase::PLDABase(bob::io::base::HDF5File& config) {
+bob::learn::misc::PLDABase::PLDABase(bob::io::base::HDF5File& config) {
   load(config);
 }
 
-bob::machine::PLDABase::~PLDABase() {
+bob::learn::misc::PLDABase::~PLDABase() {
 }
 
-bob::machine::PLDABase& bob::machine::PLDABase::operator=
-    (const bob::machine::PLDABase& other)
+bob::learn::misc::PLDABase& bob::learn::misc::PLDABase::operator=
+    (const bob::learn::misc::PLDABase& other)
 {
   if (this != &other)
   {
@@ -90,8 +90,8 @@ bob::machine::PLDABase& bob::machine::PLDABase::operator=
   return *this;
 }
 
-bool bob::machine::PLDABase::operator==
-    (const bob::machine::PLDABase& b) const
+bool bob::learn::misc::PLDABase::operator==
+    (const bob::learn::misc::PLDABase& b) const
 {
   if (!(m_dim_d == b.m_dim_d && m_dim_f == b.m_dim_f &&
         m_dim_g == b.m_dim_g &&
@@ -124,13 +124,13 @@ bool bob::machine::PLDABase::operator==
   return true;
 }
 
-bool bob::machine::PLDABase::operator!=
-    (const bob::machine::PLDABase& b) const
+bool bob::learn::misc::PLDABase::operator!=
+    (const bob::learn::misc::PLDABase& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::machine::PLDABase::is_similar_to(const bob::machine::PLDABase& b,
+bool bob::learn::misc::PLDABase::is_similar_to(const bob::learn::misc::PLDABase& b,
   const double r_epsilon, const double a_epsilon) const
 {
   return (m_dim_d == b.m_dim_d && m_dim_f == b.m_dim_f &&
@@ -151,7 +151,7 @@ bool bob::machine::PLDABase::is_similar_to(const bob::machine::PLDABase& b,
           bob::core::isClose(m_cache_loglike_constterm, b.m_cache_loglike_constterm));
 }
 
-void bob::machine::PLDABase::load(bob::io::base::HDF5File& config)
+void bob::learn::misc::PLDABase::load(bob::io::base::HDF5File& config)
 {
   if (!config.contains("dim_d"))
   {
@@ -241,7 +241,7 @@ void bob::machine::PLDABase::load(bob::io::base::HDF5File& config)
   resizeTmp();
 }
 
-void bob::machine::PLDABase::save(bob::io::base::HDF5File& config) const
+void bob::learn::misc::PLDABase::save(bob::io::base::HDF5File& config) const
 {
   config.set("dim_d", (uint64_t)m_dim_d);
   config.set("dim_f", (uint64_t)m_dim_f);
@@ -290,7 +290,7 @@ void bob::machine::PLDABase::save(bob::io::base::HDF5File& config) const
   config.set("logdet_sigma", m_cache_logdet_sigma);
 }
 
-void bob::machine::PLDABase::resizeNoInit(const size_t dim_d, const size_t dim_f,
+void bob::learn::misc::PLDABase::resizeNoInit(const size_t dim_d, const size_t dim_f,
     const size_t dim_g)
 {
   m_dim_d = dim_d;
@@ -310,7 +310,7 @@ void bob::machine::PLDABase::resizeNoInit(const size_t dim_d, const size_t dim_f
   resizeTmp();
 }
 
-void bob::machine::PLDABase::resizeTmp()
+void bob::learn::misc::PLDABase::resizeTmp()
 {
   m_tmp_d_1.resize(m_dim_d);
   m_tmp_d_2.resize(m_dim_d);
@@ -319,14 +319,14 @@ void bob::machine::PLDABase::resizeTmp()
   m_tmp_ng_ng_1.resize(m_dim_g, m_dim_g);
 }
 
-void bob::machine::PLDABase::resize(const size_t dim_d, const size_t dim_f,
+void bob::learn::misc::PLDABase::resize(const size_t dim_d, const size_t dim_f,
     const size_t dim_g)
 {
   resizeNoInit(dim_d, dim_f, dim_g);
   initMuFGSigma();
 }
 
-void bob::machine::PLDABase::setF(const blitz::Array<double,2>& F)
+void bob::learn::misc::PLDABase::setF(const blitz::Array<double,2>& F)
 {
   bob::core::array::assertSameShape(F, m_F);
   m_F.reference(bob::core::array::ccopy(F));
@@ -334,7 +334,7 @@ void bob::machine::PLDABase::setF(const blitz::Array<double,2>& F)
   precompute();
 }
 
-void bob::machine::PLDABase::setG(const blitz::Array<double,2>& G)
+void bob::learn::misc::PLDABase::setG(const blitz::Array<double,2>& G)
 {
   bob::core::array::assertSameShape(G, m_G);
   m_G.reference(bob::core::array::ccopy(G));
@@ -343,7 +343,7 @@ void bob::machine::PLDABase::setG(const blitz::Array<double,2>& G)
   precomputeLogDetAlpha();
 }
 
-void bob::machine::PLDABase::setSigma(const blitz::Array<double,1>& sigma)
+void bob::learn::misc::PLDABase::setSigma(const blitz::Array<double,1>& sigma)
 {
   bob::core::array::assertSameShape(sigma, m_sigma);
   m_sigma.reference(bob::core::array::ccopy(sigma));
@@ -352,13 +352,13 @@ void bob::machine::PLDABase::setSigma(const blitz::Array<double,1>& sigma)
   applyVarianceThreshold();
 }
 
-void bob::machine::PLDABase::setMu(const blitz::Array<double,1>& mu)
+void bob::learn::misc::PLDABase::setMu(const blitz::Array<double,1>& mu)
 {
   bob::core::array::assertSameShape(mu, m_mu);
   m_mu.reference(bob::core::array::ccopy(mu));
 }
 
-void bob::machine::PLDABase::setVarianceThreshold(const double value)
+void bob::learn::misc::PLDABase::setVarianceThreshold(const double value)
 {
   // Variance flooring
   m_variance_threshold = value;
@@ -367,7 +367,7 @@ void bob::machine::PLDABase::setVarianceThreshold(const double value)
   applyVarianceThreshold();
 }
 
-void bob::machine::PLDABase::applyVarianceThreshold()
+void bob::learn::misc::PLDABase::applyVarianceThreshold()
 {
    // Apply variance flooring threshold
   m_sigma = blitz::where( m_sigma < m_variance_threshold, m_variance_threshold, m_sigma);
@@ -376,20 +376,20 @@ void bob::machine::PLDABase::applyVarianceThreshold()
   precomputeLogLike();
 }
 
-const blitz::Array<double,2>& bob::machine::PLDABase::getGamma(const size_t a) const
+const blitz::Array<double,2>& bob::learn::misc::PLDABase::getGamma(const size_t a) const
 {
   if(!hasGamma(a))
     throw std::runtime_error("Gamma for this number of samples is not currently in cache. You could use the getAddGamma() method instead");
   return (m_cache_gamma.find(a))->second;
 }
 
-const blitz::Array<double,2>& bob::machine::PLDABase::getAddGamma(const size_t a)
+const blitz::Array<double,2>& bob::learn::misc::PLDABase::getAddGamma(const size_t a)
 {
   if(!hasGamma(a)) precomputeGamma(a);
   return m_cache_gamma[a];
 }
 
-void bob::machine::PLDABase::initMuFGSigma()
+void bob::learn::misc::PLDABase::initMuFGSigma()
 {
   // To avoid problems related to precomputation
   m_mu = 0.;
@@ -401,7 +401,7 @@ void bob::machine::PLDABase::initMuFGSigma()
   precomputeLogLike();
 }
 
-void bob::machine::PLDABase::precompute()
+void bob::learn::misc::PLDABase::precompute()
 {
   precomputeISigma();
   precomputeGtISigma();
@@ -412,19 +412,19 @@ void bob::machine::PLDABase::precompute()
   m_cache_loglike_constterm.clear();
 }
 
-void bob::machine::PLDABase::precomputeLogLike()
+void bob::learn::misc::PLDABase::precomputeLogLike()
 {
   precomputeLogDetAlpha();
   precomputeLogDetSigma();
 }
 
-void bob::machine::PLDABase::precomputeISigma()
+void bob::learn::misc::PLDABase::precomputeISigma()
 {
   // Updates inverse of sigma
   m_cache_isigma = 1. / m_sigma;
 }
 
-void bob::machine::PLDABase::precomputeGtISigma()
+void bob::learn::misc::PLDABase::precomputeGtISigma()
 {
   // m_cache_Gt_isigma = G^T \Sigma^{-1}
   blitz::firstIndex i;
@@ -433,7 +433,7 @@ void bob::machine::PLDABase::precomputeGtISigma()
   m_cache_Gt_isigma = Gt(i,j) * m_cache_isigma(j);
 }
 
-void bob::machine::PLDABase::precomputeAlpha()
+void bob::learn::misc::PLDABase::precomputeAlpha()
 {
   // alpha = (Id + G^T.sigma^-1.G)^-1
 
@@ -445,7 +445,7 @@ void bob::machine::PLDABase::precomputeAlpha()
   bob::math::inv(m_tmp_ng_ng_1, m_cache_alpha);
 }
 
-void bob::machine::PLDABase::precomputeBeta()
+void bob::learn::misc::PLDABase::precomputeBeta()
 {
   // beta = (sigma + G.G^T)^-1
   // BUT, there is a more efficient computation (Woodbury identity):
@@ -462,7 +462,7 @@ void bob::machine::PLDABase::precomputeBeta()
   for(int i=0; i<m_cache_beta.extent(0); ++i) m_cache_beta(i,i) += m_cache_isigma(i);
 }
 
-void bob::machine::PLDABase::precomputeGamma(const size_t a)
+void bob::learn::misc::PLDABase::precomputeGamma(const size_t a)
 {
 
   blitz::Array<double,2> gamma_a(getDimF(),getDimF());
@@ -470,14 +470,14 @@ void bob::machine::PLDABase::precomputeGamma(const size_t a)
   computeGamma(a, gamma_a);
 }
 
-void bob::machine::PLDABase::precomputeFtBeta()
+void bob::learn::misc::PLDABase::precomputeFtBeta()
 {
   // m_cache_Ft_beta = F^T.beta = F^T.(sigma + G.G^T)^-1
   blitz::Array<double,2> Ft = m_F.transpose(1,0);
   bob::math::prod(Ft, m_cache_beta, m_cache_Ft_beta);
 }
 
-void bob::machine::PLDABase::computeGamma(const size_t a,
+void bob::learn::misc::PLDABase::computeGamma(const size_t a,
   blitz::Array<double,2> res) const
 {
   // gamma = (Id + a.F^T.beta.F)^-1
@@ -495,18 +495,18 @@ void bob::machine::PLDABase::computeGamma(const size_t a,
   bob::math::inv(m_tmp_nf_nf_1, res);
 }
 
-void bob::machine::PLDABase::precomputeLogDetAlpha()
+void bob::learn::misc::PLDABase::precomputeLogDetAlpha()
 {
   int sign;
   m_cache_logdet_alpha = bob::math::slogdet(m_cache_alpha, sign);
 }
 
-void bob::machine::PLDABase::precomputeLogDetSigma()
+void bob::learn::misc::PLDABase::precomputeLogDetSigma()
 {
   m_cache_logdet_sigma = blitz::sum(blitz::log(m_sigma));
 }
 
-double bob::machine::PLDABase::computeLogLikeConstTerm(const size_t a,
+double bob::learn::misc::PLDABase::computeLogLikeConstTerm(const size_t a,
   const blitz::Array<double,2>& gamma_a) const
 {
   // loglike_constterm[a] = a/2 *
@@ -519,38 +519,38 @@ double bob::machine::PLDABase::computeLogLikeConstTerm(const size_t a,
   return res;
 }
 
-double bob::machine::PLDABase::computeLogLikeConstTerm(const size_t a)
+double bob::learn::misc::PLDABase::computeLogLikeConstTerm(const size_t a)
 {
   const blitz::Array<double,2>& gamma_a = getAddGamma(a);
   return computeLogLikeConstTerm(a, gamma_a);
 }
 
-void bob::machine::PLDABase::precomputeLogLikeConstTerm(const size_t a)
+void bob::learn::misc::PLDABase::precomputeLogLikeConstTerm(const size_t a)
 {
   double val = computeLogLikeConstTerm(a);
   m_cache_loglike_constterm[a] = val;
 }
 
-double bob::machine::PLDABase::getLogLikeConstTerm(const size_t a) const
+double bob::learn::misc::PLDABase::getLogLikeConstTerm(const size_t a) const
 {
   if(!hasLogLikeConstTerm(a))
     throw std::runtime_error("The LogLikelihood constant term for this number of samples is not currently in cache. You could use the getAddLogLikeConstTerm() method instead");
   return (m_cache_loglike_constterm.find(a))->second;
 }
 
-double bob::machine::PLDABase::getAddLogLikeConstTerm(const size_t a)
+double bob::learn::misc::PLDABase::getAddLogLikeConstTerm(const size_t a)
 {
   if(!hasLogLikeConstTerm(a)) precomputeLogLikeConstTerm(a);
   return m_cache_loglike_constterm[a];
 }
 
-void bob::machine::PLDABase::clearMaps()
+void bob::learn::misc::PLDABase::clearMaps()
 {
   m_cache_gamma.clear();
   m_cache_loglike_constterm.clear();
 }
 
-double bob::machine::PLDABase::computeLogLikelihoodPointEstimate(
+double bob::learn::misc::PLDABase::computeLogLikelihoodPointEstimate(
   const blitz::Array<double,1>& xij, const blitz::Array<double,1>& hi,
   const blitz::Array<double,1>& wij) const
 {
@@ -572,25 +572,23 @@ double bob::machine::PLDABase::computeLogLikelihoodPointEstimate(
   return res;
 }
 
-namespace bob{
-  namespace machine{
-    /**
-     * @brief Prints a PLDABase in the output stream. This will print
-     * the values of the parameters \f$\mu\f$, \f$F\f$, \f$G\f$ and
-     * \f$\Sigma\f$ of the PLDA model.
-     */
-    std::ostream& operator<<(std::ostream& os, const PLDABase& m) {
-      os << "mu = " << m.m_mu << std::endl;
-      os << "sigma = " << m.m_sigma << std::endl;
-      os << "F = " << m.m_F << std::endl;
-      os << "G = " << m.m_G << std::endl;
-      return os;
-    }
+namespace bob { namespace learn { namespace misc {
+  /**
+   * @brief Prints a PLDABase in the output stream. This will print
+   * the values of the parameters \f$\mu\f$, \f$F\f$, \f$G\f$ and
+   * \f$\Sigma\f$ of the PLDA model.
+   */
+  std::ostream& operator<<(std::ostream& os, const PLDABase& m) {
+    os << "mu = " << m.m_mu << std::endl;
+    os << "sigma = " << m.m_sigma << std::endl;
+    os << "F = " << m.m_F << std::endl;
+    os << "G = " << m.m_G << std::endl;
+    return os;
   }
-}
+} } }
 
 
-bob::machine::PLDAMachine::PLDAMachine():
+bob::learn::misc::PLDAMachine::PLDAMachine():
   m_plda_base(),
   m_n_samples(0), m_nh_sum_xit_beta_xi(0), m_weighted_sum(0),
   m_loglikelihood(0), m_cache_gamma(), m_cache_loglike_constterm(),
@@ -598,7 +596,7 @@ bob::machine::PLDAMachine::PLDAMachine():
 {
 }
 
-bob::machine::PLDAMachine::PLDAMachine(const boost::shared_ptr<bob::machine::PLDABase> plda_base):
+bob::learn::misc::PLDAMachine::PLDAMachine(const boost::shared_ptr<bob::learn::misc::PLDABase> plda_base):
   m_plda_base(plda_base),
   m_n_samples(0), m_nh_sum_xit_beta_xi(0), m_weighted_sum(plda_base->getDimF()),
   m_loglikelihood(0), m_cache_gamma(), m_cache_loglike_constterm()
@@ -607,7 +605,7 @@ bob::machine::PLDAMachine::PLDAMachine(const boost::shared_ptr<bob::machine::PLD
 }
 
 
-bob::machine::PLDAMachine::PLDAMachine(const bob::machine::PLDAMachine& other):
+bob::learn::misc::PLDAMachine::PLDAMachine(const bob::learn::misc::PLDAMachine& other):
   m_plda_base(other.m_plda_base),
   m_n_samples(other.m_n_samples),
   m_nh_sum_xit_beta_xi(other.m_nh_sum_xit_beta_xi),
@@ -619,18 +617,18 @@ bob::machine::PLDAMachine::PLDAMachine(const bob::machine::PLDAMachine& other):
   resizeTmp();
 }
 
-bob::machine::PLDAMachine::PLDAMachine(bob::io::base::HDF5File& config,
-    const boost::shared_ptr<bob::machine::PLDABase> plda_base):
+bob::learn::misc::PLDAMachine::PLDAMachine(bob::io::base::HDF5File& config,
+    const boost::shared_ptr<bob::learn::misc::PLDABase> plda_base):
   m_plda_base(plda_base)
 {
   load(config);
 }
 
-bob::machine::PLDAMachine::~PLDAMachine() {
+bob::learn::misc::PLDAMachine::~PLDAMachine() {
 }
 
-bob::machine::PLDAMachine& bob::machine::PLDAMachine::operator=
-(const bob::machine::PLDAMachine& other)
+bob::learn::misc::PLDAMachine& bob::learn::misc::PLDAMachine::operator=
+(const bob::learn::misc::PLDAMachine& other)
 {
   if(this!=&other)
   {
@@ -646,8 +644,8 @@ bob::machine::PLDAMachine& bob::machine::PLDAMachine::operator=
   return *this;
 }
 
-bool bob::machine::PLDAMachine::operator==
-    (const bob::machine::PLDAMachine& b) const
+bool bob::learn::misc::PLDAMachine::operator==
+    (const bob::learn::misc::PLDAMachine& b) const
 {
   if (!(( (!m_plda_base && !b.m_plda_base) ||
           ((m_plda_base && b.m_plda_base) && *(m_plda_base) == *(b.m_plda_base))) &&
@@ -672,14 +670,14 @@ bool bob::machine::PLDAMachine::operator==
   return true;
 }
 
-bool bob::machine::PLDAMachine::operator!=
-    (const bob::machine::PLDAMachine& b) const
+bool bob::learn::misc::PLDAMachine::operator!=
+    (const bob::learn::misc::PLDAMachine& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::machine::PLDAMachine::is_similar_to(
-  const bob::machine::PLDAMachine& b, const double r_epsilon,
+bool bob::learn::misc::PLDAMachine::is_similar_to(
+  const bob::learn::misc::PLDAMachine& b, const double r_epsilon,
   const double a_epsilon) const
 {
   return (( (!m_plda_base && !b.m_plda_base) ||
@@ -693,7 +691,7 @@ bool bob::machine::PLDAMachine::is_similar_to(
           bob::core::isClose(m_cache_loglike_constterm, b.m_cache_loglike_constterm, r_epsilon, a_epsilon));
 }
 
-void bob::machine::PLDAMachine::load(bob::io::base::HDF5File& config)
+void bob::learn::misc::PLDAMachine::load(bob::io::base::HDF5File& config)
 {
   //reads all data directly into the member variables
   m_n_samples = config.read<uint64_t>("n_samples");
@@ -717,7 +715,7 @@ void bob::machine::PLDAMachine::load(bob::io::base::HDF5File& config)
   resizeTmp();
 }
 
-void bob::machine::PLDAMachine::save(bob::io::base::HDF5File& config) const
+void bob::learn::misc::PLDAMachine::save(bob::io::base::HDF5File& config) const
 {
   config.set("n_samples", m_n_samples);
   config.set("nh_sum_xit_beta_xi", m_nh_sum_xit_beta_xi);
@@ -743,7 +741,7 @@ void bob::machine::PLDAMachine::save(bob::io::base::HDF5File& config) const
   }
 }
 
-void bob::machine::PLDAMachine::setPLDABase(const boost::shared_ptr<bob::machine::PLDABase> plda_base)
+void bob::learn::misc::PLDAMachine::setPLDABase(const boost::shared_ptr<bob::learn::misc::PLDABase> plda_base)
 {
   m_plda_base = plda_base;
   m_weighted_sum.resizeAndPreserve(getDimF());
@@ -752,7 +750,7 @@ void bob::machine::PLDAMachine::setPLDABase(const boost::shared_ptr<bob::machine
 }
 
 
-void bob::machine::PLDAMachine::setWeightedSum(const blitz::Array<double,1>& ws)
+void bob::learn::misc::PLDAMachine::setWeightedSum(const blitz::Array<double,1>& ws)
 {
   if(ws.extent(0) != m_weighted_sum.extent(0)) {
     boost::format m("size of parameter `ws' (%d) does not match the expected size (%d)");
@@ -762,7 +760,7 @@ void bob::machine::PLDAMachine::setWeightedSum(const blitz::Array<double,1>& ws)
   m_weighted_sum.reference(bob::core::array::ccopy(ws));
 }
 
-const blitz::Array<double,2>& bob::machine::PLDAMachine::getGamma(const size_t a) const
+const blitz::Array<double,2>& bob::learn::misc::PLDAMachine::getGamma(const size_t a) const
 {
   // Checks in both base machine and this machine
   if (m_plda_base->hasGamma(a)) return m_plda_base->getGamma(a);
@@ -771,7 +769,7 @@ const blitz::Array<double,2>& bob::machine::PLDAMachine::getGamma(const size_t a
   return (m_cache_gamma.find(a))->second;
 }
 
-const blitz::Array<double,2>& bob::machine::PLDAMachine::getAddGamma(const size_t a)
+const blitz::Array<double,2>& bob::learn::misc::PLDAMachine::getAddGamma(const size_t a)
 {
   if (m_plda_base->hasGamma(a)) return m_plda_base->getGamma(a);
   else if (hasGamma(a)) return m_cache_gamma[a];
@@ -782,7 +780,7 @@ const blitz::Array<double,2>& bob::machine::PLDAMachine::getAddGamma(const size_
   return m_cache_gamma[a];
 }
 
-double bob::machine::PLDAMachine::getLogLikeConstTerm(const size_t a) const
+double bob::learn::misc::PLDAMachine::getLogLikeConstTerm(const size_t a) const
 {
   // Checks in both base machine and this machine
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
@@ -792,7 +790,7 @@ double bob::machine::PLDAMachine::getLogLikeConstTerm(const size_t a) const
   return (m_cache_loglike_constterm.find(a))->second;
 }
 
-double bob::machine::PLDAMachine::getAddLogLikeConstTerm(const size_t a)
+double bob::learn::misc::PLDAMachine::getAddLogLikeConstTerm(const size_t a)
 {
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
   if (m_plda_base->hasLogLikeConstTerm(a)) return m_plda_base->getLogLikeConstTerm(a);
@@ -803,32 +801,32 @@ double bob::machine::PLDAMachine::getAddLogLikeConstTerm(const size_t a)
   return m_cache_loglike_constterm[a];
 }
 
-void bob::machine::PLDAMachine::clearMaps()
+void bob::learn::misc::PLDAMachine::clearMaps()
 {
   m_cache_gamma.clear();
   m_cache_loglike_constterm.clear();
 }
 
-void bob::machine::PLDAMachine::forward(const blitz::Array<double,1>& sample, double& score) const
+void bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,1>& sample, double& score) const
 {
   forward_(sample,score);
 }
 
-void bob::machine::PLDAMachine::forward_(const blitz::Array<double,1>& sample, double& score) const
+void bob::learn::misc::PLDAMachine::forward_(const blitz::Array<double,1>& sample, double& score) const
 {
   // Computes the log likelihood ratio
   score = computeLogLikelihood(sample, true) - // match
           (computeLogLikelihood(sample, false) + m_loglikelihood); // no match
 }
 
-void bob::machine::PLDAMachine::forward(const blitz::Array<double,2>& samples, double& score) const
+void bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,2>& samples, double& score) const
 {
   // Computes the log likelihood ratio
   score = computeLogLikelihood(samples, true) - // match
           (computeLogLikelihood(samples, false) + m_loglikelihood); // no match
 }
 
-double bob::machine::PLDAMachine::computeLogLikelihood(const blitz::Array<double,1>& sample,
+double bob::learn::misc::PLDAMachine::computeLogLikelihood(const blitz::Array<double,1>& sample,
   bool enrol) const
 {
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
@@ -883,7 +881,7 @@ double bob::machine::PLDAMachine::computeLogLikelihood(const blitz::Array<double
   return log_likelihood;
 }
 
-double bob::machine::PLDAMachine::computeLogLikelihood(const blitz::Array<double,2>& samples,
+double bob::learn::misc::PLDAMachine::computeLogLikelihood(const blitz::Array<double,2>& samples,
   bool enrol) const
 {
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
@@ -941,7 +939,7 @@ double bob::machine::PLDAMachine::computeLogLikelihood(const blitz::Array<double
   return log_likelihood;
 }
 
-void bob::machine::PLDAMachine::resize(const size_t dim_d, const size_t dim_f,
+void bob::learn::misc::PLDAMachine::resize(const size_t dim_d, const size_t dim_f,
   const size_t dim_g)
 {
   m_weighted_sum.resizeAndPreserve(dim_f);
@@ -949,7 +947,7 @@ void bob::machine::PLDAMachine::resize(const size_t dim_d, const size_t dim_f,
   resizeTmp();
 }
 
-void bob::machine::PLDAMachine::resizeTmp()
+void bob::learn::misc::PLDAMachine::resizeTmp()
 {
   if (m_plda_base)
   {

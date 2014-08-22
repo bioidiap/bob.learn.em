@@ -5,8 +5,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_IVECTOR_H
-#define BOB_MACHINE_IVECTOR_H
+#ifndef BOB_LEARN_MISC_IVECTOR_MACHINE_H
+#define BOB_LEARN_MISC_IVECTOR_MACHINE_H
 
 #include <blitz/array.h>
 #include <bob.learn.misc/Machine.h>
@@ -14,11 +14,7 @@
 #include <bob.learn.misc/GMMStats.h>
 #include <bob.io.base/HDF5File.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief An IVectorMachine consists of a Total Variability subspace \f$T\f$
@@ -28,7 +24,7 @@ namespace bob { namespace machine {
  *    N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet,
  *   IEEE Trans. on Audio, Speech and Language Processing
  */
-class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz::Array<double,1> >
+class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStats, blitz::Array<double,1> >
 {
   public:
     /**
@@ -49,7 +45,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
      *   \f$\Sigma\f$ (diagonal) matrix
      * @warning rt SHOULD BE >= 1.
      */
-    IVectorMachine(const boost::shared_ptr<bob::machine::GMMMachine> ubm,
+    IVectorMachine(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm,
       const size_t rt=1, const double variance_threshold=1e-10);
 
     /**
@@ -102,7 +98,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
     /**
      * @brief Returns the UBM
      */
-    const boost::shared_ptr<bob::machine::GMMMachine> getUbm() const
+    const boost::shared_ptr<bob::learn::misc::GMMMachine> getUbm() const
     { return m_ubm; }
 
     /**
@@ -180,7 +176,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
      * @brief Sets (the mean supervector of) the Universal Background Model.
      * \f$T\f$ and \f$\Sigma\f$ are uninitialized in case of dimensions update (C or D)
      */
-    void setUbm(const boost::shared_ptr<bob::machine::GMMMachine> ubm);
+    void setUbm(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm);
 
     /**
      * @brief Sets the \f$T\f$ matrix
@@ -208,13 +204,13 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
      * @brief Computes \f$(Id + \sum_{c=1}^{C} N_{i,j,c} T^{T} \Sigma_{c}^{-1} T)\f$
      * @warning No check is perform
      */
-    void computeIdTtSigmaInvT(const bob::machine::GMMStats& input, blitz::Array<double,2>& output) const;
+    void computeIdTtSigmaInvT(const bob::learn::misc::GMMStats& input, blitz::Array<double,2>& output) const;
 
     /**
      * @brief Computes \f$T^{T} \Sigma^{-1} \sum_{c=1}^{C} (F_c - N_c ubmmean_{c})\f$
      * @warning No check is perform
      */
-    void computeTtSigmaInvFnorm(const bob::machine::GMMStats& input, blitz::Array<double,1>& output) const;
+    void computeTtSigmaInvFnorm(const bob::learn::misc::GMMStats& input, blitz::Array<double,1>& output) const;
 
     /**
      * @brief Extracts an ivector from the input GMM statistics
@@ -222,7 +218,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
      * @param input GMM statistics to be used by the machine
      * @param output I-vector computed by the machine
      */
-    void forward(const bob::machine::GMMStats& input, blitz::Array<double,1>& output) const;
+    void forward(const bob::learn::misc::GMMStats& input, blitz::Array<double,1>& output) const;
 
     /**
      * @brief Extracts an ivector from the input GMM statistics
@@ -231,7 +227,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
      * @param output I-vector computed by the machine
      * @warning Inputs are NOT checked
      */
-    void forward_(const bob::machine::GMMStats& input, blitz::Array<double,1>& output) const;
+    void forward_(const bob::learn::misc::GMMStats& input, blitz::Array<double,1>& output) const;
 
   protected:
     /**
@@ -254,7 +250,7 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
     void resizePrecompute();
 
     // UBM
-    boost::shared_ptr<bob::machine::GMMMachine> m_ubm;
+    boost::shared_ptr<bob::learn::misc::GMMMachine> m_ubm;
 
     // dimensionality
     size_t m_rt; ///< size of \f$T\f$ (CD x rt)
@@ -274,9 +270,6 @@ class IVectorMachine: public bob::machine::Machine<bob::machine::GMMStats, blitz
     mutable blitz::Array<double,2> m_tmp_tt;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif // BOB_MACHINE_IVECTORMACHINE_H
+#endif // BOB_LEARN_MISC_IVECTOR_MACHINE_H

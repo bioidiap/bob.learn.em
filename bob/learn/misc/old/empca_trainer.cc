@@ -11,7 +11,7 @@
 
 using namespace boost::python;
 
-typedef bob::trainer::EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> > EMTrainerLinearBase;
+typedef bob::learn::misc::EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> > EMTrainerLinearBase;
 
 static void py_train(EMTrainerLinearBase& trainer,
   bob::learn::linear::Machine& machine, bob::python::const_ndarray data)
@@ -60,13 +60,13 @@ void bind_trainer_empca()
     .def("compute_likelihood", &EMTrainerLinearBase::computeLikelihood, (arg("self"), arg("machine")), "Computes the current log likelihood given the hidden variable distribution (or the sufficient statistics)")
   ;
 
-  class_<bob::trainer::EMPCATrainer, boost::noncopyable, bases<EMTrainerLinearBase> >("EMPCATrainer",
+  class_<bob::learn::misc::EMPCATrainer, boost::noncopyable, bases<EMTrainerLinearBase> >("EMPCATrainer",
       "This class implements the EM algorithm for a Linear Machine (Probabilistic PCA).\n"
       "See Section 12.2 of Bishop, \"Pattern recognition and machine learning\", 2006", init<optional<double,size_t,bool> >((arg("self"), arg("convergence_threshold"), arg("max_iterations"), arg("compute_likelihood"))))
-    .def(init<const bob::trainer::EMPCATrainer&>((arg("self"), arg("trainer")), "Copy constructs an EMPCATrainer"))
+    .def(init<const bob::learn::misc::EMPCATrainer&>((arg("self"), arg("trainer")), "Copy constructs an EMPCATrainer"))
     .def(self == self)
     .def(self != self)
-    .def("is_similar_to", &bob::trainer::EMPCATrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this EMPCATrainer with the 'other' one to be approximately the same.")
-    .add_property("sigma2", &bob::trainer::EMPCATrainer::getSigma2, &bob::trainer::EMPCATrainer::setSigma2, "The noise sigma2 of the probabilistic model")
+    .def("is_similar_to", &bob::learn::misc::EMPCATrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this EMPCATrainer with the 'other' one to be approximately the same.")
+    .add_property("sigma2", &bob::learn::misc::EMPCATrainer::getSigma2, &bob::learn::misc::EMPCATrainer::setSigma2, "The noise sigma2 of the probabilistic model")
   ;
 }

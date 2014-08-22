@@ -4,22 +4,14 @@
  *
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
-#ifndef BOB_TRAINER_TRAINER_H
-#define BOB_TRAINER_TRAINER_H
+#ifndef BOB_LEARN_MISC_TRAINER_H
+#define BOB_LEARN_MISC_TRAINER_H
 
 /**
  * @addtogroup TRAINER trainer
  * @brief Trainer module API
  */
-namespace bob {
-/**
- * @ingroup TRAINER
- */
-namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief Root class for all trainers
@@ -39,9 +31,6 @@ public:
   virtual void train(T_machine& machine, const T_sampler& sampler) = 0;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif // BOB_TRAINER_TRAINER_H
+#endif // BOB_LEARN_MISC_TRAINER_H

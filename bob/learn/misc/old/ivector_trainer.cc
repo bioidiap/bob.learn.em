@@ -14,67 +14,67 @@
 
 using namespace boost::python;
 
-typedef bob::trainer::EMTrainer<bob::machine::IVectorMachine, std::vector<bob::machine::GMMStats> > EMTrainerIVectorBase;
+typedef bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine, std::vector<bob::learn::misc::GMMStats> > EMTrainerIVectorBase;
 
 static void py_train(EMTrainerIVectorBase& trainer,
-  bob::machine::IVectorMachine& machine, object data)
+  bob::learn::misc::IVectorMachine& machine, object data)
 {
-  stl_input_iterator<bob::machine::GMMStats> dbegin(data), dend;
-  std::vector<bob::machine::GMMStats> vdata(dbegin, dend);
+  stl_input_iterator<bob::learn::misc::GMMStats> dbegin(data), dend;
+  std::vector<bob::learn::misc::GMMStats> vdata(dbegin, dend);
   trainer.train(machine, vdata);
 }
 
 static void py_initialize(EMTrainerIVectorBase& trainer,
-  bob::machine::IVectorMachine& machine, object data)
+  bob::learn::misc::IVectorMachine& machine, object data)
 {
-  stl_input_iterator<bob::machine::GMMStats> dbegin(data), dend;
-  std::vector<bob::machine::GMMStats> vdata(dbegin, dend);
+  stl_input_iterator<bob::learn::misc::GMMStats> dbegin(data), dend;
+  std::vector<bob::learn::misc::GMMStats> vdata(dbegin, dend);
   trainer.initialize(machine, vdata);
 }
 
 static void py_eStep(EMTrainerIVectorBase& trainer,
-  bob::machine::IVectorMachine& machine, object data)
+  bob::learn::misc::IVectorMachine& machine, object data)
 {
-  stl_input_iterator<bob::machine::GMMStats> dbegin(data), dend;
-  std::vector<bob::machine::GMMStats> vdata(dbegin, dend);
+  stl_input_iterator<bob::learn::misc::GMMStats> dbegin(data), dend;
+  std::vector<bob::learn::misc::GMMStats> vdata(dbegin, dend);
   trainer.eStep(machine, vdata);
 }
 
 static void py_mStep(EMTrainerIVectorBase& trainer,
-  bob::machine::IVectorMachine& machine, object data)
+  bob::learn::misc::IVectorMachine& machine, object data)
 {
-  stl_input_iterator<bob::machine::GMMStats> dbegin(data), dend;
-  std::vector<bob::machine::GMMStats> vdata(dbegin, dend);
+  stl_input_iterator<bob::learn::misc::GMMStats> dbegin(data), dend;
+  std::vector<bob::learn::misc::GMMStats> vdata(dbegin, dend);
   trainer.mStep(machine, vdata);
 }
 
 static void py_finalize(EMTrainerIVectorBase& trainer,
-  bob::machine::IVectorMachine& machine, object data)
+  bob::learn::misc::IVectorMachine& machine, object data)
 {
-  stl_input_iterator<bob::machine::GMMStats> dbegin(data), dend;
-  std::vector<bob::machine::GMMStats> vdata(dbegin, dend);
+  stl_input_iterator<bob::learn::misc::GMMStats> dbegin(data), dend;
+  std::vector<bob::learn::misc::GMMStats> vdata(dbegin, dend);
   trainer.finalize(machine, vdata);
 }
 
-static void py_set_AccNijWij2(bob::trainer::IVectorTrainer& trainer,
+static void py_set_AccNijWij2(bob::learn::misc::IVectorTrainer& trainer,
   bob::python::const_ndarray acc)
 {
   trainer.setAccNijWij2(acc.bz<double,3>());
 }
 
-static void py_set_AccFnormijWij(bob::trainer::IVectorTrainer& trainer,
+static void py_set_AccFnormijWij(bob::learn::misc::IVectorTrainer& trainer,
   bob::python::const_ndarray acc)
 {
   trainer.setAccFnormijWij(acc.bz<double,3>());
 }
 
-static void py_set_AccNij(bob::trainer::IVectorTrainer& trainer,
+static void py_set_AccNij(bob::learn::misc::IVectorTrainer& trainer,
   bob::python::const_ndarray acc)
 {
   trainer.setAccNij(acc.bz<double,1>());
 }
 
-static void py_set_AccSnormij(bob::trainer::IVectorTrainer& trainer,
+static void py_set_AccSnormij(bob::learn::misc::IVectorTrainer& trainer,
   bob::python::const_ndarray acc)
 {
   trainer.setAccSnormij(acc.bz<double,2>());
@@ -97,14 +97,14 @@ void bind_trainer_ivector()
   ;
 
 
-  class_<bob::trainer::IVectorTrainer, boost::shared_ptr<bob::trainer::IVectorTrainer>, boost::noncopyable, bases<EMTrainerIVectorBase> >("IVectorTrainer", "An trainer to extract i-vector (i.e. for training the Total Variability matrix)\n\nReferences:\n[1] 'Front End Factor Analysis for Speaker Verification', N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet, IEEE Transactions on Audio, Speech and Language Processing, 2010, vol. 19, issue 4, pp. 788-798", init<optional<bool, double, size_t, bool> >((arg("self"), arg("update_sigma")=false, arg("convergence_threshold")=0.001, arg("max_iterations")=10, arg("compute_likelihood")=false), "Builds a new IVectorTrainer."))
-    .def(init<const bob::trainer::IVectorTrainer&>((arg("self"), arg("trainer")), "Copy constructs an IVectorTrainer"))
+  class_<bob::learn::misc::IVectorTrainer, boost::shared_ptr<bob::learn::misc::IVectorTrainer>, boost::noncopyable, bases<EMTrainerIVectorBase> >("IVectorTrainer", "An trainer to extract i-vector (i.e. for training the Total Variability matrix)\n\nReferences:\n[1] 'Front End Factor Analysis for Speaker Verification', N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet, IEEE Transactions on Audio, Speech and Language Processing, 2010, vol. 19, issue 4, pp. 788-798", init<optional<bool, double, size_t, bool> >((arg("self"), arg("update_sigma")=false, arg("convergence_threshold")=0.001, arg("max_iterations")=10, arg("compute_likelihood")=false), "Builds a new IVectorTrainer."))
+    .def(init<const bob::learn::misc::IVectorTrainer&>((arg("self"), arg("trainer")), "Copy constructs an IVectorTrainer"))
     .def(self == self)
     .def(self != self)
-    .def("is_similar_to", &bob::trainer::IVectorTrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this IVectorTrainer with the 'other' one to be approximately the same.")
-    .add_property("acc_nij_wij2", make_function(&bob::trainer::IVectorTrainer::getAccNijWij2, return_value_policy<copy_const_reference>()), &py_set_AccNijWij2, "Accumulator updated during the E-step")
-    .add_property("acc_fnormij_wij", make_function(&bob::trainer::IVectorTrainer::getAccFnormijWij, return_value_policy<copy_const_reference>()), &py_set_AccFnormijWij, "Accumulator updated during the E-step")
-    .add_property("acc_nij", make_function(&bob::trainer::IVectorTrainer::getAccNij, return_value_policy<copy_const_reference>()), &py_set_AccNij, "Accumulator updated during the E-step")
-    .add_property("acc_snormij", make_function(&bob::trainer::IVectorTrainer::getAccSnormij, return_value_policy<copy_const_reference>()), &py_set_AccSnormij, "Accumulator updated during the E-step")
+    .def("is_similar_to", &bob::learn::misc::IVectorTrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this IVectorTrainer with the 'other' one to be approximately the same.")
+    .add_property("acc_nij_wij2", make_function(&bob::learn::misc::IVectorTrainer::getAccNijWij2, return_value_policy<copy_const_reference>()), &py_set_AccNijWij2, "Accumulator updated during the E-step")
+    .add_property("acc_fnormij_wij", make_function(&bob::learn::misc::IVectorTrainer::getAccFnormijWij, return_value_policy<copy_const_reference>()), &py_set_AccFnormijWij, "Accumulator updated during the E-step")
+    .add_property("acc_nij", make_function(&bob::learn::misc::IVectorTrainer::getAccNij, return_value_policy<copy_const_reference>()), &py_set_AccNij, "Accumulator updated during the E-step")
+    .add_property("acc_snormij", make_function(&bob::learn::misc::IVectorTrainer::getAccSnormij, return_value_policy<copy_const_reference>()), &py_set_AccSnormij, "Accumulator updated during the E-step")
   ;
 }

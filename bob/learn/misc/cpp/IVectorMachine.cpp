@@ -11,11 +11,11 @@
 #include <bob.math/linear.h>
 #include <bob.math/linsolve.h>
 
-bob::machine::IVectorMachine::IVectorMachine()
+bob::learn::misc::IVectorMachine::IVectorMachine()
 {
 }
 
-bob::machine::IVectorMachine::IVectorMachine(const boost::shared_ptr<bob::machine::GMMMachine> ubm,
+bob::learn::misc::IVectorMachine::IVectorMachine(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm,
     const size_t rt, const double variance_threshold):
   m_ubm(ubm), m_rt(rt),
   m_T(getDimCD(),rt), m_sigma(getDimCD()),
@@ -24,7 +24,7 @@ bob::machine::IVectorMachine::IVectorMachine(const boost::shared_ptr<bob::machin
   resizePrecompute();
 }
 
-bob::machine::IVectorMachine::IVectorMachine(const bob::machine::IVectorMachine& other):
+bob::learn::misc::IVectorMachine::IVectorMachine(const bob::learn::misc::IVectorMachine& other):
   m_ubm(other.m_ubm), m_rt(other.m_rt),
   m_T(bob::core::array::ccopy(other.m_T)),
   m_sigma(bob::core::array::ccopy(other.m_sigma)),
@@ -33,22 +33,22 @@ bob::machine::IVectorMachine::IVectorMachine(const bob::machine::IVectorMachine&
   resizePrecompute();
 }
 
-bob::machine::IVectorMachine::IVectorMachine(bob::io::base::HDF5File& config)
+bob::learn::misc::IVectorMachine::IVectorMachine(bob::io::base::HDF5File& config)
 {
   load(config);
 }
 
-bob::machine::IVectorMachine::~IVectorMachine() {
+bob::learn::misc::IVectorMachine::~IVectorMachine() {
 }
 
-void bob::machine::IVectorMachine::save(bob::io::base::HDF5File& config) const
+void bob::learn::misc::IVectorMachine::save(bob::io::base::HDF5File& config) const
 {
   config.setArray("m_T", m_T);
   config.setArray("m_sigma", m_sigma);
   config.set("m_variance_threshold", m_variance_threshold);
 }
 
-void bob::machine::IVectorMachine::load(bob::io::base::HDF5File& config)
+void bob::learn::misc::IVectorMachine::load(bob::io::base::HDF5File& config)
 {
   //reads all data directly into the member variables
   m_T.reference(config.readArray<double,2>("m_T"));
@@ -58,15 +58,15 @@ void bob::machine::IVectorMachine::load(bob::io::base::HDF5File& config)
   resizePrecompute();
 }
 
-void bob::machine::IVectorMachine::resize(const size_t rt)
+void bob::learn::misc::IVectorMachine::resize(const size_t rt)
 {
   m_rt = rt;
   m_T.resizeAndPreserve(m_T.extent(0), rt);
   resizePrecompute();
 }
 
-bob::machine::IVectorMachine&
-bob::machine::IVectorMachine::operator=(const bob::machine::IVectorMachine& other)
+bob::learn::misc::IVectorMachine&
+bob::learn::misc::IVectorMachine::operator=(const bob::learn::misc::IVectorMachine& other)
 {
   if (this != &other)
   {
@@ -80,7 +80,7 @@ bob::machine::IVectorMachine::operator=(const bob::machine::IVectorMachine& othe
   return *this;
 }
 
-bool bob::machine::IVectorMachine::operator==(const IVectorMachine& b) const
+bool bob::learn::misc::IVectorMachine::operator==(const IVectorMachine& b) const
 {
   return (((m_ubm && b.m_ubm) && *m_ubm == *(b.m_ubm)) || (!m_ubm && !b.m_ubm)) &&
          m_rt == b.m_rt &&
@@ -89,12 +89,12 @@ bool bob::machine::IVectorMachine::operator==(const IVectorMachine& b) const
          m_variance_threshold == b.m_variance_threshold;
 }
 
-bool bob::machine::IVectorMachine::operator!=(const bob::machine::IVectorMachine& b) const
+bool bob::learn::misc::IVectorMachine::operator!=(const bob::learn::misc::IVectorMachine& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::machine::IVectorMachine::is_similar_to(const IVectorMachine& b,
+bool bob::learn::misc::IVectorMachine::is_similar_to(const IVectorMachine& b,
   const double r_epsilon, const double a_epsilon) const
 {
   // TODO: update with new is_similar_to method
@@ -105,13 +105,13 @@ bool bob::machine::IVectorMachine::is_similar_to(const IVectorMachine& b,
           bob::core::isClose(m_variance_threshold, b.m_variance_threshold, r_epsilon, a_epsilon);
 }
 
-void bob::machine::IVectorMachine::setUbm(const boost::shared_ptr<bob::machine::GMMMachine> ubm)
+void bob::learn::misc::IVectorMachine::setUbm(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm)
 {
   m_ubm = ubm;
   resizePrecompute();
 }
 
-void bob::machine::IVectorMachine::setT(const blitz::Array<double,2>& T)
+void bob::learn::misc::IVectorMachine::setT(const blitz::Array<double,2>& T)
 {
   bob::core::array::assertSameShape(m_T, T);
   m_T = T;
@@ -119,7 +119,7 @@ void bob::machine::IVectorMachine::setT(const blitz::Array<double,2>& T)
   precompute();
 }
 
-void bob::machine::IVectorMachine::setSigma(const blitz::Array<double,1>& sigma)
+void bob::learn::misc::IVectorMachine::setSigma(const blitz::Array<double,1>& sigma)
 {
   bob::core::array::assertSameShape(m_sigma, sigma);
   m_sigma = sigma;
@@ -128,20 +128,20 @@ void bob::machine::IVectorMachine::setSigma(const blitz::Array<double,1>& sigma)
 }
 
 
-void bob::machine::IVectorMachine::setVarianceThreshold(const double thd)
+void bob::learn::misc::IVectorMachine::setVarianceThreshold(const double thd)
 {
   m_variance_threshold = thd;
   // Update cache
   precompute();
 }
 
-void bob::machine::IVectorMachine::applyVarianceThreshold()
+void bob::learn::misc::IVectorMachine::applyVarianceThreshold()
 {
   // Apply variance flooring threshold
   m_sigma = blitz::where(m_sigma < m_variance_threshold, m_variance_threshold, m_sigma);
 }
 
-void bob::machine::IVectorMachine::precompute()
+void bob::learn::misc::IVectorMachine::precompute()
 {
   if (m_ubm)
   {
@@ -174,14 +174,14 @@ void bob::machine::IVectorMachine::precompute()
   }
 }
 
-void bob::machine::IVectorMachine::resizePrecompute()
+void bob::learn::misc::IVectorMachine::resizePrecompute()
 {
   resizeCache();
   resizeTmp();
   precompute();
 }
 
-void bob::machine::IVectorMachine::resizeCache()
+void bob::learn::misc::IVectorMachine::resizeCache()
 {
   if (m_ubm)
   {
@@ -192,7 +192,7 @@ void bob::machine::IVectorMachine::resizeCache()
   }
 }
 
-void bob::machine::IVectorMachine::resizeTmp()
+void bob::learn::misc::IVectorMachine::resizeTmp()
 {
   if (m_ubm)
     m_tmp_d.resize(m_ubm->getNInputs());
@@ -201,15 +201,15 @@ void bob::machine::IVectorMachine::resizeTmp()
   m_tmp_tt.resize(m_rt, m_rt);
 }
 
-void bob::machine::IVectorMachine::forward(const bob::machine::GMMStats& gs,
+void bob::learn::misc::IVectorMachine::forward(const bob::learn::misc::GMMStats& gs,
   blitz::Array<double,1>& ivector) const
 {
   bob::core::array::assertSameDimensionLength(ivector.extent(0), (int)m_rt);
   forward_(gs, ivector);
 }
 
-void bob::machine::IVectorMachine::computeIdTtSigmaInvT(
-  const bob::machine::GMMStats& gs, blitz::Array<double,2>& output) const
+void bob::learn::misc::IVectorMachine::computeIdTtSigmaInvT(
+  const bob::learn::misc::GMMStats& gs, blitz::Array<double,2>& output) const
 {
   // Computes \f$(Id + \sum_{c=1}^{C} N_{i,j,c} T^{T} \Sigma_{c}^{-1} T)\f$
   blitz::Range rall = blitz::Range::all();
@@ -218,8 +218,8 @@ void bob::machine::IVectorMachine::computeIdTtSigmaInvT(
     output += gs.n(c) * m_cache_Tct_sigmacInv_Tc(c, rall, rall);
 }
 
-void bob::machine::IVectorMachine::computeTtSigmaInvFnorm(
-  const bob::machine::GMMStats& gs, blitz::Array<double,1>& output) const
+void bob::learn::misc::IVectorMachine::computeTtSigmaInvFnorm(
+  const bob::learn::misc::GMMStats& gs, blitz::Array<double,1>& output) const
 {
   // Computes \f$T^{T} \Sigma^{-1} \sum_{c=1}^{C} (F_c - N_c ubmmean_{c})\f$
   blitz::Range rall = blitz::Range::all();
@@ -233,7 +233,7 @@ void bob::machine::IVectorMachine::computeTtSigmaInvFnorm(
   }
 }
 
-void bob::machine::IVectorMachine::forward_(const bob::machine::GMMStats& gs,
+void bob::learn::misc::IVectorMachine::forward_(const bob::learn::misc::GMMStats& gs,
   blitz::Array<double,1>& ivector) const
 {
   // Computes \f$(Id + \sum_{c=1}^{C} N_{i,j,c} T^{T} \Sigma_{c}^{-1} T)\f$

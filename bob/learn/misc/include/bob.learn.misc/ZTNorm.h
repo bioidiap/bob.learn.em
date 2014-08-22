@@ -6,22 +6,18 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_ZTNORM_H
-#define BOB_MACHINE_ZTNORM_H
+#ifndef BOB_LEARN_MISC_ZTNORM_H
+#define BOB_LEARN_MISC_ZTNORM_H
 
 #include <blitz/array.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * Normalise raw scores with ZT-Norm
  *
  * @exception std::runtime_error matrix sizes are not consistent
- * 
+ *
  * @param rawscores_probes_vs_models
  * @param rawscores_zprobes_vs_models
  * @param rawscores_probes_vs_tmodels
@@ -88,9 +84,6 @@ void zNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
            const blitz::Array<double,2>& rawscores_zprobes_vs_models,
            blitz::Array<double,2>& normalizedscores);
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif /* BOB_MACHINE_ZTNORM_H */
+#endif /* BOB_LEARN_MISC_ZTNORM_H */

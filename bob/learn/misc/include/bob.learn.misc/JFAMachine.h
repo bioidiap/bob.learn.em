@@ -7,8 +7,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_FABASE_H
-#define BOB_MACHINE_FABASE_H
+#ifndef BOB_LEARN_MISC_FABASE_H
+#define BOB_LEARN_MISC_FABASE_H
 
 #include <stdexcept>
 
@@ -19,11 +19,7 @@
 #include <bob.io.base/HDF5File.h>
 #include <boost/shared_ptr.hpp>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief A FA Base class which contains U, V and D matrices
@@ -50,7 +46,7 @@ class FABase
      * @warning ru and rv SHOULD BE  >= 1. Just set U/V/D to zero if you want
      *   to ignore one subspace. This is the case for ISV.
      */
-    FABase(const boost::shared_ptr<bob::machine::GMMMachine> ubm, const size_t ru=1, const size_t rv=1);
+    FABase(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm, const size_t ru=1, const size_t rv=1);
 
     /**
      * @brief Copy constructor
@@ -86,7 +82,7 @@ class FABase
     /**
      * @brief Returns the UBM
      */
-    const boost::shared_ptr<bob::machine::GMMMachine> getUbm() const
+    const boost::shared_ptr<bob::learn::misc::GMMMachine> getUbm() const
     { return m_ubm; }
 
     /**
@@ -202,7 +198,7 @@ class FABase
      * @brief Sets (the mean supervector of) the Universal Background Model
      * U, V and d are uninitialized in case of dimensions update (C or D)
      */
-    void setUbm(const boost::shared_ptr<bob::machine::GMMMachine> ubm);
+    void setUbm(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm);
 
     /**
      * @brief Sets the U matrix
@@ -226,7 +222,7 @@ class FABase
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateX(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& x) const;
+    void estimateX(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& x) const;
 
     /**
      * @brief Compute and put U^{T}.Sigma^{-1} matrix in cache
@@ -253,13 +249,13 @@ class FABase
      * @brief Computes (Id + U^T.Sigma^-1.U.N_{i,h}.U)^-1 =
      *   (Id + sum_{c=1..C} N_{i,h}.U_{c}^T.Sigma_{c}^-1.U_{c})^-1
      */
-    void computeIdPlusUSProdInv(const bob::machine::GMMStats& gmm_stats,
+    void computeIdPlusUSProdInv(const bob::learn::misc::GMMStats& gmm_stats,
       blitz::Array<double,2>& out) const;
     /**
      * @brief Computes Fn_x = sum_{sessions h}(N*(o - m))
      * (Normalised first order statistics)
      */
-    void computeFn_x(const bob::machine::GMMStats& gmm_stats,
+    void computeFn_x(const bob::learn::misc::GMMStats& gmm_stats,
       blitz::Array<double,1>& out) const;
     /**
      * @brief Estimates the value of x from the passed arguments
@@ -270,7 +266,7 @@ class FABase
 
 
     // UBM
-    boost::shared_ptr<bob::machine::GMMMachine> m_ubm;
+    boost::shared_ptr<bob::learn::misc::GMMMachine> m_ubm;
 
     // dimensionality
     size_t m_ru; // size of U (CD x ru)
@@ -319,7 +315,7 @@ class JFABase
      * @param rv size of U (CD x rv)
      * @warning ru and rv SHOULD BE  >= 1.
      */
-    JFABase(const boost::shared_ptr<bob::machine::GMMMachine> ubm, const size_t ru=1, const size_t rv=1);
+    JFABase(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm, const size_t ru=1, const size_t rv=1);
 
     /**
      * @brief Copy constructor
@@ -374,7 +370,7 @@ class JFABase
     /**
      * @brief Returns the UBM
      */
-    const boost::shared_ptr<bob::machine::GMMMachine> getUbm() const
+    const boost::shared_ptr<bob::learn::misc::GMMMachine> getUbm() const
     { return m_base.getUbm(); }
 
     /**
@@ -469,7 +465,7 @@ class JFABase
      * @brief Sets (the mean supervector of) the Universal Background Model
      * U, V and d are uninitialized in case of dimensions update (C or D)
      */
-    void setUbm(const boost::shared_ptr<bob::machine::GMMMachine> ubm)
+    void setUbm(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm)
     { m_base.setUbm(ubm); }
 
     /**
@@ -496,7 +492,7 @@ class JFABase
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateX(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
+    void estimateX(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
     { m_base.estimateX(gmm_stats, x); }
 
     /**
@@ -510,13 +506,13 @@ class JFABase
     /**
      * @brief Returns the FABase member
      */
-    const bob::machine::FABase& getBase() const
+    const bob::learn::misc::FABase& getBase() const
     { return m_base; }
 
 
   private:
     // FABase
-    bob::machine::FABase m_base;
+    bob::learn::misc::FABase m_base;
 };
 
 
@@ -543,7 +539,7 @@ class ISVBase
      * @param ru size of U (CD x ru)
      * @warning ru SHOULD BE >= 1.
      */
-    ISVBase(const boost::shared_ptr<bob::machine::GMMMachine> ubm, const size_t ru=1);
+    ISVBase(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm, const size_t ru=1);
 
     /**
      * @brief Copy constructor
@@ -598,7 +594,7 @@ class ISVBase
     /**
      * @brief Returns the UBM
      */
-    const boost::shared_ptr<bob::machine::GMMMachine> getUbm() const
+    const boost::shared_ptr<bob::learn::misc::GMMMachine> getUbm() const
     { return m_base.getUbm(); }
 
     /**
@@ -676,7 +672,7 @@ class ISVBase
      * @brief Sets (the mean supervector of) the Universal Background Model
      * U, V and d are uninitialized in case of dimensions update (C or D)
      */
-    void setUbm(const boost::shared_ptr<bob::machine::GMMMachine> ubm)
+    void setUbm(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm)
     { m_base.setUbm(ubm); }
 
     /**
@@ -697,7 +693,7 @@ class ISVBase
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateX(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
+    void estimateX(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
     { m_base.estimateX(gmm_stats, x); }
 
     /**
@@ -711,13 +707,13 @@ class ISVBase
     /**
      * @brief Returns the FABase member
      */
-    const bob::machine::FABase& getBase() const
+    const bob::learn::misc::FABase& getBase() const
     { return m_base; }
 
 
   private:
     // FABase
-    bob::machine::FABase m_base;
+    bob::learn::misc::FABase m_base;
 };
 
 
@@ -727,7 +723,7 @@ class ISVBase
  *   (latent variables y and z)
  * TODO: add a reference to the journal articles
  */
-class JFAMachine: public Machine<bob::machine::GMMStats, double>
+class JFAMachine: public Machine<bob::learn::misc::GMMStats, double>
 {
   public:
     /**
@@ -742,7 +738,7 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
      *
      * @param jfa_base The JFABase associated with this machine
      */
-    JFAMachine(const boost::shared_ptr<bob::machine::JFABase> jfa_base);
+    JFAMachine(const boost::shared_ptr<bob::learn::misc::JFABase> jfa_base);
 
     /**
      * @brief Copy constructor
@@ -871,13 +867,13 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
     /**
      * @brief Returns the JFABase
      */
-    const boost::shared_ptr<bob::machine::JFABase> getJFABase() const
+    const boost::shared_ptr<bob::learn::misc::JFABase> getJFABase() const
     { return m_jfa_base; }
 
     /**
      * @brief Sets the JFABase
      */
-    void setJFABase(const boost::shared_ptr<bob::machine::JFABase> jfa_base);
+    void setJFABase(const boost::shared_ptr<bob::learn::misc::JFABase> jfa_base);
 
 
     /**
@@ -885,14 +881,14 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateX(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
+    void estimateX(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
     { m_jfa_base->estimateX(gmm_stats, x); }
     /**
      * @brief Estimates Ux from the GMM statistics considering the LPT
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateUx(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& Ux);
+    void estimateUx(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& Ux);
 
    /**
     * @brief Execute the machine
@@ -901,12 +897,12 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
     * @param score value computed by the machine
     * @warning Inputs are checked
     */
-    void forward(const bob::machine::GMMStats& input, double& score) const;
+    void forward(const bob::learn::misc::GMMStats& input, double& score) const;
     /**
      * @brief Computes a score for the given UBM statistics and given the
      * Ux vector
      */
-    void forward(const bob::machine::GMMStats& gmm_stats,
+    void forward(const bob::learn::misc::GMMStats& gmm_stats,
       const blitz::Array<double,1>& Ux, double& score) const;
 
     /**
@@ -916,7 +912,7 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
      * @param score value computed by the machine
      * @warning Inputs are NOT checked
      */
-    void forward_(const bob::machine::GMMStats& input, double& score) const;
+    void forward_(const bob::learn::misc::GMMStats& input, double& score) const;
 
   protected:
     /**
@@ -933,7 +929,7 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
     void updateCache();
 
     // UBM
-    boost::shared_ptr<bob::machine::JFABase> m_jfa_base;
+    boost::shared_ptr<bob::learn::misc::JFABase> m_jfa_base;
 
     // y and z vectors/factors learned during the enrolment procedure
     blitz::Array<double,1> m_y;
@@ -952,7 +948,7 @@ class JFAMachine: public Machine<bob::machine::GMMStats, double>
  *   U D matrices.
  * TODO: add a reference to the journal articles
  */
-class ISVMachine: public Machine<bob::machine::GMMStats, double>
+class ISVMachine: public Machine<bob::learn::misc::GMMStats, double>
 {
   public:
     /**
@@ -967,7 +963,7 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
      *
      * @param isv_base The ISVBase associated with this machine
      */
-    ISVMachine(const boost::shared_ptr<bob::machine::ISVBase> isv_base);
+    ISVMachine(const boost::shared_ptr<bob::learn::misc::ISVBase> isv_base);
 
     /**
      * @brief Copy constructor
@@ -1074,13 +1070,13 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
     /**
      * @brief Returns the ISVBase
      */
-    const boost::shared_ptr<bob::machine::ISVBase> getISVBase() const
+    const boost::shared_ptr<bob::learn::misc::ISVBase> getISVBase() const
     { return m_isv_base; }
 
     /**
      * @brief Sets the ISVBase
      */
-    void setISVBase(const boost::shared_ptr<bob::machine::ISVBase> isv_base);
+    void setISVBase(const boost::shared_ptr<bob::learn::misc::ISVBase> isv_base);
 
 
     /**
@@ -1088,14 +1084,14 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateX(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
+    void estimateX(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& x) const
     { m_isv_base->estimateX(gmm_stats, x); }
     /**
      * @brief Estimates Ux from the GMM statistics considering the LPT
      * assumption, that is the latent session variable x is approximated
      * using the UBM
      */
-    void estimateUx(const bob::machine::GMMStats& gmm_stats, blitz::Array<double,1>& Ux);
+    void estimateUx(const bob::learn::misc::GMMStats& gmm_stats, blitz::Array<double,1>& Ux);
 
    /**
     * @brief Execute the machine
@@ -1104,12 +1100,12 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
     * @param score value computed by the machine
     * @warning Inputs are checked
     */
-    void forward(const bob::machine::GMMStats& input, double& score) const;
+    void forward(const bob::learn::misc::GMMStats& input, double& score) const;
     /**
      * @brief Computes a score for the given UBM statistics and given the
      * Ux vector
      */
-    void forward(const bob::machine::GMMStats& gmm_stats,
+    void forward(const bob::learn::misc::GMMStats& gmm_stats,
       const blitz::Array<double,1>& Ux, double& score) const;
 
     /**
@@ -1119,7 +1115,7 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
      * @param score value computed by the machine
      * @warning Inputs are NOT checked
      */
-    void forward_(const bob::machine::GMMStats& input, double& score) const;
+    void forward_(const bob::learn::misc::GMMStats& input, double& score) const;
 
   protected:
     /**
@@ -1136,7 +1132,7 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
     void resizeTmp();
 
     // UBM
-    boost::shared_ptr<bob::machine::ISVBase> m_isv_base;
+    boost::shared_ptr<bob::learn::misc::ISVBase> m_isv_base;
 
     // y and z vectors/factors learned during the enrolment procedure
     blitz::Array<double,1> m_z;
@@ -1149,10 +1145,6 @@ class ISVMachine: public Machine<bob::machine::GMMStats, double>
     mutable blitz::Array<double,1> m_tmp_Ux;
 };
 
+} } } // namespaces
 
-/**
- * @}
- */
-}}
-
-#endif // BOB_MACHINE_FABASE_H
+#endif // BOB_LEARN_MISC_FABASE_H

@@ -12,25 +12,25 @@
 #include "ndarray.h"
 #include <bob.learn.misc/BICMachine.h>
 
-static double bic_call_(const bob::machine::BICMachine& machine, bob::python::const_ndarray input){
+static double bic_call_(const bob::learn::misc::BICMachine& machine, bob::python::const_ndarray input){
   double o;
   machine.forward_(input.bz<double,1>(), o);
   return o;
 }
 
-static double bic_call(const bob::machine::BICMachine& machine, bob::python::const_ndarray input){
+static double bic_call(const bob::learn::misc::BICMachine& machine, bob::python::const_ndarray input){
   double o;
   machine.forward(input.bz<double,1>(), o);
   return o;
 }
 
-static void bic_load(bob::machine::BICMachine& machine, boost::python::object file){
+static void bic_load(bob::learn::misc::BICMachine& machine, boost::python::object file){
   if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
   PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
   machine.load(*hdf5->f);
 }
 
-static void bic_save(const bob::machine::BICMachine& machine, boost::python::object file){
+static void bic_save(const bob::learn::misc::BICMachine& machine, boost::python::object file){
   if (!PyBobIoHDF5File_Check(file.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.io.base.HDF5File");
   PyBobIoHDF5FileObject* hdf5 = (PyBobIoHDF5FileObject*) file.ptr();
   machine.save(*hdf5->f);
@@ -40,7 +40,7 @@ static void bic_save(const bob::machine::BICMachine& machine, boost::python::obj
 void bind_machine_bic(){
 
   // bind BICMachine
-  boost::python::class_<bob::machine::BICMachine, boost::shared_ptr<bob::machine::BICMachine> > (
+  boost::python::class_<bob::learn::misc::BICMachine, boost::shared_ptr<bob::learn::misc::BICMachine> > (
       "BICMachine",
       "This machine is designed to classify image differences to be either intrapersonal or extrapersonal. "
       "There are two possible implementations of the BIC:\n"
@@ -61,7 +61,7 @@ void bind_machine_bic(){
     )
 
     .def(
-      boost::python::init<const bob::machine::BICMachine&>(
+      boost::python::init<const bob::learn::misc::BICMachine&>(
           (boost::python::arg("self"), boost::python::arg("other")),
           "Constructs one BICMachine from another one by doing a deep copy."
       )
@@ -73,7 +73,7 @@ void bind_machine_bic(){
 
     .def(
       "is_similar_to",
-      &bob::machine::BICMachine::is_similar_to,
+      &bob::learn::misc::BICMachine::is_similar_to,
       (boost::python::arg("self"), boost::python::arg("other"), boost::python::arg("r_epsilon") = 1e-5, boost::python::arg("a_epsilon") = 1e-8),
       "Compares this BICMachine with the 'other' one to be approximately the same."
     )
@@ -132,8 +132,8 @@ void bind_machine_bic(){
     .add_property(
       "use_dffs",
       // cast overloaded function with the same name to its type...
-      static_cast<bool (bob::machine::BICMachine::*)() const>(&bob::machine::BICMachine::use_DFFS),
-      static_cast<void (bob::machine::BICMachine::*)(bool)>(&bob::machine::BICMachine::use_DFFS),
+      static_cast<bool (bob::learn::misc::BICMachine::*)() const>(&bob::learn::misc::BICMachine::use_DFFS),
+      static_cast<void (bob::learn::misc::BICMachine::*)(bool)>(&bob::learn::misc::BICMachine::use_DFFS),
       "Should the Distance From Feature Space (DFFS) measure be added during scoring? \n\n.. warning :: Only set this flag to True if the number of intrapersonal and extrapersonal training pairs is approximately equal. Otherwise, weird thing may happen!"
   );
 }

@@ -6,19 +6,15 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_GAUSSIAN_H
-#define BOB_MACHINE_GAUSSIAN_H
+#ifndef BOB_LEARN_MISC_GAUSSIAN_H
+#define BOB_LEARN_MISC_GAUSSIAN_H
 
 #include <bob.learn.misc/Machine.h>
 #include <bob.io.base/HDF5File.h>
 #include <blitz/array.h>
 #include <limits>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements a multivariate diagonal Gaussian distribution.
@@ -204,7 +200,7 @@ class Gaussian: public Machine<blitz::Array<double,1>, double>
     /**
      * Prints a Gaussian in the output stream
      */
-    friend std::ostream& operator<<(std::ostream& os, const Gaussian& g);
+    friend std::ostream& operator<<(std::ostream& os, const bob::learn::misc::Gaussian& g);
 
 
   private:
@@ -264,8 +260,6 @@ class Gaussian: public Machine<blitz::Array<double,1>, double>
     size_t m_n_inputs;
 };
 
-/**
- * @}
- */
-}}
-#endif
+} } } // namespaces
+
+#endif // BOB_LEARN_MISC_GAUSSIAN_H

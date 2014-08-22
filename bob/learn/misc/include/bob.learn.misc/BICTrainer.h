@@ -5,16 +5,12 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_BICTRAINER_H
-#define BOB_TRAINER_BICTRAINER_H
+#ifndef BOB_LEARN_MISC_BICTRAINER_H
+#define BOB_LEARN_MISC_BICTRAINER_H
 
 #include <bob.learn.misc/BICMachine.h>
 
-namespace bob { namespace trainer {
-  /**
-   * @ingroup TRAINER
-   * @{
-   */
+namespace bob { namespace learn { namespace misc {
 
   class BICTrainer {
     public:
@@ -24,13 +20,13 @@ namespace bob { namespace trainer {
       BICTrainer(int intra_dim, int extra_dim) : m_M_I(intra_dim), m_M_E(extra_dim) {}
 
       //! trains the intrapersonal and extrapersonal classes of the given BICMachine
-      void train(bob::machine::BICMachine& machine, const blitz::Array<double,2>& intra_differences, const blitz::Array<double,2>& extra_differences) const {
+      void train(bob::learn::misc::BICMachine& machine, const blitz::Array<double,2>& intra_differences, const blitz::Array<double,2>& extra_differences) const {
         train_single(false, machine, intra_differences);
         train_single(true, machine, extra_differences);
       }
 
       //! trains the intrapersonal or the extrapersonal class of the given BICMachine
-      void train_single(bool clazz, bob::machine::BICMachine& machine, const blitz::Array<double,2>& differences) const;
+      void train_single(bool clazz, bob::learn::misc::BICMachine& machine, const blitz::Array<double,2>& differences) const;
 
     private:
 
@@ -39,10 +35,7 @@ namespace bob { namespace trainer {
       int m_M_I, m_M_E;
   };
 
-  /**
-   * @}
-   */
-}}
+} } } // namespaces
 
 
-#endif // BOB_TRAINER_BICTRAINER_H
+#endif // BOB_LEARN_MISC_BICTRAINER_H

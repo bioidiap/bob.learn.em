@@ -6,17 +6,13 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_GMMSTATS_H
-#define BOB_MACHINE_GMMSTATS_H
+#ifndef BOB_LEARN_MISC_GMMSTATS_H
+#define BOB_LEARN_MISC_GMMSTATS_H
 
 #include <blitz/array.h>
 #include <bob.io.base/HDF5File.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief A container for GMM statistics.
@@ -140,9 +136,6 @@ class GMMStats {
     void copy(const GMMStats&);
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_GMMSTATS_H

@@ -8,8 +8,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_PLDA_TRAINER_H
-#define BOB_TRAINER_PLDA_TRAINER_H
+#ifndef BOB_LEARN_MISC_PLDA_TRAINER_H
+#define BOB_LEARN_MISC_PLDA_TRAINER_H
 
 #include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.misc/PLDAMachine.h>
@@ -17,11 +17,7 @@
 #include <map>
 #include <vector>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class can be used to train the \f$F\f$, \f$G\f$ and
@@ -35,7 +31,7 @@ namespace bob { namespace trainer {
  * 3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed,
  *     Elder and Prince, TPAMI'2012
  */
-class PLDATrainer: public EMTrainer<bob::machine::PLDABase,
+class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
                                         std::vector<blitz::Array<double,2> > >
 {
   public: //api
@@ -80,12 +76,12 @@ class PLDATrainer: public EMTrainer<bob::machine::PLDABase,
     /**
      * @brief Performs some initialization before the E- and M-steps.
      */
-    virtual void initialize(bob::machine::PLDABase& machine,
+    virtual void initialize(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
     /**
      * @brief Performs some actions after the end of the E- and M-steps.
       */
-    virtual void finalize(bob::machine::PLDABase& machine,
+    virtual void finalize(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     /**
@@ -93,21 +89,21 @@ class PLDATrainer: public EMTrainer<bob::machine::PLDABase,
      * these as m_z_{first,second}_order.
      * The statistics will be used in the mStep() that follows.
      */
-    virtual void eStep(bob::machine::PLDABase& machine,
+    virtual void eStep(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     /**
      * @brief Performs a maximization step to update the parameters of the
      * PLDABase
      */
-    virtual void mStep(bob::machine::PLDABase& machine,
+    virtual void mStep(bob::learn::misc::PLDABase& machine,
        const std::vector<blitz::Array<double,2> >& v_ar);
 
     /**
      * @brief Computes the average log likelihood using the current estimates
      * of the latent variables.
      */
-    virtual double computeLikelihood(bob::machine::PLDABase& machine);
+    virtual double computeLikelihood(bob::learn::misc::PLDABase& machine);
 
     /**
      * @brief Sets whether the second order statistics are stored during the
@@ -223,7 +219,7 @@ class PLDATrainer: public EMTrainer<bob::machine::PLDABase,
     /**
      * @brief Main procedure for enrolling a PLDAMachine
      */
-    void enrol(bob::machine::PLDAMachine& plda_machine,
+    void enrol(bob::learn::misc::PLDAMachine& plda_machine,
       const blitz::Array<double,2>& ar) const;
 
   private:
@@ -272,34 +268,31 @@ class PLDATrainer: public EMTrainer<bob::machine::PLDABase,
     mutable blitz::Array<double,2> m_tmp_D_nfng_2; ///< matrix of dimension (dim_d)x(dim_f+dim_g)
 
     // internal methods
-    void computeMeanVariance(bob::machine::PLDABase& machine,
+    void computeMeanVariance(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
     void initMembers(const std::vector<blitz::Array<double,2> >& v_ar);
-    void initFGSigma(bob::machine::PLDABase& machine,
+    void initFGSigma(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
-    void initF(bob::machine::PLDABase& machine,
+    void initF(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
-    void initG(bob::machine::PLDABase& machine,
+    void initG(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
-    void initSigma(bob::machine::PLDABase& machine,
+    void initSigma(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     void checkTrainingData(const std::vector<blitz::Array<double,2> >& v_ar);
-    void precomputeFromFGSigma(bob::machine::PLDABase& machine);
-    void precomputeLogLike(bob::machine::PLDABase& machine,
+    void precomputeFromFGSigma(bob::learn::misc::PLDABase& machine);
+    void precomputeLogLike(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
-    void updateFG(bob::machine::PLDABase& machine,
+    void updateFG(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
-    void updateSigma(bob::machine::PLDABase& machine,
+    void updateSigma(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     void resizeTmp();
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif /* BOB_TRAINER_PLDA_TRAINER_H */
+#endif /* BOB_LEARN_MISC_PLDA_TRAINER_H */

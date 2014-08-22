@@ -7,94 +7,90 @@
 #include <bob.learn.misc/LinearScoring.h>
 #include <bob.math/linear.h>
 
-namespace bob { namespace machine {
 
-namespace detail {
+static void _linearScoring(const std::vector<blitz::Array<double,1> >& models,
+                   const blitz::Array<double,1>& ubm_mean,
+                   const blitz::Array<double,1>& ubm_variance,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
+                   const std::vector<blitz::Array<double,1> >* test_channelOffset,
+                   const bool frame_length_normalisation,
+                   blitz::Array<double,2>& scores)
+{
+  int C = test_stats[0]->sumPx.extent(0);
+  int D = test_stats[0]->sumPx.extent(1);
+  int CD = C*D;
+  int Tt = test_stats.size();
+  int Tm = models.size();
 
-  void linearScoring(const std::vector<blitz::Array<double,1> >& models,
-                     const blitz::Array<double,1>& ubm_mean,
-                     const blitz::Array<double,1>& ubm_variance,
-                     const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
-                     const std::vector<blitz::Array<double,1> >* test_channelOffset,
-                     const bool frame_length_normalisation,
-                     blitz::Array<double,2>& scores)
-  {
-    int C = test_stats[0]->sumPx.extent(0);
-    int D = test_stats[0]->sumPx.extent(1);
-    int CD = C*D;
-    int Tt = test_stats.size();
-    int Tm = models.size();
+  // Check output size
+  bob::core::array::assertSameDimensionLength(scores.extent(0), models.size());
+  bob::core::array::assertSameDimensionLength(scores.extent(1), test_stats.size());
 
-    // Check output size
-    bob::core::array::assertSameDimensionLength(scores.extent(0), models.size());
-    bob::core::array::assertSameDimensionLength(scores.extent(1), test_stats.size());
+  blitz::Array<double,2> A(Tm, CD);
+  blitz::Array<double,2> B(CD, Tt);
 
-    blitz::Array<double,2> A(Tm, CD);
-    blitz::Array<double,2> B(CD, Tt);
-
-    // 1) Compute A
-    for(int t=0; t<Tm; ++t) {
-      blitz::Array<double, 1> tmp = A(t, blitz::Range::all());
-      tmp = (models[t] - ubm_mean) / ubm_variance;
-    }
-
-    // 2) Compute B
-    if(test_channelOffset == 0) {
-      for(int t=0; t<Tt; ++t)
-        for(int s=0; s<CD; ++s)
-          B(s, t) = test_stats[t]->sumPx(s/D, s%D) - (ubm_mean(s) * test_stats[t]->n(s/D));
-    }
-    else {
-      bob::core::array::assertSameDimensionLength((*test_channelOffset).size(), Tt);
-
-      for(int t=0; t<Tt; ++t) {
-        bob::core::array::assertSameDimensionLength((*test_channelOffset)[t].extent(0), CD);
-        for(int s=0; s<CD; ++s)
-          B(s, t) = test_stats[t]->sumPx(s/D, s%D) - (test_stats[t]->n(s/D) * (ubm_mean(s) + (*test_channelOffset)[t](s)));
-      }
-    }
-
-    // Apply the normalisation if needed
-    if(frame_length_normalisation) {
-      for(int t=0; t<Tt; ++t) {
-        double sum_N = test_stats[t]->T;
-        blitz::Array<double, 1> v_t = B(blitz::Range::all(),t);
-
-        if (sum_N <= std::numeric_limits<double>::epsilon() && sum_N >= -std::numeric_limits<double>::epsilon())
-          v_t = 0;
-        else
-          v_t /= sum_N;
-      }
-    }
-
-    // 3) Compute LLR
-    bob::math::prod(A, B, scores);
+  // 1) Compute A
+  for(int t=0; t<Tm; ++t) {
+    blitz::Array<double, 1> tmp = A(t, blitz::Range::all());
+    tmp = (models[t] - ubm_mean) / ubm_variance;
   }
+
+  // 2) Compute B
+  if(test_channelOffset == 0) {
+    for(int t=0; t<Tt; ++t)
+      for(int s=0; s<CD; ++s)
+        B(s, t) = test_stats[t]->sumPx(s/D, s%D) - (ubm_mean(s) * test_stats[t]->n(s/D));
+  }
+  else {
+    bob::core::array::assertSameDimensionLength((*test_channelOffset).size(), Tt);
+
+    for(int t=0; t<Tt; ++t) {
+      bob::core::array::assertSameDimensionLength((*test_channelOffset)[t].extent(0), CD);
+      for(int s=0; s<CD; ++s)
+        B(s, t) = test_stats[t]->sumPx(s/D, s%D) - (test_stats[t]->n(s/D) * (ubm_mean(s) + (*test_channelOffset)[t](s)));
+    }
+  }
+
+  // Apply the normalisation if needed
+  if(frame_length_normalisation) {
+    for(int t=0; t<Tt; ++t) {
+      double sum_N = test_stats[t]->T;
+      blitz::Array<double, 1> v_t = B(blitz::Range::all(),t);
+
+      if (sum_N <= std::numeric_limits<double>::epsilon() && sum_N >= -std::numeric_limits<double>::epsilon())
+        v_t = 0;
+      else
+        v_t /= sum_N;
+    }
+  }
+
+  // 3) Compute LLR
+  bob::math::prod(A, B, scores);
 }
 
 
-void linearScoring(const std::vector<blitz::Array<double,1> >& models,
+void bob::learn::misc::linearScoring(const std::vector<blitz::Array<double,1> >& models,
                    const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const std::vector<blitz::Array<double,1> >& test_channelOffset,
                    const bool frame_length_normalisation,
                    blitz::Array<double, 2>& scores)
 {
-  detail::linearScoring(models, ubm_mean, ubm_variance, test_stats, &test_channelOffset, frame_length_normalisation, scores);
+  _linearScoring(models, ubm_mean, ubm_variance, test_stats, &test_channelOffset, frame_length_normalisation, scores);
 }
 
-void linearScoring(const std::vector<blitz::Array<double,1> >& models,
+void bob::learn::misc::linearScoring(const std::vector<blitz::Array<double,1> >& models,
                    const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const bool frame_length_normalisation,
                    blitz::Array<double, 2>& scores)
 {
-  detail::linearScoring(models, ubm_mean, ubm_variance, test_stats, 0, frame_length_normalisation, scores);
+  _linearScoring(models, ubm_mean, ubm_variance, test_stats, 0, frame_length_normalisation, scores);
 }
 
-void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMachine> >& models,
-                   const bob::machine::GMMMachine& ubm,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+void bob::learn::misc::linearScoring(const std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> >& models,
+                   const bob::learn::misc::GMMMachine& ubm,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const bool frame_length_normalisation,
                    blitz::Array<double, 2>& scores)
 {
@@ -110,12 +106,12 @@ void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMa
   }
   const blitz::Array<double,1>& ubm_mean = ubm.getMeanSupervector();
   const blitz::Array<double,1>& ubm_variance = ubm.getVarianceSupervector();
-  detail::linearScoring(models_b, ubm_mean, ubm_variance, test_stats, 0, frame_length_normalisation, scores);
+  _linearScoring(models_b, ubm_mean, ubm_variance, test_stats, 0, frame_length_normalisation, scores);
 }
 
-void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMachine> >& models,
-                   const bob::machine::GMMMachine& ubm,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+void bob::learn::misc::linearScoring(const std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> >& models,
+                   const bob::learn::misc::GMMMachine& ubm,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const std::vector<blitz::Array<double,1> >& test_channelOffset,
                    const bool frame_length_normalisation,
                    blitz::Array<double, 2>& scores)
@@ -132,14 +128,14 @@ void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMa
   }
   const blitz::Array<double,1>& ubm_mean = ubm.getMeanSupervector();
   const blitz::Array<double,1>& ubm_variance = ubm.getVarianceSupervector();
-  detail::linearScoring(models_b, ubm_mean, ubm_variance, test_stats, &test_channelOffset, frame_length_normalisation, scores);
+  _linearScoring(models_b, ubm_mean, ubm_variance, test_stats, &test_channelOffset, frame_length_normalisation, scores);
 }
 
 
 
-double linearScoring(const blitz::Array<double,1>& models,
+double bob::learn::misc::linearScoring(const blitz::Array<double,1>& models,
                      const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                     const bob::machine::GMMStats& test_stats,
+                     const bob::learn::misc::GMMStats& test_stats,
                      const blitz::Array<double,1>& test_channelOffset,
                      const bool frame_length_normalisation)
 {
@@ -170,4 +166,3 @@ double linearScoring(const blitz::Array<double,1>& models,
   return blitz::sum(A * B);
 }
 
-}}

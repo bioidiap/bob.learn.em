@@ -8,17 +8,13 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_MAP_GMMTRAINER_H
-#define BOB_TRAINER_MAP_GMMTRAINER_H
+#ifndef BOB_LEARN_MISC_MAP_GMMTRAINER_H
+#define BOB_LEARN_MISC_MAP_GMMTRAINER_H
 
 #include <bob.learn.misc/GMMTrainer.h>
 #include <limits>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements the maximum a posteriori M-step of the expectation-maximisation algorithm for a GMM Machine. The prior parameters are encoded in the form of a GMM (e.g. a universal background model). The EM algorithm thus performs GMM adaptation.
@@ -48,7 +44,7 @@ class MAP_GMMTrainer: public GMMTrainer
     /**
      * @brief Initialization
      */
-    virtual void initialize(bob::machine::GMMMachine& gmm,
+    virtual void initialize(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -77,7 +73,7 @@ class MAP_GMMTrainer: public GMMTrainer
      * Generally, this is a "universal background model" (UBM),
      * also referred to as a "world model".
      */
-    bool setPriorGMM(boost::shared_ptr<bob::machine::GMMMachine> prior_gmm);
+    bool setPriorGMM(boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm);
 
     /**
      * @brief Performs a maximum a posteriori (MAP) update of the GMM
@@ -85,7 +81,7 @@ class MAP_GMMTrainer: public GMMTrainer
      * parameters of the prior model
      * Implements EMTrainer::mStep()
      */
-    void mStep(bob::machine::GMMMachine& gmm,
+    void mStep(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
@@ -108,7 +104,7 @@ class MAP_GMMTrainer: public GMMTrainer
      * Generally, this is a "universal background model" (UBM),
      * also referred to as a "world model"
      */
-    boost::shared_ptr<bob::machine::GMMMachine> m_prior_gmm;
+    boost::shared_ptr<bob::learn::misc::GMMMachine> m_prior_gmm;
 
     /**
      * The alpha for the Torch3-like adaptation
@@ -125,9 +121,6 @@ class MAP_GMMTrainer: public GMMTrainer
     mutable blitz::Array<double,1> m_cache_ml_weights;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_MAP_GMMTRAINER_H

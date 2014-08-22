@@ -5,8 +5,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_WIENERMACHINE_H
-#define BOB_MACHINE_WIENERMACHINE_H
+#ifndef BOB_LEARN_MISC_WIENERMACHINE_H
+#define BOB_LEARN_MISC_WIENERMACHINE_H
 
 #include <bob.learn.misc/Machine.h>
 #include <blitz/array.h>
@@ -14,11 +14,7 @@
 #include <bob.io.base/HDF5File.h>
 #include <bob.sp/FFT2D.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief A Wiener machine, which can be used to denoise a signal,
@@ -211,9 +207,6 @@ class WienerMachine: Machine<blitz::Array<double,2>, blitz::Array<double,2> >
     mutable blitz::Array<std::complex<double>, 2> m_buffer2; ///< a buffer for speed
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif /* BOB_MACHINE_WIENERMACHINE_H */
+#endif /* BOB_LEARN_MISC_WIENERMACHINE_H */

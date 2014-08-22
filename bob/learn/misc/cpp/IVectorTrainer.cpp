@@ -17,19 +17,19 @@
 #include <boost/shared_ptr.hpp>
 #include <boost/random.hpp>
 
-bob::trainer::IVectorTrainer::IVectorTrainer(const bool update_sigma,
+bob::learn::misc::IVectorTrainer::IVectorTrainer(const bool update_sigma,
     const double convergence_threshold,
     const size_t max_iterations, bool compute_likelihood):
-  bob::trainer::EMTrainer<bob::machine::IVectorMachine,
-    std::vector<bob::machine::GMMStats> >(convergence_threshold,
+  bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
+    std::vector<bob::learn::misc::GMMStats> >(convergence_threshold,
       max_iterations, compute_likelihood),
   m_update_sigma(update_sigma)
 {
 }
 
-bob::trainer::IVectorTrainer::IVectorTrainer(const bob::trainer::IVectorTrainer& other):
-  bob::trainer::EMTrainer<bob::machine::IVectorMachine,
-    std::vector<bob::machine::GMMStats> >(other),
+bob::learn::misc::IVectorTrainer::IVectorTrainer(const bob::learn::misc::IVectorTrainer& other):
+  bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
+    std::vector<bob::learn::misc::GMMStats> >(other),
   m_update_sigma(other.m_update_sigma)
 {
   m_acc_Nij_wij2.reference(bob::core::array::ccopy(other.m_acc_Nij_wij2));
@@ -47,13 +47,13 @@ bob::trainer::IVectorTrainer::IVectorTrainer(const bob::trainer::IVectorTrainer&
   m_tmp_tt2.reference(bob::core::array::ccopy(other.m_tmp_tt2));
 }
 
-bob::trainer::IVectorTrainer::~IVectorTrainer()
+bob::learn::misc::IVectorTrainer::~IVectorTrainer()
 {
 }
 
-void bob::trainer::IVectorTrainer::initialize(
-  bob::machine::IVectorMachine& machine,
-  const std::vector<bob::machine::GMMStats>& data)
+void bob::learn::misc::IVectorTrainer::initialize(
+  bob::learn::misc::IVectorMachine& machine,
+  const std::vector<bob::learn::misc::GMMStats>& data)
 {
   const int C = machine.getDimC();
   const int D = machine.getDimD();
@@ -87,9 +87,9 @@ void bob::trainer::IVectorTrainer::initialize(
   machine.precompute();
 }
 
-void bob::trainer::IVectorTrainer::eStep(
-  bob::machine::IVectorMachine& machine,
-  const std::vector<bob::machine::GMMStats>& data)
+void bob::learn::misc::IVectorTrainer::eStep(
+  bob::learn::misc::IVectorMachine& machine,
+  const std::vector<bob::learn::misc::GMMStats>& data)
 {
   blitz::Range rall = blitz::Range::all();
   const int C = machine.getDimC();
@@ -102,7 +102,7 @@ void bob::trainer::IVectorTrainer::eStep(
     m_acc_Nij = 0.;
     m_acc_Snormij = 0.;
   }
-  for (std::vector<bob::machine::GMMStats>::const_iterator it = data.begin();
+  for (std::vector<bob::learn::misc::GMMStats>::const_iterator it = data.begin();
        it != data.end(); ++it)
   {
     // Computes E{wij} and E{wij.wij^{T}}
@@ -144,9 +144,9 @@ void bob::trainer::IVectorTrainer::eStep(
   }
 }
 
-void bob::trainer::IVectorTrainer::mStep(
-  bob::machine::IVectorMachine& machine,
-  const std::vector<bob::machine::GMMStats>& data)
+void bob::learn::misc::IVectorTrainer::mStep(
+  bob::learn::misc::IVectorMachine& machine,
+  const std::vector<bob::learn::misc::GMMStats>& data)
 {
   blitz::Range rall = blitz::Range::all();
   blitz::Array<double,2>& T = machine.updateT();
@@ -179,26 +179,26 @@ void bob::trainer::IVectorTrainer::mStep(
 }
 
 
-double bob::trainer::IVectorTrainer::computeLikelihood(
-  bob::machine::IVectorMachine& machine)
+double bob::learn::misc::IVectorTrainer::computeLikelihood(
+  bob::learn::misc::IVectorMachine& machine)
 {
   // TODO: implementation
   return 0;
 }
 
-void bob::trainer::IVectorTrainer::finalize(
-  bob::machine::IVectorMachine& machine,
-  const std::vector<bob::machine::GMMStats>& data)
+void bob::learn::misc::IVectorTrainer::finalize(
+  bob::learn::misc::IVectorMachine& machine,
+  const std::vector<bob::learn::misc::GMMStats>& data)
 {
 }
 
-bob::trainer::IVectorTrainer& bob::trainer::IVectorTrainer::operator=
-  (const bob::trainer::IVectorTrainer &other)
+bob::learn::misc::IVectorTrainer& bob::learn::misc::IVectorTrainer::operator=
+  (const bob::learn::misc::IVectorTrainer &other)
 {
   if (this != &other)
   {
-    bob::trainer::EMTrainer<bob::machine::IVectorMachine,
-      std::vector<bob::machine::GMMStats> >::operator=(other);
+    bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
+      std::vector<bob::learn::misc::GMMStats> >::operator=(other);
     m_update_sigma = other.m_update_sigma;
 
     m_acc_Nij_wij2.reference(bob::core::array::ccopy(other.m_acc_Nij_wij2));
@@ -218,11 +218,11 @@ bob::trainer::IVectorTrainer& bob::trainer::IVectorTrainer::operator=
   return *this;
 }
 
-bool bob::trainer::IVectorTrainer::operator==
-  (const bob::trainer::IVectorTrainer &other) const
+bool bob::learn::misc::IVectorTrainer::operator==
+  (const bob::learn::misc::IVectorTrainer &other) const
 {
-  return bob::trainer::EMTrainer<bob::machine::IVectorMachine,
-           std::vector<bob::machine::GMMStats> >::operator==(other) &&
+  return bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
+           std::vector<bob::learn::misc::GMMStats> >::operator==(other) &&
         m_update_sigma == other.m_update_sigma &&
         bob::core::array::isEqual(m_acc_Nij_wij2, other.m_acc_Nij_wij2) &&
         bob::core::array::isEqual(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij) &&
@@ -230,18 +230,18 @@ bool bob::trainer::IVectorTrainer::operator==
         bob::core::array::isEqual(m_acc_Snormij, other.m_acc_Snormij);
 }
 
-bool bob::trainer::IVectorTrainer::operator!=
-  (const bob::trainer::IVectorTrainer &other) const
+bool bob::learn::misc::IVectorTrainer::operator!=
+  (const bob::learn::misc::IVectorTrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::IVectorTrainer::is_similar_to
-  (const bob::trainer::IVectorTrainer &other, const double r_epsilon,
+bool bob::learn::misc::IVectorTrainer::is_similar_to
+  (const bob::learn::misc::IVectorTrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::EMTrainer<bob::machine::IVectorMachine,
-           std::vector<bob::machine::GMMStats> >::is_similar_to(other, r_epsilon, a_epsilon) &&
+  return bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
+           std::vector<bob::learn::misc::GMMStats> >::is_similar_to(other, r_epsilon, a_epsilon) &&
         m_update_sigma == other.m_update_sigma &&
         bob::core::array::isClose(m_acc_Nij_wij2, other.m_acc_Nij_wij2, r_epsilon, a_epsilon) &&
         bob::core::array::isClose(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij, r_epsilon, a_epsilon) &&

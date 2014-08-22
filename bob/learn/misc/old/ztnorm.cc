@@ -36,7 +36,7 @@ static object ztnorm1(
   bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
-  bob::machine::ztNorm(rawscores_probes_vs_models_,
+  bob::learn::misc::ztNorm(rawscores_probes_vs_models_,
                        rawscores_zprobes_vs_models_,
                        rawscores_probes_vs_tmodels_,
                        rawscores_zprobes_vs_tmodels_,
@@ -65,7 +65,7 @@ static object ztnorm2(
   bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
-  bob::machine::ztNorm(rawscores_probes_vs_models_,
+  bob::learn::misc::ztNorm(rawscores_probes_vs_models_,
                        rawscores_zprobes_vs_models_,
                        rawscores_probes_vs_tmodels_,
                        rawscores_zprobes_vs_tmodels_,
@@ -87,7 +87,7 @@ static object tnorm(
   bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
-  bob::machine::tNorm(rawscores_probes_vs_models_,
+  bob::learn::misc::tNorm(rawscores_probes_vs_models_,
                        rawscores_probes_vs_tmodels_,
                        ret_);
 
@@ -107,7 +107,7 @@ static object znorm(
   bob::python::ndarray ret(bob::io::base::array::t_float64, rawscores_probes_vs_models_.extent(0), rawscores_probes_vs_models_.extent(1));
   blitz::Array<double, 2> ret_ = ret.bz<double,2>();
 
-  bob::machine::zNorm(rawscores_probes_vs_models_,
+  bob::learn::misc::zNorm(rawscores_probes_vs_models_,
                        rawscores_zprobes_vs_models_,
                        ret_);
 

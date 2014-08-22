@@ -24,7 +24,7 @@
  *
  * @param use_DFFS  Add the Distance From Feature Space during score computation?
  */
-bob::machine::BICMachine::BICMachine(bool use_DFFS)
+bob::learn::misc::BICMachine::BICMachine(bool use_DFFS)
 :
   m_project_data(use_DFFS),
   m_use_DFFS(use_DFFS)
@@ -36,7 +36,7 @@ bob::machine::BICMachine::BICMachine(bool use_DFFS)
  * @param  other  The other BICMachine to get a shallow copy of
  * @return a reference to *this
  */
-bob::machine::BICMachine::BICMachine(const BICMachine& other)
+bob::learn::misc::BICMachine::BICMachine(const BICMachine& other)
 :
   m_project_data(other.m_project_data),
   m_use_DFFS(other.m_use_DFFS)
@@ -56,7 +56,7 @@ bob::machine::BICMachine::BICMachine(const BICMachine& other)
  * @param  other  The other BICMachine to get a deep copy of
  * @return a reference to *this
  */
-bob::machine::BICMachine& bob::machine::BICMachine::operator=(const BICMachine& other)
+bob::learn::misc::BICMachine& bob::learn::misc::BICMachine::operator=(const BICMachine& other)
 {
   if (this != &other)
   {
@@ -79,7 +79,7 @@ bob::machine::BICMachine& bob::machine::BICMachine::operator=(const BICMachine& 
  * @param  other  The BICMachine to compare with
  * @return true if both machines are identical, i.e., have exactly the same parameters, otherwise false
  */
-bool bob::machine::BICMachine::operator==(const BICMachine& other) const
+bool bob::learn::misc::BICMachine::operator==(const BICMachine& other) const
 {
   return (m_project_data == other.m_project_data &&
           (!m_project_data || m_use_DFFS == other.m_use_DFFS) &&
@@ -99,7 +99,7 @@ bool bob::machine::BICMachine::operator==(const BICMachine& other) const
  * @param  other  The BICMachine to compare with
  * @return false if both machines are identical, i.e., have exactly the same parameters, otherwise true
  */
-bool bob::machine::BICMachine::operator!=(const BICMachine& other) const
+bool bob::learn::misc::BICMachine::operator!=(const BICMachine& other) const
 {
   return !(this->operator==(other));
 }
@@ -113,7 +113,7 @@ bool bob::machine::BICMachine::operator!=(const BICMachine& other) const
 
  * @return true if both machines are approximately equal, otherwise false
  */
-bool bob::machine::BICMachine::is_similar_to(const BICMachine& other,
+bool bob::learn::misc::BICMachine::is_similar_to(const BICMachine& other,
   const double r_epsilon, const double a_epsilon) const
 {
   if (m_project_data){
@@ -150,7 +150,7 @@ bool bob::machine::BICMachine::is_similar_to(const BICMachine& other,
 
 
 
-void bob::machine::BICMachine::initialize(bool clazz, int input_length, int projected_length){
+void bob::learn::misc::BICMachine::initialize(bool clazz, int input_length, int projected_length){
   blitz::Array<double,1>& diff = clazz ? m_diff_E : m_diff_I;
   blitz::Array<double,1>& proj = clazz ? m_proj_E : m_proj_I;
   diff.resize(input_length);
@@ -165,7 +165,7 @@ void bob::machine::BICMachine::initialize(bool clazz, int input_length, int proj
  * @param  variances  The variances of the training data
  * @param  copy_data  If true, makes a deep copy of the matrices, otherwise it just references it (the default)
  */
-void bob::machine::BICMachine::setIEC(
+void bob::learn::misc::BICMachine::setIEC(
     bool clazz,
     const blitz::Array<double,1>& mean,
     const blitz::Array<double,1>& variances,
@@ -198,7 +198,7 @@ void bob::machine::BICMachine::setIEC(
  * @param  rho     The residual eigenvalues, used for DFFS calculation
  * @param  copy_data  If true, makes a deep copy of the matrices, otherwise it just references it (the default)
  */
-void bob::machine::BICMachine::setBIC(
+void bob::learn::misc::BICMachine::setBIC(
     bool clazz,
     const blitz::Array<double,1>& mean,
     const blitz::Array<double,1>& variances,
@@ -240,7 +240,7 @@ void bob::machine::BICMachine::setBIC(
  *
  * @param use_DFFS The new value of use_DFFS
  */
-void bob::machine::BICMachine::use_DFFS(bool use_DFFS){
+void bob::learn::misc::BICMachine::use_DFFS(bool use_DFFS){
   m_use_DFFS = use_DFFS;
   if (m_project_data && m_use_DFFS && (m_rho_E < 1e-12 || m_rho_I < 1e-12)) std::runtime_error("The average eigenvalue (rho) is too close to zero, so using DFFS will not work");
 }
@@ -250,7 +250,7 @@ void bob::machine::BICMachine::use_DFFS(bool use_DFFS){
  *
  * @param  config  The hdf5 file containing the required information.
  */
-void bob::machine::BICMachine::load(bob::io::base::HDF5File& config){
+void bob::learn::misc::BICMachine::load(bob::io::base::HDF5File& config){
   //reads all data directly into the member variables
   m_project_data = config.read<bool>("project_data");
   m_mu_I.reference(config.readArray<double,1>("intra_mean"));
@@ -279,7 +279,7 @@ void bob::machine::BICMachine::load(bob::io::base::HDF5File& config){
  *
  * @param  config  The hdf5 file to write the configuration into.
  */
-void bob::machine::BICMachine::save(bob::io::base::HDF5File& config) const{
+void bob::learn::misc::BICMachine::save(bob::io::base::HDF5File& config) const{
   config.set("project_data", m_project_data);
   config.setArray("intra_mean", m_mu_I);
   config.setArray("intra_variance", m_lambda_I);
@@ -305,7 +305,7 @@ void bob::machine::BICMachine::save(bob::io::base::HDF5File& config) const{
  * @param  input  A vector (of difference values) to compute the BIC or IEC score for.
  * @param  output The one-element array that will contain the score afterwards.
  */
-void bob::machine::BICMachine::forward_(const blitz::Array<double,1>& input, double& output) const{
+void bob::learn::misc::BICMachine::forward_(const blitz::Array<double,1>& input, double& output) const{
   if (m_project_data){
     // subtract mean
     m_diff_I = input - m_mu_I;
@@ -338,7 +338,7 @@ void bob::machine::BICMachine::forward_(const blitz::Array<double,1>& input, dou
  * @param  input  A vector (of difference values) to compute the BIC or IEC score for.
  * @param  output The one-element array that will contain the score afterwards.
  */
-void bob::machine::BICMachine::forward(const blitz::Array<double,1>& input, double& output) const{
+void bob::learn::misc::BICMachine::forward(const blitz::Array<double,1>& input, double& output) const{
   // perform some checks
   bob::core::array::assertSameShape(input, m_mu_E);
 

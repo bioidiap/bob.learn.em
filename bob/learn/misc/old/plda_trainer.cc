@@ -15,9 +15,9 @@
 
 using namespace boost::python;
 
-typedef bob::trainer::EMTrainer<bob::machine::PLDABase, std::vector<blitz::Array<double,2> > > EMTrainerPLDA;
+typedef bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase, std::vector<blitz::Array<double,2> > > EMTrainerPLDA;
 
-static void plda_train(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
+static void plda_train(EMTrainerPLDA& t, bob::learn::misc::PLDABase& m, object data)
 {
   stl_input_iterator<bob::python::const_ndarray> dbegin(data), dend;
   std::vector<bob::python::const_ndarray> vdata(dbegin, dend);
@@ -29,7 +29,7 @@ static void plda_train(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
   t.train(m, vdata_ref);
 }
 
-static void plda_initialize(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
+static void plda_initialize(EMTrainerPLDA& t, bob::learn::misc::PLDABase& m, object data)
 {
   stl_input_iterator<bob::python::const_ndarray> dbegin(data), dend;
   std::vector<bob::python::const_ndarray> vdata(dbegin, dend);
@@ -41,7 +41,7 @@ static void plda_initialize(EMTrainerPLDA& t, bob::machine::PLDABase& m, object 
   t.initialize(m, vdata_ref);
 }
 
-static void plda_eStep(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
+static void plda_eStep(EMTrainerPLDA& t, bob::learn::misc::PLDABase& m, object data)
 {
   stl_input_iterator<bob::python::const_ndarray> dbegin(data), dend;
   std::vector<bob::python::const_ndarray> vdata(dbegin, dend);
@@ -53,7 +53,7 @@ static void plda_eStep(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
   t.eStep(m, vdata_ref);
 }
 
-static void plda_mStep(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
+static void plda_mStep(EMTrainerPLDA& t, bob::learn::misc::PLDABase& m, object data)
 {
   stl_input_iterator<bob::python::const_ndarray> dbegin(data), dend;
   std::vector<bob::python::const_ndarray> vdata(dbegin, dend);
@@ -65,7 +65,7 @@ static void plda_mStep(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
   t.mStep(m, vdata_ref);
 }
 
-static void plda_finalize(EMTrainerPLDA& t, bob::machine::PLDABase& m, object data)
+static void plda_finalize(EMTrainerPLDA& t, bob::learn::misc::PLDABase& m, object data)
 {
   stl_input_iterator<bob::python::const_ndarray> dbegin(data), dend;
   std::vector<bob::python::const_ndarray> vdata(dbegin, dend);
@@ -77,14 +77,14 @@ static void plda_finalize(EMTrainerPLDA& t, bob::machine::PLDABase& m, object da
   t.finalize(m, vdata_ref);
 }
 
-static object get_z_first_order(bob::trainer::PLDATrainer& m) {
+static object get_z_first_order(bob::learn::misc::PLDATrainer& m) {
   const std::vector<blitz::Array<double,2> >& v = m.getZFirstOrder();
   list retval;
   for (size_t k=0; k<v.size(); ++k) retval.append(v[k]); //copy
   return tuple(retval);
 }
 
-static object get_z_second_order(bob::trainer::PLDATrainer& m) {
+static object get_z_second_order(bob::learn::misc::PLDATrainer& m) {
   const std::vector<blitz::Array<double,3> >& v = m.getZSecondOrder();
   list retval;
   for (size_t k=0; k<v.size(); ++k) retval.append(v[k]); //copy
@@ -105,50 +105,50 @@ void bind_trainer_plda()
     .def("m_step", &plda_mStep, (arg("self"), arg("machine"), arg("data")), "Updates the Machine parameters given the hidden variable distribution (or the sufficient statistics)")
   ;
 
-  class_<bob::trainer::PLDATrainer, boost::noncopyable, bases<EMTrainerPLDA> > PLDAT("PLDATrainer", "A trainer for Probabilistic Linear Discriminant Analysis (PLDA). The train() method will learn the mu, F, G and Sigma of the model, whereas the enrol() method, will store model information about the enrolment samples for a specific class.\n\nReferences:\n1. 'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition', Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel, TPAMI'2013\n2. 'Probabilistic Linear Discriminant Analysis for Inference About Identity', Prince and Elder, ICCV'2007.\n3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed, Elder and Prince, TPAMI'2012.", no_init);
+  class_<bob::learn::misc::PLDATrainer, boost::noncopyable, bases<EMTrainerPLDA> > PLDAT("PLDATrainer", "A trainer for Probabilistic Linear Discriminant Analysis (PLDA). The train() method will learn the mu, F, G and Sigma of the model, whereas the enrol() method, will store model information about the enrolment samples for a specific class.\n\nReferences:\n1. 'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition', Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel, TPAMI'2013\n2. 'Probabilistic Linear Discriminant Analysis for Inference About Identity', Prince and Elder, ICCV'2007.\n3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed, Elder and Prince, TPAMI'2012.", no_init);
 
   PLDAT.def(init<optional<const size_t, const bool> >((arg("self"), arg("max_iterations")=100, arg("use_sum_second_order")=true),"Initializes a new PLDATrainer."))
-    .def(init<const bob::trainer::PLDATrainer&>((arg("self"), arg("trainer")), "Copy constructs a PLDATrainer"))
+    .def(init<const bob::learn::misc::PLDATrainer&>((arg("self"), arg("trainer")), "Copy constructs a PLDATrainer"))
     .def(self == self)
     .def(self != self)
-    .def("is_similar_to", &bob::trainer::PLDATrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this PLDATrainer with the 'other' one to be approximately the same.")
-    .def("enrol", &bob::trainer::PLDATrainer::enrol, (arg("self"), arg("plda_machine"), arg("data")), "Enrol a class-specific model (PLDAMachine) given a set of enrolment samples.")
-    .add_property("use_sum_second_order", &bob::trainer::PLDATrainer::getUseSumSecondOrder, &bob::trainer::PLDATrainer::setUseSumSecondOrder, "Tells whether the second order statistics are stored during the training procedure, or only their sum.")
+    .def("is_similar_to", &bob::learn::misc::PLDATrainer::is_similar_to, (arg("self"), arg("other"), arg("r_epsilon")=1e-5, arg("a_epsilon")=1e-8), "Compares this PLDATrainer with the 'other' one to be approximately the same.")
+    .def("enrol", &bob::learn::misc::PLDATrainer::enrol, (arg("self"), arg("plda_machine"), arg("data")), "Enrol a class-specific model (PLDAMachine) given a set of enrolment samples.")
+    .add_property("use_sum_second_order", &bob::learn::misc::PLDATrainer::getUseSumSecondOrder, &bob::learn::misc::PLDATrainer::setUseSumSecondOrder, "Tells whether the second order statistics are stored during the training procedure, or only their sum.")
     .add_property("z_first_order", &get_z_first_order)
     .add_property("z_second_order", &get_z_second_order)
-    .add_property("z_second_order_sum", make_function(&bob::trainer::PLDATrainer::getZSecondOrderSum, return_value_policy<copy_const_reference>()))
+    .add_property("z_second_order_sum", make_function(&bob::learn::misc::PLDATrainer::getZSecondOrderSum, return_value_policy<copy_const_reference>()))
   ;
 
   // Sets the scope to the one of the PLDATrainer
   scope s(PLDAT);
 
   // Adds enums in the previously defined current scope
-  enum_<bob::trainer::PLDATrainer::InitFMethod>("init_f_method")
-    .value("RANDOM_F", bob::trainer::PLDATrainer::RANDOM_F)
-    .value("BETWEEN_SCATTER", bob::trainer::PLDATrainer::BETWEEN_SCATTER)
+  enum_<bob::learn::misc::PLDATrainer::InitFMethod>("init_f_method")
+    .value("RANDOM_F", bob::learn::misc::PLDATrainer::RANDOM_F)
+    .value("BETWEEN_SCATTER", bob::learn::misc::PLDATrainer::BETWEEN_SCATTER)
     .export_values()
   ;
 
-  enum_<bob::trainer::PLDATrainer::InitGMethod>("init_g_method")
-    .value("RANDOM_G", bob::trainer::PLDATrainer::RANDOM_G)
-    .value("WITHIN_SCATTER", bob::trainer::PLDATrainer::WITHIN_SCATTER)
+  enum_<bob::learn::misc::PLDATrainer::InitGMethod>("init_g_method")
+    .value("RANDOM_G", bob::learn::misc::PLDATrainer::RANDOM_G)
+    .value("WITHIN_SCATTER", bob::learn::misc::PLDATrainer::WITHIN_SCATTER)
     .export_values()
   ;
 
-  enum_<bob::trainer::PLDATrainer::InitSigmaMethod>("init_sigma_method")
-    .value("RANDOM_SIGMA", bob::trainer::PLDATrainer::RANDOM_SIGMA)
-    .value("VARIANCE_G", bob::trainer::PLDATrainer::VARIANCE_G)
-    .value("CONSTANT", bob::trainer::PLDATrainer::CONSTANT)
-    .value("VARIANCE_DATA", bob::trainer::PLDATrainer::VARIANCE_DATA)
+  enum_<bob::learn::misc::PLDATrainer::InitSigmaMethod>("init_sigma_method")
+    .value("RANDOM_SIGMA", bob::learn::misc::PLDATrainer::RANDOM_SIGMA)
+    .value("VARIANCE_G", bob::learn::misc::PLDATrainer::VARIANCE_G)
+    .value("CONSTANT", bob::learn::misc::PLDATrainer::CONSTANT)
+    .value("VARIANCE_DATA", bob::learn::misc::PLDATrainer::VARIANCE_DATA)
     .export_values()
   ;
 
   // Binds randomization/enumration-related methods
-  PLDAT.add_property("init_f_method", &bob::trainer::PLDATrainer::getInitFMethod, &bob::trainer::PLDATrainer::setInitFMethod, "The method used for the initialization of F.")
-    .add_property("init_f_ratio", &bob::trainer::PLDATrainer::getInitFRatio, &bob::trainer::PLDATrainer::setInitFRatio, "The ratio used for the initialization of F.")
-    .add_property("init_g_method", &bob::trainer::PLDATrainer::getInitGMethod, &bob::trainer::PLDATrainer::setInitGMethod, "The method used for the initialization of G.")
-    .add_property("init_g_ratio", &bob::trainer::PLDATrainer::getInitGRatio, &bob::trainer::PLDATrainer::setInitGRatio, "The ratio used for the initialization of G.")
-    .add_property("init_sigma_method", &bob::trainer::PLDATrainer::getInitSigmaMethod, &bob::trainer::PLDATrainer::setInitSigmaMethod, "The method used for the initialization of sigma.")
-    .add_property("init_sigma_ratio", &bob::trainer::PLDATrainer::getInitSigmaRatio, &bob::trainer::PLDATrainer::setInitSigmaRatio, "The ratio used for the initialization of sigma.")
+  PLDAT.add_property("init_f_method", &bob::learn::misc::PLDATrainer::getInitFMethod, &bob::learn::misc::PLDATrainer::setInitFMethod, "The method used for the initialization of F.")
+    .add_property("init_f_ratio", &bob::learn::misc::PLDATrainer::getInitFRatio, &bob::learn::misc::PLDATrainer::setInitFRatio, "The ratio used for the initialization of F.")
+    .add_property("init_g_method", &bob::learn::misc::PLDATrainer::getInitGMethod, &bob::learn::misc::PLDATrainer::setInitGMethod, "The method used for the initialization of G.")
+    .add_property("init_g_ratio", &bob::learn::misc::PLDATrainer::getInitGRatio, &bob::learn::misc::PLDATrainer::setInitGRatio, "The ratio used for the initialization of G.")
+    .add_property("init_sigma_method", &bob::learn::misc::PLDATrainer::getInitSigmaMethod, &bob::learn::misc::PLDATrainer::setInitSigmaMethod, "The method used for the initialization of sigma.")
+    .add_property("init_sigma_ratio", &bob::learn::misc::PLDATrainer::getInitSigmaRatio, &bob::learn::misc::PLDATrainer::setInitSigmaRatio, "The ratio used for the initialization of sigma.")
   ;
 }

@@ -13,7 +13,7 @@
 #include <bob.sp/FFT2D.h>
 #include <complex>
 
-bob::machine::WienerMachine::WienerMachine():
+bob::learn::misc::WienerMachine::WienerMachine():
   m_Ps(0,0),
   m_variance_threshold(1e-8),
   m_Pn(0),
@@ -24,7 +24,7 @@ bob::machine::WienerMachine::WienerMachine():
 {
 }
 
-bob::machine::WienerMachine::WienerMachine(const blitz::Array<double,2>& Ps,
+bob::learn::misc::WienerMachine::WienerMachine(const blitz::Array<double,2>& Ps,
     const double Pn, const double variance_threshold):
   m_Ps(bob::core::array::ccopy(Ps)),
   m_variance_threshold(variance_threshold),
@@ -38,7 +38,7 @@ bob::machine::WienerMachine::WienerMachine(const blitz::Array<double,2>& Ps,
   computeW();
 }
 
-bob::machine::WienerMachine::WienerMachine(const size_t height,
+bob::learn::misc::WienerMachine::WienerMachine(const size_t height,
     const size_t width, const double Pn, const double variance_threshold):
   m_Ps(height,width),
   m_variance_threshold(variance_threshold),
@@ -52,7 +52,7 @@ bob::machine::WienerMachine::WienerMachine(const size_t height,
   computeW();
 }
 
-bob::machine::WienerMachine::WienerMachine(const bob::machine::WienerMachine& other):
+bob::learn::misc::WienerMachine::WienerMachine(const bob::learn::misc::WienerMachine& other):
   m_Ps(bob::core::array::ccopy(other.m_Ps)),
   m_variance_threshold(other.m_variance_threshold),
   m_Pn(other.m_Pn),
@@ -64,15 +64,15 @@ bob::machine::WienerMachine::WienerMachine(const bob::machine::WienerMachine& ot
 {
 }
 
-bob::machine::WienerMachine::WienerMachine(bob::io::base::HDF5File& config)
+bob::learn::misc::WienerMachine::WienerMachine(bob::io::base::HDF5File& config)
 {
   load(config);
 }
 
-bob::machine::WienerMachine::~WienerMachine() {}
+bob::learn::misc::WienerMachine::~WienerMachine() {}
 
-bob::machine::WienerMachine& bob::machine::WienerMachine::operator=
-(const bob::machine::WienerMachine& other)
+bob::learn::misc::WienerMachine& bob::learn::misc::WienerMachine::operator=
+(const bob::learn::misc::WienerMachine& other)
 {
   if (this != &other)
   {
@@ -88,7 +88,7 @@ bob::machine::WienerMachine& bob::machine::WienerMachine::operator=
   return *this;
 }
 
-bool bob::machine::WienerMachine::operator==(const bob::machine::WienerMachine& b) const
+bool bob::learn::misc::WienerMachine::operator==(const bob::learn::misc::WienerMachine& b) const
 {
   return bob::core::array::isEqual(m_Ps, b.m_Ps) &&
          m_variance_threshold == b.m_variance_threshold &&
@@ -96,12 +96,12 @@ bool bob::machine::WienerMachine::operator==(const bob::machine::WienerMachine& 
          bob::core::array::isEqual(m_W, b.m_W);
 }
 
-bool bob::machine::WienerMachine::operator!=(const bob::machine::WienerMachine& b) const
+bool bob::learn::misc::WienerMachine::operator!=(const bob::learn::misc::WienerMachine& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::machine::WienerMachine::is_similar_to(const bob::machine::WienerMachine& b,
+bool bob::learn::misc::WienerMachine::is_similar_to(const bob::learn::misc::WienerMachine& b,
   const double r_epsilon, const double a_epsilon) const
 {
   return bob::core::array::isClose(m_Ps, b.m_Ps, r_epsilon, a_epsilon) &&
@@ -110,7 +110,7 @@ bool bob::machine::WienerMachine::is_similar_to(const bob::machine::WienerMachin
          bob::core::array::isClose(m_W, b.m_W, r_epsilon, a_epsilon);
 }
 
-void bob::machine::WienerMachine::load(bob::io::base::HDF5File& config)
+void bob::learn::misc::WienerMachine::load(bob::io::base::HDF5File& config)
 {
   //reads all data directly into the member variables
   m_Ps.reference(config.readArray<double,2>("Ps"));
@@ -123,7 +123,7 @@ void bob::machine::WienerMachine::load(bob::io::base::HDF5File& config)
   m_buffer2.resize(m_Ps.extent(0),m_Ps.extent(1));
 }
 
-void bob::machine::WienerMachine::resize(const size_t height,
+void bob::learn::misc::WienerMachine::resize(const size_t height,
   const size_t width)
 {
   m_Ps.resizeAndPreserve(height,width);
@@ -134,7 +134,7 @@ void bob::machine::WienerMachine::resize(const size_t height,
   m_buffer2.resizeAndPreserve(height,width);
 }
 
-void bob::machine::WienerMachine::save(bob::io::base::HDF5File& config) const
+void bob::learn::misc::WienerMachine::save(bob::io::base::HDF5File& config) const
 {
   config.setArray("Ps", m_Ps);
   config.set("Pn", m_Pn);
@@ -142,14 +142,14 @@ void bob::machine::WienerMachine::save(bob::io::base::HDF5File& config) const
   config.setArray("W", m_W);
 }
 
-void bob::machine::WienerMachine::computeW()
+void bob::learn::misc::WienerMachine::computeW()
 {
   // W = 1 / (1 + Pn / Ps_thresholded)
   m_W = 1. / (1. + m_Pn / m_Ps);
 }
 
 
-void bob::machine::WienerMachine::forward_(const blitz::Array<double,2>& input,
+void bob::learn::misc::WienerMachine::forward_(const blitz::Array<double,2>& input,
   blitz::Array<double,2>& output) const
 {
   m_fft(bob::core::array::cast<std::complex<double> >(input), m_buffer1);
@@ -158,7 +158,7 @@ void bob::machine::WienerMachine::forward_(const blitz::Array<double,2>& input,
   output = blitz::abs(m_buffer2);
 }
 
-void bob::machine::WienerMachine::forward(const blitz::Array<double,2>& input,
+void bob::learn::misc::WienerMachine::forward(const blitz::Array<double,2>& input,
   blitz::Array<double,2>& output) const
 {
   if (m_W.extent(0) != input.extent(0)) { //checks input
@@ -184,7 +184,7 @@ void bob::machine::WienerMachine::forward(const blitz::Array<double,2>& input,
   forward_(input, output);
 }
 
-void bob::machine::WienerMachine::setVarianceThreshold(
+void bob::learn::misc::WienerMachine::setVarianceThreshold(
   const double variance_threshold)
 {
   m_variance_threshold = variance_threshold;
@@ -192,7 +192,7 @@ void bob::machine::WienerMachine::setVarianceThreshold(
   computeW();
 }
 
-void bob::machine::WienerMachine::setPs(const blitz::Array<double,2>& Ps)
+void bob::learn::misc::WienerMachine::setPs(const blitz::Array<double,2>& Ps)
 {
   if (m_Ps.extent(0) != Ps.extent(0)) {
     boost::format m("number of rows (%d) for input `Ps' does not match the expected (internal) size (%d)");
@@ -208,7 +208,7 @@ void bob::machine::WienerMachine::setPs(const blitz::Array<double,2>& Ps)
   computeW();
 }
 
-void bob::machine::WienerMachine::applyVarianceThreshold()
+void bob::learn::misc::WienerMachine::applyVarianceThreshold()
 {
   m_Ps = blitz::where(m_Ps < m_variance_threshold, m_variance_threshold, m_Ps);
 }

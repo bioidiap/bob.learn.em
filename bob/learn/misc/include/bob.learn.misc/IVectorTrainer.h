@@ -5,8 +5,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_IVECTOR_H
-#define BOB_TRAINER_IVECTOR_H
+#ifndef BOB_LEARN_MISC_IVECTOR_TRAINER_H
+#define BOB_LEARN_MISC_IVECTOR_TRAINER_H
 
 #include <blitz/array.h>
 #include <bob.learn.misc/EMTrainer.h>
@@ -16,11 +16,7 @@
 #include <boost/random.hpp>
 #include <vector>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief An IVectorTrainer to learn a Total Variability subspace \f$T\f$
@@ -30,7 +26,7 @@ namespace bob { namespace trainer {
  *    N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet,
  *   IEEE Trans. on Audio, Speech and Language Processing
  */
-class IVectorTrainer: public bob::trainer::EMTrainer<bob::machine::IVectorMachine, std::vector<bob::machine::GMMStats> >
+class IVectorTrainer: public bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine, std::vector<bob::learn::misc::GMMStats> >
 {
   public:
     /**
@@ -53,8 +49,8 @@ class IVectorTrainer: public bob::trainer::EMTrainer<bob::machine::IVectorMachin
     /**
      * @brief Initialization before the EM loop
      */
-    virtual void initialize(bob::machine::IVectorMachine& ivector,
-      const std::vector<bob::machine::GMMStats>& data);
+    virtual void initialize(bob::learn::misc::IVectorMachine& ivector,
+      const std::vector<bob::learn::misc::GMMStats>& data);
 
     /**
      * @brief Calculates statistics across the dataset,
@@ -66,27 +62,27 @@ class IVectorTrainer: public bob::trainer::EMTrainer<bob::machine::IVectorMachin
      *
      * These statistics will be used in the mStep() that follows.
      */
-    virtual void eStep(bob::machine::IVectorMachine& ivector,
-      const std::vector<bob::machine::GMMStats>& data);
+    virtual void eStep(bob::learn::misc::IVectorMachine& ivector,
+      const std::vector<bob::learn::misc::GMMStats>& data);
 
     /**
      * @brief Maximisation step: Update the Total Variability matrix \f$T\f$
      * and \f$\Sigma\f$ if update_sigma is enabled.
      */
-    virtual void mStep(bob::machine::IVectorMachine& ivector,
-      const std::vector<bob::machine::GMMStats>& data);
+    virtual void mStep(bob::learn::misc::IVectorMachine& ivector,
+      const std::vector<bob::learn::misc::GMMStats>& data);
 
     /**
      * @brief Computes the likelihood using current estimates
      * @warning (currently unsupported)
      */
-    virtual double computeLikelihood(bob::machine::IVectorMachine& ivector);
+    virtual double computeLikelihood(bob::learn::misc::IVectorMachine& ivector);
 
     /**
      * @brief Finalization after the EM loop
      */
-    virtual void finalize(bob::machine::IVectorMachine& ivector,
-      const std::vector<bob::machine::GMMStats>& data);
+    virtual void finalize(bob::learn::misc::IVectorMachine& ivector,
+      const std::vector<bob::learn::misc::GMMStats>& data);
 
     /**
      * @brief Assigns from a different IVectorTrainer
@@ -159,9 +155,6 @@ class IVectorTrainer: public bob::trainer::EMTrainer<bob::machine::IVectorMachin
     mutable blitz::Array<double,2> m_tmp_tt2;
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif // BOB_TRAINER_IVECTORTRAINER_H
+#endif // BOB_LEARN_MISC_IVECTOR_TRAINER_H

@@ -18,23 +18,23 @@
 #include <algorithm>
 
 
-bob::trainer::FABaseTrainer::FABaseTrainer():
+bob::learn::misc::FABaseTrainer::FABaseTrainer():
   m_Nid(0), m_dim_C(0), m_dim_D(0), m_dim_ru(0), m_dim_rv(0),
   m_x(0), m_y(0), m_z(0), m_Nacc(0), m_Facc(0)
 {
 }
 
-bob::trainer::FABaseTrainer::FABaseTrainer(const bob::trainer::FABaseTrainer& other)
+bob::learn::misc::FABaseTrainer::FABaseTrainer(const bob::learn::misc::FABaseTrainer& other)
 {
 }
 
-bob::trainer::FABaseTrainer::~FABaseTrainer()
+bob::learn::misc::FABaseTrainer::~FABaseTrainer()
 {
 }
 
-void bob::trainer::FABaseTrainer::checkStatistics(
-  const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::checkStatistics(
+  const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   for (size_t id=0; id<stats.size(); ++id) {
     for (size_t s=0; s<stats[id].size(); ++s) {
@@ -53,12 +53,12 @@ void bob::trainer::FABaseTrainer::checkStatistics(
 }
 
 
-void bob::trainer::FABaseTrainer::initUbmNidSumStatistics(
-  const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::initUbmNidSumStatistics(
+  const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   m_Nid = stats.size();
-  boost::shared_ptr<bob::machine::GMMMachine> ubm = m.getUbm();
+  boost::shared_ptr<bob::learn::misc::GMMMachine> ubm = m.getUbm();
   // Put UBM in cache
   m_dim_C = ubm->getNGaussians();
   m_dim_D = ubm->getNInputs();
@@ -73,8 +73,8 @@ void bob::trainer::FABaseTrainer::initUbmNidSumStatistics(
   initCache();
 }
 
-void bob::trainer::FABaseTrainer::precomputeSumStatisticsN(
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::precomputeSumStatisticsN(
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   m_Nacc.clear();
   blitz::Array<double,1> Nsum(m_dim_C);
@@ -87,8 +87,8 @@ void bob::trainer::FABaseTrainer::precomputeSumStatisticsN(
   }
 }
 
-void bob::trainer::FABaseTrainer::precomputeSumStatisticsF(
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::precomputeSumStatisticsF(
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   m_Facc.clear();
   blitz::Array<double,1> Fsum(m_dim_C*m_dim_D);
@@ -104,7 +104,7 @@ void bob::trainer::FABaseTrainer::precomputeSumStatisticsF(
   }
 }
 
-void bob::trainer::FABaseTrainer::initializeXYZ(const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& vec)
+void bob::learn::misc::FABaseTrainer::initializeXYZ(const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& vec)
 {
   m_x.clear();
   m_y.clear();
@@ -126,7 +126,7 @@ void bob::trainer::FABaseTrainer::initializeXYZ(const std::vector<std::vector<bo
   }
 }
 
-void bob::trainer::FABaseTrainer::resetXYZ()
+void bob::learn::misc::FABaseTrainer::resetXYZ()
 {
   for (size_t i=0; i<m_x.size(); ++i)
   {
@@ -136,7 +136,7 @@ void bob::trainer::FABaseTrainer::resetXYZ()
   }
 }
 
-void bob::trainer::FABaseTrainer::initCache()
+void bob::learn::misc::FABaseTrainer::initCache()
 {
   const size_t dim_CD = m_dim_C*m_dim_D;
   // U
@@ -177,7 +177,7 @@ void bob::trainer::FABaseTrainer::initCache()
 
 
 //////////////////////////// V ///////////////////////////
-void bob::trainer::FABaseTrainer::computeVtSigmaInv(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeVtSigmaInv(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,2>& V = m.getV();
   // Blitz compatibility: ugly fix (const_cast, as old blitz version does not
@@ -189,7 +189,7 @@ void bob::trainer::FABaseTrainer::computeVtSigmaInv(const bob::machine::FABase& 
   m_cache_VtSigmaInv = Vt(i,j) / sigma(j); // Vt * diag(sigma)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeVProd(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeVProd(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,2>& V = m.getV();
   blitz::firstIndex i;
@@ -207,7 +207,7 @@ void bob::trainer::FABaseTrainer::computeVProd(const bob::machine::FABase& m)
   }
 }
 
-void bob::trainer::FABaseTrainer::computeIdPlusVProd_i(const size_t id)
+void bob::learn::misc::FABaseTrainer::computeIdPlusVProd_i(const size_t id)
 {
   const blitz::Array<double,1>& Ni = m_Nacc[id];
   bob::math::eye(m_tmp_rvrv); // m_tmp_rvrv = I
@@ -219,8 +219,8 @@ void bob::trainer::FABaseTrainer::computeIdPlusVProd_i(const size_t id)
   bob::math::inv(m_tmp_rvrv, m_cache_IdPlusVProd_i); // m_cache_IdPlusVProd_i = ( I+Vt*diag(sigma)^-1*Ni*V)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeFn_y_i(const bob::machine::FABase& mb,
-  const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& stats, const size_t id)
+void bob::learn::misc::FABaseTrainer::computeFn_y_i(const bob::learn::misc::FABase& mb,
+  const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& stats, const size_t id)
 {
   const blitz::Array<double,2>& U = mb.getU();
   const blitz::Array<double,1>& d = mb.getD();
@@ -243,7 +243,7 @@ void bob::trainer::FABaseTrainer::computeFn_y_i(const bob::machine::FABase& mb,
   // Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i} - U*x_{i,h})
 }
 
-void bob::trainer::FABaseTrainer::updateY_i(const size_t id)
+void bob::learn::misc::FABaseTrainer::updateY_i(const size_t id)
 {
   // Computes yi = Ayi * Cvs * Fn_yi
   blitz::Array<double,1>& y = m_y[id];
@@ -252,8 +252,8 @@ void bob::trainer::FABaseTrainer::updateY_i(const size_t id)
   bob::math::prod(m_cache_IdPlusVProd_i, m_tmp_rv, y);
 }
 
-void bob::trainer::FABaseTrainer::updateY(const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::updateY(const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Precomputation
   computeVtSigmaInv(m);
@@ -266,9 +266,9 @@ void bob::trainer::FABaseTrainer::updateY(const bob::machine::FABase& m,
   }
 }
 
-void bob::trainer::FABaseTrainer::computeAccumulatorsV(
-  const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::computeAccumulatorsV(
+  const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Initializes the cache accumulator
   m_acc_V_A1 = 0.;
@@ -294,7 +294,7 @@ void bob::trainer::FABaseTrainer::computeAccumulatorsV(
   }
 }
 
-void bob::trainer::FABaseTrainer::updateV(blitz::Array<double,2>& V)
+void bob::learn::misc::FABaseTrainer::updateV(blitz::Array<double,2>& V)
 {
   blitz::Range rall = blitz::Range::all();
   for (size_t c=0; c<m_dim_C; ++c)
@@ -309,7 +309,7 @@ void bob::trainer::FABaseTrainer::updateV(blitz::Array<double,2>& V)
 
 
 //////////////////////////// U ///////////////////////////
-void bob::trainer::FABaseTrainer::computeUtSigmaInv(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeUtSigmaInv(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,2>& U = m.getU();
   // Blitz compatibility: ugly fix (const_cast, as old blitz version does not
@@ -321,7 +321,7 @@ void bob::trainer::FABaseTrainer::computeUtSigmaInv(const bob::machine::FABase& 
   m_cache_UtSigmaInv = Ut(i,j) / sigma(j); // Ut * diag(sigma)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeUProd(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeUProd(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,2>& U = m.getU();
   blitz::firstIndex i;
@@ -338,8 +338,8 @@ void bob::trainer::FABaseTrainer::computeUProd(const bob::machine::FABase& m)
   }
 }
 
-void bob::trainer::FABaseTrainer::computeIdPlusUProd_ih(
-  const boost::shared_ptr<bob::machine::GMMStats>& stats)
+void bob::learn::misc::FABaseTrainer::computeIdPlusUProd_ih(
+  const boost::shared_ptr<bob::learn::misc::GMMStats>& stats)
 {
   const blitz::Array<double,1>& Nih = stats->n;
   bob::math::eye(m_tmp_ruru); // m_tmp_ruru = I
@@ -350,8 +350,8 @@ void bob::trainer::FABaseTrainer::computeIdPlusUProd_ih(
   bob::math::inv(m_tmp_ruru, m_cache_IdPlusUProd_ih); // m_cache_IdPlusUProd_ih = ( I+Ut*diag(sigma)^-1*Ni*U)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeFn_x_ih(const bob::machine::FABase& mb,
-  const boost::shared_ptr<bob::machine::GMMStats>& stats, const size_t id)
+void bob::learn::misc::FABaseTrainer::computeFn_x_ih(const bob::learn::misc::FABase& mb,
+  const boost::shared_ptr<bob::learn::misc::GMMStats>& stats, const size_t id)
 {
   const blitz::Array<double,2>& V = mb.getV();
   const blitz::Array<double,1>& d =  mb.getD();
@@ -373,7 +373,7 @@ void bob::trainer::FABaseTrainer::computeFn_x_ih(const bob::machine::FABase& mb,
   // Fn_x_ih = N_{i,h}*(o_{i,h} - m - D*z_{i} - V*y_{i})
 }
 
-void bob::trainer::FABaseTrainer::updateX_ih(const size_t id, const size_t h)
+void bob::learn::misc::FABaseTrainer::updateX_ih(const size_t id, const size_t h)
 {
   // Computes xih = Axih * Cus * Fn_x_ih
   blitz::Array<double,1> x = m_x[id](blitz::Range::all(), h);
@@ -382,8 +382,8 @@ void bob::trainer::FABaseTrainer::updateX_ih(const size_t id, const size_t h)
   bob::math::prod(m_cache_IdPlusUProd_ih, m_tmp_ru, x);
 }
 
-void bob::trainer::FABaseTrainer::updateX(const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::updateX(const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Precomputation
   computeUtSigmaInv(m);
@@ -399,9 +399,9 @@ void bob::trainer::FABaseTrainer::updateX(const bob::machine::FABase& m,
   }
 }
 
-void bob::trainer::FABaseTrainer::computeAccumulatorsU(
-  const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::computeAccumulatorsU(
+  const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Initializes the cache accumulator
   m_acc_U_A1 = 0.;
@@ -430,7 +430,7 @@ void bob::trainer::FABaseTrainer::computeAccumulatorsU(
   }
 }
 
-void bob::trainer::FABaseTrainer::updateU(blitz::Array<double,2>& U)
+void bob::learn::misc::FABaseTrainer::updateU(blitz::Array<double,2>& U)
 {
   for (size_t c=0; c<m_dim_C; ++c)
   {
@@ -444,21 +444,21 @@ void bob::trainer::FABaseTrainer::updateU(blitz::Array<double,2>& U)
 
 
 //////////////////////////// D ///////////////////////////
-void bob::trainer::FABaseTrainer::computeDtSigmaInv(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeDtSigmaInv(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,1>& d = m.getD();
   const blitz::Array<double,1>& sigma = m.getUbmVariance();
   m_cache_DtSigmaInv = d / sigma; // Dt * diag(sigma)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeDProd(const bob::machine::FABase& m)
+void bob::learn::misc::FABaseTrainer::computeDProd(const bob::learn::misc::FABase& m)
 {
   const blitz::Array<double,1>& d = m.getD();
   const blitz::Array<double,1>& sigma = m.getUbmVariance();
   m_cache_DProd = d / sigma * d; // Dt * diag(sigma)^-1 * D
 }
 
-void bob::trainer::FABaseTrainer::computeIdPlusDProd_i(const size_t id)
+void bob::learn::misc::FABaseTrainer::computeIdPlusDProd_i(const size_t id)
 {
   const blitz::Array<double,1>& Ni = m_Nacc[id];
   bob::core::array::repelem(Ni, m_tmp_CD); // m_tmp_CD = Ni 'repmat'
@@ -467,9 +467,9 @@ void bob::trainer::FABaseTrainer::computeIdPlusDProd_i(const size_t id)
   m_cache_IdPlusDProd_i = 1 / m_cache_IdPlusDProd_i; // m_cache_IdPlusVProd_i = (I+Dt*diag(sigma)^-1*Ni*D)^-1
 }
 
-void bob::trainer::FABaseTrainer::computeFn_z_i(
-  const bob::machine::FABase& mb,
-  const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& stats, const size_t id)
+void bob::learn::misc::FABaseTrainer::computeFn_z_i(
+  const bob::learn::misc::FABase& mb,
+  const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& stats, const size_t id)
 {
   const blitz::Array<double,2>& U = mb.getU();
   const blitz::Array<double,2>& V = mb.getV();
@@ -494,7 +494,7 @@ void bob::trainer::FABaseTrainer::computeFn_z_i(
   // Fn_z_i = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i} - U*x_{i,h})
 }
 
-void bob::trainer::FABaseTrainer::updateZ_i(const size_t id)
+void bob::learn::misc::FABaseTrainer::updateZ_i(const size_t id)
 {
   // Computes zi = Azi * D^T.Sigma^-1 * Fn_zi
   blitz::Array<double,1>& z = m_z[id];
@@ -502,8 +502,8 @@ void bob::trainer::FABaseTrainer::updateZ_i(const size_t id)
   z = m_cache_IdPlusDProd_i * m_cache_DtSigmaInv * m_cache_Fn_z_i;
 }
 
-void bob::trainer::FABaseTrainer::updateZ(const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::updateZ(const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Precomputation
   computeDtSigmaInv(m);
@@ -516,9 +516,9 @@ void bob::trainer::FABaseTrainer::updateZ(const bob::machine::FABase& m,
   }
 }
 
-void bob::trainer::FABaseTrainer::computeAccumulatorsD(
-  const bob::machine::FABase& m,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& stats)
+void bob::learn::misc::FABaseTrainer::computeAccumulatorsD(
+  const bob::learn::misc::FABase& m,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& stats)
 {
   // Initializes the cache accumulator
   m_acc_D_A1 = 0.;
@@ -538,7 +538,7 @@ void bob::trainer::FABaseTrainer::computeAccumulatorsD(
   }
 }
 
-void bob::trainer::FABaseTrainer::updateD(blitz::Array<double,1>& d)
+void bob::learn::misc::FABaseTrainer::updateD(blitz::Array<double,1>& d)
 {
   d = m_acc_D_A2 / m_acc_D_A1;
 }
@@ -546,59 +546,59 @@ void bob::trainer::FABaseTrainer::updateD(blitz::Array<double,1>& d)
 
 
 //////////////////////////// ISVTrainer ///////////////////////////
-bob::trainer::ISVTrainer::ISVTrainer(const size_t max_iterations, const double relevance_factor):
-  EMTrainer<bob::machine::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >
+bob::learn::misc::ISVTrainer::ISVTrainer(const size_t max_iterations, const double relevance_factor):
+  EMTrainer<bob::learn::misc::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >
     (0.001, max_iterations, false),
   m_relevance_factor(relevance_factor)
 {
 }
 
-bob::trainer::ISVTrainer::ISVTrainer(const bob::trainer::ISVTrainer& other):
-  EMTrainer<bob::machine::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >
+bob::learn::misc::ISVTrainer::ISVTrainer(const bob::learn::misc::ISVTrainer& other):
+  EMTrainer<bob::learn::misc::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >
     (other.m_convergence_threshold, other.m_max_iterations,
      other.m_compute_likelihood),
   m_relevance_factor(other.m_relevance_factor)
 {
 }
 
-bob::trainer::ISVTrainer::~ISVTrainer()
+bob::learn::misc::ISVTrainer::~ISVTrainer()
 {
 }
 
-bob::trainer::ISVTrainer& bob::trainer::ISVTrainer::operator=
-(const bob::trainer::ISVTrainer& other)
+bob::learn::misc::ISVTrainer& bob::learn::misc::ISVTrainer::operator=
+(const bob::learn::misc::ISVTrainer& other)
 {
   if (this != &other)
   {
-    bob::trainer::EMTrainer<bob::machine::ISVBase,
-      std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >::operator=(other);
+    bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
+      std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::operator=(other);
     m_relevance_factor = other.m_relevance_factor;
   }
   return *this;
 }
 
-bool bob::trainer::ISVTrainer::operator==(const bob::trainer::ISVTrainer& b) const
+bool bob::learn::misc::ISVTrainer::operator==(const bob::learn::misc::ISVTrainer& b) const
 {
-  return bob::trainer::EMTrainer<bob::machine::ISVBase,
-            std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >::operator==(b) &&
+  return bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
+            std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::operator==(b) &&
           m_relevance_factor == b.m_relevance_factor;
 }
 
-bool bob::trainer::ISVTrainer::operator!=(const bob::trainer::ISVTrainer& b) const
+bool bob::learn::misc::ISVTrainer::operator!=(const bob::learn::misc::ISVTrainer& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::trainer::ISVTrainer::is_similar_to(const bob::trainer::ISVTrainer& b,
+bool bob::learn::misc::ISVTrainer::is_similar_to(const bob::learn::misc::ISVTrainer& b,
   const double r_epsilon, const double a_epsilon) const
 {
-  return bob::trainer::EMTrainer<bob::machine::ISVBase,
-            std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > >::is_similar_to(b, r_epsilon, a_epsilon) &&
+  return bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
+            std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::is_similar_to(b, r_epsilon, a_epsilon) &&
           m_relevance_factor == b.m_relevance_factor;
 }
 
-void bob::trainer::ISVTrainer::initialize(bob::machine::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::ISVTrainer::initialize(bob::learn::misc::ISVBase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   m_base_trainer.initUbmNidSumStatistics(machine.getBase(), ar);
   m_base_trainer.initializeXYZ(ar);
@@ -609,51 +609,51 @@ void bob::trainer::ISVTrainer::initialize(bob::machine::ISVBase& machine,
   machine.precompute();
 }
 
-void bob::trainer::ISVTrainer::initializeD(bob::machine::ISVBase& machine) const
+void bob::learn::misc::ISVTrainer::initializeD(bob::learn::misc::ISVBase& machine) const
 {
   // D = sqrt(variance(UBM) / relevance_factor)
   blitz::Array<double,1> d = machine.updateD();
   d = sqrt(machine.getBase().getUbmVariance() / m_relevance_factor);
 }
 
-void bob::trainer::ISVTrainer::finalize(bob::machine::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::ISVTrainer::finalize(bob::learn::misc::ISVBase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
 }
 
-void bob::trainer::ISVTrainer::eStep(bob::machine::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::ISVTrainer::eStep(bob::learn::misc::ISVBase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   m_base_trainer.resetXYZ();
 
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateX(base, ar);
   m_base_trainer.updateZ(base, ar);
   m_base_trainer.computeAccumulatorsU(base, ar);
 }
 
-void bob::trainer::ISVTrainer::mStep(bob::machine::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::ISVTrainer::mStep(bob::learn::misc::ISVBase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   blitz::Array<double,2>& U = machine.updateU();
   m_base_trainer.updateU(U);
   machine.precompute();
 }
 
-double bob::trainer::ISVTrainer::computeLikelihood(bob::machine::ISVBase& machine)
+double bob::learn::misc::ISVTrainer::computeLikelihood(bob::learn::misc::ISVBase& machine)
 {
   // TODO
   return 0;
 }
 
-void bob::trainer::ISVTrainer::enrol(bob::machine::ISVMachine& machine,
-  const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& ar,
+void bob::learn::misc::ISVTrainer::enrol(bob::learn::misc::ISVMachine& machine,
+  const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& ar,
   const size_t n_iter)
 {
-  std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > vvec;
+  std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > vvec;
   vvec.push_back(ar);
 
-  const bob::machine::FABase& fb = machine.getISVBase()->getBase();
+  const bob::learn::misc::FABase& fb = machine.getISVBase()->getBase();
 
   m_base_trainer.initUbmNidSumStatistics(fb, vvec);
   m_base_trainer.initializeXYZ(vvec);
@@ -670,22 +670,22 @@ void bob::trainer::ISVTrainer::enrol(bob::machine::ISVMachine& machine,
 
 
 //////////////////////////// JFATrainer ///////////////////////////
-bob::trainer::JFATrainer::JFATrainer(const size_t max_iterations):
+bob::learn::misc::JFATrainer::JFATrainer(const size_t max_iterations):
   m_max_iterations(max_iterations), m_rng(new boost::mt19937())
 {
 }
 
-bob::trainer::JFATrainer::JFATrainer(const bob::trainer::JFATrainer& other):
+bob::learn::misc::JFATrainer::JFATrainer(const bob::learn::misc::JFATrainer& other):
   m_max_iterations(other.m_max_iterations), m_rng(other.m_rng)
 {
 }
 
-bob::trainer::JFATrainer::~JFATrainer()
+bob::learn::misc::JFATrainer::~JFATrainer()
 {
 }
 
-bob::trainer::JFATrainer& bob::trainer::JFATrainer::operator=
-(const bob::trainer::JFATrainer& other)
+bob::learn::misc::JFATrainer& bob::learn::misc::JFATrainer::operator=
+(const bob::learn::misc::JFATrainer& other)
 {
   if (this != &other)
   {
@@ -695,24 +695,24 @@ bob::trainer::JFATrainer& bob::trainer::JFATrainer::operator=
   return *this;
 }
 
-bool bob::trainer::JFATrainer::operator==(const bob::trainer::JFATrainer& b) const
+bool bob::learn::misc::JFATrainer::operator==(const bob::learn::misc::JFATrainer& b) const
 {
   return m_max_iterations == b.m_max_iterations && *m_rng == *(b.m_rng);
 }
 
-bool bob::trainer::JFATrainer::operator!=(const bob::trainer::JFATrainer& b) const
+bool bob::learn::misc::JFATrainer::operator!=(const bob::learn::misc::JFATrainer& b) const
 {
   return !(this->operator==(b));
 }
 
-bool bob::trainer::JFATrainer::is_similar_to(const bob::trainer::JFATrainer& b,
+bool bob::learn::misc::JFATrainer::is_similar_to(const bob::learn::misc::JFATrainer& b,
   const double r_epsilon, const double a_epsilon) const
 {
   return m_max_iterations == b.m_max_iterations && *m_rng == *(b.m_rng);
 }
 
-void bob::trainer::JFATrainer::initialize(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::initialize(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   m_base_trainer.initUbmNidSumStatistics(machine.getBase(), ar);
   m_base_trainer.initializeXYZ(ar);
@@ -726,75 +726,75 @@ void bob::trainer::JFATrainer::initialize(bob::machine::JFABase& machine,
   machine.precompute();
 }
 
-void bob::trainer::JFATrainer::eStep1(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::eStep1(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateY(base, ar);
   m_base_trainer.computeAccumulatorsV(base, ar);
 }
 
-void bob::trainer::JFATrainer::mStep1(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::mStep1(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   blitz::Array<double,2>& V = machine.updateV();
   m_base_trainer.updateV(V);
 }
 
-void bob::trainer::JFATrainer::finalize1(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::finalize1(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateY(base, ar);
 }
 
 
-void bob::trainer::JFATrainer::eStep2(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::eStep2(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateX(base, ar);
   m_base_trainer.computeAccumulatorsU(base, ar);
 }
 
-void bob::trainer::JFATrainer::mStep2(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::mStep2(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   blitz::Array<double,2>& U = machine.updateU();
   m_base_trainer.updateU(U);
   machine.precompute();
 }
 
-void bob::trainer::JFATrainer::finalize2(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::finalize2(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateX(base, ar);
 }
 
 
-void bob::trainer::JFATrainer::eStep3(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::eStep3(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
-  const bob::machine::FABase& base = machine.getBase();
+  const bob::learn::misc::FABase& base = machine.getBase();
   m_base_trainer.updateZ(base, ar);
   m_base_trainer.computeAccumulatorsD(base, ar);
 }
 
-void bob::trainer::JFATrainer::mStep3(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::mStep3(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   blitz::Array<double,1>& d = machine.updateD();
   m_base_trainer.updateD(d);
 }
 
-void bob::trainer::JFATrainer::finalize3(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::finalize3(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
 }
 
-void bob::trainer::JFATrainer::train_loop(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::train_loop(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   // V subspace
   for (size_t i=0; i<m_max_iterations; ++i) {
@@ -816,21 +816,21 @@ void bob::trainer::JFATrainer::train_loop(bob::machine::JFABase& machine,
   finalize3(machine, ar);
 }
 
-void bob::trainer::JFATrainer::train(bob::machine::JFABase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > >& ar)
+void bob::learn::misc::JFATrainer::train(bob::learn::misc::JFABase& machine,
+  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
   initialize(machine, ar);
   train_loop(machine, ar);
 }
 
-void bob::trainer::JFATrainer::enrol(bob::machine::JFAMachine& machine,
-  const std::vector<boost::shared_ptr<bob::machine::GMMStats> >& ar,
+void bob::learn::misc::JFATrainer::enrol(bob::learn::misc::JFAMachine& machine,
+  const std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& ar,
   const size_t n_iter)
 {
-  std::vector<std::vector<boost::shared_ptr<bob::machine::GMMStats> > > vvec;
+  std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > vvec;
   vvec.push_back(ar);
 
-  const bob::machine::FABase& fb = machine.getJFABase()->getBase();
+  const bob::learn::misc::FABase& fb = machine.getJFABase()->getBase();
 
   m_base_trainer.initUbmNidSumStatistics(fb, vvec);
   m_base_trainer.initializeXYZ(vvec);

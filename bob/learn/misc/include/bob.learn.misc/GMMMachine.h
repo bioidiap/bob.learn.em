@@ -9,8 +9,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_GMMMACHINE_H
-#define BOB_MACHINE_GMMMACHINE_H
+#ifndef BOB_LEARN_MISC_GMMMACHINE_H
+#define BOB_LEARN_MISC_GMMMACHINE_H
 
 #include <bob.learn.misc/Machine.h>
 #include <bob.learn.misc/Gaussian.h>
@@ -20,11 +20,7 @@
 #include <boost/shared_ptr.hpp>
 #include <vector>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class implements a multivariate diagonal Gaussian distribution.
@@ -276,7 +272,7 @@ class GMMMachine: public Machine<blitz::Array<double,1>, double>
      * @return A smart pointer to the i'th Gaussian component
      *         if it exists, otherwise throws an exception
      */
-    boost::shared_ptr<const bob::machine::Gaussian> getGaussian(const size_t i) const;
+    boost::shared_ptr<const bob::learn::misc::Gaussian> getGaussian(const size_t i) const;
 
     /**
      * Get a pointer to a particular Gaussian component
@@ -284,7 +280,7 @@ class GMMMachine: public Machine<blitz::Array<double,1>, double>
      * @return A smart pointer to the i'th Gaussian component
      *         if it exists, otherwise throws an exception
      */
-    boost::shared_ptr<bob::machine::Gaussian> updateGaussian(const size_t i);
+    boost::shared_ptr<bob::learn::misc::Gaussian> updateGaussian(const size_t i);
 
 
     /**
@@ -373,9 +369,6 @@ class GMMMachine: public Machine<blitz::Array<double,1>, double>
 
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_GMMMACHINE_H

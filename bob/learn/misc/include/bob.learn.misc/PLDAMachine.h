@@ -8,8 +8,8 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_MACHINE_PLDAMACHINE_H
-#define BOB_MACHINE_PLDAMACHINE_H
+#ifndef BOB_LEARN_MISC_PLDAMACHINE_H
+#define BOB_LEARN_MISC_PLDAMACHINE_H
 
 #include <bob.learn.misc/Machine.h>
 #include <blitz/array.h>
@@ -18,11 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief This class is a container for the \f$F\f$, \f$G\f$ and \f$\Sigma\f$
@@ -448,7 +444,7 @@ class PLDAMachine: public Machine<blitz::Array<double,1>, double>
      * @brief Constructor, builds a new PLDAMachine, setting a
      * PLDABase.
      */
-    PLDAMachine(const boost::shared_ptr<bob::machine::PLDABase> pldabase);
+    PLDAMachine(const boost::shared_ptr<bob::learn::misc::PLDABase> pldabase);
     /**
      * @brief Copies another PLDAMachine.\n Both PLDAMachine's will point
      * to the same PLDABase.
@@ -459,7 +455,7 @@ class PLDAMachine: public Machine<blitz::Array<double,1>, double>
      * and a PLDABase.
      */
     PLDAMachine(bob::io::base::HDF5File& config,
-      const boost::shared_ptr<bob::machine::PLDABase> pldabase);
+      const boost::shared_ptr<bob::learn::misc::PLDABase> pldabase);
 
     /**
      * @brief Just to virtualise the destructor
@@ -507,7 +503,7 @@ class PLDAMachine: public Machine<blitz::Array<double,1>, double>
     /**
      * @brief Sets the attached PLDABase
      */
-    void setPLDABase(const boost::shared_ptr<bob::machine::PLDABase> plda_base);
+    void setPLDABase(const boost::shared_ptr<bob::learn::misc::PLDABase> plda_base);
 
     /**
      * @brief Gets the feature dimensionality
@@ -702,9 +698,6 @@ class PLDAMachine: public Machine<blitz::Array<double,1>, double>
     void resizeTmp();
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif
+#endif // BOB_LEARN_MISC_PLDAMACHINE_H

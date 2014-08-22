@@ -7,18 +7,14 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_TRAINER_WIENER_TRAINER_H
-#define BOB_TRAINER_WIENER_TRAINER_H
+#ifndef BOB_LEARN_MISC_WIENER_TRAINER_H
+#define BOB_LEARN_MISC_WIENER_TRAINER_H
 
 #include <bob.learn.misc/Trainer.h>
 #include <bob.learn.misc/WienerMachine.h>
 #include <blitz/array.h>
 
-namespace bob { namespace trainer {
-/**
- * @ingroup TRAINER
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * @brief Sets a Wiener machine to perform a Wiener filtering, using the
@@ -28,7 +24,7 @@ namespace bob { namespace trainer {
  * "Computer Vision: Algorithms and Applications", Richard Szeliski
  * (Part 3.4.3)
  */
-class WienerTrainer: Trainer<bob::machine::WienerMachine, blitz::Array<double,3> >
+class WienerTrainer: Trainer<bob::learn::misc::WienerMachine, blitz::Array<double,3> >
 {
   public: //api
     /**
@@ -69,15 +65,12 @@ class WienerTrainer: Trainer<bob::machine::WienerMachine, blitz::Array<double,3>
     /**
      * @brief Trains the WienerMachine to perform the filtering.
      */
-    virtual void train(bob::machine::WienerMachine& machine,
+    virtual void train(bob::learn::misc::WienerMachine& machine,
         const blitz::Array<double,3>& data);
 
   private: //representation
 };
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif /* BOB_TRAINER_WIENER_TRAINER_H */
+#endif /* BOB_LEARN_MISC_WIENER_TRAINER_H */

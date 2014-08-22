@@ -4,19 +4,15 @@
  *
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
-#ifndef BOB_MACHINE_LINEARSCORING_H
-#define BOB_MACHINE_LINEARSCORING_H
+#ifndef BOB_LEARN_MISC_LINEARSCORING_H
+#define BOB_LEARN_MISC_LINEARSCORING_H
 
 #include <blitz/array.h>
 #include <boost/shared_ptr.hpp>
 #include <vector>
 #include <bob.learn.misc/GMMMachine.h>
 
-namespace bob { namespace machine {
-/**
- * @ingroup MACHINE
- * @{
- */
+namespace bob { namespace learn { namespace misc {
 
 /**
  * Compute a matrix of scores using linear scoring.
@@ -34,13 +30,13 @@ namespace bob { namespace machine {
  */
 void linearScoring(const std::vector<blitz::Array<double,1> >& models,
                    const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const std::vector<blitz::Array<double, 1> >& test_channelOffset,
                    const bool frame_length_normalisation,
                    blitz::Array<double,2>& scores);
 void linearScoring(const std::vector<blitz::Array<double,1> >& models,
                    const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const bool frame_length_normalisation,
                    blitz::Array<double,2>& scores);
 
@@ -56,9 +52,9 @@ void linearScoring(const std::vector<blitz::Array<double,1> >& models,
  * @param[out] scores 2D matrix of scores, <tt>scores[m, s]</tt> is the score for model @c m against statistics @c s
  * @warning the output scores matrix should have the correct size (number of models x number of test_stats)
  */
-void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMachine> >& models,
-                   const bob::machine::GMMMachine& ubm,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+void linearScoring(const std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> >& models,
+                   const bob::learn::misc::GMMMachine& ubm,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const bool frame_length_normalisation,
                    blitz::Array<double,2>& scores);
 /**
@@ -74,9 +70,9 @@ void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMa
  * @param[out] scores 2D matrix of scores, <tt>scores[m, s]</tt> is the score for model @c m against statistics @c s
  * @warning the output scores matrix should have the correct size (number of models x number of test_stats)
  */
-void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMachine> >& models,
-                   const bob::machine::GMMMachine& ubm,
-                   const std::vector<boost::shared_ptr<const bob::machine::GMMStats> >& test_stats,
+void linearScoring(const std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> >& models,
+                   const bob::learn::misc::GMMMachine& ubm,
+                   const std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> >& test_stats,
                    const std::vector<blitz::Array<double, 1> >& test_channelOffset,
                    const bool frame_length_normalisation,
                    blitz::Array<double,2>& scores);
@@ -93,13 +89,10 @@ void linearScoring(const std::vector<boost::shared_ptr<const bob::machine::GMMMa
  */
 double linearScoring(const blitz::Array<double,1>& model,
                    const blitz::Array<double,1>& ubm_mean, const blitz::Array<double,1>& ubm_variance,
-                   const bob::machine::GMMStats& test_stats,
+                   const bob::learn::misc::GMMStats& test_stats,
                    const blitz::Array<double,1>& test_channelOffset,
                    const bool frame_length_normalisation);
 
-/**
- * @}
- */
-}}
+} } } // namespaces
 
-#endif // BOB_MACHINE_LINEARSCORING_H
+#endif // BOB_LEARN_MISC_LINEARSCORING_H

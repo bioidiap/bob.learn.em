@@ -8,34 +8,34 @@
 #include <bob.learn.misc/ML_GMMTrainer.h>
 #include <algorithm>
 
-bob::trainer::ML_GMMTrainer::ML_GMMTrainer(const bool update_means,
+bob::learn::misc::ML_GMMTrainer::ML_GMMTrainer(const bool update_means,
     const bool update_variances, const bool update_weights,
     const double mean_var_update_responsibilities_threshold):
-  bob::trainer::GMMTrainer(update_means, update_variances, update_weights,
+  bob::learn::misc::GMMTrainer(update_means, update_variances, update_weights,
     mean_var_update_responsibilities_threshold)
 {
 }
 
-bob::trainer::ML_GMMTrainer::ML_GMMTrainer(const bob::trainer::ML_GMMTrainer& b):
-  bob::trainer::GMMTrainer(b)
+bob::learn::misc::ML_GMMTrainer::ML_GMMTrainer(const bob::learn::misc::ML_GMMTrainer& b):
+  bob::learn::misc::GMMTrainer(b)
 {
 }
 
-bob::trainer::ML_GMMTrainer::~ML_GMMTrainer()
+bob::learn::misc::ML_GMMTrainer::~ML_GMMTrainer()
 {
 }
 
-void bob::trainer::ML_GMMTrainer::initialize(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::ML_GMMTrainer::initialize(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
-  bob::trainer::GMMTrainer::initialize(gmm, data);
+  bob::learn::misc::GMMTrainer::initialize(gmm, data);
   // Allocate cache
   size_t n_gaussians = gmm.getNGaussians();
   m_cache_ss_n_thresholded.resize(n_gaussians);
 }
 
 
-void bob::trainer::ML_GMMTrainer::mStep(bob::machine::GMMMachine& gmm,
+void bob::learn::misc::ML_GMMTrainer::mStep(bob::learn::misc::GMMMachine& gmm,
   const blitz::Array<double,2>& data)
 {
   // Read options and variables
@@ -79,33 +79,33 @@ void bob::trainer::ML_GMMTrainer::mStep(bob::machine::GMMMachine& gmm,
   }
 }
 
-bob::trainer::ML_GMMTrainer& bob::trainer::ML_GMMTrainer::operator=
-  (const bob::trainer::ML_GMMTrainer &other)
+bob::learn::misc::ML_GMMTrainer& bob::learn::misc::ML_GMMTrainer::operator=
+  (const bob::learn::misc::ML_GMMTrainer &other)
 {
   if (this != &other)
   {
-    bob::trainer::GMMTrainer::operator=(other);
+    bob::learn::misc::GMMTrainer::operator=(other);
     m_cache_ss_n_thresholded.resize(other.m_cache_ss_n_thresholded.extent(0));
   }
   return *this;
 }
 
-bool bob::trainer::ML_GMMTrainer::operator==
-  (const bob::trainer::ML_GMMTrainer &other) const
+bool bob::learn::misc::ML_GMMTrainer::operator==
+  (const bob::learn::misc::ML_GMMTrainer &other) const
 {
-  return bob::trainer::GMMTrainer::operator==(other);
+  return bob::learn::misc::GMMTrainer::operator==(other);
 }
 
-bool bob::trainer::ML_GMMTrainer::operator!=
-  (const bob::trainer::ML_GMMTrainer &other) const
+bool bob::learn::misc::ML_GMMTrainer::operator!=
+  (const bob::learn::misc::ML_GMMTrainer &other) const
 {
   return !(this->operator==(other));
 }
 
-bool bob::trainer::ML_GMMTrainer::is_similar_to
-  (const bob::trainer::ML_GMMTrainer &other, const double r_epsilon,
+bool bob::learn::misc::ML_GMMTrainer::is_similar_to
+  (const bob::learn::misc::ML_GMMTrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::trainer::GMMTrainer::is_similar_to(other, r_epsilon, a_epsilon);
+  return bob::learn::misc::GMMTrainer::is_similar_to(other, r_epsilon, a_epsilon);
 }
 
