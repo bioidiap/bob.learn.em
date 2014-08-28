@@ -2,8 +2,11 @@
 *.swp
 *.pyc
 *.so
+*.dylib
+CMakeLists.txt
 bin
 eggs
+src
 parts
 .installed.cfg
 .mr.developer.cfg
@@ -15,5 +18,6 @@ dist
 .gdb_history
 build
 *.egg
-src/
 opsnr.stt
+.coverage
+.DS_Store
