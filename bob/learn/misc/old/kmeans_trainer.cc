@@ -56,13 +56,41 @@ static void py_mStep(EMTrainerKMeansBase& trainer,
   trainer.mStep(machine, sample.bz<double,2>());
 }
 
+// include the random API of bob.core
+#include <bob.core/random.h>
+static boost::python::object KMTB_getRng(EMTrainerKMeansBase& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+static boost::python::object KMT_getRng(bob::learn::misc::KMeansTrainer& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+
+#include <boost/make_shared.hpp>
+static void KMTB_setRng(EMTrainerKMeansBase& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+static void KMT_setRng(bob::learn::misc::KMeansTrainer& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+
+
 void bind_trainer_kmeans()
 {
   class_<EMTrainerKMeansBase, boost::noncopyable>("EMTrainerKMeans", "The base python class for all EM-based trainers.", no_init)
     .add_property("convergence_threshold", &EMTrainerKMeansBase::getConvergenceThreshold, &EMTrainerKMeansBase::setConvergenceThreshold, "Convergence threshold")
     .add_property("max_iterations", &EMTrainerKMeansBase::getMaxIterations, &EMTrainerKMeansBase::setMaxIterations, "Max iterations")
     .add_property("compute_likelihood", &EMTrainerKMeansBase::getComputeLikelihood, &EMTrainerKMeansBase::setComputeLikelihood, "Tells whether we compute the average min (square Euclidean) distance or not.")
-    .add_property("rng", &EMTrainerKMeansBase::getRng, &EMTrainerKMeansBase::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
+    .add_property("rng", &KMTB_getRng, &KMTB_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
     .def(self == self)
     .def(self != self)
     .def("train", &py_train, (arg("self"), arg("machine"), arg("data")), "Train a machine using data")
@@ -91,7 +119,7 @@ void bind_trainer_kmeans()
   KMT.def(self == self)
      .def(self != self)
      .add_property("initialization_method", &bob::learn::misc::KMeansTrainer::getInitializationMethod, &bob::learn::misc::KMeansTrainer::setInitializationMethod, "The initialization method to generate the initial means.")
-     .add_property("rng", &bob::learn::misc::KMeansTrainer::getRng, &bob::learn::misc::KMeansTrainer::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of the means.")
+     .add_property("rng", &KMT_getRng, &KMT_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of the means.")
      .add_property("average_min_distance", &bob::learn::misc::KMeansTrainer::getAverageMinDistance, &bob::learn::misc::KMeansTrainer::setAverageMinDistance, "Average min (square Euclidean) distance. Useful to parallelize the E-step.")
      .add_property("zeroeth_order_statistics", make_function(&bob::learn::misc::KMeansTrainer::getZeroethOrderStats, return_value_policy<copy_const_reference>()), &py_setZeroethOrderStats, "The zeroeth order statistics. Useful to parallelize the E-step.")
      .add_property("first_order_statistics", make_function(&bob::learn::misc::KMeansTrainer::getFirstOrderStats, return_value_policy<copy_const_reference>()), &py_setFirstOrderStats, "The first order statistics. Useful to parallelize the E-step.")

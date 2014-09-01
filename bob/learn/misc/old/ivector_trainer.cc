@@ -80,13 +80,32 @@ static void py_set_AccSnormij(bob::learn::misc::IVectorTrainer& trainer,
   trainer.setAccSnormij(acc.bz<double,2>());
 }
 
+
+
+// include the random API of bob.core
+#include <bob.core/random.h>
+static boost::python::object ITB_getRng(EMTrainerIVectorBase& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+
+#include <boost/make_shared.hpp>
+static void ITB_setRng(EMTrainerIVectorBase& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+
+
 void bind_trainer_ivector()
 {
   class_<EMTrainerIVectorBase, boost::noncopyable>("EMTrainerIVector", "The base python class for all EM-based trainers.", no_init)
     .add_property("convergence_threshold", &EMTrainerIVectorBase::getConvergenceThreshold, &EMTrainerIVectorBase::setConvergenceThreshold, "Convergence threshold")
     .add_property("max_iterations", &EMTrainerIVectorBase::getMaxIterations, &EMTrainerIVectorBase::setMaxIterations, "Max iterations")
     .add_property("compute_likelihood_variable", &EMTrainerIVectorBase::getComputeLikelihood, &EMTrainerIVectorBase::setComputeLikelihood, "Indicates whether the log likelihood should be computed during EM or not")
-    .add_property("rng", &EMTrainerIVectorBase::getRng, &EMTrainerIVectorBase::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
+    .add_property("rng", &ITB_getRng, &ITB_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
     .def("train", &py_train, (arg("machine"), arg("data")), "Trains a machine using data")
     .def("initialize", &py_initialize, (arg("machine"), arg("data")), "This method is called before the EM algorithm")
     .def("finalize", &py_finalize, (arg("machine"), arg("data")), "This method is called at the end of the EM algorithm")

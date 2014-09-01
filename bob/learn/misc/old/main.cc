@@ -14,6 +14,7 @@
 #include <bob.blitz/capi.h>
 #include <bob.blitz/cleanup.h>
 #include <bob.io.base/api.h>
+#include <bob.core/random.h>
 
 #include "ndarray.h"
 
@@ -51,6 +52,12 @@ BOOST_PYTHON_MODULE(_old_library) {
   if (import_bob_blitz() < 0) {
     PyErr_Print();
     PyErr_Format(PyExc_ImportError, "cannot import `bob.blitz'");
+    return;
+  }
+
+  if (import_bob_core_random() < 0) {
+    PyErr_Print();
+    PyErr_Format(PyExc_ImportError, "cannot import `bob.core.random'");
     return;
   }
 

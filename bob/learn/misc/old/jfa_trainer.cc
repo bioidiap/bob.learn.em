@@ -309,12 +309,41 @@ static void jfa_set_accDA2(bob::learn::misc::JFATrainer& trainer,
 }
 
 
+
+// include the random API of bob.core
+#include <bob.core/random.h>
+static boost::python::object isv_getRng(bob::learn::misc::ISVTrainer& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+static boost::python::object jfa_getRng(bob::learn::misc::JFATrainer& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+
+#include <boost/make_shared.hpp>
+static void isv_setRng(bob::learn::misc::ISVTrainer& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+static void jfa_setRng(bob::learn::misc::JFATrainer& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+
+
 void bind_trainer_jfa()
 {
   class_<bob::learn::misc::ISVTrainer, boost::noncopyable >("ISVTrainer", "A trainer for Inter-session Variability Modelling (ISV). \n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<optional<const size_t, const double> >((arg("self"), arg("max_iterations")=10, arg("relevance_factor")=4.),"Initializes a new ISVTrainer."))
     .def(init<const bob::learn::misc::ISVTrainer&>((arg("self"), arg("other")), "Copy constructs an ISVTrainer"))
     .add_property("max_iterations", &bob::learn::misc::ISVTrainer::getMaxIterations, &bob::learn::misc::ISVTrainer::setMaxIterations, "Max iterations")
-    .add_property("rng", &bob::learn::misc::ISVTrainer::getRng, &bob::learn::misc::ISVTrainer::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
+    .add_property("rng", &isv_getRng, &isv_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
     .add_property("__X__", &isv_get_x, &isv_set_x)
     .add_property("__Z__", &isv_get_z, &isv_set_z)
     .def(self == self)
@@ -333,7 +362,7 @@ void bind_trainer_jfa()
   class_<bob::learn::misc::JFATrainer, boost::noncopyable >("JFATrainer", "A trainer for Joint Factor Analysis (JFA).\n\nReferences:\n[1] 'Explicit Modelling of Session Variability for Speaker Verification', R. Vogt, S. Sridharan, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38\n[2] 'Session Variability Modelling for Face Authentication', C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel, IET Biometrics, 2013", init<optional<const size_t> >((arg("self"), arg("max_iterations")=10),"Initializes a new JFATrainer."))
     .def(init<const bob::learn::misc::JFATrainer&>((arg("self"), arg("other")), "Copy constructs an JFATrainer"))
     .add_property("max_iterations", &bob::learn::misc::JFATrainer::getMaxIterations, &bob::learn::misc::JFATrainer::setMaxIterations, "Max iterations")
-    .add_property("rng", &bob::learn::misc::JFATrainer::getRng, &bob::learn::misc::JFATrainer::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
+    .add_property("rng", &jfa_getRng, &jfa_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
     .add_property("__X__", &jfa_get_x, &jfa_set_x)
     .add_property("__Y__", &jfa_get_y, &jfa_set_y)
     .add_property("__Z__", &jfa_get_z, &jfa_set_z)

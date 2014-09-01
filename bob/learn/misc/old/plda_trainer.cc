@@ -92,11 +92,28 @@ static object get_z_second_order(bob::learn::misc::PLDATrainer& m) {
 }
 
 
+// include the random API of bob.core
+#include <bob.core/random.h>
+static boost::python::object TB_getRng(EMTrainerPLDA& self){
+  // create new object
+  PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
+  reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
+  return boost::python::object(boost::python::handle<>(o));
+}
+
+#include <boost/make_shared.hpp>
+static void TB_setRng(EMTrainerPLDA& self, boost::python::object rng){
+  if (!PyBoostMt19937_Check(rng.ptr())) PYTHON_ERROR(TypeError, "Would have expected a bob.core.random.mt19937 object");
+  PyBoostMt19937Object* o = reinterpret_cast<PyBoostMt19937Object*>(rng.ptr());
+  self.setRng(boost::make_shared<boost::mt19937>(*o->rng));
+}
+
+
 void bind_trainer_plda()
 {
   class_<EMTrainerPLDA, boost::noncopyable>("EMTrainerPLDA", "The base python class for all EM/PLDA-based trainers.", no_init)
     .add_property("max_iterations", &EMTrainerPLDA::getMaxIterations, &EMTrainerPLDA::setMaxIterations, "Max iterations")
-    .add_property("rng", &EMTrainerPLDA::getRng, &EMTrainerPLDA::setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
+    .add_property("rng", &TB_getRng, &TB_setRng, "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.")
     .def("train", &plda_train, (arg("self"), arg("machine"), arg("data")), "Trains a PLDABase using data (mu, F, G and sigma are learnt).")
     .def("initialize", &plda_initialize, (arg("self"), arg("machine"), arg("data")), "This method is called before the EM algorithm")
     .def("finalize", &plda_finalize, (arg("self"), arg("machine"), arg("data")), "This method is called at the end of the EM algorithm")
