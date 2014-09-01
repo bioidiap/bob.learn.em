@@ -316,13 +316,13 @@ static boost::python::object isv_getRng(bob::learn::misc::ISVTrainer& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
   reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
-  return boost::python::object(boost::python::handle<>(o));
+  return boost::python::object(boost::python::handle<>(boost::python::borrowed(o)));
 }
 static boost::python::object jfa_getRng(bob::learn::misc::JFATrainer& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
   reinterpret_cast<PyBoostMt19937Object*>(o)->rng = self.getRng().get();
-  return boost::python::object(boost::python::handle<>(o));
+  return boost::python::object(boost::python::handle<>(boost::python::borrowed(o)));
 }
 
 #include <boost/make_shared.hpp>

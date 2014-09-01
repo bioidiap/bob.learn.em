@@ -15,7 +15,6 @@ from bob.io.base.test_utils import datafile
 
 from . import KMeansMachine, KMeansTrainer
 
-from . import mt19937 as old_mt19937
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
@@ -74,7 +73,7 @@ if hasattr(KMeansTrainer, 'KMEANS_PLUS_PLUS'):
     # C++ implementation
     machine = KMeansMachine(dim_c, dim_d)
     trainer = KMeansTrainer()
-    trainer.rng = old_mt19937(seed)
+    trainer.rng = bob.core.random.mt19937(seed)
     trainer.initialization_method = KMeansTrainer.KMEANS_PLUS_PLUS
     trainer.initialize(machine, data)
 
@@ -92,7 +91,7 @@ def test_kmeans_noduplicate():
   # Defines machine and trainer
   machine = KMeansMachine(dim_c, dim_d)
   trainer = KMeansTrainer()
-  trainer.rng = old_mt19937(seed)
+  trainer.rng = bob.core.random.mt19937(seed)
   trainer.initialization_method = KMeansTrainer.RANDOM_NO_DUPLICATE
   trainer.initialize(machine, data)
   # Makes sure that the two initial mean vectors selected are different

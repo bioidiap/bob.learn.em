@@ -11,10 +11,11 @@
 import numpy
 import numpy.linalg
 
+import bob.core.random
+
 from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, \
     JFATrainer, ISVTrainer
 
-from . import mt19937 as old_mt19937
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon).all()
@@ -266,7 +267,7 @@ def test_JFATrainInitialize():
   ## JFA
   jb = JFABase(ubm, 2, 2)
   # first round
-  rng = old_mt19937(0)
+  rng = bob.core.random.mt19937(0)
   jt = JFATrainer(10)
   jt.rng = rng
   jt.initialize(jb, TRAINING_STATS)
@@ -275,7 +276,7 @@ def test_JFATrainInitialize():
   d1 = jb.d
 
   # second round
-  rng = old_mt19937(0)
+  rng = bob.core.random.mt19937(0)
   jt.rng = rng
   jt.initialize(jb, TRAINING_STATS)
   u2 = jb.u
@@ -299,7 +300,7 @@ def test_ISVTrainInitialize():
   ## ISV
   ib = ISVBase(ubm, 2)
   # first round
-  rng = old_mt19937(0)
+  rng = bob.core.random.mt19937(0)
   it = ISVTrainer(10)
   it.rng = rng
   it.initialize(ib, TRAINING_STATS)
@@ -307,7 +308,7 @@ def test_ISVTrainInitialize():
   d1 = ib.d
 
   # second round
-  rng = old_mt19937(0)
+  rng = bob.core.random.mt19937(0)
   it.rng = rng
   it.initialize(ib, TRAINING_STATS)
   u2 = ib.u
