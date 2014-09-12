@@ -22,7 +22,6 @@
 void bind_core_tinyvector();
 void bind_core_ndarray_numpy();
 void bind_core_bz_numpy();
-void bind_core_random();
 
 /** machine bindings **/
 void bind_machine_base();
@@ -75,7 +74,6 @@ BOOST_PYTHON_MODULE(_old_library) {
   bind_core_tinyvector();
   bind_core_ndarray_numpy();
   bind_core_bz_numpy();
-  bind_core_random();
 
   /** machine bindings **/
   bind_machine_base();

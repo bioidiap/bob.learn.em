@@ -133,7 +133,6 @@ setup(
           "bob/learn/misc/old/ndarray.cc",
           "bob/learn/misc/old/ndarray_numpy.cc",
           "bob/learn/misc/old/tinyvector.cc",
-          "bob/learn/misc/old/random.cc",
 
           "bob/learn/misc/old/main.cc",
         ],
