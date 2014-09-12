@@ -2,6 +2,7 @@
 *.swp
 *.pyc
 *.so
+*.so.*
 *.dylib
 CMakeLists.txt
 bin
