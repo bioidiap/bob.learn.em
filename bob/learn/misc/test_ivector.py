@@ -37,7 +37,7 @@ class IVectorMachinePy():
       self.m_sigma = numpy.random.randn(dim_cd)
 
   def precompute(self):
-    if self.m_ubm and not (self.m_t == None) and not (self.m_sigma == None):
+    if self.m_ubm and self.m_t is not None and self.m_sigma is not None:
       dim_c = self.m_ubm.dim_c
       dim_d = self.m_ubm.dim_d
       self.m_cache_TtSigmaInv = {}
