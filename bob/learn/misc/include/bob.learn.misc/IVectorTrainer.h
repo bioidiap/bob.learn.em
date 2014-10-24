@@ -13,7 +13,6 @@
 #include <bob.learn.misc/IVectorMachine.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <boost/shared_ptr.hpp>
-#include <boost/random.hpp>
 #include <vector>
 
 namespace bob { namespace learn { namespace misc {

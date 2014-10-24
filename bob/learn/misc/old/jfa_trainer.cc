@@ -311,7 +311,7 @@ static void jfa_set_accDA2(bob::learn::misc::JFATrainer& trainer,
 
 
 // include the random API of bob.core
-#include <bob.core/random.h>
+#include <bob.core/random_api.h>
 static boost::python::object isv_getRng(bob::learn::misc::ISVTrainer& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);

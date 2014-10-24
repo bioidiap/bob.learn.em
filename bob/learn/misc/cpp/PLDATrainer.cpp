@@ -14,7 +14,6 @@
 #include <bob.math/inv.h>
 #include <bob.math/svd.h>
 #include <algorithm>
-#include <boost/random.hpp>
 #include <vector>
 #include <limits>
 

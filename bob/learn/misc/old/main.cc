@@ -14,7 +14,7 @@
 #include <bob.blitz/capi.h>
 #include <bob.blitz/cleanup.h>
 #include <bob.io.base/api.h>
-#include <bob.core/random.h>
+#include <bob.core/random_api.h>
 
 #include "ndarray.h"
 

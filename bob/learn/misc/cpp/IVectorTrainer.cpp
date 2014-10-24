@@ -15,7 +15,6 @@
 #include <bob.math/linear.h>
 #include <bob.math/linsolve.h>
 #include <boost/shared_ptr.hpp>
-#include <boost/random.hpp>
 
 bob::learn::misc::IVectorTrainer::IVectorTrainer(const bool update_sigma,
     const double convergence_threshold,

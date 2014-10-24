@@ -83,7 +83,7 @@ static void py_set_AccSnormij(bob::learn::misc::IVectorTrainer& trainer,
 
 
 // include the random API of bob.core
-#include <bob.core/random.h>
+#include <bob.core/random_api.h>
 static boost::python::object ITB_getRng(EMTrainerIVectorBase& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);

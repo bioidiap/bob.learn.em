@@ -93,7 +93,7 @@ static object get_z_second_order(bob::learn::misc::PLDATrainer& m) {
 
 
 // include the random API of bob.core
-#include <bob.core/random.h>
+#include <bob.core/random_api.h>
 static boost::python::object TB_getRng(EMTrainerPLDA& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);

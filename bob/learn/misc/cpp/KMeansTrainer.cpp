@@ -8,11 +8,9 @@
 
 #include <bob.learn.misc/KMeansTrainer.h>
 #include <bob.core/array_copy.h>
-#include <boost/random.hpp>
+#include <bob.core/random.h>
 
-#if BOOST_VERSION >= 104700
-#include <boost/random/discrete_distribution.hpp>
-#endif
+#include <boost/random.hpp>
 
 bob::learn::misc::KMeansTrainer::KMeansTrainer(double convergence_threshold,
     size_t max_iterations, bool compute_likelihood, InitializationMethod i_m):
@@ -71,9 +69,7 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
 
   // assign the i'th mean to a random example within the i'th chunk
   blitz::Range a = blitz::Range::all();
-#if BOOST_VERSION >= 104700
   if(m_initialization_method == RANDOM || m_initialization_method == RANDOM_NO_DUPLICATE) // Random initialization
-#endif
   {
     unsigned int n_chunk = n_data / kmeans.getNMeans();
     size_t n_max_trials = (size_t)n_chunk * 5;
@@ -83,11 +79,10 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
 
     for(size_t i=0; i<kmeans.getNMeans(); ++i)
     {
-      boost::uniform_int<> range(i*n_chunk, (i+1)*n_chunk-1);
-      boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(*m_rng, range);
+      boost::uniform_int<> die(i*n_chunk, (i+1)*n_chunk-1);
 
       // get random index within chunk
-      unsigned int index = die();
+      unsigned int index = die(*m_rng);
 
       // get the example at that index
       blitz::Array<double, 1> mean = ar(index,a);
@@ -110,7 +105,7 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
             break;
           else
           {
-            index = die();
+            index = die(*m_rng);
             mean = ar(index,a);
             ++count;
           }
@@ -127,14 +122,12 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
       kmeans.setMean(i, mean);
     }
   }
-#if BOOST_VERSION >= 104700
   else // K-Means++
   {
     // 1.a. Selects one sample randomly
-    boost::uniform_int<> range(0, n_data-1);
-    boost::variate_generator<boost::mt19937&, boost::uniform_int<> > die(*m_rng, range);
+    boost::uniform_int<> die(0, n_data-1);
     //   Gets the example at a random index
-    blitz::Array<double,1> mean = ar(die(),a);
+    blitz::Array<double,1> mean = ar(die(*m_rng),a);
     kmeans.setMean(0, mean);
 
     // 1.b. Loops, computes probability distribution and select samples accordingly
@@ -160,12 +153,11 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
       // Takes a sample according to the weights distribution
       // Blitz iterators is fine as the weights array should be C-style contiguous
       bob::core::array::assertCContiguous(weights);
-      boost::random::discrete_distribution<> die2(weights.begin(), weights.end());
+      bob::core::random::discrete_distribution<> die2(weights.begin(), weights.end());
       blitz::Array<double,1> new_mean = ar(die2(*m_rng),a);
       kmeans.setMean(m, new_mean);
     }
   }
-#endif
    // Resize the accumulator
   m_zeroethOrderStats.resize(kmeans.getNMeans());
   m_firstOrderStats.resize(kmeans.getNMeans(), kmeans.getNInputs());

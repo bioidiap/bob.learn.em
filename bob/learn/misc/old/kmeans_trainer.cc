@@ -57,7 +57,7 @@ static void py_mStep(EMTrainerKMeansBase& trainer,
 }
 
 // include the random API of bob.core
-#include <bob.core/random.h>
+#include <bob.core/random_api.h>
 static boost::python::object KMTB_getRng(EMTrainerKMeansBase& self){
   // create new object
   PyObject* o = PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type,0);
