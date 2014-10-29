@@ -21,7 +21,7 @@ setup(
 
     name='bob.learn.misc',
     version=version,
-    description='Bindings for miscelaneous machines and trainers',
+    description='Bindings for miscelaneous machines and trainers of Bob',
     url='http://github.com/bioidiap/bob.learn.misc',
     license='BSD',
     author='Andre Anjos',
@@ -143,6 +143,7 @@ setup(
     },
 
     classifiers = [
+      'Framework :: Bob',
       'Development Status :: 3 - Alpha',
       'Intended Audience :: Developers',
       'License :: OSI Approved :: BSD License',

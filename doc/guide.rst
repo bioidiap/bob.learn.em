@@ -212,7 +212,7 @@ Once the :py:class:`bob.learn.misc.JFAMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`bob.learn.misc.JFAMachine:forward` on the sufficient statistics.
+:py:meth:`bob.learn.misc.JFAMachine.forward` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
@@ -266,7 +266,7 @@ Once the :py:class:`bob.learn.misc.ISVMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`bob.learn.misc.ISVMachine:forward` on the sufficient statistics.
+:py:meth:`bob.learn.misc.ISVMachine.forward` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
@@ -301,7 +301,7 @@ information about these two matrices. This can be initialized as follows:
 
 
 Once the :py:class:`bob.learn.misc.IVectorMachine` has been set, the
-extraction of an i-vector :math:`w_ij` can be done in two steps, by first
+extraction of an i-vector :math:`w_{ij}` can be done in two steps, by first
 extracting the GMM sufficient statistics, and then estimating the i-vector:
 
 .. doctest::
@@ -364,8 +364,8 @@ K-means
 
 **k-means** [7]_ is a clustering method, which aims to partition a set of
 observations into :math:`k` clusters. This is an `unsupervised` technique. As
-for **PCA** [1]_, the training data is passed in a 2D :py:class:`numpy.ndarray`
-container.
+for **PCA** [1]_, which is implemented in the :py:class:`bob.learn.linear.PCATrainer`
+class, the training data is passed in a 2D :py:class:`numpy.ndarray` container.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -738,8 +738,8 @@ separately for each model.
 In a verification scenario, there are two possible hypotheses: 1.
 :math:`x_{test}` and :math:`x_{enrol}` share the same class.  2.
 :math:`x_{test}` and :math:`x_{enrol}` are from different classes.  Using the
-methods :py:meth:`bob.learn.misc.PLDAMachine:call()` or
-:py:meth:`bob.learn.misc.PLDAMachine:forward()`, the corresponding
+methods :py:meth:`bob.learn.misc.PLDAMachine.forward` or
+:py:meth:`bob.learn.misc.PLDAMachine.__call__` function, the corresponding
 log-likelihood ratio will be computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enrol})) - \ln(P(x_{test})P(x_{enrol}))`
 
