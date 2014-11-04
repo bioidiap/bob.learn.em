@@ -4,6 +4,8 @@
 ..
 .. Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
+.. _bob.learn.misc:
+
 ======================================
  Miscellaneous Machine Learning Tools
 ======================================

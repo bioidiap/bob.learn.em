@@ -20,7 +20,7 @@ before_install:
 - if [ -n "${NUMPYSPEC}" ]; then sudo apt-get install -qq gfortran; fi
 - if [ -n "${NUMPYSPEC}" ]; then pip install --upgrade pip setuptools; fi
 - if [ -n "${NUMPYSPEC}" ]; then pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel numpy$NUMPYSPEC; fi
-- pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel sphinx nose==1.3.0 jinja2==2.6 cpp-coveralls
+- pip install --find-links http://wheels.astropy.org/ --find-links http://wheels2.astropy.org/ --use-wheel sphinx nose==1.3.0 jinja2==2.6 cpp-coveralls setuptools==7.0
 install:
 - python bootstrap.py
 - CFLAGS=-coverage ./bin/buildout
