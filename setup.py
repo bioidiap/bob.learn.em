@@ -54,7 +54,6 @@ setup(
 
       Library("bob.learn.misc.bob_learn_misc",
         [
-          "bob/learn/misc/cpp/BICMachine.cpp",
           "bob/learn/misc/cpp/Gaussian.cpp",
           "bob/learn/misc/cpp/GMMMachine.cpp",
           "bob/learn/misc/cpp/GMMStats.cpp",
@@ -66,7 +65,6 @@ setup(
           "bob/learn/misc/cpp/WienerMachine.cpp",
           "bob/learn/misc/cpp/ZTNorm.cpp",
 
-          "bob/learn/misc/cpp/BICTrainer.cpp",
           "bob/learn/misc/cpp/EMPCATrainer.cpp",
           "bob/learn/misc/cpp/GMMTrainer.cpp",
           "bob/learn/misc/cpp/IVectorTrainer.cpp",
@@ -104,8 +102,6 @@ setup(
 
       Extension("bob.learn.misc._old_library",
         [
-          "bob/learn/misc/old/bic.cc",
-          "bob/learn/misc/old/bic_trainer.cc",
           "bob/learn/misc/old/empca_trainer.cc",
           "bob/learn/misc/old/gaussian.cc",
           "bob/learn/misc/old/gmm.cc",
