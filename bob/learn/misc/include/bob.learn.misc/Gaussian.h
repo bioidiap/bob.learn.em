@@ -9,7 +9,6 @@
 #ifndef BOB_LEARN_MISC_GAUSSIAN_H
 #define BOB_LEARN_MISC_GAUSSIAN_H
 
-#include <bob.learn.misc/Machine.h>
 #include <bob.io.base/HDF5File.h>
 #include <blitz/array.h>
 #include <limits>
@@ -19,7 +18,7 @@ namespace bob { namespace learn { namespace misc {
 /**
  * @brief This class implements a multivariate diagonal Gaussian distribution.
  */
-class Gaussian: public Machine<blitz::Array<double,1>, double>
+class Gaussian
 {
   public:
     /**
