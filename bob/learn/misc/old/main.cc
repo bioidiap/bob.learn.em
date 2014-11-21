@@ -25,7 +25,6 @@ void bind_core_bz_numpy();
 
 /** machine bindings **/
 void bind_machine_base();
-void bind_machine_bic();
 void bind_machine_gaussian();
 void bind_machine_gmm();
 void bind_machine_kmeans();
@@ -44,7 +43,6 @@ void bind_trainer_ivector();
 void bind_trainer_plda();
 void bind_trainer_wiener();
 void bind_trainer_empca();
-void bind_trainer_bic();
 
 BOOST_PYTHON_MODULE(_old_library) {
 
@@ -77,7 +75,6 @@ BOOST_PYTHON_MODULE(_old_library) {
 
   /** machine bindings **/
   bind_machine_base();
-  bind_machine_bic();
   bind_machine_gaussian();
   bind_machine_gmm();
   bind_machine_kmeans();
@@ -96,6 +93,5 @@ BOOST_PYTHON_MODULE(_old_library) {
   bind_trainer_plda();
   bind_trainer_wiener();
   bind_trainer_empca();
-  bind_trainer_bic();
 
 }
