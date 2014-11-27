@@ -33,7 +33,6 @@ void bind_machine_ztnorm();
 void bind_machine_jfa();
 void bind_machine_ivector();
 void bind_machine_plda();
-void bind_machine_wiener();
 
 /** trainer bindings **/
 void bind_trainer_gmm();
@@ -41,7 +40,6 @@ void bind_trainer_kmeans();
 void bind_trainer_jfa();
 void bind_trainer_ivector();
 void bind_trainer_plda();
-void bind_trainer_wiener();
 void bind_trainer_empca();
 
 BOOST_PYTHON_MODULE(_old_library) {
@@ -83,7 +81,6 @@ BOOST_PYTHON_MODULE(_old_library) {
   bind_machine_jfa();
   bind_machine_ivector();
   bind_machine_plda();
-  bind_machine_wiener();
 
   /** trainer bindings **/
   bind_trainer_gmm();
@@ -91,7 +88,6 @@ BOOST_PYTHON_MODULE(_old_library) {
   bind_trainer_jfa();
   bind_trainer_ivector();
   bind_trainer_plda();
-  bind_trainer_wiener();
   bind_trainer_empca();
 
 }

@@ -62,7 +62,6 @@ setup(
           #"bob/learn/misc/cpp/KMeansMachine.cpp",
           #"bob/learn/misc/cpp/LinearScoring.cpp",
           #"bob/learn/misc/cpp/PLDAMachine.cpp",
-          #"bob/learn/misc/cpp/WienerMachine.cpp",
           #"bob/learn/misc/cpp/ZTNorm.cpp",
 
           #"bob/learn/misc/cpp/EMPCATrainer.cpp",
@@ -73,7 +72,6 @@ setup(
           #"bob/learn/misc/cpp/MAP_GMMTrainer.cpp",
           #"bob/learn/misc/cpp/ML_GMMTrainer.cpp",
           #"bob/learn/misc/cpp/PLDATrainer.cpp",
-          #"bob/learn/misc/cpp/WienerTrainer.cpp",
         ],
         bob_packages = bob_packages,
         packages = packages,
