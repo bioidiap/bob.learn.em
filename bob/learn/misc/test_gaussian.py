@@ -14,7 +14,7 @@ import tempfile
 
 import bob.io.base
 
-from . import Gaussian
+from bob.learn.misc import Gaussian
 
 def equals(x, y, epsilon):
   return (abs(x - y) < epsilon)
