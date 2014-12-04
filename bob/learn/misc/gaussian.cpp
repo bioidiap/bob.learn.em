@@ -69,9 +69,8 @@ static int PyBobLearnMiscGaussian_init_hdf5(PyBobLearnMiscGaussianObject* self, 
   char** kwlist = Gaussian_doc.kwlist(2);
 
   PyBobIoHDF5FileObject* config = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobIoHDF5File_Type, &config)) 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)) 
     return -1;
-  auto config_ = make_safe(config);
 
   try {
     self->cxx.reset(new bob::learn::misc::Gaussian(*(config->f)));

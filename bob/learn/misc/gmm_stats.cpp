@@ -55,7 +55,7 @@ static int PyBobLearnMiscGMMStats_init_copy(PyBobLearnMiscGMMStatsObject* self, 
 
   char** kwlist = GMMStats_doc.kwlist(1);
   PyBobLearnMiscGMMStatsObject* tt;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGMMStats_Type, &tt)) return -1;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobLearnMiscGMMStats_Type, &tt)) return -1;
 
   self->cxx.reset(new bob::learn::misc::GMMStats(*tt->cxx));
   return 0;
@@ -66,13 +66,12 @@ static int PyBobLearnMiscGMMStats_init_hdf5(PyBobLearnMiscGMMStatsObject* self, 
 
   char** kwlist = GMMStats_doc.kwlist(2);
 
-  PyObject* config = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobIoHDF5File_Type, &config)) 
+  PyBobIoHDF5FileObject* config = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)) 
     return -1;
-  auto h5f = reinterpret_cast<PyBobIoHDF5FileObject*>(config);
 
   try {
-    self->cxx.reset(new bob::learn::misc::GMMStats(*(h5f->f)));
+    self->cxx.reset(new bob::learn::misc::GMMStats(*(config->f)));
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
