@@ -40,10 +40,15 @@ static auto Gaussian_doc = bob::extension::ClassDoc(
 static int PyBobLearnMiscGaussian_init_number(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = Gaussian_doc.kwlist(0);
-  size_t n_inputs=1;
+  int n_inputs=1;
   //Parsing the input argments
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "I", kwlist, &n_inputs))
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &n_inputs))
     return -1;
+
+  if(n_inputs < 0){
+    PyErr_Format(PyExc_TypeError, "input argument must be greater than or equal to zero");
+    return -1;
+   }
 
   self->cxx.reset(new bob::learn::misc::Gaussian(n_inputs));
   return 0;
@@ -63,13 +68,13 @@ static int PyBobLearnMiscGaussian_init_hdf5(PyBobLearnMiscGaussianObject* self, 
 
   char** kwlist = Gaussian_doc.kwlist(2);
 
-  PyObject* config = 0;
+  PyBobIoHDF5FileObject* config = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobIoHDF5File_Type, &config)) 
     return -1;
-  auto h5f = reinterpret_cast<PyBobIoHDF5FileObject*>(config);
+  auto config_ = make_safe(config);
 
   try {
-    self->cxx.reset(new bob::learn::misc::Gaussian(*(h5f->f)));
+    self->cxx.reset(new bob::learn::misc::Gaussian(*(config->f)));
   }
   catch (std::exception& ex) {
     PyErr_SetString(PyExc_RuntimeError, ex.what());
@@ -84,7 +89,6 @@ static int PyBobLearnMiscGaussian_init_hdf5(PyBobLearnMiscGaussianObject* self, 
 }
 
 
-
 static int PyBobLearnMiscGaussian_init(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
@@ -92,8 +96,8 @@ static int PyBobLearnMiscGaussian_init(PyBobLearnMiscGaussianObject* self, PyObj
   // get the number of command line arguments
   Py_ssize_t nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
   if (nargs==0){
-	self->cxx.reset(new bob::learn::misc::Gaussian());
-	return 0;
+    self->cxx.reset(new bob::learn::misc::Gaussian());
+    return 0;
   }
 
   //Reading the input argument
@@ -115,12 +119,12 @@ static int PyBobLearnMiscGaussian_init(PyBobLearnMiscGaussianObject* self, PyObj
   /**If the constructor input is a HDF5**/
   else if (PyBobIoHDF5File_Check(arg))
     return PyBobLearnMiscGaussian_init_hdf5(self, args, kwargs);
+  else
+    PyErr_Format(PyExc_TypeError, "invalid input argument");
+    return -1;
 
-
-  return -1;
-  
   BOB_CATCH_MEMBER("cannot create Gaussian", 0)
-
+  return -0;
 }
 
 
@@ -177,6 +181,7 @@ int PyBobLearnMiscGaussian_setMean(PyBobLearnMiscGaussianObject* self, PyObject*
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, mean.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "mean");
   if (!b) return -1;
   self->cxx->setMean(*b);
@@ -202,6 +207,7 @@ int PyBobLearnMiscGaussian_setVariance(PyBobLearnMiscGaussianObject* self, PyObj
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variance.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance");
   if (!b) return -1;
   self->cxx->setVariance(*b);
@@ -226,12 +232,10 @@ int PyBobLearnMiscGaussian_setdimD(PyBobLearnMiscGaussianObject* self, PyObject*
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an int", Py_TYPE(self)->tp_name, dimD.name());
     return -1;
   }
-
   if (PyInt_AS_LONG(value) <= 0){
     PyErr_Format(PyExc_TypeError, "dim_d must be greater than zero");
-	return -1;
+    return -1;
   }
-
   self->cxx->setNInputs(PyInt_AS_LONG(value));
   return 0;
   BOB_CATCH_MEMBER("dim_d could not be set", -1)
@@ -242,7 +246,8 @@ int PyBobLearnMiscGaussian_setdimD(PyBobLearnMiscGaussianObject* self, PyObject*
 static auto variance_thresholds = bob::extension::VariableDoc(
   "variance_thresholds",
   "array_like <double, 1D>",
-  "The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension. The variance will be set to this value if an attempt is made to set it to a smaller value."
+  "The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension. ",
+  "The variance will be set to this value if an attempt is made to set it to a smaller value."
 );
 PyObject* PyBobLearnMiscGaussian_getVarianceThresholds(PyBobLearnMiscGaussianObject* self, void*){
   BOB_TRY
@@ -256,6 +261,7 @@ int PyBobLearnMiscGaussian_setVarianceThresholds(PyBobLearnMiscGaussianObject* s
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, variance_thresholds.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance_thresholds");
   if (!b) return -1;
   self->cxx->setVarianceThresholds(*b);
@@ -344,7 +350,7 @@ static PyGetSetDef PyBobLearnMiscGaussian_getseters[] = {
 static auto resize = bob::extension::FunctionDoc(
   "resize",
   "int"
-  " Set the input dimensionality, reset the mean to zero and the variance to one."
+  "Set the input dimensionality, reset the mean to zero and the variance to one."
 )
 .add_prototype("input")
 .add_parameter("input", "int", "Tuple with the new shape");
@@ -352,8 +358,7 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"input", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = resize.kwlist(0);
 
   Py_ssize_t input = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "n", kwlist, &input)) Py_RETURN_NONE;
@@ -372,7 +377,7 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
 static auto forward = bob::extension::FunctionDoc(
   "forward",
   "array_like <double, 1D>"
-  " Output the log likelihood of the sample, x. The input size is checked."
+  "Output the log likelihood of the sample, x. The input size is checked."
 )
 .add_prototype("input","double")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
@@ -381,7 +386,7 @@ static auto forward = bob::extension::FunctionDoc(
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
   "array_like <double, 1D>"
-  " Output the log likelihood of the sample, x. The input size is checked."
+  "Output the log likelihood of the sample, x. The input size is checked."
 )
 .add_prototype("input","double")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
@@ -389,8 +394,7 @@ static auto log_likelihood = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnMiscGaussian_loglikelihood(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
-  static const char* const_kwlist[] = {"input", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = log_likelihood.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
 
@@ -409,19 +413,16 @@ static PyObject* PyBobLearnMiscGaussian_loglikelihood(PyBobLearnMiscGaussianObje
 static auto log_likelihood_ = bob::extension::FunctionDoc(
   "log_likelihood_",
   "array_like <double, 1D>"
-  " Output the log likelihood given a sample. The input size is NOT checked."
+  "Output the log likelihood given a sample. The input size is NOT checked."
 )
 .add_prototype("input","double")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
 .add_return("double","double","The log likelihood");
 static PyObject* PyBobLearnMiscGaussian_loglikelihood_(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  static const char* const_kwlist[] = {"input", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = log_likelihood_.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
-
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -436,7 +437,7 @@ static PyObject* PyBobLearnMiscGaussian_loglikelihood_(PyBobLearnMiscGaussianObj
 /*** save ***/
 static auto save = bob::extension::FunctionDoc(
   "save",
-  " Save the configuration of the Gassian Machine to a given HDF5 file",
+  "Save the configuration of the Gassian Machine to a given HDF5 file",
   0,
   true
 )
@@ -472,7 +473,7 @@ static PyObject* PyBobLearnMiscGaussian_Save(PyBobLearnMiscGaussianObject* self,
 /*** load ***/
 static auto load = bob::extension::FunctionDoc(
   "load",
-  " Load the configuration of the Gassian Machine to a given HDF5 file",
+  "Load the configuration of the Gassian Machine to a given HDF5 file",
   0,
   true
 );
@@ -484,7 +485,6 @@ static PyObject* PyBobLearnMiscGaussian_Load(PyBobLearnMiscGaussianObject* self,
   }
 
   auto h5f = reinterpret_cast<PyBobIoHDF5FileObject*>(f);
-
   try {
     self->cxx->load(*h5f->f);
   }
@@ -505,15 +505,9 @@ static PyObject* PyBobLearnMiscGaussian_Load(PyBobLearnMiscGaussianObject* self,
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
   
-  "Compares this Gaussian with the ``other`` one to be\n\
-  approximately the same.\n\
-  \n\
-  The optional values ``r_epsilon`` and ``a_epsilon`` refer to the\n\
-  relative and absolute precision for the ``weights``, ``biases``\n\
-  and any other values internal to this machine.\n\
-  \n\
-  ",
-
+  "Compares this Gaussian with the ``other`` one to be approximately the same."
+  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the"
+  "relative and absolute precision for the ``weights``, ``biases`` and any other values internal to this machine.",
   0,
   true
 )
@@ -525,10 +519,9 @@ static auto is_similar_to = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnMiscGaussian_IsSimilarTo(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"other", "r_epsilon", "a_epsilon", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = is_similar_to.kwlist(0);
 
-  PyObject* other = 0;
+  PyBobLearnMiscGaussianObject* other = 0;
   double r_epsilon = 1.e-5;
   double a_epsilon = 1.e-8;
 
@@ -536,9 +529,7 @@ static PyObject* PyBobLearnMiscGaussian_IsSimilarTo(PyBobLearnMiscGaussianObject
         &PyBobLearnMiscGaussian_Type, &other,
         &r_epsilon, &a_epsilon)) return 0;
 
-  auto other_ = reinterpret_cast<PyBobLearnMiscGaussianObject*>(other);
-
-  if (self->cxx->is_similar_to(*other_->cxx, r_epsilon, a_epsilon))
+  if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
@@ -549,7 +540,7 @@ static PyObject* PyBobLearnMiscGaussian_IsSimilarTo(PyBobLearnMiscGaussianObject
 static auto set_variance_thresholds = bob::extension::FunctionDoc(
   "set_variance_thresholds",
   "int"
-  " Set the variance flooring thresholds equal to the given threshold for all the dimensions."
+  "Set the variance flooring thresholds equal to the given threshold for all the dimensions."
 )
 .add_prototype("input")
 .add_parameter("input","float","Threshold")
@@ -558,11 +549,10 @@ static PyObject* PyBobLearnMiscGaussian_SetVarianceThresholds(PyBobLearnMiscGaus
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"input", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = set_variance_thresholds.kwlist(0);
 
   double input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &input)) return 0;
 
   self->cxx->setVarianceThresholds(input);
 
