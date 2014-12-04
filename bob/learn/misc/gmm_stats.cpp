@@ -100,7 +100,7 @@ static int PyBobLearnMiscGMMStats_init(PyBobLearnMiscGMMStatsObject* self, PyObj
       self->cxx.reset(new bob::learn::misc::GMMStats());
 
     case 1:{
-	
+
       //Reading the input argument
       PyObject* arg = 0;
       if (PyTuple_Size(args))
@@ -110,26 +110,22 @@ static int PyBobLearnMiscGMMStats_init(PyBobLearnMiscGMMStatsObject* self, PyObj
         auto tmp_ = make_safe(tmp);
         arg = PyList_GET_ITEM(tmp, 0);
       }
-	
-      /**If the constructor input is Gaussian object**/	
-	  if (PyBobLearnMiscGMMStats_Check(arg))
-	    return PyBobLearnMiscGMMStats_init_copy(self, args, kwargs);
-	  /**If the constructor input is a HDF5**/
-	  else if (PyBobIoHDF5File_Check(arg))
-	    return PyBobLearnMiscGMMStats_init_hdf5(self, args, kwargs);	
-    }
 
+      /**If the constructor input is Gaussian object**/	
+     if (PyBobLearnMiscGMMStats_Check(arg))
+       return PyBobLearnMiscGMMStats_init_copy(self, args, kwargs);
+      /**If the constructor input is a HDF5**/
+     else if (PyBobIoHDF5File_Check(arg))
+       return PyBobLearnMiscGMMStats_init_hdf5(self, args, kwargs);	
+    }
     case 2:
       return PyBobLearnMiscGMMStats_init_number(self, args, kwargs);
-    
     default:
-
       PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 0, 1 or 2 arguments, but you provided %" PY_FORMAT_SIZE_T "d (see help)", Py_TYPE(self)->tp_name, nargs);
+      return -1;
   }
-
-  return -1;
   BOB_CATCH_MEMBER("cannot create GMMStats", 0)
-
+  return 0;
 }
 
 
@@ -186,6 +182,7 @@ int PyBobLearnMiscGMMStats_setN(PyBobLearnMiscGMMStatsObject* self, PyObject* va
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, n.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "n");
   if (!b) return -1;
   self->cxx->n = *b;
@@ -212,6 +209,7 @@ int PyBobLearnMiscGMMStats_setSum_px(PyBobLearnMiscGMMStatsObject* self, PyObjec
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, sum_px.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "sum_px");
   if (!b) return -1;
   self->cxx->sumPx = *b;
@@ -238,6 +236,7 @@ int PyBobLearnMiscGMMStats_setSum_pxx(PyBobLearnMiscGMMStatsObject* self, PyObje
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, sum_pxx.name());
     return -1;
   }
+  auto o_ = make_safe(o);
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "sum_pxx");
   if (!b) return -1;
   self->cxx->sumPxx = *b;
@@ -267,13 +266,12 @@ int PyBobLearnMiscGMMStats_setT(PyBobLearnMiscGMMStatsObject* self, PyObject* va
 
   if (PyInt_AsSsize_t(value) < 0){
     PyErr_Format(PyExc_TypeError, "t must be greater than or equal to zero");
-	return -1;
+    return -1;
   }
 
-
   self->cxx->T = PyInt_AsSsize_t(value);
-  return 0;
   BOB_CATCH_MEMBER("t could not be set", -1)
+  return 0;
 }
 
 
@@ -420,15 +418,10 @@ static PyObject* PyBobLearnMiscGMMStats_Load(PyBobLearnMiscGMMStatsObject* self,
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
   
-  "Compares this GMMStats with the ``other`` one to be\n\
-  approximately the same.\n\
-  \n\
-  The optional values ``r_epsilon`` and ``a_epsilon`` refer to the\n\
-  relative and absolute precision for the ``weights``, ``biases``\n\
-  and any other values internal to this machine.\n\
-  \n\
-  ",
-
+  "Compares this GMMStats with the ``other`` one to be approximately the same."
+  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the"
+  "relative and absolute precision for the ``weights``, ``biases``"
+  "and any other values internal to this machine.",
   0,
   true
 )
@@ -440,8 +433,7 @@ static auto is_similar_to = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnMiscGMMStats_IsSimilarTo(PyBobLearnMiscGMMStatsObject* self, PyObject* args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"other", "r_epsilon", "a_epsilon", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = is_similar_to.kwlist(0);
 
   PyObject* other = 0;
   double r_epsilon = 1.e-5;
@@ -472,8 +464,7 @@ static PyObject* PyBobLearnMiscGMMStats_resize(PyBobLearnMiscGMMStatsObject* sel
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  static const char* const_kwlist[] = {"n_gaussians", "n_inputs", 0};
-  static char** kwlist = const_cast<char**>(const_kwlist);
+  char** kwlist = resize.kwlist(0);
 
   Py_ssize_t n_gaussians = 0;
   Py_ssize_t n_inputs = 0;
@@ -565,51 +556,51 @@ static PyObject* PyBobLearnMiscGMMStats_inplaceadd(PyObject* self, PyObject* oth
 }
 
 static PyNumberMethods PyBobLearnMiscGMMStats_operators[] = {{
-	     0, // nb_add;
-	     0, // nb_subtract;
-	     0, // nb_multiply;
-	     0, // nb_divide;
-	     0, // nb_remainder;
-	     0, // nb_divmod;
-	     0, // nb_power;
-	     0, // nb_negative;
-	     0, // nb_positive;
-	     0, // nb_absolute;
-	     0, // nb_nonzero;       /* Used by PyObject_IsTrue */
-	     0, // nb_invert;
-	     0, // nb_lshift;
-	     0, // nb_rshift;
-	     0, // nb_and;
-	     0, // nb_xor;
-	     0, // nb_or;
-	     0, // nb_coerce;       /* Used by the coerce() function */
-	     0, // nb_int;
-	     0, // nb_long;
-	     0, // nb_float;
-	     0, // nb_oct;
-	     0, // nb_hex;
+     0, // nb_add;
+     0, // nb_subtract;
+     0, // nb_multiply;
+     0, // nb_divide;
+     0, // nb_remainder;
+     0, // nb_divmod;
+     0, // nb_power;
+     0, // nb_negative;
+     0, // nb_positive;
+     0, // nb_absolute;
+     0, // nb_nonzero;       /* Used by PyObject_IsTrue */
+     0, // nb_invert;
+     0, // nb_lshift;
+     0, // nb_rshift;
+     0, // nb_and;
+     0, // nb_xor;
+     0, // nb_or;
+     0, // nb_coerce;       /* Used by the coerce() function */
+     0, // nb_int;
+     0, // nb_long;
+     0, // nb_float;
+     0, // nb_oct;
+     0, // nb_hex;
 
-	     /* Added in release 2.0 */
-	     PyBobLearnMiscGMMStats_inplaceadd, // nb_inplace_add;
-	     0, // nb_inplace_subtract;
-	     0, // nb_inplace_multiply;
-	     0, // nb_inplace_divide;
-	     0, // nb_inplace_remainder;
-	     0, // nb_inplace_power;
-	     0, // nb_inplace_lshift;
-	     0, // nb_inplace_rshift;
-	     0, // nb_inplace_and;
-	     0, // nb_inplace_xor;
-	     0, // nb_inplace_or;
+     /* Added in release 2.0 */
+     PyBobLearnMiscGMMStats_inplaceadd, // nb_inplace_add;
+     0, // nb_inplace_subtract;
+     0, // nb_inplace_multiply;
+     0, // nb_inplace_divide;
+     0, // nb_inplace_remainder;
+     0, // nb_inplace_power;
+     0, // nb_inplace_lshift;
+     0, // nb_inplace_rshift;
+     0, // nb_inplace_and;
+     0, // nb_inplace_xor;
+     0, // nb_inplace_or;
 
-	     /* Added in release 2.2 */
-	     0, // nb_floor_divide;
-	     0, // nb_true_divide;
-	     0, // nb_inplace_floor_divide;
-	     0, // nb_inplace_true_divide;
+     /* Added in release 2.2 */
+     0, // nb_floor_divide;
+     0, // nb_true_divide;
+     0, // nb_inplace_floor_divide;
+     0, // nb_inplace_true_divide;
 
-	     /* Added in release 2.5 */
-	     0, // nb_index
+     /* Added in release 2.5 */
+     0, // nb_index
 }};
 
 
