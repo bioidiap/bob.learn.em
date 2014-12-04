@@ -18,6 +18,7 @@
 #include <bob.learn.misc/api.h>
 
 #include <bob.learn.misc/Gaussian.h>
+#include <bob.learn.misc/GMMStats.h>
 
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -67,6 +68,18 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscGaussian_Type;
 bool init_BobLearnMiscGaussian(PyObject* module);
 int PyBobLearnMiscGaussian_Check(PyObject* o);
+
+
+// GMMStats
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::GMMStats> cxx;
+} PyBobLearnMiscGMMStatsObject;
+
+extern PyTypeObject PyBobLearnMiscGMMStats_Type;
+bool init_BobLearnMiscGMMStats(PyObject* module);
+int PyBobLearnMiscGMMStats_Check(PyObject* o);
+
 
 
 #endif // BOB_LEARN_EM_MAIN_H

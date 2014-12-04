@@ -15,11 +15,11 @@ import tempfile
 import bob.io.base
 from bob.io.base.test_utils import datafile
 
-from . import GMMStats, GMMMachine
+from . import GMMStats
+#, GMMMachine
 
 def test_GMMStats():
   # Test a GMMStats
-
   # Initializes a GMMStats
   gs = GMMStats(2,3)
   log_likelihood = -3.
