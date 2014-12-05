@@ -24,15 +24,13 @@ static auto Gaussian_doc = bob::extension::ClassDoc(
     true
   )
   .add_prototype("n_inputs")
-  .add_prototype("gaussian")
+  .add_prototype("other")
   .add_prototype("hdf5")
   .add_prototype("")
 
-  .add_parameter("mean", "array_like<double, 1D>", "Mean of the Gaussian")
-  .add_parameter("variance", "array_like<double, 1D>", "Variance of the Gaussian")
-  .add_parameter("dim_d", "int", "Dimensionality of the input feature space")
-  .add_parameter("variance_thresholds", "array_like <double, 1D>", "The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension. The variance will be set to this value if an attempt is made to set it to a smaller value.")
-  .add_parameter("shape", "(int)", "A tuple that represents the dimensionality of the Gaussian ``(dim_d,)``.")
+  .add_parameter("n_inputs", "int", "Dimension of the feature vector")
+  .add_parameter("other", ":py:class:`bob.learn.misc.GMMStats`", "A GMMStats object to be copied.")
+  .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 );
 
 
@@ -165,8 +163,9 @@ int PyBobLearnMiscGaussian_Check(PyObject* o) {
 /***** MEAN *****/
 static auto mean = bob::extension::VariableDoc(
   "mean",
-  "array_like <double, 1D>",
-  "Mean of the Gaussian"
+  "array_like <double, 1D>"
+  "Mean of the Gaussian",
+  ""
 );
 PyObject* PyBobLearnMiscGaussian_getMean(PyBobLearnMiscGaussianObject* self, void*){
   BOB_TRY
@@ -191,8 +190,9 @@ int PyBobLearnMiscGaussian_setMean(PyBobLearnMiscGaussianObject* self, PyObject*
 /***** Variance *****/
 static auto variance = bob::extension::VariableDoc(
   "variance",
-  "array_like <double, 1D>",
-  "Variance of the Gaussian"
+  "array_like <double, 1D>"
+  "Variance of the Gaussian",
+  ""
 );
 PyObject* PyBobLearnMiscGaussian_getVariance(PyBobLearnMiscGaussianObject* self, void*){
   BOB_TRY
@@ -217,8 +217,9 @@ int PyBobLearnMiscGaussian_setVariance(PyBobLearnMiscGaussianObject* self, PyObj
 /***** dim_d *****/
 static auto dimD = bob::extension::VariableDoc(
   "dim_d",
-  "int",
-  "Dimensionality of the input feature space"
+  "int"
+  "Dimensionality of the input feature space",
+  ""
 );
 PyObject* PyBobLearnMiscGaussian_getdimD(PyBobLearnMiscGaussianObject* self, void*){
   BOB_TRY
@@ -244,7 +245,7 @@ int PyBobLearnMiscGaussian_setdimD(PyBobLearnMiscGaussianObject* self, PyObject*
 /***** variance_thresholds *****/
 static auto variance_thresholds = bob::extension::VariableDoc(
   "variance_thresholds",
-  "array_like <double, 1D>",
+  "array_like <double, 1D>"
   "The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension. ",
   "The variance will be set to this value if an attempt is made to set it to a smaller value."
 );
@@ -272,8 +273,9 @@ int PyBobLearnMiscGaussian_setVarianceThresholds(PyBobLearnMiscGaussianObject* s
 /***** shape *****/
 static auto shape = bob::extension::VariableDoc(
   "shape",
-  "(int)",
-  "A tuple that represents the dimensionality of the Gaussian ``(dim_d,)``."
+  "(int)"
+  "A tuple that represents the dimensionality of the Gaussian ``(dim_d,)``.",
+  ""
 );
 PyObject* PyBobLearnMiscGaussian_getShape(PyBobLearnMiscGaussianObject* self, void*) {
   BOB_TRY
@@ -349,10 +351,11 @@ static PyGetSetDef PyBobLearnMiscGaussian_getseters[] = {
 static auto resize = bob::extension::FunctionDoc(
   "resize",
   "int"
-  "Set the input dimensionality, reset the mean to zero and the variance to one."
+  "Set the input dimensionality, reset the mean to zero and the variance to one.",
+  ""
 )
 .add_prototype("input")
-.add_parameter("input", "int", "Tuple with the new shape");
+.add_parameter("input", "int", "Dimensionality of the feature vector");
 static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -375,8 +378,9 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
 /*** log_likelihood ***/
 static auto forward = bob::extension::FunctionDoc(
   "forward",
-  "array_like <double, 1D>"
-  "Output the log likelihood of the sample, x. The input size is checked."
+  "array_like <double, 1D> "
+  "Output the log likelihood of the sample, x. The input size is checked.",
+  ""
 )
 .add_prototype("input","double")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
@@ -384,7 +388,7 @@ static auto forward = bob::extension::FunctionDoc(
 /*** log_likelihood ***/
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
-  "array_like <double, 1D>"
+  "array_like <double, 1D> "
   "Output the log likelihood of the sample, x. The input size is checked."
 )
 .add_prototype("input","double")
@@ -411,8 +415,9 @@ static PyObject* PyBobLearnMiscGaussian_loglikelihood(PyBobLearnMiscGaussianObje
 /*** log_likelihood_ ***/
 static auto log_likelihood_ = bob::extension::FunctionDoc(
   "log_likelihood_",
-  "array_like <double, 1D>"
-  "Output the log likelihood given a sample. The input size is NOT checked."
+  "array_like <double, 1D> "
+  "Output the log likelihood given a sample. The input size is NOT checked.",
+  ""
 )
 .add_prototype("input","double")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
@@ -475,7 +480,9 @@ static auto load = bob::extension::FunctionDoc(
   "Load the configuration of the Gassian Machine to a given HDF5 file",
   0,
   true
-);
+)
+.add_prototype("hdf5")
+.add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnMiscGaussian_Load(PyBobLearnMiscGaussianObject* self, PyObject* f) {
 
   if (!PyBobIoHDF5File_Check(f)) {
@@ -595,7 +602,7 @@ static PyMethodDef PyBobLearnMiscGaussian_methods[] = {
   {
     load.name(),
     (PyCFunction)PyBobLearnMiscGaussian_Load,
-    METH_VARARGS|METH_KEYWORDS,
+    METH_O,
     load.doc()
   },
   {
