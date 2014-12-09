@@ -15,7 +15,7 @@
 
 static auto GMMStats_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".GMMStats",
-  "A container for GMM statistics.\n"
+  "A container for GMM statistics.\n",
   "With respect to Reynolds, \"Speaker Verification Using Adapted "
   "Gaussian Mixture Models\", DSP, 2000:\n"
   "Eq (8) is n(i)\n"
@@ -29,9 +29,9 @@ static auto GMMStats_doc = bob::extension::ClassDoc(
     true
   )
   .add_prototype("n_gaussians,n_inputs","")
-  .add_prototype("other")
-  .add_prototype("hdf5")
-  .add_prototype("")
+  .add_prototype("other","")
+  .add_prototype("hdf5","")
+  .add_prototype("","")
 
   .add_parameter("n_gaussians", "int", "Number of gaussians")
   .add_parameter("n_inputs", "int", "Dimension of the feature vector")
@@ -179,9 +179,8 @@ int PyBobLearnMiscGMMStats_Check(PyObject* o) {
 /***** n *****/
 static auto n = bob::extension::VariableDoc(
   "n",
-  "array_like <double, 1D> "
-  "For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)",
-  ""
+  "array_like <double, 1D> ",
+  "For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)"
 );
 PyObject* PyBobLearnMiscGMMStats_getN(PyBobLearnMiscGMMStatsObject* self, void*){
   BOB_TRY
@@ -207,9 +206,8 @@ int PyBobLearnMiscGMMStats_setN(PyBobLearnMiscGMMStatsObject* self, PyObject* va
 /***** sum_px *****/
 static auto sum_px = bob::extension::VariableDoc(
   "sum_px",
-  "array_like <double, 2D> "
-  "For each Gaussian, the accumulated sum of responsibility times the sample",
-  ""
+  "array_like <double, 2D> ",
+  "For each Gaussian, the accumulated sum of responsibility times the sample"
 );
 PyObject* PyBobLearnMiscGMMStats_getSum_px(PyBobLearnMiscGMMStatsObject* self, void*){
   BOB_TRY
@@ -235,9 +233,8 @@ int PyBobLearnMiscGMMStats_setSum_px(PyBobLearnMiscGMMStatsObject* self, PyObjec
 /***** sum_pxx *****/
 static auto sum_pxx = bob::extension::VariableDoc(
   "sum_pxx",
-  "array_like <double, 2D> "
-  "For each Gaussian, the accumulated sum of responsibility times the sample squared",
-  ""
+  "array_like <double, 2D> ",
+  "For each Gaussian, the accumulated sum of responsibility times the sample squared"
 );
 PyObject* PyBobLearnMiscGMMStats_getSum_pxx(PyBobLearnMiscGMMStatsObject* self, void*){
   BOB_TRY
@@ -263,13 +260,12 @@ int PyBobLearnMiscGMMStats_setSum_pxx(PyBobLearnMiscGMMStatsObject* self, PyObje
 /***** t *****/
 static auto t = bob::extension::VariableDoc(
   "t",
-  "int "
-  "The accumulated log likelihood of all samples",
-  ""
+  "int ",
+  "The accumulated number of samples"
 );
 PyObject* PyBobLearnMiscGMMStats_getT(PyBobLearnMiscGMMStatsObject* self, void*){
   BOB_TRY
-  return Py_BuildValue("n", self->cxx->T);
+  return Py_BuildValue("i", self->cxx->T);
   BOB_CATCH_MEMBER("t could not be read", 0)
 }
 int PyBobLearnMiscGMMStats_setT(PyBobLearnMiscGMMStatsObject* self, PyObject* value, void*){
@@ -294,9 +290,8 @@ int PyBobLearnMiscGMMStats_setT(PyBobLearnMiscGMMStatsObject* self, PyObject* va
 /***** log_likelihood *****/
 static auto log_likelihood = bob::extension::VariableDoc(
   "log_likelihood",
-  "double "
-  "The accumulated log likelihood of all samples",
-  ""
+  "double ",
+  "The accumulated log likelihood of all samples"
 );
 PyObject* PyBobLearnMiscGMMStats_getLog_likelihood(PyBobLearnMiscGMMStatsObject* self, void*){
   BOB_TRY
@@ -366,22 +361,20 @@ static PyGetSetDef PyBobLearnMiscGMMStats_getseters[] = {
 /*** save ***/
 static auto save = bob::extension::FunctionDoc(
   "save",
-  " Save the configuration of the GMMStats to a given HDF5 file",
-  0,
-  true
+  "Save the configuration of the GMMStats to a given HDF5 file"
 )
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for writing")
 ;
-static PyObject* PyBobLearnMiscGMMStats_Save(PyBobLearnMiscGMMStatsObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnMiscGMMStats_Save(PyBobLearnMiscGMMStatsObject* self, PyObject* arg) {
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);
-  PyBobIoHDF5FileObject* hdf5 = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)){
-    save.print_usage();
-    return NULL;
+  if (!PyBobIoHDF5File_Check(arg)) {
+    PyErr_Format(PyExc_TypeError, "`%s' cannot write itself to `%s', only to an HDF5 file", Py_TYPE(self)->tp_name, Py_TYPE(arg)->tp_name);
+    return 0;
   }
-  auto hdf5_ = make_safe(hdf5);
+
+  auto hdf5 = reinterpret_cast<PyBobIoHDF5FileObject*>(arg);
 
   try {
     self->cxx->save(*hdf5->f);
@@ -402,9 +395,7 @@ static PyObject* PyBobLearnMiscGMMStats_Save(PyBobLearnMiscGMMStatsObject* self,
 /*** load ***/
 static auto load = bob::extension::FunctionDoc(
   "load",
-  " Load the configuration of the GMMStats to a given HDF5 file",
-  0,
-  true
+  "Load the configuration of the GMMStats to a given HDF5 file"
 )
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
@@ -437,24 +428,23 @@ static PyObject* PyBobLearnMiscGMMStats_Load(PyBobLearnMiscGMMStatsObject* self,
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
   
-  "Compares this GMMStats with the ``other`` one to be approximately the same."
+  "Compares this GMMStats with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the"
   "relative and absolute precision for the ``weights``, ``biases``"
-  "and any other values internal to this machine.",
-  0,
-  true
+  "and any other values internal to this machine."
 )
-.add_prototype("other, [r_epsilon], [a_epsilon]","bool")
+.add_prototype("other, [r_epsilon], [a_epsilon]","output")
 .add_parameter("other", ":py:class:`bob.learn.misc.GMMStats`", "A GMMStats object to be compared.")
 .add_parameter("[r_epsilon]", "float", "Relative precision.")
 .add_parameter("[a_epsilon]", "float", "Absolute precision.")
-.add_return("bool","","");
+.add_return("output","bool","True if it is similar, otherwise false.");
 static PyObject* PyBobLearnMiscGMMStats_IsSimilarTo(PyBobLearnMiscGMMStatsObject* self, PyObject* args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
   char** kwlist = is_similar_to.kwlist(0);
 
-  PyObject* other = 0;
+  //PyObject* other = 0;
+  PyBobLearnMiscGMMStatsObject* other = 0;
   double r_epsilon = 1.e-5;
   double a_epsilon = 1.e-8;
 
@@ -462,9 +452,9 @@ static PyObject* PyBobLearnMiscGMMStats_IsSimilarTo(PyBobLearnMiscGMMStatsObject
         &PyBobLearnMiscGMMStats_Type, &other,
         &r_epsilon, &a_epsilon)) return 0;
 
-  auto other_ = reinterpret_cast<PyBobLearnMiscGMMStatsObject*>(other);
+  //auto other_ = reinterpret_cast<PyBobLearnMiscGMMStatsObject*>(other);
 
-  if (self->cxx->is_similar_to(*other_->cxx, r_epsilon, a_epsilon))
+  if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
@@ -474,8 +464,7 @@ static PyObject* PyBobLearnMiscGMMStats_IsSimilarTo(PyBobLearnMiscGMMStatsObject
 /*** resize ***/
 static auto resize = bob::extension::FunctionDoc(
   "resize",
-  " Allocates space for the statistics and resets to zero.",
-  ""
+  " Allocates space for the statistics and resets to zero."
 )
 .add_prototype("n_gaussians,n_inputs","")
 .add_parameter("n_gaussians", "int", "Number of gaussians")
@@ -490,6 +479,17 @@ static PyObject* PyBobLearnMiscGMMStats_resize(PyBobLearnMiscGMMStatsObject* sel
   int n_inputs = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &n_gaussians, &n_inputs)) Py_RETURN_NONE;
+
+  if (n_gaussians <= 0){
+    PyErr_Format(PyExc_TypeError, "n_gaussians must be greater than zero");
+    return 0;
+  }
+  if (n_inputs <= 0){
+    PyErr_Format(PyExc_TypeError, "n_inputs must be greater than zero");
+    return 0;
+  }
+
+
   self->cxx->resize(n_gaussians, n_inputs);
 
   BOB_CATCH_MEMBER("cannot perform the resize method", 0)
@@ -501,8 +501,7 @@ static PyObject* PyBobLearnMiscGMMStats_resize(PyBobLearnMiscGMMStatsObject* sel
 /*** init ***/
 static auto init = bob::extension::FunctionDoc(
   "init",
-  " Resets statistics to zero.",
-  ""
+  " Resets statistics to zero."
 )
 .add_prototype("","");
 static PyObject* PyBobLearnMiscGMMStats_init_method(PyBobLearnMiscGMMStatsObject* self) {
@@ -521,7 +520,7 @@ static PyMethodDef PyBobLearnMiscGMMStats_methods[] = {
   {
     save.name(),
     (PyCFunction)PyBobLearnMiscGMMStats_Save,
-    METH_VARARGS|METH_KEYWORDS,
+    METH_O,
     save.doc()
   },
   {
@@ -557,7 +556,7 @@ static PyMethodDef PyBobLearnMiscGMMStats_methods[] = {
 /************ Operators *******************************************/
 /******************************************************************/
 
-static PyObject* PyBobLearnMiscGMMStats_inplaceadd(PyObject* self, PyObject* other) {
+static PyBobLearnMiscGMMStatsObject* PyBobLearnMiscGMMStats_inplaceadd(PyBobLearnMiscGMMStatsObject* self, PyObject* other) {
   BOB_TRY
 
   if (!PyBobLearnMiscGMMStats_Check(other)){
@@ -565,10 +564,9 @@ static PyObject* PyBobLearnMiscGMMStats_inplaceadd(PyObject* self, PyObject* oth
     return 0;
   }
 
-  auto self_ = reinterpret_cast<PyBobLearnMiscGMMStatsObject*>(self);
   auto other_ = reinterpret_cast<PyBobLearnMiscGMMStatsObject*>(other);
 
-  self_->cxx->operator+=(*other_->cxx);
+  self->cxx->operator+=(*other_->cxx);
 
   BOB_CATCH_MEMBER("it was not possible to process the operator +=", 0)
 
@@ -593,7 +591,7 @@ bool init_BobLearnMiscGMMStats(PyObject* module)
   // initialize the type struct
   PyBobLearnMiscGMMStats_Type.tp_name = GMMStats_doc.name();
   PyBobLearnMiscGMMStats_Type.tp_basicsize = sizeof(PyBobLearnMiscGMMStatsObject);
-  PyBobLearnMiscGMMStats_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+  PyBobLearnMiscGMMStats_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_HAVE_INPLACEOPS;
   PyBobLearnMiscGMMStats_Type.tp_doc = GMMStats_doc.doc();
 
   // set the functions
@@ -607,7 +605,7 @@ bool init_BobLearnMiscGMMStats(PyObject* module)
   PyBobLearnMiscGMMStats_Type.tp_as_number = &PyBobLearnMiscGMMStats_operators;
 
   //set operators
-  PyBobLearnMiscGMMStats_operators.nb_inplace_add = PyBobLearnMiscGMMStats_inplaceadd;
+  PyBobLearnMiscGMMStats_operators.nb_inplace_add = reinterpret_cast<binaryfunc>(PyBobLearnMiscGMMStats_inplaceadd);
 
   // check that everything is fine
   if (PyType_Ready(&PyBobLearnMiscGMMStats_Type) < 0) return false;
