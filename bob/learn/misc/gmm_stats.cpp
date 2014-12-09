@@ -272,16 +272,16 @@ int PyBobLearnMiscGMMStats_setT(PyBobLearnMiscGMMStatsObject* self, PyObject* va
   BOB_TRY
 
   if (!PyInt_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an size_t", Py_TYPE(self)->tp_name, t.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an int", Py_TYPE(self)->tp_name, t.name());
     return -1;
   }
 
-  if (PyInt_AsSsize_t(value) < 0){
+  if (PyInt_AS_LONG(value) < 0){
     PyErr_Format(PyExc_TypeError, "t must be greater than or equal to zero");
     return -1;
   }
 
-  self->cxx->T = PyInt_AsSsize_t(value);
+  self->cxx->T = PyInt_AS_LONG(value);
   BOB_CATCH_MEMBER("t could not be set", -1)
   return 0;
 }

@@ -360,8 +360,8 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
   /* Parses input arguments in a single shot */
   char** kwlist = resize.kwlist(0);
 
-  Py_ssize_t input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "n", kwlist, &input)) Py_RETURN_NONE;
+  int input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &input)) Py_RETURN_NONE;
   if (input <= 0){
     PyErr_Format(PyExc_TypeError, "input must be greater than zero");
     Py_RETURN_NONE;
