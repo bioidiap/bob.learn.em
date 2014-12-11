@@ -55,7 +55,7 @@ setup(
       Library("bob.learn.misc.bob_learn_misc",
         [
           "bob/learn/misc/cpp/Gaussian.cpp",
-          #"bob/learn/misc/cpp/GMMMachine.cpp",
+          "bob/learn/misc/cpp/GMMMachine.cpp",
           "bob/learn/misc/cpp/GMMStats.cpp",
           #"bob/learn/misc/cpp/IVectorMachine.cpp",
           #"bob/learn/misc/cpp/JFAMachine.cpp",
@@ -102,6 +102,7 @@ setup(
         [
           "bob/learn/misc/gaussian.cpp",
           "bob/learn/misc/gmm_stats.cpp",
+          "bob/learn/misc/gmm_machine.cpp",
 
           "bob/learn/misc/main.cpp",
         ],

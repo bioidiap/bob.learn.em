@@ -19,6 +19,7 @@
 
 #include <bob.learn.misc/Gaussian.h>
 #include <bob.learn.misc/GMMStats.h>
+#include <bob.learn.misc/GMMMachine.h>
 
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -79,6 +80,17 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscGMMStats_Type;
 bool init_BobLearnMiscGMMStats(PyObject* module);
 int PyBobLearnMiscGMMStats_Check(PyObject* o);
+
+
+// GMMMachine
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::GMMMachine> cxx;
+} PyBobLearnMiscGMMMachineObject;
+
+extern PyTypeObject PyBobLearnMiscGMMMachine_Type;
+bool init_BobLearnMiscGMMMachine(PyObject* module);
+int PyBobLearnMiscGMMMachine_Check(PyObject* o);
 
 
 
