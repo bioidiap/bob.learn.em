@@ -45,6 +45,7 @@ static int PyBobLearnMiscGaussian_init_number(PyBobLearnMiscGaussianObject* self
 
   if(n_inputs < 0){
     PyErr_Format(PyExc_TypeError, "input argument must be greater than or equal to zero");
+    Gaussian_doc.print_usage();
     return -1;
    }
 
@@ -56,7 +57,10 @@ static int PyBobLearnMiscGaussian_init_copy(PyBobLearnMiscGaussianObject* self, 
 
   char** kwlist = Gaussian_doc.kwlist(1);
   PyBobLearnMiscGaussianObject* tt;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGaussian_Type, &tt)) return -1;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGaussian_Type, &tt)){
+    Gaussian_doc.print_usage();
+    return -1;
+  }
 
   self->cxx.reset(new bob::learn::misc::Gaussian(*tt->cxx));
   return 0;
@@ -67,9 +71,11 @@ static int PyBobLearnMiscGaussian_init_hdf5(PyBobLearnMiscGaussianObject* self, 
   char** kwlist = Gaussian_doc.kwlist(2);
 
   PyBobIoHDF5FileObject* config = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)) 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)){
+    Gaussian_doc.print_usage();
     return -1;
-
+  }
+  
   try {
     self->cxx.reset(new bob::learn::misc::Gaussian(*(config->f)));
   }
@@ -118,10 +124,11 @@ static int PyBobLearnMiscGaussian_init(PyBobLearnMiscGaussianObject* self, PyObj
     return PyBobLearnMiscGaussian_init_hdf5(self, args, kwargs);
   else
     PyErr_Format(PyExc_TypeError, "invalid input argument");
+    Gaussian_doc.print_usage();
     return -1;
 
-  BOB_CATCH_MEMBER("cannot create Gaussian", 0)
-  return -0;
+  BOB_CATCH_MEMBER("cannot create Gaussian", -1)
+  return 0;
 }
 
 
@@ -214,33 +221,6 @@ int PyBobLearnMiscGaussian_setVariance(PyBobLearnMiscGaussianObject* self, PyObj
   BOB_CATCH_MEMBER("variance could not be set", -1)
 }
 
-/***** dim_d *****/
-static auto dimD = bob::extension::VariableDoc(
-  "dim_d",
-  "int",
-  "Dimensionality of the input feature space",
-  ""
-);
-PyObject* PyBobLearnMiscGaussian_getdimD(PyBobLearnMiscGaussianObject* self, void*){
-  BOB_TRY
-  return Py_BuildValue("i", self->cxx->getNInputs());
-  BOB_CATCH_MEMBER("dimD could not be read", 0)
-}
-int PyBobLearnMiscGaussian_setdimD(PyBobLearnMiscGaussianObject* self, PyObject* value, void*){
-  BOB_TRY
-  if (!PyInt_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an int", Py_TYPE(self)->tp_name, dimD.name());
-    return -1;
-  }
-  if (PyInt_AS_LONG(value) <= 0){
-    PyErr_Format(PyExc_TypeError, "dim_d must be greater than zero");
-    return -1;
-  }
-  self->cxx->setNInputs(PyInt_AS_LONG(value));
-  return 0;
-  BOB_CATCH_MEMBER("dim_d could not be set", -1)
-}
-
 
 /***** variance_thresholds *****/
 static auto variance_thresholds = bob::extension::VariableDoc(
@@ -274,33 +254,14 @@ int PyBobLearnMiscGaussian_setVarianceThresholds(PyBobLearnMiscGaussianObject* s
 static auto shape = bob::extension::VariableDoc(
   "shape",
   "(int)",
-  "A tuple that represents the dimensionality of the Gaussian ``(dim_d,)``.",
+  "A tuple that represents the dimensionality of the Gaussian ``(dim,)``.",
   ""
 );
 PyObject* PyBobLearnMiscGaussian_getShape(PyBobLearnMiscGaussianObject* self, void*) {
   BOB_TRY
-  return Py_BuildValue("(n)", self->cxx->getNInputs());
+  return Py_BuildValue("(i)", self->cxx->getNInputs());
   BOB_CATCH_MEMBER("shape could not be read", 0)
 }
-int PyBobLearnMiscGaussian_setShape(PyBobLearnMiscGaussianObject* self, PyObject* o, void*){
-  BOB_TRY
-
-  if (!PySequence_Check(o)) {
-    PyErr_Format(PyExc_TypeError, "`%s' shape can only be set using tuples (or sequences), not `%s'", Py_TYPE(self)->tp_name, Py_TYPE(o)->tp_name);
-    return -1;
-  } 
- 
-  //getting the shape
-  PyObject* shape = PySequence_Tuple(o);
-  auto shape_ = make_safe(shape);
-  Py_ssize_t dim_d = PyNumber_AsSsize_t(PyTuple_GET_ITEM(shape, 0), PyExc_OverflowError);
-
-  self->cxx->setNInputs(dim_d);
-  return 0;
-
-  BOB_CATCH_MEMBER("variance_thresholds could not be set", -1)  
-}
-
 
 static PyGetSetDef PyBobLearnMiscGaussian_getseters[] = {
     {
@@ -318,13 +279,6 @@ static PyGetSetDef PyBobLearnMiscGaussian_getseters[] = {
      0
      },
      {
-      dimD.name(),
-      (getter)PyBobLearnMiscGaussian_getdimD,
-      (setter)PyBobLearnMiscGaussian_setdimD,
-      dimD.doc(),
-      0
-     },
-     {
       variance_thresholds.name(),
       (getter)PyBobLearnMiscGaussian_getVarianceThresholds,
       (setter)PyBobLearnMiscGaussian_setVarianceThresholds,
@@ -334,7 +288,7 @@ static PyGetSetDef PyBobLearnMiscGaussian_getseters[] = {
      {
       shape.name(),
       (getter)PyBobLearnMiscGaussian_getShape,
-      (setter)PyBobLearnMiscGaussian_setShape,
+      0,
       shape.doc(),
       0
      },
@@ -364,6 +318,7 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &input)) Py_RETURN_NONE;
   if (input <= 0){
     PyErr_Format(PyExc_TypeError, "input must be greater than zero");
+    resize.print_usage();
     Py_RETURN_NONE;
   }
   self->cxx->setNInputs(input);
@@ -374,21 +329,15 @@ static PyObject* PyBobLearnMiscGaussian_resize(PyBobLearnMiscGaussianObject* sel
 }
 
 /*** log_likelihood ***/
-static auto forward = bob::extension::FunctionDoc(
-  "forward",
-  "Output the log likelihood of the sample, x. The input size is checked."
-)
-.add_prototype("input","output")
-.add_parameter("input", "array_like <double, 1D>", "Input vector")
-.add_return("output","double","The log likelihood");
-/*** log_likelihood ***/
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
-  "Output the log likelihood of the sample, x. The input size is checked."
+  "Output the log likelihood of the sample, x. The input size is checked.",
+  ".. note:: The :py:meth:`__call__` function is an alias for this.", 
+  true
 )
 .add_prototype("input","output")
 .add_parameter("input", "array_like <double, 1D>", "Input vector")
-.add_return("output","double","The log likelihood");
+.add_return("output","float","The log likelihood");
 static PyObject* PyBobLearnMiscGaussian_loglikelihood(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
@@ -439,28 +388,19 @@ static auto save = bob::extension::FunctionDoc(
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for writing")
 ;
-static PyObject* PyBobLearnMiscGaussian_Save(PyBobLearnMiscGaussianObject* self, PyObject* arg) {
+static PyObject* PyBobLearnMiscGaussian_Save(PyBobLearnMiscGaussianObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
   // get list of arguments
-  if (!PyBobIoHDF5File_Check(arg)) {
-    PyErr_Format(PyExc_TypeError, "`%s' cannot write itself to `%s', only to an HDF5 file", Py_TYPE(self)->tp_name, Py_TYPE(arg)->tp_name);
-    return 0;
-  }
+  char** kwlist = save.kwlist(0);  
+  PyBobIoHDF5FileObject* hdf5;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
-  auto hdf5 = reinterpret_cast<PyBobIoHDF5FileObject*>(arg);
+  auto hdf5_ = make_safe(hdf5);
 
-  try {
-    self->cxx->save(*hdf5->f);
-  }
-  catch (std::exception& e) {
-    PyErr_SetString(PyExc_RuntimeError, e.what());
-    return 0;
-  }
-  catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "`%s' cannot write data to file `%s' (at group `%s'): unknown exception caught", Py_TYPE(self)->tp_name,
-        hdf5->f->filename().c_str(), hdf5->f->cwd().c_str());
-    return 0;
-  }
+  self->cxx->save(*hdf5->f);
 
+  BOB_CATCH_MEMBER("cannot save the data", 0)
   Py_RETURN_NONE;
 }
 
@@ -471,26 +411,18 @@ static auto load = bob::extension::FunctionDoc(
 )
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
-static PyObject* PyBobLearnMiscGaussian_Load(PyBobLearnMiscGaussianObject* self, PyObject* f) {
+static PyObject* PyBobLearnMiscGaussian_Load(PyBobLearnMiscGaussianObject* self,  PyObject* args, PyObject* kwargs) {
 
-  if (!PyBobIoHDF5File_Check(f)) {
-    PyErr_Format(PyExc_TypeError, "`%s' cannot load itself from `%s', only from an HDF5 file", Py_TYPE(self)->tp_name, Py_TYPE(f)->tp_name);
-    return 0;
-  }
-
-  auto h5f = reinterpret_cast<PyBobIoHDF5FileObject*>(f);
-  try {
-    self->cxx->load(*h5f->f);
-  }
-  catch (std::exception& e) {
-    PyErr_SetString(PyExc_RuntimeError, e.what());
-    return 0;
-  }
-  catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot read data from file `%s' (at group `%s'): unknown exception caught", h5f->f->filename().c_str(),
-        h5f->f->cwd().c_str());
-    return 0;
-  }
+  BOB_TRY
+  
+  char** kwlist = load.kwlist(0);  
+  PyBobIoHDF5FileObject* hdf5;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
+  
+  auto hdf5_ = make_safe(hdf5);  
+  self->cxx->load(*hdf5->f);
+  
+  BOB_CATCH_MEMBER("cannot load the data", 0)    
   Py_RETURN_NONE;
 }
 
@@ -500,8 +432,9 @@ static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
   
   "Compares this Gaussian with the ``other`` one to be approximately the same.",
-  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the"
-  "relative and absolute precision for the ``weights``, ``biases`` and any other values internal to this machine."
+  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
+  "relative and absolute precision for the ``weights``, ``biases`` and any other values internal to this machine.",
+  true
 )
 .add_prototype("other, [r_epsilon], [a_epsilon]","output")
 .add_parameter("other", ":py:class:`bob.learn.misc.Gaussian`", "A gaussian to be compared.")
@@ -567,12 +500,6 @@ static PyMethodDef PyBobLearnMiscGaussian_methods[] = {
     log_likelihood.doc()
   },
   {
-    forward.name(),
-    (PyCFunction)PyBobLearnMiscGaussian_loglikelihood,
-    METH_VARARGS|METH_KEYWORDS,
-    forward.doc()
-  },
-  {
     log_likelihood_.name(),
     (PyCFunction)PyBobLearnMiscGaussian_loglikelihood_,
     METH_VARARGS|METH_KEYWORDS,
@@ -581,13 +508,13 @@ static PyMethodDef PyBobLearnMiscGaussian_methods[] = {
   {
     save.name(),
     (PyCFunction)PyBobLearnMiscGaussian_Save,
-    METH_O,
+    METH_VARARGS|METH_KEYWORDS,
     save.doc()
   },
   {
     load.name(),
     (PyCFunction)PyBobLearnMiscGaussian_Load,
-    METH_O,
+    METH_VARARGS|METH_KEYWORDS,
     load.doc()
   },
   {
