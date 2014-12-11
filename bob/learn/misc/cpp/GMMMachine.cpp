@@ -26,8 +26,7 @@ bob::learn::misc::GMMMachine::GMMMachine(bob::io::base::HDF5File& config):
   load(config);
 }
 
-bob::learn::misc::GMMMachine::GMMMachine(const GMMMachine& other):
-  Machine<blitz::Array<double,1>, double>(other), m_gaussians(0)
+bob::learn::misc::GMMMachine::GMMMachine(const GMMMachine& other)  
 {
   copy(other);
 }
@@ -94,9 +93,6 @@ void bob::learn::misc::GMMMachine::copy(const GMMMachine& other) {
 
 bob::learn::misc::GMMMachine::~GMMMachine() { }
 
-void bob::learn::misc::GMMMachine::setNInputs(const size_t n_inputs) {
-  resize(m_n_gaussians,n_inputs);
-}
 
 void bob::learn::misc::GMMMachine::resize(const size_t n_gaussians, const size_t n_inputs) {
   m_n_gaussians = n_gaussians;
@@ -256,6 +252,7 @@ double bob::learn::misc::GMMMachine::logLikelihood_(const blitz::Array<double, 1
   return logLikelihood_(x,m_cache_log_weighted_gaussian_likelihoods);
 }
 
+/*
 void bob::learn::misc::GMMMachine::forward(const blitz::Array<double,1>& input, double& output) const {
   if(static_cast<size_t>(input.extent(0)) != m_n_inputs) {
     boost::format m("expected input size (%u) does not match the size of input array (%d)");
@@ -270,6 +267,7 @@ void bob::learn::misc::GMMMachine::forward_(const blitz::Array<double,1>& input,
     double& output) const {
   output = logLikelihood(input);
 }
+*/
 
 void bob::learn::misc::GMMMachine::accStatistics(const blitz::Array<double,2>& input,
     bob::learn::misc::GMMStats& stats) const {

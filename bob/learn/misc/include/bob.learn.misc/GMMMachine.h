@@ -12,7 +12,6 @@
 #ifndef BOB_LEARN_MISC_GMMMACHINE_H
 #define BOB_LEARN_MISC_GMMMACHINE_H
 
-#include <bob.learn.misc/Machine.h>
 #include <bob.learn.misc/Gaussian.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <bob.io.base/HDF5File.h>
@@ -26,7 +25,7 @@ namespace bob { namespace learn { namespace misc {
  * @brief This class implements a multivariate diagonal Gaussian distribution.
  * @details See Section 2.3.9 of Bishop, "Pattern recognition and machine learning", 2006
  */
-class GMMMachine: public Machine<blitz::Array<double,1>, double>
+class GMMMachine
 {
   public:
     /**
@@ -77,11 +76,6 @@ class GMMMachine: public Machine<blitz::Array<double,1>, double>
      * Destructor
      */
     virtual ~GMMMachine();
-
-    /**
-     * Set the feature dimensionality
-     */
-    void setNInputs(const size_t n_inputs);
 
     /**
      * Get number of inputs
@@ -225,14 +219,14 @@ class GMMMachine: public Machine<blitz::Array<double,1>, double>
      * (overrides Machine::forward)
      * Dimension of the input is checked
      */
-    void forward(const blitz::Array<double,1>& input, double& output) const;
+    //void forward(const blitz::Array<double,1>& input, double& output) const;
 
     /**
      * Output the log likelihood of the sample, x
      * (overrides Machine::forward_)
      * @warning Dimension of the input is not checked
      */
-    void forward_(const blitz::Array<double,1>& input, double& output) const;
+    //void forward_(const blitz::Array<double,1>& input, double& output) const;
 
     /**
      * Accumulates the GMM statistics over a set of samples.
