@@ -33,7 +33,7 @@ def test_GaussianMachine():
   g = Gaussian(3)
   assert (g.mean == 0.0).all()
   assert (g.variance == 1.0).all()
-  assert g.dim_d == 3
+  assert g.shape == (3,)
 
   # Set and check mean, variance, variance thresholds
   mean     = numpy.array([0, 1, 2], 'float64')
@@ -52,6 +52,34 @@ def test_GaussianMachine():
   assert g == g_loaded
   assert (g != g_loaded ) is False
   assert g.is_similar_to(g_loaded)
+  
+  # Save and read from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  g_loaded = Gaussian(hdf5=bob.io.base.HDF5File(filename))
+  assert g == g_loaded
+  assert (g != g_loaded ) is False
+  assert g.is_similar_to(g_loaded)
+
+  # Save and loading from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(bob.io.base.HDF5File(filename, 'w'))
+  g_loaded = bob.learn.misc.Gaussian()
+  g_loaded.load(bob.io.base.HDF5File(filename))
+  assert g == g_loaded
+  assert (g != g_loaded ) is False
+  assert g.is_similar_to(g_loaded)
+
+  # Save and loading from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(bob.io.base.HDF5File(filename, 'w'))
+  g_loaded = bob.learn.misc.Gaussian()
+  g_loaded.load(hdf5=bob.io.base.HDF5File(filename))
+  assert g == g_loaded
+  assert (g != g_loaded ) is False
+  assert g.is_similar_to(g_loaded)
+
+
   # Make them different
   g_loaded.set_variance_thresholds(0.001)
   assert (g == g_loaded ) is False
@@ -66,17 +94,12 @@ def test_GaussianMachine():
   ref3 = -7.319362000894712
   eps = 1e-10
   assert equals(g.log_likelihood(sample1), ref1, eps)
-  assert equals(g.forward(sample1), ref1, eps)
   assert equals(g.log_likelihood(sample2), ref2, eps)
-  assert equals(g.forward(sample2), ref2, eps)
   assert equals(g.log_likelihood(sample3), ref3, eps)
-  assert equals(g.forward(sample3), ref3, eps)
 
   # Check resize and assignment
-  g.shape = (6,)
-  assert g.shape == (6,)
   g.resize(5)
-  assert g.dim_d == 5
+  assert g.shape == (5,)
   g2 = Gaussian()
   g2 = g
   assert g == g2

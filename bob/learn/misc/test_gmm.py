@@ -37,6 +37,7 @@ def test_GMMStats():
   assert (gs.n == n).all()
   assert (gs.sum_px == sumpx).all()
   assert (gs.sum_pxx == sumpxx).all()
+  assert gs.shape==(2,3)
 
   # Saves and reads from file
   filename = str(tempfile.mkstemp(".hdf5")[1])
@@ -45,6 +46,34 @@ def test_GMMStats():
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
   assert gs.is_similar_to(gs_loaded)
+  
+  # Saves and reads from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats(bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Saves and load from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats()
+  gs_loaded.load(bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Saves and load from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats()
+  gs_loaded.load(hdf5=bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+  
+  
   # Makes them different
   gs_loaded.t = 58
   assert (gs == gs_loaded ) is False
@@ -73,7 +102,9 @@ def test_GMMStats():
   assert (gs_loaded.sum_px == 0).all()
   assert (gs_loaded.sum_pxx == 0).all()
   # Resize and checks size
-  gs_loaded.resize(4,5)
+  assert  gs_loaded.shape==(2,3)
+  gs_loaded.resize(4,5)  
+  assert  gs_loaded.shape==(4,5)
   assert gs_loaded.sum_px.shape[0] == 4
   assert gs_loaded.sum_px.shape[1] == 5
 
