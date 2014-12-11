@@ -170,23 +170,6 @@ class Gaussian
     double logLikelihood_(const blitz::Array<double,1>& x) const;
 
     /**
-     * Computes the log likelihood of the sample, x
-     * @param x The data sample (feature vector)
-     * @param output The computed log likelihood
-     */
-    void forward(const blitz::Array<double,1>& x, double& output) const
-    { output = logLikelihood(x); }
-
-    /**
-     * Computes the log likelihood of the sample, x
-     * @param x The data sample (feature vector)
-     * @param output The computed log likelihood
-     * @warning The input is NOT checked
-     */
-    void forward_(const blitz::Array<double,1>& x, double& output) const
-    { output = logLikelihood_(x); }
-
-    /**
      * Saves to a Configuration
      */
     void save(bob::io::base::HDF5File& config) const;
