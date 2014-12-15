@@ -17,9 +17,9 @@ static auto GMMStats_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".GMMStats",
   "A container for GMM statistics",
   "With respect to [Reynolds2000]_ the class computes: \n\n"
-  "* Eq (8) is :math:`n_i=\\sum\\limits_{t=1}^T Pr(i | x_t)`\n\n"
-  "* Eq (9) is :math:`sumPx=E_i(x)=\\frac{1}{n(i)}\\sum\\limits_{t=1}^T Pr(i | x_t)x_t`\n\n"
-  "* Eq (10) is :math:`sumPxx=E_i(x^2)=\\frac{1}{n(i)}\\sum\\limits_{t=1}^T Pr(i | x_t)x_t^2`\n\n"
+  "* Eq (8) is :py:class:`bob.learn.misc.GMMStats.n`: :math:`n_i=\\sum\\limits_{t=1}^T Pr(i | x_t)`\n\n"
+  "* Eq (9) is :py:class:`bob.learn.misc.GMMStats.sum_px`:  :math:`E_i(x)=\\frac{1}{n(i)}\\sum\\limits_{t=1}^T Pr(i | x_t)x_t`\n\n"
+  "* Eq (10) is :py:class:`bob.learn.misc.GMMStats.sum_pxx`: :math:`E_i(x^2)=\\frac{1}{n(i)}\\sum\\limits_{t=1}^T Pr(i | x_t)x_t^2`\n\n"
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
