@@ -94,23 +94,9 @@ void bob::learn::misc::GMMMachine::copy(const GMMMachine& other) {
 bob::learn::misc::GMMMachine::~GMMMachine() { }
 
 
-void bob::learn::misc::GMMMachine::resize(const size_t n_gaussians, const size_t n_inputs) {
-  m_n_gaussians = n_gaussians;
-  m_n_inputs = n_inputs;
-
-  // Initialise weights
-  m_weights.resize(m_n_gaussians);
-  m_weights = 1.0 / m_n_gaussians;
-
-  // Initialise Gaussians
-  m_gaussians.clear();
-  for(size_t i=0; i<m_n_gaussians; ++i)
-    m_gaussians.push_back(boost::shared_ptr<bob::learn::misc::Gaussian>(new bob::learn::misc::Gaussian(n_inputs)));
-
-  // Initialise cache arrays
-  initCache();
-}
-
+/////////////////////
+// Setters 
+////////////////////
 
 void bob::learn::misc::GMMMachine::setWeights(const blitz::Array<double,1> &weights) {
   bob::core::array::assertSameShape(weights, m_weights);
@@ -131,13 +117,6 @@ void bob::learn::misc::GMMMachine::setMeans(const blitz::Array<double,2> &means)
   m_cache_supervector = false;
 }
 
-void bob::learn::misc::GMMMachine::getMeans(blitz::Array<double,2> &means) const {
-  bob::core::array::assertSameDimensionLength(means.extent(0), m_n_gaussians);
-  bob::core::array::assertSameDimensionLength(means.extent(1), m_n_inputs);
-  for(size_t i=0; i<m_n_gaussians; ++i)
-    means(i,blitz::Range::all()) = m_gaussians[i]->getMean();
-}
-
 void bob::learn::misc::GMMMachine::setMeanSupervector(const blitz::Array<double,1> &mean_supervector) {
   bob::core::array::assertSameDimensionLength(mean_supervector.extent(0), m_n_gaussians*m_n_inputs);
   for(size_t i=0; i<m_n_gaussians; ++i)
@@ -145,11 +124,6 @@ void bob::learn::misc::GMMMachine::setMeanSupervector(const blitz::Array<double,
   m_cache_supervector = false;
 }
 
-void bob::learn::misc::GMMMachine::getMeanSupervector(blitz::Array<double,1> &mean_supervector) const {
-  bob::core::array::assertSameDimensionLength(mean_supervector.extent(0), m_n_gaussians*m_n_inputs);
-  for(size_t i=0; i<m_n_gaussians; ++i)
-    mean_supervector(blitz::Range(i*m_n_inputs, (i+1)*m_n_inputs-1)) = m_gaussians[i]->getMean();
-}
 
 void bob::learn::misc::GMMMachine::setVariances(const blitz::Array<double, 2 >& variances) {
   bob::core::array::assertSameDimensionLength(variances.extent(0), m_n_gaussians);
@@ -161,13 +135,6 @@ void bob::learn::misc::GMMMachine::setVariances(const blitz::Array<double, 2 >& 
   m_cache_supervector = false;
 }
 
-void bob::learn::misc::GMMMachine::getVariances(blitz::Array<double, 2 >& variances) const {
-  bob::core::array::assertSameDimensionLength(variances.extent(0), m_n_gaussians);
-  bob::core::array::assertSameDimensionLength(variances.extent(1), m_n_inputs);
-  for(size_t i=0; i<m_n_gaussians; ++i)
-    variances(i,blitz::Range::all()) = m_gaussians[i]->getVariance();
-}
-
 void bob::learn::misc::GMMMachine::setVarianceSupervector(const blitz::Array<double,1> &variance_supervector) {
   bob::core::array::assertSameDimensionLength(variance_supervector.extent(0), m_n_gaussians*m_n_inputs);
   for(size_t i=0; i<m_n_gaussians; ++i) {
@@ -175,13 +142,6 @@ void bob::learn::misc::GMMMachine::setVarianceSupervector(const blitz::Array<dou
     m_gaussians[i]->applyVarianceThresholds();
   }
   m_cache_supervector = false;
-}
-
-void bob::learn::misc::GMMMachine::getVarianceSupervector(blitz::Array<double,1> &variance_supervector) const {
-  bob::core::array::assertSameDimensionLength(variance_supervector.extent(0), m_n_gaussians*m_n_inputs);
-  for(size_t i=0; i<m_n_gaussians; ++i) {
-    variance_supervector(blitz::Range(i*m_n_inputs, (i+1)*m_n_inputs-1)) = m_gaussians[i]->getVariance();
-  }
 }
 
 void bob::learn::misc::GMMMachine::setVarianceThresholds(const double value) {
@@ -205,11 +165,60 @@ void bob::learn::misc::GMMMachine::setVarianceThresholds(const blitz::Array<doub
   m_cache_supervector = false;
 }
 
-void bob::learn::misc::GMMMachine::getVarianceThresholds(blitz::Array<double, 2>& variance_thresholds) const {
-  bob::core::array::assertSameDimensionLength(variance_thresholds.extent(0), m_n_gaussians);
-  bob::core::array::assertSameDimensionLength(variance_thresholds.extent(1), m_n_inputs);
+/////////////////////
+// Getters 
+////////////////////
+
+const blitz::Array<double,2> bob::learn::misc::GMMMachine::getMeans() const {
+
+  blitz::Array<double,2> means(m_n_gaussians,m_n_inputs);  
+  for(size_t i=0; i<m_n_gaussians; ++i)
+    means(i,blitz::Range::all()) = m_gaussians[i]->getMean();
+    
+  return means;
+}
+
+const blitz::Array<double,2> bob::learn::misc::GMMMachine::getVariances() const{
+  
+  blitz::Array<double,2> variances(m_n_gaussians,m_n_inputs);
+  for(size_t i=0; i<m_n_gaussians; ++i)
+    variances(i,blitz::Range::all()) = m_gaussians[i]->getVariance();
+
+  return variances;
+}
+
+
+const blitz::Array<double,2>  bob::learn::misc::GMMMachine::getVarianceThresholds() const {
+  //bob::core::array::assertSameDimensionLength(variance_thresholds.extent(0), m_n_gaussians);
+  //bob::core::array::assertSameDimensionLength(variance_thresholds.extent(1), m_n_inputs);
+  blitz::Array<double, 2> variance_thresholds(m_n_gaussians, m_n_inputs);
   for(size_t i=0; i<m_n_gaussians; ++i)
     variance_thresholds(i,blitz::Range::all()) = m_gaussians[i]->getVarianceThresholds();
+
+  return variance_thresholds;
+}
+
+
+/////////////////////
+// Methods
+////////////////////
+
+
+void bob::learn::misc::GMMMachine::resize(const size_t n_gaussians, const size_t n_inputs) {
+  m_n_gaussians = n_gaussians;
+  m_n_inputs = n_inputs;
+
+  // Initialise weights
+  m_weights.resize(m_n_gaussians);
+  m_weights = 1.0 / m_n_gaussians;
+
+  // Initialise Gaussians
+  m_gaussians.clear();
+  for(size_t i=0; i<m_n_gaussians; ++i)
+    m_gaussians.push_back(boost::shared_ptr<bob::learn::misc::Gaussian>(new bob::learn::misc::Gaussian(n_inputs)));
+
+  // Initialise cache arrays
+  initCache();
 }
 
 double bob::learn::misc::GMMMachine::logLikelihood(const blitz::Array<double, 1> &x,
@@ -251,23 +260,6 @@ double bob::learn::misc::GMMMachine::logLikelihood_(const blitz::Array<double, 1
   // (log_weighted_gaussian_likelihoods will be discarded)
   return logLikelihood_(x,m_cache_log_weighted_gaussian_likelihoods);
 }
-
-/*
-void bob::learn::misc::GMMMachine::forward(const blitz::Array<double,1>& input, double& output) const {
-  if(static_cast<size_t>(input.extent(0)) != m_n_inputs) {
-    boost::format m("expected input size (%u) does not match the size of input array (%d)");
-    m % m_n_inputs % input.extent(0);
-    throw std::runtime_error(m.str());
-  }
-
-  forward_(input,output);
-}
-
-void bob::learn::misc::GMMMachine::forward_(const blitz::Array<double,1>& input,
-    double& output) const {
-  output = logLikelihood(input);
-}
-*/
 
 void bob::learn::misc::GMMMachine::accStatistics(const blitz::Array<double,2>& input,
     bob::learn::misc::GMMStats& stats) const {
@@ -342,17 +334,9 @@ void bob::learn::misc::GMMMachine::accStatisticsInternal(const blitz::Array<doub
   stats.sumPxx += (m_cache_Px(i,j) * x(j));
 }
 
-boost::shared_ptr<const bob::learn::misc::Gaussian> bob::learn::misc::GMMMachine::getGaussian(const size_t i) const {
+boost::shared_ptr<bob::learn::misc::Gaussian> bob::learn::misc::GMMMachine::getGaussian(const size_t i) {
   if (i>=m_n_gaussians) {
     throw std::runtime_error("getGaussian(): index out of bounds");
-  }
-  boost::shared_ptr<const bob::learn::misc::Gaussian> res = m_gaussians[i];
-  return res;
-}
-
-boost::shared_ptr<bob::learn::misc::Gaussian> bob::learn::misc::GMMMachine::updateGaussian(const size_t i) {
-  if (i>=m_n_gaussians) {
-    throw std::runtime_error("updateGaussian(): index out of bounds");
   }
   return m_gaussians[i];
 }

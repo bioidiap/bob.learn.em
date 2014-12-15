@@ -77,11 +77,6 @@ class GMMMachine
      */
     virtual ~GMMMachine();
 
-    /**
-     * Get number of inputs
-     */
-    inline size_t getNInputs() const
-    { return m_n_inputs; }
 
     /**
      * Reset the input dimensionality, and the number of Gaussian components.
@@ -91,23 +86,21 @@ class GMMMachine
      */
     void resize(const size_t n_gaussians, const size_t n_inputs);
 
+
+    /////////////////////////
+    // Getters
+    ////////////////////////
+
     /**
-     * Set the weights
+     * Get number of inputs
      */
-    void setWeights(const blitz::Array<double,1> &weights);
+    size_t getNInputs() const
+    { return m_n_inputs; }
 
     /**
      * Get the weights ("mixing coefficients") of the Gaussian components
      */
-    inline const blitz::Array<double,1>& getWeights() const
-    { return m_weights; }
-
-    /**
-     * Get the weights in order to be updated
-     * ("mixing coefficients") of the Gaussian components
-     * @warning Only trainers should use this function for efficiency reason
-     */
-    inline blitz::Array<double,1>& updateWeights()
+    const blitz::Array<double,1>& getWeights() const
     { return m_weights; }
 
     /**
@@ -116,11 +109,53 @@ class GMMMachine
     inline const blitz::Array<double,1>& getLogWeights() const
     { return m_cache_log_weights; }
 
+
     /**
-     * Update the log of the weights in cache
-     * @warning Should be used by trainer only when using updateWeights()
+     * Get the means
+     */    
+    const blitz::Array<double,2> getMeans() const;
+    
+    /**
+     * Get the mean supervector
      */
-    void recomputeLogWeights() const;
+    void getMeanSupervector(blitz::Array<double,1> &mean_supervector) const;
+    
+     /**
+     * Returns a const reference to the supervector (Put in cache)
+     */
+    const blitz::Array<double,1>& getMeanSupervector() const;
+        
+    /**
+     * Get the variances
+     */
+    const blitz::Array<double,2> getVariances() const;
+    
+    /**
+     * Get the variance supervector
+     */
+    //void getVarianceSupervector(blitz::Array<double,1> &variance_supervector) const;
+    
+    /**
+     * Returns a const reference to the supervector (Put in cache)
+     */
+    const blitz::Array<double,1>& getVarianceSupervector() const;
+    
+
+    /**
+     * Get the variance flooring thresholds for each Gaussian in each dimension
+     */
+    const blitz::Array<double,2> getVarianceThresholds() const;
+
+
+
+    ///////////////////////
+    // Setters
+    ///////////////////////
+
+    /**
+     * Set the weights
+     */
+    void setWeights(const blitz::Array<double,1> &weights);
 
     /**
      * Set the means
@@ -130,18 +165,6 @@ class GMMMachine
      * Set the means from a supervector
      */
     void setMeanSupervector(const blitz::Array<double,1> &mean_supervector);
-    /**
-     * Get the means
-     */
-    void getMeans(blitz::Array<double,2> &means) const;
-    /**
-     * Get the mean supervector
-     */
-    void getMeanSupervector(blitz::Array<double,1> &mean_supervector) const;
-     /**
-     * Returns a const reference to the supervector (Put in cache)
-     */
-    const blitz::Array<double,1>& getMeanSupervector() const;
 
     /**
      * Set the variances
@@ -151,18 +174,6 @@ class GMMMachine
      * Set the variances from a supervector
      */
     void setVarianceSupervector(const blitz::Array<double,1> &variance_supervector);
-    /**
-     * Get the variances
-     */
-    void getVariances(blitz::Array<double,2> &variances) const;
-    /**
-     * Get the variance supervector
-     */
-    void getVarianceSupervector(blitz::Array<double,1> &variance_supervector) const;
-    /**
-     * Returns a const reference to the supervector (Put in cache)
-     */
-    const blitz::Array<double,1>& getVarianceSupervector() const;
 
     /**
      * Set the variance flooring thresholds in each dimension
@@ -177,10 +188,28 @@ class GMMMachine
      * Set the variance flooring thresholds for each Gaussian in each dimension
      */
     void setVarianceThresholds(const blitz::Array<double,2> &variance_thresholds);
+
+
+    ////////////////
+    // Methods
+    /////////////////
+
     /**
-     * Get the variance flooring thresholds for each Gaussian in each dimension
+     * Get the weights in order to be updated
+     * ("mixing coefficients") of the Gaussian components
+     * @warning Only trainers should use this function for efficiency reason
      */
-    void getVarianceThresholds(blitz::Array<double,2> &variance_thresholds) const;
+    inline blitz::Array<double,1>& updateWeights()
+    { return m_weights; }
+
+
+    /**
+     * Update the log of the weights in cache
+     * @warning Should be used by trainer only when using updateWeights()
+     */
+    void recomputeLogWeights() const;
+
+
 
     /**
      * Output the log likelihood of the sample, x, i.e. log(p(x|GMMMachine))
@@ -215,20 +244,6 @@ class GMMMachine
     double logLikelihood_(const blitz::Array<double, 1> &x) const;
 
     /**
-     * Output the log likelihood of the sample, x
-     * (overrides Machine::forward)
-     * Dimension of the input is checked
-     */
-    //void forward(const blitz::Array<double,1>& input, double& output) const;
-
-    /**
-     * Output the log likelihood of the sample, x
-     * (overrides Machine::forward_)
-     * @warning Dimension of the input is not checked
-     */
-    //void forward_(const blitz::Array<double,1>& input, double& output) const;
-
-    /**
      * Accumulates the GMM statistics over a set of samples.
      * @see bool accStatistics(const blitz::Array<double,1> &x, GMMStats stats)
      * Dimensions of the parameters are checked
@@ -260,13 +275,6 @@ class GMMMachine
      */
     void accStatistics_(const blitz::Array<double,1> &x, GMMStats &stats) const;
 
-    /**
-     * Get a pointer to a particular Gaussian component
-     * @param[in] i The index of the Gaussian component
-     * @return A smart pointer to the i'th Gaussian component
-     *         if it exists, otherwise throws an exception
-     */
-    boost::shared_ptr<const bob::learn::misc::Gaussian> getGaussian(const size_t i) const;
 
     /**
      * Get a pointer to a particular Gaussian component
@@ -274,7 +282,7 @@ class GMMMachine
      * @return A smart pointer to the i'th Gaussian component
      *         if it exists, otherwise throws an exception
      */
-    boost::shared_ptr<bob::learn::misc::Gaussian> updateGaussian(const size_t i);
+    boost::shared_ptr<bob::learn::misc::Gaussian> getGaussian(const size_t i);
 
 
     /**

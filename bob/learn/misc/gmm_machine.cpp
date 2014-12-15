@@ -20,7 +20,7 @@ static auto GMMMachine_doc = bob::extension::ClassDoc(
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
-    "A container for GMM statistics.",
+    "Creates a GMMMachine",
     "",
     true
   )
@@ -184,6 +184,145 @@ PyObject* PyBobLearnMiscGMMMachine_getShape(PyBobLearnMiscGMMMachineObject* self
   BOB_CATCH_MEMBER("shape could not be read", 0)
 }
 
+/***** MEAN *****/
+
+static auto means = bob::extension::VariableDoc(
+  "means",
+  "array_like <float, 2D>",
+  "The means of the gaussians",
+  ""
+);
+PyObject* PyBobLearnMiscGMMMachine_getMeans(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMeans());
+  BOB_CATCH_MEMBER("means could not be read", 0)
+}
+int PyBobLearnMiscGMMMachine_setMeans(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, means.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "means");
+  if (!b) return -1;
+  self->cxx->setMeans(*b);
+  return 0;
+  BOB_CATCH_MEMBER("means could not be set", -1)
+}
+
+/***** Variance *****/
+static auto variances = bob::extension::VariableDoc(
+  "variances",
+  "array_like <float, 2D>",
+  "Variances of the gaussians",
+  ""
+);
+PyObject* PyBobLearnMiscGMMMachine_getVariances(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getVariances());
+  BOB_CATCH_MEMBER("variances could not be read", 0)
+}
+int PyBobLearnMiscGMMMachine_setVariances(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variances.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "variances");
+  if (!b) return -1;
+  self->cxx->setVariances(*b);
+  return 0;
+  BOB_CATCH_MEMBER("variances could not be set", -1)
+}
+
+/***** Weights *****/
+static auto weights = bob::extension::VariableDoc(
+  "weights",
+  "array_like <float, 1D>",
+  "The weights (also known as \"mixing coefficients\")",
+  ""
+);
+PyObject* PyBobLearnMiscGMMMachine_getWeights(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getWeights());
+  BOB_CATCH_MEMBER("weights could not be read", 0)
+}
+int PyBobLearnMiscGMMMachine_setWeights(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, weights.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "weights");
+  if (!b) return -1;
+  self->cxx->setWeights(*b);
+  return 0;
+  BOB_CATCH_MEMBER("weights could not be set", -1)
+}
+
+
+/***** variance_supervector *****/
+static auto variance_supervector = bob::extension::VariableDoc(
+  "variance_supervector",
+  "array_like <float, 1D>",
+  "The variance supervector of the GMMMachine",
+  "Concatenation of the variance vectors of each Gaussian of the GMMMachine"
+);
+PyObject* PyBobLearnMiscGMMMachine_getVarianceSupervector(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getVarianceSupervector());
+  BOB_CATCH_MEMBER("variance_supervector could not be read", 0)
+}
+
+
+/***** mean_supervector *****/
+static auto mean_supervector = bob::extension::VariableDoc(
+  "mean_supervector",
+  "array_like <float, 1D>",
+  "The mean supervector of the GMMMachine",
+  "Concatenation of the mean vectors of each Gaussian of the GMMMachine"
+);
+PyObject* PyBobLearnMiscGMMMachine_getMeanSupervector(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMeanSupervector());
+  BOB_CATCH_MEMBER("mean_supervector could not be read", 0)
+}
+
+
+/***** variance_thresholds *****/
+static auto variance_thresholds = bob::extension::VariableDoc(
+  "variance_thresholds",
+  "array_like <double, 2D>",
+  "Set the variance flooring thresholds in each dimension to the same vector for all Gaussian components if the argument is a 1D numpy arrray, and equal for all Gaussian components and dimensions if the parameter is a scalar. ",
+  ""
+);
+PyObject* PyBobLearnMiscGMMMachine_getVarianceThresholds(PyBobLearnMiscGMMMachineObject* self, void*){
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getVarianceThresholds());
+  BOB_CATCH_MEMBER("variance_thresholds could not be read", 0)
+}
+int PyBobLearnMiscGMMMachine_setVarianceThresholds(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variance_thresholds.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "variance_thresholds");
+  if (!b) return -1;
+  self->cxx->setVarianceThresholds(*b);
+  return 0;
+  BOB_CATCH_MEMBER("variance_thresholds could not be set", -1)  
+}
+
+
 
 
 static PyGetSetDef PyBobLearnMiscGMMMachine_getseters[] = { 
@@ -194,7 +333,50 @@ static PyGetSetDef PyBobLearnMiscGMMMachine_getseters[] = {
    shape.doc(),
    0
   },
+  {
+   means.name(),
+   (getter)PyBobLearnMiscGMMMachine_getMeans,
+   (setter)PyBobLearnMiscGMMMachine_setMeans,
+   means.doc(),
+   0
+  },
+  {
+   variances.name(),
+   (getter)PyBobLearnMiscGMMMachine_getVariances,
+   (setter)PyBobLearnMiscGMMMachine_setVariances,
+   variances.doc(),
+   0
+  },
+  {
+   weights.name(),
+   (getter)PyBobLearnMiscGMMMachine_getWeights,
+   (setter)PyBobLearnMiscGMMMachine_setWeights,
+   weights.doc(),
+   0
+  },
+  {
+   variance_thresholds.name(),
+   (getter)PyBobLearnMiscGMMMachine_getVarianceThresholds,
+   (setter)PyBobLearnMiscGMMMachine_setVarianceThresholds,
+   variance_thresholds.doc(),
+   0
+  },
+  {
+   variance_supervector.name(),
+   (getter)PyBobLearnMiscGMMMachine_getVarianceSupervector,
+   0,
+   variance_supervector.doc(),
+   0
+  },
 
+  {
+   mean_supervector.name(),
+   (getter)PyBobLearnMiscGMMMachine_getMeanSupervector,
+   0,
+   mean_supervector.doc(),
+   0
+  },
+  
   {0}  // Sentinel
 };
 
@@ -328,6 +510,191 @@ static PyObject* PyBobLearnMiscGMMMachine_resize(PyBobLearnMiscGMMMachineObject*
 }
 
 
+/*** log_likelihood ***/
+static auto log_likelihood = bob::extension::FunctionDoc(
+  "log_likelihood",
+  "Output the log likelihood of the sample, x, i.e. log(p(x|GMM)). Inputs are checked.",
+  ".. note:: The :py:meth:`__call__` function is an alias for this.", 
+  true
+)
+.add_prototype("input","output")
+.add_parameter("input", "array_like <float, 1D>", "Input vector")
+.add_return("output","float","The log likelihood");
+static PyObject* PyBobLearnMiscGMMMachine_loglikelihood(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = log_likelihood.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+
+  double value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+  return Py_BuildValue("d", value);
+
+  BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
+}
+
+
+/*** log_likelihood_ ***/
+static auto log_likelihood_ = bob::extension::FunctionDoc(
+  "log_likelihood_",
+  "Output the log likelihood of the sample, x, i.e. log(p(x|GMM)). Inputs are NOT checked.",
+  "", 
+  true
+)
+.add_prototype("input","output")
+.add_parameter("input", "array_like <float, 1D>", "Input vector")
+.add_return("output","float","The log likelihood");
+static PyObject* PyBobLearnMiscGMMMachine_loglikelihood_(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = log_likelihood_.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+
+  double value = self->cxx->logLikelihood_(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+  return Py_BuildValue("d", value);
+
+  BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
+}
+
+
+/*** acc_statistics ***/
+static auto acc_statistics = bob::extension::FunctionDoc(
+  "acc_statistics",
+  "Accumulate the GMM statistics for this sample(s). Inputs are checked.",
+  "", 
+  true
+)
+.add_prototype("input,stats")
+.add_parameter("input", "array_like <float, 2D>", "Input vector")
+.add_parameter("stats", ":py:class:`bob.learn.misc.GMMStats`", "Statistics of the GMM");
+static PyObject* PyBobLearnMiscGMMMachine_accStatistics(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  char** kwlist = acc_statistics.kwlist(0);
+
+  PyBlitzArrayObject* input           = 0;
+  PyBobLearnMiscGMMStatsObject* stats = 0;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input, 
+                                                                 &PyBobLearnMiscGMMStats_Type, &stats))
+    Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+  self->cxx->accStatistics(*PyBlitzArrayCxx_AsBlitz<double,2>(input), *stats->cxx);
+
+  BOB_CATCH_MEMBER("cannot accumulate the statistics", 0)
+  Py_RETURN_NONE;
+}
+
+
+/*** acc_statistics_ ***/
+static auto acc_statistics_ = bob::extension::FunctionDoc(
+  "acc_statistics_",
+  "Accumulate the GMM statistics for this sample(s). Inputs are NOT checked.",
+  "", 
+  true
+)
+.add_prototype("input,stats")
+.add_parameter("input", "array_like <float, 2D>", "Input vector")
+.add_parameter("stats", ":py:class:`bob.learn.misc.GMMStats`", "Statistics of the GMM");
+static PyObject* PyBobLearnMiscGMMMachine_accStatistics_(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = acc_statistics_.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+  PyBobLearnMiscGMMStatsObject* stats = 0;
+
+
+
+ if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input, 
+                                                                 &PyBobLearnMiscGMMStats_Type, &stats))
+    Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+  self->cxx->accStatistics_(*PyBlitzArrayCxx_AsBlitz<double,2>(input), *stats->cxx);
+
+  BOB_CATCH_MEMBER("cannot accumulate the statistics", 0)
+  Py_RETURN_NONE;
+}
+
+
+
+/*** set_variance_thresholds ***/
+static auto set_variance_thresholds = bob::extension::FunctionDoc(
+  "set_variance_thresholds",
+  "Set the variance flooring thresholds in each dimension to the same vector for all Gaussian components if the argument is a 1D numpy arrray, and equal for all Gaussian components and dimensions if the parameter is a scalar.",
+  "",
+  true
+)
+.add_prototype("input")
+.add_parameter("input", "array_like <float, 1D>", "Input vector");
+static PyObject* PyBobLearnMiscGMMMachine_setVarianceThresholds_method(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  char** kwlist = set_variance_thresholds.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+
+ if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter,&input))
+    Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+  self->cxx->setVarianceThresholds(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+
+  BOB_CATCH_MEMBER("cannot accumulate set the variance threshold", 0)
+  Py_RETURN_NONE;
+}
+
+
+
+
+/*** get_gaussian ***/
+static auto get_gaussian = bob::extension::FunctionDoc(
+  "get_gaussian",
+  "Get the specified Gaussian component.",
+  ".. note:: An exception is thrown if i is out of range.", 
+  true
+)
+.add_prototype("i","gaussian")
+.add_parameter("i", "int", "Index of the gaussian")
+.add_return("gaussian",":py:class:`bob.learn.misc.Gaussian`","Gaussian object");
+static PyObject* PyBobLearnMiscGMMMachine_get_gaussian(PyBobLearnMiscGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = get_gaussian.kwlist(0);
+
+  int i = 0;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+ 
+  boost::shared_ptr<bob::learn::misc::Gaussian> gaussian = self->cxx->getGaussian(i);
+
+  //Allocating the correspondent python object
+  PyBobLearnMiscGaussianObject* retval =
+    (PyBobLearnMiscGaussianObject*)PyBobLearnMiscGaussian_Type.tp_alloc(&PyBobLearnMiscGaussian_Type, 0);
+
+  retval->cxx = gaussian;
+   
+  //return reinterpret_cast<PyObject*>(retval);
+  return Py_BuildValue("O",retval);
+
+  BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
+}
+
+
 
 static PyMethodDef PyBobLearnMiscGMMMachine_methods[] = {
   {
@@ -354,6 +721,45 @@ static PyMethodDef PyBobLearnMiscGMMMachine_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     resize.doc()
   },
+  {
+    log_likelihood.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_loglikelihood,
+    METH_VARARGS|METH_KEYWORDS,
+    log_likelihood.doc()
+  },
+  {
+    log_likelihood_.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_loglikelihood_,
+    METH_VARARGS|METH_KEYWORDS,
+    log_likelihood_.doc()
+  },
+  {
+    acc_statistics.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_accStatistics,
+    METH_VARARGS|METH_KEYWORDS,
+    acc_statistics.doc()
+  },
+  {
+    acc_statistics_.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_accStatistics_,
+    METH_VARARGS|METH_KEYWORDS,
+    acc_statistics_.doc()
+  },
+ 
+  {
+    get_gaussian.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_get_gaussian,
+    METH_VARARGS|METH_KEYWORDS,
+    get_gaussian.doc()
+  },
+
+  {
+    set_variance_thresholds.name(),
+    (PyCFunction)PyBobLearnMiscGMMMachine_setVarianceThresholds_method,
+    METH_VARARGS|METH_KEYWORDS,
+    set_variance_thresholds.doc()
+  },
+  
   {0} /* Sentinel */
 };
 
@@ -383,7 +789,7 @@ bool init_BobLearnMiscGMMMachine(PyObject* module)
   PyBobLearnMiscGMMMachine_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscGMMMachine_RichCompare);
   PyBobLearnMiscGMMMachine_Type.tp_methods = PyBobLearnMiscGMMMachine_methods;
   PyBobLearnMiscGMMMachine_Type.tp_getset = PyBobLearnMiscGMMMachine_getseters;
-  PyBobLearnMiscGMMMachine_Type.tp_call = 0;
+  PyBobLearnMiscGMMMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscGMMMachine_loglikelihood);
 
 
   // check that everything is fine
