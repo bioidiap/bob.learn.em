@@ -148,10 +148,13 @@ def test_GMMMachine_1():
   gmm.set_variance_thresholds(varianceThresholds1D)
   assert (gmm.variance_thresholds[0,:] == varianceThresholds1D).all()
   assert (gmm.variance_thresholds[1,:] == varianceThresholds1D).all()
+
   gmm.set_variance_thresholds(0.005)
-  #assert (gmm.variance_thresholds == 0.005).all()
+  assert (gmm.variance_thresholds == 0.005).all()
 
   # Checks Gaussians access
+  gmm.means     = newMeans
+  gmm.variances = newVariances
   assert (gmm.get_gaussian(0).mean == newMeans[0,:]).all()
   assert (gmm.get_gaussian(1).mean == newMeans[1,:]).all()
   assert (gmm.get_gaussian(0).variance == newVariances[0,:]).all()

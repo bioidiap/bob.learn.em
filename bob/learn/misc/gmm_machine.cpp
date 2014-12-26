@@ -645,14 +645,20 @@ static PyObject* PyBobLearnMiscGMMMachine_setVarianceThresholds_method(PyBobLear
 
   char** kwlist = set_variance_thresholds.kwlist(0);
 
-  PyBlitzArrayObject* input = 0;
+  PyBlitzArrayObject* input_array = 0;
+  double input_number = 0;
+  if(PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &input_number)){
+    self->cxx->setVarianceThresholds(input_number);
+  }
+  else if(PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter,&input_array)) {
+    //protects acquired resources through this scope
+    auto input_ = make_safe(input_array);
+    self->cxx->setVarianceThresholds(*PyBlitzArrayCxx_AsBlitz<double,1>(input_array));
+  }
+  else
+    return 0;
 
- if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter,&input))
-    Py_RETURN_NONE;
 
-  //protects acquired resources through this scope
-  auto input_ = make_safe(input);
-  self->cxx->setVarianceThresholds(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
 
   BOB_CATCH_MEMBER("cannot accumulate set the variance threshold", 0)
   Py_RETURN_NONE;
