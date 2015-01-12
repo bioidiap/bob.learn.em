@@ -366,7 +366,7 @@ static auto get_mean = bob::extension::FunctionDoc(
   ".. note:: An exception is thrown if i is out of range.", 
   true
 )
-.add_prototype("i","mean index")
+.add_prototype("i")
 .add_parameter("i", "int", "Index of the mean")
 .add_return("mean","array_like <float, 1D>","Mean array");
 static PyObject* PyBobLearnMiscKMeansMachine_get_mean(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
@@ -379,8 +379,40 @@ static PyObject* PyBobLearnMiscKMeansMachine_get_mean(PyBobLearnMiscKMeansMachin
  
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMean(i));
 
-  BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
+  BOB_CATCH_MEMBER("cannot get the mean", 0)
 }
+
+
+/*** set_mean ***/
+static auto set_mean = bob::extension::FunctionDoc(
+  "set_mean",
+  "Set the i'th mean.",
+  ".. note:: An exception is thrown if i is out of range.", 
+  true
+)
+.add_prototype("i,mean")
+.add_parameter("i", "int", "Index of the mean")
+.add_parameter("mean", "array_like <float, 1D>", "Mean array");
+static PyObject* PyBobLearnMiscKMeansMachine_set_mean(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = set_mean.kwlist(0);
+
+  int i = 0;
+  PyBlitzArrayObject* mean = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &mean)) Py_RETURN_NONE;
+  
+  //protects acquired resources through this scope
+  auto mean_ = make_safe(mean);
+
+  //setting the mean
+  self->cxx->setMean(i, *PyBlitzArrayCxx_AsBlitz<double,1>(mean));
+
+  BOB_CATCH_MEMBER("cannot set the mean", 0)
+  
+  Py_RETURN_NONE;
+}
+
 
 
 /*** get_distance_from_mean ***/
@@ -408,13 +440,105 @@ static PyObject* PyBobLearnMiscKMeansMachine_get_distance_from_mean(PyBobLearnMi
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 
-  //return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMean(i));
   double output = self->cxx->getDistanceFromMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input),i);
   return Py_BuildValue("d", output);
 
   BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
 }
 
+
+/*** get_closest_mean ***/
+static auto get_closest_mean = bob::extension::FunctionDoc(
+  "get_closest_mean",
+  "Calculate the index of the mean that is closest (in terms of square Euclidean distance) to the data sample, x.",
+  "",
+  true
+)
+.add_prototype("input","output")
+.add_parameter("input", "array_like <float, 1D>", "The data sample (feature vector)")
+.add_return("output", "(int, int)", "Tuple containing the closest mean and the minimum distance from the input");
+static PyObject* PyBobLearnMiscKMeansMachine_get_closest_mean(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = get_closest_mean.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+
+  size_t closest_mean = 0;
+  double min_distance = -1;   
+  self->cxx->getClosestMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input), closest_mean, min_distance);
+    
+  return Py_BuildValue("(i,d)", closest_mean, min_distance);
+
+  BOB_CATCH_MEMBER("cannot compute the closest mean", 0)
+}
+
+
+/*** get_min_distance ***/
+static auto get_min_distance = bob::extension::FunctionDoc(
+  "get_min_distance",
+  "Output the minimum (Square Euclidean) distance between the input and the closest mean ",
+  "",
+  true
+)
+.add_prototype("input","output")
+.add_parameter("input", "array_like <float, 1D>", "The data sample (feature vector)")
+.add_return("output", "double", "The minimum distance");
+static PyObject* PyBobLearnMiscKMeansMachine_get_min_distance(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = get_min_distance.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+
+  double min_distance = 0;   
+  min_distance = self->cxx->getMinDistance(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+
+  return Py_BuildValue("d", min_distance);
+
+  BOB_CATCH_MEMBER("cannot compute the min distance", 0)
+}
+
+/**** get_variances_and_weights_for_each_cluster ***/
+static auto get_variances_and_weights_for_each_cluster = bob::extension::FunctionDoc(
+  "get_variances_and_weights_for_each_cluster",
+  "For each mean, find the subset of the samples that is closest to that mean, and calculate"
+  " 1) the variance of that subset (the cluster variance)" 
+  " 2) the proportion of the samples represented by that subset (the cluster weight)",
+  "",
+  true
+)
+.add_prototype("input","output")
+.add_parameter("input", "array_like <float, 2D>", "The data sample (feature vector)")
+.add_return("output", "(array_like <float, 2D>, array_like <float, 1D>)", "A tuple with the variances and the weights respectively");
+static PyObject* PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist =  get_variances_and_weights_for_each_cluster.kwlist(0);
+
+  PyBlitzArrayObject* input = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto input_ = make_safe(input);
+
+  blitz::Array<double,2> variances(self->cxx->getNMeans(),self->cxx->getNInputs());
+  blitz::Array<double,1> weights(self->cxx->getNMeans());
+  
+  self->cxx->getVariancesAndWeightsForEachCluster(*PyBlitzArrayCxx_AsBlitz<double,2>(input),variances,weights);
+
+  return Py_BuildValue("(O,O)",PyBlitzArrayCxx_AsConstNumpy(variances), PyBlitzArrayCxx_AsConstNumpy(weights));
+
+  BOB_CATCH_MEMBER("cannot compute the variances and weights for each cluster", 0)
+}
 
 
 
@@ -450,10 +574,35 @@ static PyMethodDef PyBobLearnMiscKMeansMachine_methods[] = {
     get_mean.doc()
   },  
   {
+    set_mean.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_set_mean,
+    METH_VARARGS|METH_KEYWORDS,
+    set_mean.doc()
+  },  
+  {
     get_distance_from_mean.name(),
     (PyCFunction)PyBobLearnMiscKMeansMachine_get_distance_from_mean,
     METH_VARARGS|METH_KEYWORDS,
     get_distance_from_mean.doc()
+  },  
+  {
+    get_closest_mean.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_closest_mean,
+    METH_VARARGS|METH_KEYWORDS,
+    get_closest_mean.doc()
+  },  
+  {
+    get_min_distance.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_min_distance,
+    METH_VARARGS|METH_KEYWORDS,
+    get_min_distance.doc()
+  },  
+
+  {
+    get_variances_and_weights_for_each_cluster.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster,
+    METH_VARARGS|METH_KEYWORDS,
+    get_variances_and_weights_for_each_cluster.doc()
   },  
 
   {0} /* Sentinel */

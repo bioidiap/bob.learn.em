@@ -31,24 +31,19 @@ def test_KMeansMachine():
 
   # Sets and gets
   assert (km.means == means).all()
-  assert (km.get_mean(0) == means[0,:]).all()
+  assert (km.get_mean(0) == means[0,:]).all()  
   assert (km.get_mean(1) == means[1,:]).all()
-  #km.set_mean(0, mean)
-  #assert (km.get_mean(0) == mean).all()
+  km.set_mean(0, mean)
+  assert (km.get_mean(0) == mean).all()
 
   # Distance and closest mean
   eps = 1e-10
 
-  print mean
-  print km.means
-
-  print km.get_distance_from_mean(mean, 0)
-
-
-
   assert equals( km.get_distance_from_mean(mean, 0), 0, eps)
-  assert equals( km.get_distance_from_mean(mean, 1), 6, eps)
+  assert equals( km.get_distance_from_mean(mean, 1), 6, eps)  
+  
   (index, dist) = km.get_closest_mean(mean)
+  
   assert index == 0
   assert equals( dist, 0, eps)
   assert equals( km.get_min_distance(mean), 0, eps)
@@ -61,8 +56,7 @@ def test_KMeansMachine():
 
   # Resize
   km.resize(4,5)
-  assert km.dim_c == 4
-  assert km.dim_d == 5
+  assert km.shape == (4,5)
 
   # Copy constructor and comparison operators
   km.resize(2,3)
@@ -78,3 +72,30 @@ def test_KMeansMachine():
 
   # Clean-up
   os.unlink(filename)
+  
+  
+def test_KMeansMachine2():
+  print "Computing" 
+  kmeans             = bob.learn.misc.KMeansMachine(2,2)
+  kmeans.means       = numpy.array([[1.2,1.3],[0.2,-0.3]])
+
+  data               = numpy.array([
+                                  [1.,1],
+                                  [1.2, 3],
+                                  [0,0],
+                                  [0.3,0.2],
+                                  [0.2,0]
+                                 ])
+  print "Computing" 
+  variances, weights = kmeans.get_variances_and_weights_for_each_cluster(data)
+  print "Computed" 
+
+  variances_result = numpy.array([[ 0.01,1.],
+                                  [ 0.01555556 ,0.00888889]])
+  weights_result = numpy.array([ 0.4, 0.6])
+
+  assert True
+  
+  #assert weights_result   == weights
+  #assert variances_result == variances
+ 
