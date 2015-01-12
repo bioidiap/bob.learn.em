@@ -1,3 +1,4 @@
-include LICENSE README.rst bootstrap.py buildout.cfg requirements.txt version.txt
+include LICENSE README.rst bootstrap-buildout.py buildout.cfg requirements.txt version.txt
 recursive-include doc conf.py *.rst
-recursive-include bob *.cc *.cpp *.h *.hdf5
+recursive-include bob/learn/linear *.cpp *.h
+recursive-include bob/learn/linear/data *.*
