@@ -110,15 +110,16 @@ void bob::learn::misc::KMeansMachine::setMean(const size_t i, const blitz::Array
   m_means(i,blitz::Range::all()) = mean;
 }
 
-void bob::learn::misc::KMeansMachine::getMean(const size_t i, blitz::Array<double,1> &mean) const
+const blitz::Array<double,1> bob::learn::misc::KMeansMachine::getMean(const size_t i) const
 {
   if(i>=m_n_means) {
     boost::format m("cannot get mean with index %lu: out of bounds [0,%lu[");
     m % i % m_n_means;
     throw std::runtime_error(m.str());
   }
-  bob::core::array::assertSameDimensionLength(mean.extent(0), m_means.extent(1));
-  mean = m_means(i,blitz::Range::all());
+
+  return m_means(i,blitz::Range::all());
+
 }
 
 double bob::learn::misc::KMeansMachine::getDistanceFromMean(const blitz::Array<double,1> &x,

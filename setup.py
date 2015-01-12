@@ -59,7 +59,7 @@ setup(
           "bob/learn/misc/cpp/GMMStats.cpp",
           #"bob/learn/misc/cpp/IVectorMachine.cpp",
           #"bob/learn/misc/cpp/JFAMachine.cpp",
-          #"bob/learn/misc/cpp/KMeansMachine.cpp",
+          "bob/learn/misc/cpp/KMeansMachine.cpp",
           #"bob/learn/misc/cpp/LinearScoring.cpp",
           #"bob/learn/misc/cpp/PLDAMachine.cpp",
           #"bob/learn/misc/cpp/ZTNorm.cpp",
@@ -103,6 +103,7 @@ setup(
           "bob/learn/misc/gaussian.cpp",
           "bob/learn/misc/gmm_stats.cpp",
           "bob/learn/misc/gmm_machine.cpp",
+          "bob/learn/misc/kmeans_machine.cpp",
 
           "bob/learn/misc/main.cpp",
         ],

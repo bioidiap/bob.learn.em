@@ -27,18 +27,25 @@ def test_KMeansMachine():
   # Initializes a KMeansMachine
   km = KMeansMachine(2,3)
   km.means = means
-  assert km.dim_c == 2
-  assert km.dim_d == 3
+  assert km.shape == (2,3)
 
   # Sets and gets
   assert (km.means == means).all()
   assert (km.get_mean(0) == means[0,:]).all()
   assert (km.get_mean(1) == means[1,:]).all()
-  km.set_mean(0, mean)
-  assert (km.get_mean(0) == mean).all()
+  #km.set_mean(0, mean)
+  #assert (km.get_mean(0) == mean).all()
 
   # Distance and closest mean
   eps = 1e-10
+
+  print mean
+  print km.means
+
+  print km.get_distance_from_mean(mean, 0)
+
+
+
   assert equals( km.get_distance_from_mean(mean, 0), 0, eps)
   assert equals( km.get_distance_from_mean(mean, 1), 6, eps)
   (index, dist) = km.get_closest_mean(mean)

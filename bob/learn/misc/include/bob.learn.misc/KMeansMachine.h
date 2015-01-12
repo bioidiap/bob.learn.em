@@ -12,7 +12,6 @@
 #include <cfloat>
 
 #include <bob.io.base/HDF5File.h>
-#include <bob.learn.misc/Machine.h>
 
 namespace bob { namespace learn { namespace misc {
 
@@ -20,7 +19,7 @@ namespace bob { namespace learn { namespace misc {
  * @brief This class implements a k-means classifier.
  * @details See Section 9.1 of Bishop, "Pattern recognition and machine learning", 2006
  */
-class KMeansMachine: public Machine<blitz::Array<double,1>, double> {
+class KMeansMachine {
   public:
     /**
      * Default constructor. Builds an otherwise invalid 0 x 0 k-means
@@ -118,7 +117,7 @@ class KMeansMachine: public Machine<blitz::Array<double,1>, double> {
      * @param[in]   i    The index of the mean
      * @param[out] mean The mean, a 1D array, with a length equal to the number of feature dimensions.
      */
-    void getMean(const size_t i, blitz::Array<double,1>& mean) const;
+    const blitz::Array<double,1> getMean(const size_t i) const;
 
     /**
      * Get the means (i.e. a 2D array, with as many rows as means, and as
