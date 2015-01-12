@@ -75,7 +75,6 @@ def test_KMeansMachine():
   
   
 def test_KMeansMachine2():
-  print "Computing" 
   kmeans             = bob.learn.misc.KMeansMachine(2,2)
   kmeans.means       = numpy.array([[1.2,1.3],[0.2,-0.3]])
 
@@ -86,16 +85,14 @@ def test_KMeansMachine2():
                                   [0.3,0.2],
                                   [0.2,0]
                                  ])
-  print "Computing" 
   variances, weights = kmeans.get_variances_and_weights_for_each_cluster(data)
-  print "Computed" 
 
   variances_result = numpy.array([[ 0.01,1.],
-                                  [ 0.01555556 ,0.00888889]])
+                                  [ 0.01555556, 0.00888889]])
+                                  
+                                   
   weights_result = numpy.array([ 0.4, 0.6])
 
-  assert True
-  
-  #assert weights_result   == weights
-  #assert variances_result == variances
+  assert equals(weights_result,weights, 1e-3)
+  assert equals(variances_result,variances,1e-3)
  
