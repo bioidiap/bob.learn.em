@@ -9,8 +9,8 @@
 #define BOB_LEARN_MISC_KMEANSTRAINER_H
 
 #include <bob.learn.misc/KMeansMachine.h>
-#include <bob.learn.misc/EMTrainer.h>
 #include <boost/version.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 namespace bob { namespace learn { namespace misc {
 
@@ -20,7 +20,7 @@ namespace bob { namespace learn { namespace misc {
  * @details See Section 9.1 of Bishop, "Pattern recognition and machine learning", 2006
  *          It uses a random initialisation of the means followed by the expectation-maximization algorithm
  */
-class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >
+class KMeansTrainer
 {
   public:
     /**
@@ -40,9 +40,13 @@ class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Ar
     /**
      * @brief Constructor
      */
+    KMeansTrainer(InitializationMethod=RANDOM);
+
+    /*     
     KMeansTrainer(double convergence_threshold=0.001,
       size_t max_iterations=10, bool compute_likelihood=true,
-      InitializationMethod=RANDOM);
+      InitializationMethod=RANDOM);*/
+      
 
     /**
      * @brief Virtualize destructor
@@ -85,7 +89,7 @@ class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Ar
      * Data is split into as many chunks as there are means,
      * then each mean is set to a random example within each chunk.
      */
-    virtual void initialize(bob::learn::misc::KMeansMachine& kMeansMachine,
+    void initialize(bob::learn::misc::KMeansMachine& kMeansMachine,
       const blitz::Array<double,2>& sampler);
 
     /**
@@ -94,25 +98,21 @@ class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Ar
      * - average (Square Euclidean) distance from the closest mean
      * Implements EMTrainer::eStep(double &)
      */
-    virtual void eStep(bob::learn::misc::KMeansMachine& kmeans,
+    void eStep(bob::learn::misc::KMeansMachine& kmeans,
       const blitz::Array<double,2>& data);
 
     /**
      * @brief Updates the mean based on the statistics from the E-step.
      */
-    virtual void mStep(bob::learn::misc::KMeansMachine& kmeans,
+    void mStep(bob::learn::misc::KMeansMachine& kmeans,
       const blitz::Array<double,2>&);
 
     /**
      * @brief This functions returns the average min (Square Euclidean)
      * distance (average distance to the closest mean)
      */
-    virtual double computeLikelihood(bob::learn::misc::KMeansMachine& kmeans);
+    double computeLikelihood(bob::learn::misc::KMeansMachine& kmeans);
 
-    /**
-     * @brief Function called at the end of the training
-     */
-    virtual void finalize(bob::learn::misc::KMeansMachine& kMeansMachine, const blitz::Array<double,2>& sampler);
 
     /**
      * @brief Reset the statistics accumulators
@@ -156,7 +156,13 @@ class KMeansTrainer: public EMTrainer<bob::learn::misc::KMeansMachine, blitz::Ar
     void setAverageMinDistance(const double value) { m_average_min_distance = value; }
 
 
-  protected:
+  private:
+  
+    //bool m_compute_likelihood; ///< whether lilelihood is computed during the EM loop or not
+    //double m_convergence_threshold; ///< convergence threshold
+    //size_t m_max_iterations; ///< maximum number of EM iterations
+
+  
     /**
      * @brief The initialization method
      * Check that there is no duplicated means during the random initialization

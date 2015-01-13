@@ -12,43 +12,73 @@
 
 #include <boost/random.hpp>
 
+/*
 bob::learn::misc::KMeansTrainer::KMeansTrainer(double convergence_threshold,
-    size_t max_iterations, bool compute_likelihood, InitializationMethod i_m):
-  bob::learn::misc::EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >(
-    convergence_threshold, max_iterations, compute_likelihood),
-  m_initialization_method(i_m),
-  m_rng(new boost::mt19937()), m_average_min_distance(0),
-  m_zeroethOrderStats(0), m_firstOrderStats(0,0)
+    size_t max_iterations, bool compute_likelihood, InitializationMethod i_m)
 {
+
+  m_initialization_method = i_m;
+  m_zeroethOrderStats     = 0;
+  m_firstOrderStats       = 0;
+  m_average_min_distance  = 0;
+  
+  m_compute_likelihood    = compute_likelihood;
+  m_convergence_threshold = convergence_threshold;
+  m_max_iterations        = max_iterations;
+  //m_rng(new boost::mt19937());
+
+}
+*/
+
+bob::learn::misc::KMeansTrainer::KMeansTrainer(InitializationMethod i_m)
+{
+
+  m_initialization_method = i_m;
+  m_zeroethOrderStats     = 0;
+  m_firstOrderStats       = 0;
+  m_average_min_distance  = 0;
+  
+  //m_rng(new boost::mt19937());
 }
 
-bob::learn::misc::KMeansTrainer::KMeansTrainer(const bob::learn::misc::KMeansTrainer& other):
-  bob::learn::misc::EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >(
-    other.m_convergence_threshold, other.m_max_iterations, other.m_compute_likelihood),
-  m_initialization_method(other.m_initialization_method),
-  m_rng(other.m_rng), m_average_min_distance(other.m_average_min_distance),
-  m_zeroethOrderStats(bob::core::array::ccopy(other.m_zeroethOrderStats)),
-  m_firstOrderStats(bob::core::array::ccopy(other.m_firstOrderStats))
-{
+
+bob::learn::misc::KMeansTrainer::KMeansTrainer(const bob::learn::misc::KMeansTrainer& other){
+    
+  //m_convergence_threshold = other.m_convergence_threshold;
+  //m_max_iterations        = other.m_max_iterations;
+  //m_compute_likelihood    = other.m_compute_likelihood;
+
+  m_initialization_method = other.m_initialization_method;  
+  m_rng                   = other.m_rng;
+  m_average_min_distance  = other.m_average_min_distance;
+  m_zeroethOrderStats     = bob::core::array::ccopy(other.m_zeroethOrderStats); 
+  m_firstOrderStats       = bob::core::array::ccopy(other.m_firstOrderStats);
 }
+
 
 bob::learn::misc::KMeansTrainer& bob::learn::misc::KMeansTrainer::operator=
 (const bob::learn::misc::KMeansTrainer& other)
 {
   if(this != &other)
   {
-    EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >::operator=(other);
-    m_initialization_method = other.m_initialization_method;
-    m_rng = other.m_rng;
-    m_average_min_distance = other.m_average_min_distance;
-    m_zeroethOrderStats.reference(bob::core::array::ccopy(other.m_zeroethOrderStats));
-    m_firstOrderStats.reference(bob::core::array::ccopy(other.m_firstOrderStats));
+    //m_compute_likelihood          = other.m_compute_likelihood;
+    //m_convergence_threshold       = other.m_convergence_threshold;
+    //m_max_iterations              = other.m_max_iterations;
+    m_rng                         = other.m_rng;
+    m_initialization_method       = other.m_initialization_method;
+    m_average_min_distance        = other.m_average_min_distance;
+
+    m_zeroethOrderStats = bob::core::array::ccopy(other.m_zeroethOrderStats);
+    m_firstOrderStats   = bob::core::array::ccopy(other.m_firstOrderStats);
   }
   return *this;
 }
 
+
 bool bob::learn::misc::KMeansTrainer::operator==(const bob::learn::misc::KMeansTrainer& b) const {
-  return EMTrainer<bob::learn::misc::KMeansMachine, blitz::Array<double,2> >::operator==(b) &&
+  return     //m_compute_likelihood == b.m_compute_likelihood &&
+             //m_convergence_threshold == b.m_convergence_threshold &&
+             //m_max_iterations == b.m_max_iterations  &&  
          m_initialization_method == b.m_initialization_method &&
          *m_rng == *(b.m_rng) && m_average_min_distance == b.m_average_min_distance &&
          bob::core::array::hasSameShape(m_zeroethOrderStats, b.m_zeroethOrderStats) &&
@@ -97,7 +127,7 @@ void bob::learn::misc::KMeansTrainer::initialize(bob::learn::misc::KMeansMachine
           bool valid = true;
           for(size_t j=0; j<i && valid; ++j)
           {
-            kmeans.getMean(j, cur_mean);
+            cur_mean = kmeans.getMean(j);
             valid = blitz::any(mean != cur_mean);
           }
           // if different, stop otherwise, try with another one
@@ -204,10 +234,6 @@ double bob::learn::misc::KMeansTrainer::computeLikelihood(bob::learn::misc::KMea
   return m_average_min_distance;
 }
 
-void bob::learn::misc::KMeansTrainer::finalize(bob::learn::misc::KMeansMachine& kmeans,
-  const blitz::Array<double,2>& ar)
-{
-}
 
 bool bob::learn::misc::KMeansTrainer::resetAccumulators(bob::learn::misc::KMeansMachine& kmeans)
 {
