@@ -89,10 +89,8 @@ def test_KMeansMachine2():
 
   variances_result = numpy.array([[ 0.01,1.],
                                   [ 0.01555556, 0.00888889]])
-                                  
-                                   
   weights_result = numpy.array([ 0.4, 0.6])
-
-  assert equals(weights_result,weights, 1e-3)
-  assert equals(variances_result,variances,1e-3)
+  
+  assert equals(weights_result,weights, 1e-3).all()
+  assert equals(variances_result,variances,1e-3).all()
  
