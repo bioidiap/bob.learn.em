@@ -43,7 +43,9 @@ static PyObject* create_module (void) {
   if (!init_BobLearnMiscGaussian(module)) return 0;
   if (!init_BobLearnMiscGMMStats(module)) return 0;
   if (!init_BobLearnMiscGMMMachine(module)) return 0;
-  if (!init_BobLearnMiscKMeansMachine(module)) return 0;  
+  if (!init_BobLearnMiscKMeansMachine(module)) return 0; 
+  if (!init_BobLearnMiscKMeansTrainer(module)) return 0;  
+
 
   static void* PyBobLearnMisc_API[PyBobLearnMisc_API_pointers];
 

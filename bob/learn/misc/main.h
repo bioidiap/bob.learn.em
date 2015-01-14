@@ -105,5 +105,16 @@ bool init_BobLearnMiscKMeansMachine(PyObject* module);
 int PyBobLearnMiscKMeansMachine_Check(PyObject* o);
 
 
+// KMeansTrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::KMeansTrainer> cxx;
+} PyBobLearnMiscKMeansTrainerObject;
+
+extern PyTypeObject PyBobLearnMiscKMeansTrainer_Type;
+bool init_BobLearnMiscKMeansTrainer(PyObject* module);
+int PyBobLearnMiscKMeansTrainer_Check(PyObject* o);
+
+
 
 #endif // BOB_LEARN_EM_MAIN_H
