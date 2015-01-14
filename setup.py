@@ -68,7 +68,7 @@ setup(
           #"bob/learn/misc/cpp/GMMTrainer.cpp",
           #"bob/learn/misc/cpp/IVectorTrainer.cpp",
           #"bob/learn/misc/cpp/JFATrainer.cpp",
-          #"bob/learn/misc/cpp/KMeansTrainer.cpp",
+          "bob/learn/misc/cpp/KMeansTrainer.cpp",
           #"bob/learn/misc/cpp/MAP_GMMTrainer.cpp",
           #"bob/learn/misc/cpp/ML_GMMTrainer.cpp",
           #"bob/learn/misc/cpp/PLDATrainer.cpp",
