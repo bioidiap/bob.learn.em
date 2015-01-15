@@ -13,12 +13,13 @@
 /************ Constructor Section *********************************/
 /******************************************************************/
 
+
 static auto KMeansTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".KMeansTrainer",
-  "Trains a KMeans machine.\n"
-  "This class implements the expectation-maximization algorithm for a k-means machine.\n"
-  "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006\n"
-  "It uses a random initialization of the means followed by the expectation-maximization algorithm",
+  "Trains a KMeans machine."
+  "This class implements the expectation-maximization algorithm for a k-means machine."
+  "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006"
+  "It uses a random initialization of the means followed by the expectation-maximization algorithm"
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
@@ -36,32 +37,40 @@ static auto KMeansTrainer_doc = bob::extension::ClassDoc(
 );
 
 
-static int PyBobLearnMiscKMeansTrainer_init_copy(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+static int PyBobLearnMiscKMeansTrainer_init_copy(PyBobLearnMiscKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = KMeansMachine_doc.kwlist(1);
-  PyBobLearnMiscKMeansMachineObject* tt;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscKMeansMachine_Type, &tt)){
-    KMeansMachine_doc.print_usage();
+  char** kwlist = KMeansTrainer_doc.kwlist(1);
+  PyBobLearnMiscKMeansTrainerObject* tt;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscKMeansTrainer_Type, &tt)){
+    KMeansTrainer_doc.print_usage();
     return -1;
   }
 
-  self->cxx.reset(new bob::learn::misc::KMeansMachine(*tt->cxx));
+  self->cxx.reset(new bob::learn::misc::KMeansTrainer(*tt->cxx));
   return 0;
 }
 
 
+static int PyBobLearnMiscKMeansTrainer_init(PyBobLearnMiscKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  // get the number of command line arguments
+  //int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
+  
+  BOB_CATCH_MEMBER("cannot create KMeansTrainer", 0)
+  return 0;
+}
 
 
-static void PyBobLearnMiscKMeansMachine_delete(PyBobLearnMiscKMeansMachineObject* self) {
+static void PyBobLearnMiscKMeansTrainer_delete(PyBobLearnMiscKMeansTrainerObject* self) {
   self->cxx.reset();
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
 
-int PyBobLearnMiscKMeansMachine_Check(PyObject* o) {
-  return PyObject_IsInstance(o, reinterpret_cast<PyObject*>(&PyBobLearnMiscKMeansMachine_Type));
+int PyBobLearnMiscKMeansTrainer_Check(PyObject* o) {
+  return PyObject_IsInstance(o, reinterpret_cast<PyObject*>(&PyBobLearnMiscKMeansTrainer_Type));
 }
-
 
 /******************************************************************/
 /************ Variables Section ***********************************/
@@ -76,7 +85,6 @@ static PyGetSetDef PyBobLearnMiscKMeansTrainer_getseters[] = {
 /******************************************************************/
 /************ Functions Section ***********************************/
 /******************************************************************/
-
 
 
 
@@ -107,7 +115,7 @@ bool init_BobLearnMiscKMeansTrainer(PyObject* module)
   // set the functions
   PyBobLearnMiscKMeansTrainer_Type.tp_new = PyType_GenericNew;
   PyBobLearnMiscKMeansTrainer_Type.tp_init = reinterpret_cast<initproc>(PyBobLearnMiscKMeansTrainer_init);
-  PyBobLearnMiscKMeansTrainer_Type.tp_dealloc = reinterpret_cast<destructor>(PyBobLearnMiscKTrainer_delete);
+  PyBobLearnMiscKMeansTrainer_Type.tp_dealloc = reinterpret_cast<destructor>(PyBobLearnMiscKMeansTrainer_delete);
   //PyBobLearnMiscKMeansTrainer_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscKMeansTrainer_RichCompare);
   PyBobLearnMiscKMeansTrainer_Type.tp_methods = PyBobLearnMiscKMeansTrainer_methods;
   PyBobLearnMiscKMeansTrainer_Type.tp_getset = PyBobLearnMiscKMeansTrainer_getseters;
@@ -119,6 +127,6 @@ bool init_BobLearnMiscKMeansTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnMiscKMeansTrainer_Type);
-  return PyModule_AddObject(module, "_KMeansTrainer", (PyObject*)&PyBobLearnMiscKMeansTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "KMeansTrainer", (PyObject*)&PyBobLearnMiscKMeansTrainer_Type) >= 0;
 }
 

@@ -21,7 +21,7 @@
 #include <bob.learn.misc/GMMStats.h>
 #include <bob.learn.misc/GMMMachine.h>
 #include <bob.learn.misc/KMeansMachine.h>
-
+#include <bob.learn.misc/KMeansTrainer.h>
 
 #if PY_VERSION_HEX >= 0x03000000
 #define PyInt_Check PyLong_Check

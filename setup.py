@@ -104,6 +104,7 @@ setup(
           "bob/learn/misc/gmm_stats.cpp",
           "bob/learn/misc/gmm_machine.cpp",
           "bob/learn/misc/kmeans_machine.cpp",
+          "bob/learn/misc/kmeans_trainer.cpp",
 
           "bob/learn/misc/main.cpp",
         ],
