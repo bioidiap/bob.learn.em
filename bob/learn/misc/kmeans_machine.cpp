@@ -24,7 +24,7 @@ static auto KMeansMachine_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("n_gaussians,n_inputs","")
+  .add_prototype("n_means,n_inputs","")
   .add_prototype("other","")
   .add_prototype("hdf5","")
   .add_prototype("","")

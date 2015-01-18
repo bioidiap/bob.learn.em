@@ -104,8 +104,7 @@ class KMeansTrainer
     /**
      * @brief Updates the mean based on the statistics from the E-step.
      */
-    void mStep(bob::learn::misc::KMeansMachine& kmeans,
-      const blitz::Array<double,2>&);
+    void mStep(bob::learn::misc::KMeansMachine& kmeans);
 
     /**
      * @brief This functions returns the average min (Square Euclidean)

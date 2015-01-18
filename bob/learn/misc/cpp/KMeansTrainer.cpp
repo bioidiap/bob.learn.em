@@ -8,9 +8,10 @@
 
 #include <bob.learn.misc/KMeansTrainer.h>
 #include <bob.core/array_copy.h>
-#include <bob.core/random.h>
 
 #include <boost/random.hpp>
+#include <bob.core/random.h>
+
 
 /*
 bob::learn::misc::KMeansTrainer::KMeansTrainer(double convergence_threshold,
@@ -30,15 +31,13 @@ bob::learn::misc::KMeansTrainer::KMeansTrainer(double convergence_threshold,
 }
 */
 
-bob::learn::misc::KMeansTrainer::KMeansTrainer(InitializationMethod i_m)
+bob::learn::misc::KMeansTrainer::KMeansTrainer(InitializationMethod i_m):
+m_rng(new boost::mt19937()),
+m_zeroethOrderStats(0),
+m_firstOrderStats(0),
+m_average_min_distance(0)
 {
-
   m_initialization_method = i_m;
-  m_zeroethOrderStats     = 0;
-  m_firstOrderStats       = 0;
-  m_average_min_distance  = 0;
-  
-  //m_rng(new boost::mt19937());
 }
 
 
@@ -218,8 +217,7 @@ void bob::learn::misc::KMeansTrainer::eStep(bob::learn::misc::KMeansMachine& kme
   m_average_min_distance /= static_cast<double>(ar.extent(0));
 }
 
-void bob::learn::misc::KMeansTrainer::mStep(bob::learn::misc::KMeansMachine& kmeans,
-  const blitz::Array<double,2>&)
+void bob::learn::misc::KMeansTrainer::mStep(bob::learn::misc::KMeansMachine& kmeans)
 {
   blitz::Array<double,2>& means = kmeans.updateMeans();
   for(size_t i=0; i<kmeans.getNMeans(); ++i)
