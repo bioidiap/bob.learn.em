@@ -541,6 +541,110 @@ static PyObject* PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_
 }
 
 
+/**** __get_variances_and_weights_for_each_cluster_init__ ***/
+static auto __get_variances_and_weights_for_each_cluster_init__ = bob::extension::FunctionDoc(
+  "__get_variances_and_weights_for_each_cluster_init__",
+  "Methods consecutively called by getVariancesAndWeightsForEachCluster()"
+  "This should help for the parallelization on several nodes by splitting the data and calling"
+  "getVariancesAndWeightsForEachClusterAcc() for each split. In this case, there is a need to sum"
+  "with the m_cache_means, variances, and weights variables before performing the merge on one"
+  "node using getVariancesAndWeightsForEachClusterFin().",
+  "",
+  true
+)
+.add_prototype("variances,weights","")
+.add_parameter("variances", "array_like <float, 2D>", "Variance array")
+.add_parameter("weights", "array_like <float, 1D>", "Weight array");
+static PyObject* PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_init(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist =  __get_variances_and_weights_for_each_cluster_init__.kwlist(0);
+
+  PyBlitzArrayObject* variances = 0;
+  PyBlitzArrayObject* weights   = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto weights_   = make_safe(weights);
+  auto variances_ = make_safe(variances);
+
+  self->cxx->getVariancesAndWeightsForEachClusterInit(*PyBlitzArrayCxx_AsBlitz<double,2>(variances), *PyBlitzArrayCxx_AsBlitz<double,1>(weights));
+  Py_RETURN_NONE;
+
+  BOB_CATCH_MEMBER("cannot compute the variances and weights for each cluster", 0)
+}
+
+
+/**** __get_variances_and_weights_for_each_cluster_acc__ ***/
+static auto __get_variances_and_weights_for_each_cluster_acc__ = bob::extension::FunctionDoc(
+  "__get_variances_and_weights_for_each_cluster_acc__",
+  "Methods consecutively called by getVariancesAndWeightsForEachCluster()"
+  "This should help for the parallelization on several nodes by splitting the data and calling"
+  "getVariancesAndWeightsForEachClusterAcc() for each split. In this case, there is a need to sum"
+  "with the m_cache_means, variances, and weights variables before performing the merge on one"
+  "node using getVariancesAndWeightsForEachClusterFin().",
+  "",
+  true
+)
+.add_prototype("data,variances,weights","")
+.add_parameter("data", "array_like <float, 2D>", "data array")
+.add_parameter("variances", "array_like <float, 2D>", "Variance array")
+.add_parameter("weights", "array_like <float, 1D>", "Weight array");
+static PyObject* PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_acc(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist =  __get_variances_and_weights_for_each_cluster_acc__.kwlist(0);
+
+  PyBlitzArrayObject* data      = 0;
+  PyBlitzArrayObject* variances = 0;
+  PyBlitzArrayObject* weights   = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&", kwlist, &PyBlitzArray_Converter, &data, &PyBlitzArray_Converter, &variances, &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto data_      = make_safe(data);
+  auto weights_   = make_safe(weights);
+  auto variances_ = make_safe(variances);
+
+  self->cxx->getVariancesAndWeightsForEachClusterAcc(*PyBlitzArrayCxx_AsBlitz<double,2>(data), *PyBlitzArrayCxx_AsBlitz<double,2>(variances), *PyBlitzArrayCxx_AsBlitz<double,1>(weights));
+  Py_RETURN_NONE;
+
+  BOB_CATCH_MEMBER("cannot compute the variances and weights for each cluster", 0)
+}
+
+
+/**** __get_variances_and_weights_for_each_cluster_fin__ ***/
+static auto __get_variances_and_weights_for_each_cluster_fin__ = bob::extension::FunctionDoc(
+  "__get_variances_and_weights_for_each_cluster_fin__",
+  "Methods consecutively called by getVariancesAndWeightsForEachCluster()"
+  "This should help for the parallelization on several nodes by splitting the data and calling"
+  "getVariancesAndWeightsForEachClusterAcc() for each split. In this case, there is a need to sum"
+  "with the m_cache_means, variances, and weights variables before performing the merge on one"
+  "node using getVariancesAndWeightsForEachClusterFin().",
+  "",
+  true
+)
+.add_prototype("variances,weights","")
+.add_parameter("variances", "array_like <float, 2D>", "Variance array")
+.add_parameter("weights", "array_like <float, 1D>", "Weight array");
+static PyObject* PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_fin(PyBobLearnMiscKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist =  __get_variances_and_weights_for_each_cluster_fin__.kwlist(0);
+
+  PyBlitzArrayObject* variances = 0;
+  PyBlitzArrayObject* weights   = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+
+  //protects acquired resources through this scope
+  auto weights_   = make_safe(weights);
+  auto variances_ = make_safe(variances);
+
+  self->cxx->getVariancesAndWeightsForEachClusterFin(*PyBlitzArrayCxx_AsBlitz<double,2>(variances), *PyBlitzArrayCxx_AsBlitz<double,1>(weights));
+  Py_RETURN_NONE;
+
+  BOB_CATCH_MEMBER("cannot compute the variances and weights for each cluster", 0)
+}
+
 
 static PyMethodDef PyBobLearnMiscKMeansMachine_methods[] = {
   {
@@ -597,12 +701,29 @@ static PyMethodDef PyBobLearnMiscKMeansMachine_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     get_min_distance.doc()
   },  
-
   {
     get_variances_and_weights_for_each_cluster.name(),
     (PyCFunction)PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster,
     METH_VARARGS|METH_KEYWORDS,
     get_variances_and_weights_for_each_cluster.doc()
+  },  
+  {
+    __get_variances_and_weights_for_each_cluster_init__.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_init,
+    METH_VARARGS|METH_KEYWORDS,
+    __get_variances_and_weights_for_each_cluster_init__.doc()
+  },  
+  {
+    __get_variances_and_weights_for_each_cluster_acc__.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_acc,
+    METH_VARARGS|METH_KEYWORDS,
+    __get_variances_and_weights_for_each_cluster_acc__.doc()
+  },  
+  {
+    __get_variances_and_weights_for_each_cluster_fin__.name(),
+    (PyCFunction)PyBobLearnMiscKMeansMachine_get_variances_and_weights_for_each_cluster_fin,
+    METH_VARARGS|METH_KEYWORDS,
+    __get_variances_and_weights_for_each_cluster_fin__.doc()
   },  
 
   {0} /* Sentinel */

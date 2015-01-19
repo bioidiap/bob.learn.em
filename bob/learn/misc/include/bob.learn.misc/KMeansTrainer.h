@@ -74,12 +74,6 @@ class KMeansTrainer
     bool operator!=(const KMeansTrainer& b) const;
 
     /**
-     * @brief Similar to
-     */
-    bool is_similar_to(const KMeansTrainer& b, const double r_epsilon=1e-5,
-      const double a_epsilon=1e-8) const;
-
-    /**
      * @brief The name for this trainer
      */
     virtual std::string name() const { return "KMeansTrainer"; }
@@ -156,11 +150,6 @@ class KMeansTrainer
 
 
   private:
-  
-    //bool m_compute_likelihood; ///< whether lilelihood is computed during the EM loop or not
-    //double m_convergence_threshold; ///< convergence threshold
-    //size_t m_max_iterations; ///< maximum number of EM iterations
-
   
     /**
      * @brief The initialization method

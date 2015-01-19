@@ -11,6 +11,7 @@ bob.extension.load_bob_library('bob.learn.misc', __file__)
 from ._library import *
 from . import version
 from .version import module as __version__
+from .__kmeans_trainer__ import *
 
 
 def ztnorm_same_value(vect_a, vect_b):

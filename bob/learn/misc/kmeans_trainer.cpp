@@ -14,10 +14,10 @@
 /******************************************************************/
 
 // InitializationMethod type conversion
-static const std::map<std::string, bob::learn::misc::KMeansTrainer::InitializationMethod> IM = {{"random",  bob::learn::misc::KMeansTrainer::InitializationMethod::RANDOM}, {"random_no_duplicate", bob::learn::misc::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}, {"kmeans_plus_plus", bob::learn::misc::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS}};
+static const std::map<std::string, bob::learn::misc::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::misc::KMeansTrainer::InitializationMethod::RANDOM}, {"RANDOM_NO_DUPLICATE", bob::learn::misc::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}, {"KMEANS_PLUS_PLUS", bob::learn::misc::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS}};
 static inline bob::learn::misc::KMeansTrainer::InitializationMethod string2IM(const std::string& o){            /* converts string to InitializationMethod type */
   auto it = IM.find(o);
-  if (it == IM.end()) throw std::runtime_error("The given InitializationMethod '" + o + "' is not known; choose one of ('random', 'random_no_duplicate', 'kmeans_plus_plus')");
+  if (it == IM.end()) throw std::runtime_error("The given InitializationMethod '" + o + "' is not known; choose one of ('RANDOM', 'RANDOM_NO_DUPLICATE', 'KMEANS_PLUS_PLUS')");
   else return it->second;
 }
 static inline const std::string& IM2string(bob::learn::misc::KMeansTrainer::InitializationMethod o){            /* converts InitializationMethod type to string */
@@ -27,7 +27,7 @@ static inline const std::string& IM2string(bob::learn::misc::KMeansTrainer::Init
 
 
 static auto KMeansTrainer_doc = bob::extension::ClassDoc(
-  BOB_EXT_MODULE_PREFIX ".KMeansTrainer",
+  BOB_EXT_MODULE_PREFIX "._KMeansTrainer",
   "Trains a KMeans machine."
   "This class implements the expectation-maximization algorithm for a k-means machine."
   "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006"
@@ -328,7 +328,7 @@ static PyGetSetDef PyBobLearnMiscKMeansTrainer_getseters[] = {
   {
    rng.name(),
    (getter)PyBobLearnMiscKMeansTrainer_getRng,
-   0,
+   (setter)PyBobLearnMiscKMeansTrainer_setRng,
    rng.doc(),
    0
   },
@@ -480,47 +480,6 @@ static PyObject* PyBobLearnMiscKMeansTrainer_reset_accumulators(PyBobLearnMiscKM
 }
 
 
-/*** is_similar_to ***/
-/*
-static auto is_similar_to = bob::extension::FunctionDoc(
-  "is_similar_to",
-  
-  "Compares this KMeansTrainer with the ``other`` one to be approximately the same.",
-  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
-  "relative and absolute precision for the ``weights``, ``biases`` "
-  "and any other values internal to this trainer."
-)
-.add_prototype("other, [r_epsilon], [a_epsilon]","output")
-.add_parameter("other", ":py:class:`bob.learn.misc.KMeansTrainer`", "A KMeansMachine object to be compared.")
-.add_parameter("r_epsilon", "float", "Relative precision.")
-.add_parameter("a_epsilon", "float", "Absolute precision.")
-.add_return("output","bool","True if it is similar, otherwise false.");
-static PyObject* PyBobLearnMiscKMeansTrainer_IsSimilarTo(PyBobLearnMiscKMeansTrainerObject* self, PyObject* args, PyObject* kwds) {
-
-  // Parses input arguments in a single shot 
-  char** kwlist = is_similar_to.kwlist(0);
-
-  //PyObject* other = 0;
-  PyBobLearnMiscKMeansTrainerObject* other = 0;
-  double r_epsilon = 1.e-5;
-  double a_epsilon = 1.e-8;
-
-  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|dd", kwlist,
-        &PyBobLearnMiscKMeansTrainer_Type, &other,
-        &r_epsilon, &a_epsilon)){
-        is_similar_to.print_usage(); 
-        return 0;        
-  }
-
-  if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
-    Py_RETURN_TRUE;
-  else
-    Py_RETURN_FALSE;
-}
-*/
-
-
-
 static PyMethodDef PyBobLearnMiscKMeansTrainer_methods[] = {
   {
     initialize.name(),
@@ -552,14 +511,6 @@ static PyMethodDef PyBobLearnMiscKMeansTrainer_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     reset_accumulators.doc()
   },
-/*
-  {
-    is_similar_to.name(),
-    (PyCFunction)PyBobLearnMiscKMeansTrainer_IsSimilarTo,
-    METH_VARARGS|METH_KEYWORDS,
-    is_similar_to.doc()
-  },
-*/
   {0} /* Sentinel */
 };
 
@@ -579,7 +530,7 @@ bool init_BobLearnMiscKMeansTrainer(PyObject* module)
   // initialize the type struct
   PyBobLearnMiscKMeansTrainer_Type.tp_name = KMeansTrainer_doc.name();
   PyBobLearnMiscKMeansTrainer_Type.tp_basicsize = sizeof(PyBobLearnMiscKMeansTrainerObject);
-  PyBobLearnMiscKMeansTrainer_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+  PyBobLearnMiscKMeansTrainer_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;//Enable the class inheritance
   PyBobLearnMiscKMeansTrainer_Type.tp_doc = KMeansTrainer_doc.doc();
 
   // set the functions
@@ -597,6 +548,6 @@ bool init_BobLearnMiscKMeansTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnMiscKMeansTrainer_Type);
-  return PyModule_AddObject(module, "KMeansTrainer", (PyObject*)&PyBobLearnMiscKMeansTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "_KMeansTrainer", (PyObject*)&PyBobLearnMiscKMeansTrainer_Type) >= 0;
 }
 
