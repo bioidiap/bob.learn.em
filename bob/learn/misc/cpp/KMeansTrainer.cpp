@@ -13,29 +13,11 @@
 #include <bob.core/random.h>
 
 
-/*
-bob::learn::misc::KMeansTrainer::KMeansTrainer(double convergence_threshold,
-    size_t max_iterations, bool compute_likelihood, InitializationMethod i_m)
-{
-
-  m_initialization_method = i_m;
-  m_zeroethOrderStats     = 0;
-  m_firstOrderStats       = 0;
-  m_average_min_distance  = 0;
-  
-  m_compute_likelihood    = compute_likelihood;
-  m_convergence_threshold = convergence_threshold;
-  m_max_iterations        = max_iterations;
-  //m_rng(new boost::mt19937());
-
-}
-*/
-
 bob::learn::misc::KMeansTrainer::KMeansTrainer(InitializationMethod i_m):
 m_rng(new boost::mt19937()),
+m_average_min_distance(0),
 m_zeroethOrderStats(0),
-m_firstOrderStats(0),
-m_average_min_distance(0)
+m_firstOrderStats(0)
 {
   m_initialization_method = i_m;
 }
@@ -43,10 +25,6 @@ m_average_min_distance(0)
 
 bob::learn::misc::KMeansTrainer::KMeansTrainer(const bob::learn::misc::KMeansTrainer& other){
     
-  //m_convergence_threshold = other.m_convergence_threshold;
-  //m_max_iterations        = other.m_max_iterations;
-  //m_compute_likelihood    = other.m_compute_likelihood;
-
   m_initialization_method = other.m_initialization_method;  
   m_rng                   = other.m_rng;
   m_average_min_distance  = other.m_average_min_distance;
@@ -60,9 +38,6 @@ bob::learn::misc::KMeansTrainer& bob::learn::misc::KMeansTrainer::operator=
 {
   if(this != &other)
   {
-    //m_compute_likelihood          = other.m_compute_likelihood;
-    //m_convergence_threshold       = other.m_convergence_threshold;
-    //m_max_iterations              = other.m_max_iterations;
     m_rng                         = other.m_rng;
     m_initialization_method       = other.m_initialization_method;
     m_average_min_distance        = other.m_average_min_distance;
@@ -75,9 +50,7 @@ bob::learn::misc::KMeansTrainer& bob::learn::misc::KMeansTrainer::operator=
 
 
 bool bob::learn::misc::KMeansTrainer::operator==(const bob::learn::misc::KMeansTrainer& b) const {
-  return     //m_compute_likelihood == b.m_compute_likelihood &&
-             //m_convergence_threshold == b.m_convergence_threshold &&
-             //m_max_iterations == b.m_max_iterations  &&  
+  return
          m_initialization_method == b.m_initialization_method &&
          *m_rng == *(b.m_rng) && m_average_min_distance == b.m_average_min_distance &&
          bob::core::array::hasSameShape(m_zeroethOrderStats, b.m_zeroethOrderStats) &&
