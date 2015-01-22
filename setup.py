@@ -65,7 +65,7 @@ setup(
           #"bob/learn/misc/cpp/ZTNorm.cpp",
 
           #"bob/learn/misc/cpp/EMPCATrainer.cpp",
-          #"bob/learn/misc/cpp/GMMTrainer.cpp",
+          "bob/learn/misc/cpp/GMMBaseTrainer.cpp",
           #"bob/learn/misc/cpp/IVectorTrainer.cpp",
           #"bob/learn/misc/cpp/JFATrainer.cpp",
           "bob/learn/misc/cpp/KMeansTrainer.cpp",
@@ -105,6 +105,7 @@ setup(
           "bob/learn/misc/gmm_machine.cpp",
           "bob/learn/misc/kmeans_machine.cpp",
           "bob/learn/misc/kmeans_trainer.cpp",
+          "bob/learn/misc/gmm_base_trainer.cpp",
 
           "bob/learn/misc/main.cpp",
         ],

@@ -8,10 +8,9 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
-#ifndef BOB_LEARN_MISC_GMMTRAINER_H
-#define BOB_LEARN_MISC_GMMTRAINER_H
+#ifndef BOB_LEARN_MISC_GMMBASETRAINER_H
+#define BOB_LEARN_MISC_GMMBASETRAINER_H
 
-#include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.misc/GMMMachine.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <limits>
@@ -24,13 +23,13 @@ namespace bob { namespace learn { namespace misc {
  * @details See Section 9.2.2 of Bishop,
  *   "Pattern recognition and machine learning", 2006
  */
-class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<double,2> >
+class GMMBaseTrainer
 {
   public:
     /**
      * @brief Default constructor
      */
-    GMMTrainer(const bool update_means=true,
+    GMMBaseTrainer(const bool update_means=true,
       const bool update_variances=false, const bool update_weights=false,
       const double mean_var_update_responsibilities_threshold =
         std::numeric_limits<double>::epsilon());
@@ -38,18 +37,17 @@ class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<do
     /**
      * @brief Copy constructor
      */
-    GMMTrainer(const GMMTrainer& other);
+    GMMBaseTrainer(const GMMBaseTrainer& other);
 
     /**
      * @brief Destructor
      */
-    virtual ~GMMTrainer();
+    virtual ~GMMBaseTrainer();
 
     /**
      * @brief Initialization before the EM steps
      */
-    virtual void initialize(bob::learn::misc::GMMMachine& gmm,
-      const blitz::Array<double,2>& data);
+    virtual void initialize(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Calculates and saves statistics across the dataset,
@@ -69,38 +67,33 @@ class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<do
      */
     virtual double computeLikelihood(bob::learn::misc::GMMMachine& gmm);
 
-    /**
-     * @brief Finalization after the EM steps
-     */
-    virtual void finalize(bob::learn::misc::GMMMachine& gmm,
-      const blitz::Array<double,2>& data);
 
     /**
-     * @brief Assigns from a different GMMTrainer
+     * @brief Assigns from a different GMMBaseTrainer
      */
-    GMMTrainer& operator=(const GMMTrainer &other);
+    GMMBaseTrainer& operator=(const GMMBaseTrainer &other);
 
     /**
      * @brief Equal to
      */
-    bool operator==(const GMMTrainer& b) const;
+    bool operator==(const GMMBaseTrainer& b) const;
 
     /**
      * @brief Not equal to
      */
-    bool operator!=(const GMMTrainer& b) const;
+    bool operator!=(const GMMBaseTrainer& b) const;
 
     /**
      * @brief Similar to
      */
-    bool is_similar_to(const GMMTrainer& b, const double r_epsilon=1e-5,
+    bool is_similar_to(const GMMBaseTrainer& b, const double r_epsilon=1e-5,
       const double a_epsilon=1e-8) const;
 
     /**
      * @brief Returns the internal GMM statistics. Useful to parallelize the
      * E-step
      */
-    const bob::learn::misc::GMMStats& getGMMStats() const
+    const bob::learn::misc::GMMStats getGMMStats() const
     { return m_ss; }
 
     /**
@@ -109,7 +102,7 @@ class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<do
      */
     void setGMMStats(const bob::learn::misc::GMMStats& stats);
 
-  protected:
+  private:
     /**
      * These are the sufficient statistics, calculated during the
      * E-step and used during the M-step
@@ -142,4 +135,4 @@ class GMMTrainer: public EMTrainer<bob::learn::misc::GMMMachine, blitz::Array<do
 
 } } } // namespaces
 
-#endif // BOB_LEARN_MISC_GMMTRAINER_H
+#endif // BOB_LEARN_MISC_GMMBASETRAINER_H

@@ -540,7 +540,7 @@ bool init_BobLearnMiscKMeansTrainer(PyObject* module)
   PyBobLearnMiscKMeansTrainer_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscKMeansTrainer_RichCompare);
   PyBobLearnMiscKMeansTrainer_Type.tp_methods = PyBobLearnMiscKMeansTrainer_methods;
   PyBobLearnMiscKMeansTrainer_Type.tp_getset = PyBobLearnMiscKMeansTrainer_getseters;
-  PyBobLearnMiscGMMMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscKMeansTrainer_compute_likelihood);
+  PyBobLearnMiscKMeansTrainer_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscKMeansTrainer_compute_likelihood);
 
 
   // check that everything is fine
