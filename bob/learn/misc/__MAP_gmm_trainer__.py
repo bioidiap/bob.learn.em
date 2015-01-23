@@ -1,0 +1,89 @@
+#!/usr/bin/env python
+# vim: set fileencoding=utf-8 :
+# Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
+# Mon Jan 23 18:31:10 2015
+#
+# Copyright (C) 2011-2015 Idiap Research Institute, Martigny, Switzerland
+
+from ._library import _MAP_GMMTrainer
+import numpy
+
+# define the class
+class MAP_GMMTrainer(_MAP_GMMTrainer):
+
+  def __init__(self, gmm_base_trainer, prior_gmm, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, reynolds_adaptation=False, relevance_factor=4, alpha=0.5):
+    """
+    :py:class:bob.learn.misc.MAP_GMMTrainer constructor
+
+    Keyword Parameters:
+      gmm_base_trainer
+        The base trainer (:py:class:`bob.learn.misc.GMMBaseTrainer`
+      prior_gmm
+        
+      convergence_threshold
+        Convergence threshold
+      max_iterations
+        Number of maximum iterations
+      converge_by_likelihood
+        Tells whether we compute log_likelihood as a convergence criteria, or not 
+    
+      reynolds_adaptation
+      
+      relevance_factor
+      
+      alpha
+        
+    """
+
+    _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation=reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
+    self.convergence_threshold  = convergence_threshold
+    self.max_iterations         = max_iterations
+    self.converge_by_likelihood = converge_by_likelihood
+
+
+  def train(self, gmm_machine, data):
+    """
+    Train the :py:class:bob.learn.misc.GMMMachine using data
+
+    Keyword Parameters:
+      gmm_machine
+        The :py:class:bob.learn.misc.GMMMachine class
+      data
+        The data to be trained
+    """
+
+    #Initialization
+    self.initialize(gmm_machine);
+
+    #Do the Expectation-Maximization algorithm
+    average_output_previous = 0
+    average_output = -numpy.inf;
+
+
+    #eStep
+    self.gmm_base_trainer.eStep(gmm_machine, data);
+
+    if(self.converge_by_likelihood):
+      average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);    
+
+    for i in range(self.max_iterations):
+      #saves average output from last iteration
+      average_output_previous = average_output;
+
+      #mStep
+      self.mStep(gmm_machine);
+
+      #eStep
+      self.gmm_base_trainer.eStep(gmm_machine, data);
+
+      #Computes log likelihood if required
+      if(self.converge_by_likelihood):
+        average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);
+
+        #Terminates if converged (and likelihood computation is set)
+        if abs((average_output_previous - average_output)/average_output_previous) <= self.convergence_threshold:
+          break
+
+
+# copy the documentation from the base class
+__doc__ = _MAP_GMMTrainer.__doc__
