@@ -101,13 +101,36 @@ class GMMBaseTrainer
      * E-step
      */
     void setGMMStats(const bob::learn::misc::GMMStats& stats);
+    
+    /**
+     * update means on each iteration
+     */    
+    bool getUpdateMeans()
+    {return m_update_means;}
+    
+    /**
+     * update variances on each iteration
+     */
+    bool getUpdateVariances()
+    {return m_update_variances;}
+
+
+    bool getUpdateWeights()
+    {return m_update_weights;}
+    
+    
+    double getMeanVarUpdateResponsibilitiesThreshold()
+    {return m_mean_var_update_responsibilities_threshold;}
+    
 
   private:
+  
     /**
      * These are the sufficient statistics, calculated during the
      * E-step and used during the M-step
      */
     bob::learn::misc::GMMStats m_ss;
+
 
     /**
      * update means on each iteration

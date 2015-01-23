@@ -24,6 +24,7 @@
 #include <bob.learn.misc/KMeansTrainer.h>
 
 #include <bob.learn.misc/GMMBaseTrainer.h>
+#include <bob.learn.misc/ML_GMMTrainer.h>
 
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -128,6 +129,19 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscGMMBaseTrainer_Type;
 bool init_BobLearnMiscGMMBaseTrainer(PyObject* module);
 int PyBobLearnMiscGMMBaseTrainer_Check(PyObject* o);
+
+
+
+// ML_GMMTrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::ML_GMMTrainer> cxx;
+} PyBobLearnMiscMLGMMTrainerObject;
+
+extern PyTypeObject PyBobLearnMiscMLGMMTrainer_Type;
+bool init_BobLearnMiscMLGMMTrainer(PyObject* module);
+int PyBobLearnMiscMLGMMTrainer_Check(PyObject* o);
+
 
 
 

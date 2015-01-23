@@ -8,6 +8,7 @@
  */
 
 #include "main.h"
+#include <boost/make_shared.hpp>
 
 /******************************************************************/
 /************ Constructor Section *********************************/
@@ -59,7 +60,7 @@ static int PyBobLearnMiscGMMBaseTrainer_init_bool(PyBobLearnMiscGMMBaseTrainerOb
   PyObject* update_means     = 0;
   PyObject* update_variances = 0;
   PyObject* update_weights   = 0;
-  double mean_var_update_responsibilities_threshold = 0; //std::numeric_limits<double>::epsilon();
+  double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon();
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!O!d", kwlist, &PyBool_Type, &update_means, &PyBool_Type, 
                                                              &update_variances, &PyBool_Type, &update_weights, &mean_var_update_responsibilities_threshold)){
@@ -150,10 +151,8 @@ static auto gmm_stats = bob::extension::VariableDoc(
 PyObject* PyBobLearnMiscGMMBaseTrainer_getGMMStats(PyBobLearnMiscGMMBaseTrainerObject* self, void*){
   BOB_TRY
 
-  //bob::learn::misc::GMMStats stats = self->cxx->getGMMStats();
-  //boost::shared_ptr<bob::learn::misc::GMMStats> stats_shared = boost::make_shared(stats);
-  boost::shared_ptr<bob::learn::misc::GMMStats> stats_shared = 0;
-
+  bob::learn::misc::GMMStats stats = self->cxx->getGMMStats();
+  boost::shared_ptr<bob::learn::misc::GMMStats> stats_shared = boost::make_shared<bob::learn::misc::GMMStats>(stats);
 
   //Allocating the correspondent python object
   PyBobLearnMiscGMMStatsObject* retval =
@@ -164,6 +163,7 @@ PyObject* PyBobLearnMiscGMMBaseTrainer_getGMMStats(PyBobLearnMiscGMMBaseTrainerO
   return Py_BuildValue("O",retval);
   BOB_CATCH_MEMBER("GMMStats could not be read", 0)
 }
+/*
 int PyBobLearnMiscGMMBaseTrainer_setGMMStats(PyBobLearnMiscGMMBaseTrainerObject* self, PyObject* value, void*){
   BOB_TRY
 
@@ -180,17 +180,106 @@ int PyBobLearnMiscGMMBaseTrainer_setGMMStats(PyBobLearnMiscGMMBaseTrainerObject*
   return 0;
   BOB_CATCH_MEMBER("gmm_stats could not be set", -1)  
 }
+*/
 
+
+/***** update_means *****/
+static auto update_means = bob::extension::VariableDoc(
+  "update_means",
+  "bool",
+  "Update means on each iteration",
+  ""
+);
+PyObject* PyBobLearnMiscGMMBaseTrainer_getUpdateMeans(PyBobLearnMiscGMMBaseTrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("O",self->cxx->getUpdateMeans()?Py_True:Py_False);
+  BOB_CATCH_MEMBER("update_means could not be read", 0)
+}
+
+/***** update_variances *****/
+static auto update_variances = bob::extension::VariableDoc(
+  "update_variances",
+  "bool",
+  "Update variances on each iteration",
+  ""
+);
+PyObject* PyBobLearnMiscGMMBaseTrainer_getUpdateVariances(PyBobLearnMiscGMMBaseTrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("O",self->cxx->getUpdateVariances()?Py_True:Py_False);
+  BOB_CATCH_MEMBER("update_variances could not be read", 0)
+}
+
+
+/***** update_weights *****/
+static auto update_weights = bob::extension::VariableDoc(
+  "update_weights",
+  "bool",
+  "Update weights on each iteration",
+  ""
+);
+PyObject* PyBobLearnMiscGMMBaseTrainer_getUpdateWeights(PyBobLearnMiscGMMBaseTrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("O",self->cxx->getUpdateWeights()?Py_True:Py_False);
+  BOB_CATCH_MEMBER("update_weights could not be read", 0)
+}
+
+
+    
+     
+
+/***** mean_var_update_responsibilities_threshold *****/
+static auto mean_var_update_responsibilities_threshold = bob::extension::VariableDoc(
+  "mean_var_update_responsibilities_threshold",
+  "bool",
+  "Threshold over the responsibilities of the Gaussians" 
+  "Equations 9.24, 9.25 of Bishop, \"Pattern recognition and machine learning\", 2006" 
+  "require a division by the responsibilities, which might be equal to zero" 
+  "because of numerical issue. This threshold is used to avoid such divisions.",
+  ""
+);
+PyObject* PyBobLearnMiscGMMBaseTrainer_getMeanVarUpdateResponsibilitiesThreshold(PyBobLearnMiscGMMBaseTrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("d",self->cxx->getMeanVarUpdateResponsibilitiesThreshold());
+  BOB_CATCH_MEMBER("update_weights could not be read", 0)
+}
 
 
 static PyGetSetDef PyBobLearnMiscGMMBaseTrainer_getseters[] = { 
   {
-    gmm_stats.name(),
-    (getter)PyBobLearnMiscGMMBaseTrainer_getGMMStats,
-    (setter)PyBobLearnMiscGMMBaseTrainer_setGMMStats,
-    gmm_stats.doc(),
+    update_means.name(),
+    (getter)PyBobLearnMiscGMMBaseTrainer_getUpdateMeans,
+    0,
+    update_means.doc(),
     0
   },
+  {
+    update_variances.name(),
+    (getter)PyBobLearnMiscGMMBaseTrainer_getUpdateVariances,
+    0,
+    update_variances.doc(),
+    0
+  },
+  {
+    update_weights.name(),
+    (getter)PyBobLearnMiscGMMBaseTrainer_getUpdateWeights,
+    0,
+    update_weights.doc(),
+    0
+  },  
+  {
+    mean_var_update_responsibilities_threshold.name(),
+    (getter)PyBobLearnMiscGMMBaseTrainer_getMeanVarUpdateResponsibilitiesThreshold,
+    0,
+    mean_var_update_responsibilities_threshold.doc(),
+    0
+  },  
+  {
+    gmm_stats.name(),
+    (getter)PyBobLearnMiscGMMBaseTrainer_getGMMStats,
+    0, //(setter)PyBobLearnMiscGMMBaseTrainer_setGMMStats,
+    gmm_stats.doc(),
+    0
+  },  
   {0}  // Sentinel
 };
 

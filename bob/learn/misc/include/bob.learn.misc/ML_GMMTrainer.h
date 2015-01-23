@@ -11,7 +11,7 @@
 #ifndef BOB_LEARN_MISC_ML_GMMTRAINER_H
 #define BOB_LEARN_MISC_ML_GMMTRAINER_H
 
-#include <bob.learn.misc/GMMTrainer.h>
+#include <bob.learn.misc/GMMBaseTrainer.h>
 #include <limits>
 
 namespace bob { namespace learn { namespace misc {
@@ -22,15 +22,12 @@ namespace bob { namespace learn { namespace misc {
  * @details See Section 9.2.2 of Bishop,
  *  "Pattern recognition and machine learning", 2006
  */
-class ML_GMMTrainer: public GMMTrainer {
+class ML_GMMTrainer{
   public:
     /**
      * @brief Default constructor
      */
-    ML_GMMTrainer(const bool update_means=true,
-      const bool update_variances=false, const bool update_weights=false,
-      const double mean_var_update_responsibilities_threshold =
-        std::numeric_limits<double>::epsilon());
+    ML_GMMTrainer(boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer);
 
     /**
      * @brief Copy constructor
@@ -45,16 +42,14 @@ class ML_GMMTrainer: public GMMTrainer {
     /**
      * @brief Initialisation before the EM steps
      */
-    virtual void initialize(bob::learn::misc::GMMMachine& gmm,
-      const blitz::Array<double,2>& data);
+    virtual void initialize(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Performs a maximum likelihood (ML) update of the GMM parameters
      * using the accumulated statistics in m_ss
      * Implements EMTrainer::mStep()
      */
-    virtual void mStep(bob::learn::misc::GMMMachine& gmm,
-      const blitz::Array<double,2>& data);
+    virtual void mStep(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Assigns from a different ML_GMMTrainer
@@ -76,6 +71,21 @@ class ML_GMMTrainer: public GMMTrainer {
      */
     bool is_similar_to(const ML_GMMTrainer& b, const double r_epsilon=1e-5,
       const double a_epsilon=1e-8) const;
+      
+    
+    boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> getGMMBaseTrainer()
+    {return m_gmm_base_trainer;}
+    
+    void setGMMBaseTrainer(boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer)
+    {m_gmm_base_trainer = gmm_base_trainer;}
+    
+
+  protected:
+
+    /**
+    Base Trainer for the MAP algorithm. Basically implements the e-step
+    */ 
+    boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> m_gmm_base_trainer;
 
 
   private:
