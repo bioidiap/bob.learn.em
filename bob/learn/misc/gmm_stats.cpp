@@ -177,7 +177,7 @@ int PyBobLearnMiscGMMStats_Check(PyObject* o) {
 /***** n *****/
 static auto n = bob::extension::VariableDoc(
   "n",
-  "array_like <double, 1D>",
+  "array_like <float, 1D>",
   "For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of :math:`P(gaussian_i|x)`"
 );
 PyObject* PyBobLearnMiscGMMStats_getN(PyBobLearnMiscGMMStatsObject* self, void*){
@@ -204,7 +204,7 @@ int PyBobLearnMiscGMMStats_setN(PyBobLearnMiscGMMStatsObject* self, PyObject* va
 /***** sum_px *****/
 static auto sum_px = bob::extension::VariableDoc(
   "sum_px",
-  "array_like <double, 2D> ",
+  "array_like <float, 2D>",
   "For each Gaussian, the accumulated sum of responsibility times the sample"
 );
 PyObject* PyBobLearnMiscGMMStats_getSum_px(PyBobLearnMiscGMMStatsObject* self, void*){
@@ -231,7 +231,7 @@ int PyBobLearnMiscGMMStats_setSum_px(PyBobLearnMiscGMMStatsObject* self, PyObjec
 /***** sum_pxx *****/
 static auto sum_pxx = bob::extension::VariableDoc(
   "sum_pxx",
-  "array_like <double, 2D> ",
+  "array_like <float, 2D>",
   "For each Gaussian, the accumulated sum of responsibility times the sample squared"
 );
 PyObject* PyBobLearnMiscGMMStats_getSum_pxx(PyBobLearnMiscGMMStatsObject* self, void*){
@@ -288,7 +288,7 @@ int PyBobLearnMiscGMMStats_setT(PyBobLearnMiscGMMStatsObject* self, PyObject* va
 /***** log_likelihood *****/
 static auto log_likelihood = bob::extension::VariableDoc(
   "log_likelihood",
-  "double ",
+  "double",
   "The accumulated log likelihood of all samples"
 );
 PyObject* PyBobLearnMiscGMMStats_getLog_likelihood(PyBobLearnMiscGMMStatsObject* self, void*){

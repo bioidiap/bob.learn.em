@@ -221,7 +221,7 @@ static PyObject* PyBobLearnMiscMLGMMTrainer_initialize(PyBobLearnMiscMLGMMTraine
 /*** mStep ***/
 static auto mStep = bob::extension::FunctionDoc(
   "mStep",
-  "Performs a maximum likelihood (ML) update of the GMM parameters"
+  "Performs a maximum likelihood (ML) update of the GMM parameters "
   "using the accumulated statistics in :py:class:`bob.learn.misc.GMMBaseTrainer.m_ss`",
 
   "See Section 9.2.2 of Bishop, \"Pattern recognition and machine learning\", 2006",

@@ -13,30 +13,28 @@ class MAP_GMMTrainer(_MAP_GMMTrainer):
 
   def __init__(self, gmm_base_trainer, prior_gmm, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, reynolds_adaptation=False, relevance_factor=4., alpha=0.5):
     """
-    :py:class:bob.learn.misc.MAP_GMMTrainer constructor
+    :py:class:`bob.learn.misc.MAP_GMMTrainer` constructor
 
     Keyword Parameters:
       gmm_base_trainer
-        The base trainer (:py:class:`bob.learn.misc.GMMBaseTrainer`
+        The base trainer (:py:class:`bob.learn.misc.GMMBaseTrainer`)
       prior_gmm
-        
+        A :py:class:`bob.learn.misc.GMMMachine` to be adapted
       convergence_threshold
         Convergence threshold
       max_iterations
         Number of maximum iterations
       converge_by_likelihood
         Tells whether we compute log_likelihood as a convergence criteria, or not 
-    
       reynolds_adaptation
-      
+        Will use the Reynolds adaptation procedure? See Eq (14) from [Reynolds2000]_
       relevance_factor
-      
+        If set the :py:class:`bob.learn.misc.MAP_GMMTrainer.reynolds_adaptation` parameters, will apply the Reynolds Adaptation procedure. See Eq (14) from [Reynolds2000]_  
       alpha
-        
+        Set directly the alpha parameter (Eq (14) from [Reynolds2000]_), ignoring zeroth order statistics as a weighting factor.
     """
 
-    #_MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation=reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
-    _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
+    _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation=reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
     
     self.convergence_threshold  = convergence_threshold
     self.max_iterations         = max_iterations
