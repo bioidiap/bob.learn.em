@@ -11,7 +11,7 @@ import numpy
 # define the class
 class MAP_GMMTrainer(_MAP_GMMTrainer):
 
-  def __init__(self, gmm_base_trainer, prior_gmm, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, reynolds_adaptation=False, relevance_factor=4, alpha=0.5):
+  def __init__(self, gmm_base_trainer, prior_gmm, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, reynolds_adaptation=False, relevance_factor=4., alpha=0.5):
     """
     :py:class:bob.learn.misc.MAP_GMMTrainer constructor
 
@@ -35,7 +35,9 @@ class MAP_GMMTrainer(_MAP_GMMTrainer):
         
     """
 
-    _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation=reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
+    #_MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation=reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
+    _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, reynolds_adaptation, relevance_factor=relevance_factor, alpha=alpha)
+    
     self.convergence_threshold  = convergence_threshold
     self.max_iterations         = max_iterations
     self.converge_by_likelihood = converge_by_likelihood

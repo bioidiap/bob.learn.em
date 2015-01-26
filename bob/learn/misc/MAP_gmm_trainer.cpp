@@ -27,7 +27,8 @@ static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   )
   
   
-  .add_prototype("gmm_base_trainer,prior_gmm,[reynolds_adaptation],[relevance_factor],[alpha]","")
+  //.add_prototype("gmm_base_trainer,prior_gmm,[reynolds_adaptation],[relevance_factor],[alpha]","")
+  .add_prototype("gmm_base_trainer, prior_gmm, reynolds_adaptation, [relevance_factor], [alpha]","")
   .add_prototype("other","")
   .add_prototype("","")
 
@@ -56,21 +57,24 @@ static int PyBobLearnMiscMAPGMMTrainer_init_copy(PyBobLearnMiscMAPGMMTrainerObje
 
 static int PyBobLearnMiscMAPGMMTrainer_init_base_trainer(PyBobLearnMiscMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = MAP_GMMTrainer_doc.kwlist(1);
+  char** kwlist = MAP_GMMTrainer_doc.kwlist(0);
+  
   PyBobLearnMiscGMMBaseTrainerObject* gmm_base_trainer;
   PyBobLearnMiscGMMMachineObject* gmm_machine;
   PyObject* reynolds_adaptation   = 0;
   double alpha = 0.5;
   double relevance_factor = 4.0;
-  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!0!|O!dd", kwlist, &PyBobLearnMiscGMMBaseTrainer_Type, &gmm_base_trainer,
+
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!dd", kwlist, &PyBobLearnMiscGMMBaseTrainer_Type, &gmm_base_trainer,
                                                                       &PyBobLearnMiscGMMMachine_Type, &gmm_machine,
-                                                                      &PyBool_Type, reynolds_adaptation,
+                                                                      &PyBool_Type, &reynolds_adaptation,
                                                                       &relevance_factor, &alpha )){
+
     MAP_GMMTrainer_doc.print_usage();
     return -1;
   }
-
+  
   self->cxx.reset(new bob::learn::misc::MAP_GMMTrainer(gmm_base_trainer->cxx, gmm_machine->cxx, f(reynolds_adaptation),relevance_factor, alpha));
   return 0;
 }
@@ -83,10 +87,11 @@ static int PyBobLearnMiscMAPGMMTrainer_init(PyBobLearnMiscMAPGMMTrainerObject* s
   // If the constructor input is GMMBaseTrainer object
   if(PyBobLearnMiscMAPGMMTrainer_Check(args))
     return PyBobLearnMiscMAPGMMTrainer_init_copy(self, args, kwargs);
-  else
+  else{
     return PyBobLearnMiscMAPGMMTrainer_init_base_trainer(self, args, kwargs);
+  }
 
-  BOB_CATCH_MEMBER("cannot create GMMMAPTrainer", 0)
+  BOB_CATCH_MEMBER("cannot create MAP_GMMTrainer", 0)
   return 0;
 }
 
