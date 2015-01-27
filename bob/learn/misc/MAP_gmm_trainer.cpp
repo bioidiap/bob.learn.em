@@ -13,7 +13,6 @@
 /************ Constructor Section *********************************/
 /******************************************************************/
 
-static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* converts PyObject to bool and returns false if object is NULL */
 
 static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".MAP_GMMTrainer",
@@ -27,8 +26,8 @@ static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   )
   
   
-  //.add_prototype("gmm_base_trainer,prior_gmm,[reynolds_adaptation],[relevance_factor],[alpha]","")
-  .add_prototype("gmm_base_trainer, prior_gmm, reynolds_adaptation, [relevance_factor], [alpha]","")
+  .add_prototype("gmm_base_trainer,prior_gmm,relevance_factor","")
+  .add_prototype("gmm_base_trainer,prior_gmm,alpha","")
   .add_prototype("other","")
   .add_prototype("","")
 
@@ -43,7 +42,7 @@ static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
 
 static int PyBobLearnMiscMAPGMMTrainer_init_copy(PyBobLearnMiscMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = MAP_GMMTrainer_doc.kwlist(1);
+  char** kwlist = MAP_GMMTrainer_doc.kwlist(2);
   PyBobLearnMiscMAPGMMTrainerObject* o;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscMAPGMMTrainer_Type, &o)){
     MAP_GMMTrainer_doc.print_usage();
@@ -57,25 +56,46 @@ static int PyBobLearnMiscMAPGMMTrainer_init_copy(PyBobLearnMiscMAPGMMTrainerObje
 
 static int PyBobLearnMiscMAPGMMTrainer_init_base_trainer(PyBobLearnMiscMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = MAP_GMMTrainer_doc.kwlist(0);
+  char** kwlist1 = MAP_GMMTrainer_doc.kwlist(0);
+  char** kwlist2 = MAP_GMMTrainer_doc.kwlist(1);
   
   PyBobLearnMiscGMMBaseTrainerObject* gmm_base_trainer;
   PyBobLearnMiscGMMMachineObject* gmm_machine;
-  PyObject* reynolds_adaptation   = 0;
+  bool reynolds_adaptation   = false;
   double alpha = 0.5;
   double relevance_factor = 4.0;
+  double aux = 0;
 
+  PyObject* keyword_relevance_factor = Py_BuildValue("s", kwlist1[2]);
+  PyObject* keyword_alpha            = Py_BuildValue("s", kwlist2[2]);
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!dd", kwlist, &PyBobLearnMiscGMMBaseTrainer_Type, &gmm_base_trainer,
+  //Here we have to select which keyword argument to read  
+  if (kwargs && PyDict_Contains(kwargs, keyword_relevance_factor) && (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|d", kwlist1, 
+                                                                      &PyBobLearnMiscGMMBaseTrainer_Type, &gmm_base_trainer,
                                                                       &PyBobLearnMiscGMMMachine_Type, &gmm_machine,
-                                                                      &PyBool_Type, &reynolds_adaptation,
-                                                                      &relevance_factor, &alpha )){
-
+                                                                      &aux)))
+    reynolds_adaptation = true;    
+  else if (kwargs && PyDict_Contains(kwargs, keyword_alpha) && (PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|d", kwlist2, 
+                                                                 &PyBobLearnMiscGMMBaseTrainer_Type, &gmm_base_trainer,
+                                                                 &PyBobLearnMiscGMMMachine_Type, &gmm_machine,
+                                                                 &aux)))
+    reynolds_adaptation = false;
+  else{
+    std::cout << PyDict_Contains(kwargs, keyword_alpha) << std::endl;  
+    PyErr_Format(PyExc_RuntimeError, "%s. The third argument must be a keyword argument.", Py_TYPE(self)->tp_name);
     MAP_GMMTrainer_doc.print_usage();
     return -1;
   }
+
+
+
+  if (reynolds_adaptation)
+    relevance_factor = aux;
+  else
+    alpha = aux;
   
-  self->cxx.reset(new bob::learn::misc::MAP_GMMTrainer(gmm_base_trainer->cxx, gmm_machine->cxx, f(reynolds_adaptation),relevance_factor, alpha));
+  
+  self->cxx.reset(new bob::learn::misc::MAP_GMMTrainer(gmm_base_trainer->cxx, gmm_machine->cxx, reynolds_adaptation,relevance_factor, alpha));
   return 0;
 }
 
@@ -172,31 +192,6 @@ int PyBobLearnMiscMAPGMMTrainer_setGMMBaseTrainer(PyBobLearnMiscMAPGMMTrainerObj
 }
 
 
-/***** reynolds_adaptation *****/
-static auto reynolds_adaptation = bob::extension::VariableDoc(
-  "reynolds_adaptation",
-  "bool",
-  "Will use the Reynolds adaptation factor? See Eq (14) from [Reynolds2000]_",
-  ""
-);
-PyObject* PyBobLearnMiscMAPGMMTrainer_getReynoldsAdaptation(PyBobLearnMiscMAPGMMTrainerObject* self, void*){
-  BOB_TRY
-  return Py_BuildValue("O",self->cxx->getReynoldsAdaptation()?Py_True:Py_False);
-  BOB_CATCH_MEMBER("reynolds_adaptation could not be read", 0)
-}
-int PyBobLearnMiscMAPGMMTrainer_setReynoldsAdaptation(PyBobLearnMiscMAPGMMTrainerObject* self, PyObject* value, void*){
-  BOB_TRY
-  
-  if(!PyBool_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects a boolean", Py_TYPE(self)->tp_name, reynolds_adaptation.name());
-    return -1;
-  }
-  
-  self->cxx->setReynoldsAdaptation(f(value));
-  return 0;
-  BOB_CATCH_MEMBER("reynolds_adaptation could not be set", 0)
-}
-
 
 /***** relevance_factor *****/
 static auto relevance_factor = bob::extension::VariableDoc(
@@ -218,7 +213,7 @@ int PyBobLearnMiscMAPGMMTrainer_setRelevanceFactor(PyBobLearnMiscMAPGMMTrainerOb
     return -1;
   }
   
-  self->cxx->setRelevanceFactor(f(value));
+  self->cxx->setRelevanceFactor(PyFloat_AS_DOUBLE(value));
   return 0;
   BOB_CATCH_MEMBER("relevance_factor could not be set", 0)
 }
@@ -244,7 +239,7 @@ int PyBobLearnMiscMAPGMMTrainer_setAlpha(PyBobLearnMiscMAPGMMTrainerObject* self
     return -1;
   }
   
-  self->cxx->setAlpha(f(value));
+  self->cxx->setAlpha(PyFloat_AS_DOUBLE(value));
   return 0;
   BOB_CATCH_MEMBER("alpha could not be set", 0)
 }
@@ -259,13 +254,6 @@ static PyGetSetDef PyBobLearnMiscMAPGMMTrainer_getseters[] = {
     gmm_base_trainer.doc(),
     0
   },
-  {
-    reynolds_adaptation.name(),
-    (getter)PyBobLearnMiscMAPGMMTrainer_getReynoldsAdaptation,
-    (setter)PyBobLearnMiscMAPGMMTrainer_setReynoldsAdaptation,
-    reynolds_adaptation.doc(),
-    0
-  },  
   {
     alpha.name(),
     (getter)PyBobLearnMiscMAPGMMTrainer_getAlpha,

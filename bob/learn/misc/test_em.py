@@ -115,7 +115,7 @@ def test_gmm_MAP_1():
   gmm = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
   gmmprior = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
 
-  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False),gmmprior, reynolds_adaptation=False, relevance_factor=16)  
+  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False),gmmprior, relevance_factor=4.)  
   #map_gmmtrainer.set_prior_gmm(gmmprior)
   map_gmmtrainer.train(gmm, ar)
 
@@ -142,7 +142,7 @@ def test_gmm_MAP_2():
   gmm.variances = variances
   gmm.weights = weights
 
-  map_adapt = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, mean_var_update_responsibilities_threshold=0.),gmm, alpha=4., relevance_factor=4., reynolds_adaptation=True)
+  map_adapt = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, mean_var_update_responsibilities_threshold=0.),gmm, relevance_factor=4.)
   #map_adapt.set_prior_gmm(gmm)
 
   gmm_adapted = GMMMachine(2,50)
@@ -186,7 +186,7 @@ def test_gmm_MAP_3():
   max_iter_gmm = 1
   accuracy = 0.00001
   map_factor = 0.5
-  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, prior), prior_gmm, alpha=map_factor, reynolds_adaptation=False)
+  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, prior), prior_gmm, alpha=map_factor)
   map_gmmtrainer.max_iterations = max_iter_gmm
   map_gmmtrainer.convergence_threshold = accuracy
 

@@ -13,7 +13,7 @@ class KMeansTrainer (_KMeansTrainer):
 
   def __init__(self, initialization_method="RANDOM", convergence_threshold=0.001, max_iterations=10, converge_by_average_min_distance=True):
     """
-    :py:class:bob.learn.misc.KMeansTrainer constructor
+    :py:class:`bob.learn.misc.KMeansTrainer` constructor
 
     Keyword Parameters:
       initialization_method
