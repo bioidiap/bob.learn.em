@@ -174,25 +174,23 @@ void bob::learn::misc::JFAMachine::estimateUx(const bob::learn::misc::GMMStats& 
   bob::math::prod(m_jfa_base->getU(), m_cache_x, Ux);
 }
 
-void bob::learn::misc::JFAMachine::forward(const bob::learn::misc::GMMStats& input,
-  double& score) const
+double bob::learn::misc::JFAMachine::forward(const bob::learn::misc::GMMStats& input)
 {
-  forward_(input, score);
+  return forward_(input);
 }
 
-void bob::learn::misc::JFAMachine::forward(const bob::learn::misc::GMMStats& gmm_stats,
-  const blitz::Array<double,1>& Ux, double& score) const
+double bob::learn::misc::JFAMachine::forward(const bob::learn::misc::GMMStats& gmm_stats,
+  const blitz::Array<double,1>& Ux)
 {
   // Checks that a Base machine has been set
   if (!m_jfa_base) throw std::runtime_error("No UBM was set in the JFA machine.");
 
-  score = bob::learn::misc::linearScoring(m_cache_mVyDz,
+  return bob::learn::misc::linearScoring(m_cache_mVyDz,
             m_jfa_base->getUbm()->getMeanSupervector(), m_jfa_base->getUbm()->getVarianceSupervector(),
             gmm_stats, Ux, true);
 }
 
-void bob::learn::misc::JFAMachine::forward_(const bob::learn::misc::GMMStats& input,
-  double& score) const
+double bob::learn::misc::JFAMachine::forward_(const bob::learn::misc::GMMStats& input)
 {
   // Checks that a Base machine has been set
   if (!m_jfa_base) throw std::runtime_error("No UBM was set in the JFA machine.");
@@ -201,7 +199,7 @@ void bob::learn::misc::JFAMachine::forward_(const bob::learn::misc::GMMStats& in
   estimateX(input, m_cache_x);
   bob::math::prod(m_jfa_base->getU(), m_cache_x, m_tmp_Ux);
 
-  score = bob::learn::misc::linearScoring(m_cache_mVyDz,
+  return bob::learn::misc::linearScoring(m_cache_mVyDz,
             m_jfa_base->getUbm()->getMeanSupervector(), m_jfa_base->getUbm()->getVarianceSupervector(),
             input, m_tmp_Ux, true);
 }

@@ -63,23 +63,28 @@ def test_JFABase():
   U = numpy.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], 'float64')
   V = numpy.array([[6, 5], [4, 3], [2, 1], [1, 2], [3, 4], [5, 6]], 'float64')
   d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
-  m = JFABase(ubm)
-  assert m.dim_ru == 1
-  assert m.dim_rv == 1
+  m = JFABase(ubm, ru=1, rv=1)
+  
+  _,_,ru,rv = m.shape 
+  assert ru == 1
+  assert rv == 1
 
   # Checks for correctness
   m.resize(2,2)
   m.u = U
   m.v = V
-  m.d = d
+  m.d = d  
+  n_gaussians,dim,ru,rv = m.shape
+  supervector_length    = m.supervector_length
+  
   assert (m.u == U).all()
   assert (m.v == V).all()
-  assert (m.d == d).all()
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
-  assert m.dim_rv == 2
+  assert (m.d == d).all()  
+  assert n_gaussians        == 2
+  assert dim                == 3
+  assert supervector_length == 6
+  assert ru                 == 2
+  assert rv                 == 2
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
@@ -95,21 +100,21 @@ def test_JFABase():
   assert m == mc
 
   # Variant
-  mv = JFABase()
+  #mv = JFABase()
   # Checks for correctness
-  mv.ubm = ubm
-  mv.resize(2,2)
-  mv.u = U
-  mv.v = V
-  mv.d = d
-  assert (m.u == U).all()
-  assert (m.v == V).all()
-  assert (m.d == d).all()
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
-  assert m.dim_rv == 2
+  #mv.ubm = ubm
+  #mv.resize(2,2)
+  #mv.u = U
+  #mv.v = V
+  #mv.d = d
+  #assert (m.u == U).all()
+  #assert (m.v == V).all()
+  #assert (m.d == d).all()
+  #assert m.dim_c == 2
+  #assert m.dim_d == 3
+  #assert m.dim_cd == 6
+  #assert m.dim_ru == 2
+  #assert m.dim_rv == 2
 
   # Clean-up
   os.unlink(filename)
@@ -120,27 +125,30 @@ def test_ISVBase():
   weights = numpy.array([0.4, 0.6], 'float64')
   means = numpy.array([[1, 6, 2], [4, 3, 2]], 'float64')
   variances = numpy.array([[1, 2, 1], [2, 1, 2]], 'float64')
-  ubm = GMMMachine(2,3)
-  ubm.weights = weights
-  ubm.means = means
+  ubm           = GMMMachine(2,3)
+  ubm.weights   = weights
+  ubm.means     = means
   ubm.variances = variances
 
   # Creates a ISVBase
   U = numpy.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], 'float64')
   d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
-  m = ISVBase(ubm)
-  assert m.dim_ru == 1
+  m = ISVBase(ubm, ru=1)
+  _,_,ru = m.shape
+  assert ru == 1
 
   # Checks for correctness
   m.resize(2)
   m.u = U
   m.d = d
+  n_gaussians,dim,ru = m.shape
+  supervector_length = m.supervector_length
   assert (m.u == U).all()
-  assert (m.d == d).all()
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
+  assert (m.d == d).all()  
+  assert n_gaussians        == 2
+  assert dim                == 3
+  assert supervector_length == 6
+  assert ru                 == 2
 
   # Saves and loads
   filename = str(tempfile.mkstemp(".hdf5")[1])
@@ -156,18 +164,18 @@ def test_ISVBase():
   assert m == mc
 
   # Variant
-  mv = ISVBase()
+  #mv = ISVBase()
   # Checks for correctness
-  mv.ubm = ubm
-  mv.resize(2)
-  mv.u = U
-  mv.d = d
-  assert (m.u == U).all()
-  assert (m.d == d).all()
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
+  #mv.ubm = ubm
+  #mv.resize(2)
+  #mv.u = U
+  #mv.d = d
+  #assert (m.u == U).all()
+  #assert (m.d == d).all()
+  #ssert m.dim_c == 2
+  #assert m.dim_d == 3
+  #assert m.dim_cd == 6
+  #assert m.dim_ru == 2
 
   # Clean-up
   os.unlink(filename)
@@ -175,12 +183,12 @@ def test_ISVBase():
 def test_JFAMachine():
 
   # Creates a UBM
-  weights = numpy.array([0.4, 0.6], 'float64')
-  means = numpy.array([[1, 6, 2], [4, 3, 2]], 'float64')
+  weights   = numpy.array([0.4, 0.6], 'float64')
+  means     = numpy.array([[1, 6, 2], [4, 3, 2]], 'float64')
   variances = numpy.array([[1, 2, 1], [2, 1, 2]], 'float64')
-  ubm = GMMMachine(2,3)
-  ubm.weights = weights
-  ubm.means = means
+  ubm           = GMMMachine(2,3)
+  ubm.weights   = weights
+  ubm.means     = means
   ubm.variances = variances
 
   # Creates a JFABase
@@ -198,11 +206,14 @@ def test_JFAMachine():
   m = JFAMachine(base)
   m.y = y
   m.z = z
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
-  assert m.dim_rv == 2
+  n_gaussians,dim,ru,rv = m.shape
+  supervector_length    = m.supervector_length  
+  
+  assert n_gaussians        == 2
+  assert dim                == 3
+  assert supervector_length == 6
+  assert ru                 == 2
+  assert rv                 == 2
   assert (m.y == y).all()
   assert (m.z == z).all()
 
@@ -220,18 +231,18 @@ def test_JFAMachine():
   assert m == mc
 
   # Variant
-  mv = JFAMachine()
+  #mv = JFAMachine()
   # Checks for correctness
-  mv.jfa_base = base
-  m.y = y
-  m.z = z
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
-  assert m.dim_rv == 2
-  assert (m.y == y).all()
-  assert (m.z == z).all()
+  #mv.jfa_base = base
+  #m.y = y
+  #m.z = z
+  #assert m.dim_c == 2
+  #assert m.dim_d == 3
+  #assert m.dim_cd == 6
+  #assert m.dim_ru == 2
+  #assert m.dim_rv == 2
+  #assert (m.y == y).all()
+  #assert (m.z == z).all()
 
   # Defines GMMStats
   gs = GMMStats(2,3)
@@ -250,23 +261,26 @@ def test_JFAMachine():
   eps = 1e-10
   x_ref = numpy.array([0.291042849767692, 0.310273618998444], 'float64')
   score_ref = -2.111577181208289
-  score = m.forward(gs)
-  assert numpy.allclose(m.__x__, x_ref, eps)
+  score = m(gs)
+  assert numpy.allclose(m.x, x_ref, eps)
   assert abs(score_ref-score) < eps
 
   # x and Ux
   x = numpy.ndarray((2,), numpy.float64)
   m.estimate_x(gs, x)
-  x_py = estimate_x(m.dim_c, m.dim_d, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
+  n_gaussians, dim,_,_ = m.shape
+  x_py = estimate_x(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(x, x_py, eps)
 
   ux = numpy.ndarray((6,), numpy.float64)
   m.estimate_ux(gs, ux)
-  ux_py = estimate_ux(m.dim_c, m.dim_d, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
+  n_gaussians, dim,_,_ = m.shape  
+  ux_py = estimate_ux(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(ux, ux_py, eps)
-  assert numpy.allclose(m.__x__, x, eps)
+  assert numpy.allclose(m.x, x, eps)
 
   score = m.forward_ux(gs, ux)
+
   assert abs(score_ref-score) < eps
 
   # Clean-up
@@ -283,23 +297,26 @@ def test_ISVMachine():
   ubm.means = means
   ubm.variances = variances
 
-  # Creates a JFABaseMachine
+  # Creates a ISVBaseMachine
   U = numpy.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], 'float64')
-  V = numpy.array([[0], [0], [0], [0], [0], [0]], 'float64')
+  #V = numpy.array([[0], [0], [0], [0], [0], [0]], 'float64')
   d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
   base = ISVBase(ubm,2)
   base.u = U
-  base.v = V
+  #base.v = V
   base.d = d
 
   # Creates a JFAMachine
   z = numpy.array([3,4,1,2,0,1], 'float64')
   m = ISVMachine(base)
   m.z = z
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
+  
+  n_gaussians,dim,ru    = m.shape
+  supervector_length    = m.supervector_length  
+  assert n_gaussians          == 2
+  assert dim                  == 3
+  assert supervector_length   == 6
+  assert ru                   == 2
   assert (m.z == z).all()
 
   # Saves and loads
@@ -316,14 +333,17 @@ def test_ISVMachine():
   assert m == mc
 
   # Variant
-  mv = ISVMachine()
+  mv = ISVMachine(base)
   # Checks for correctness
-  mv.isv_base = base
+  #mv.isv_base = base
   m.z = z
-  assert m.dim_c == 2
-  assert m.dim_d == 3
-  assert m.dim_cd == 6
-  assert m.dim_ru == 2
+
+  n_gaussians,dim,ru    = m.shape
+  supervector_length    = m.supervector_length  
+  assert n_gaussians        == 2
+  assert dim                == 3
+  assert supervector_length == 6
+  assert ru                 == 2
   assert (m.z == z).all()
 
   # Defines GMMStats
@@ -344,12 +364,13 @@ def test_ISVMachine():
   x_ref = numpy.array([0.291042849767692, 0.310273618998444], 'float64')
   score_ref = -3.280498193082100
 
-  score = m.forward(gs)
-  assert numpy.allclose(m.__x__, x_ref, eps)
+  score = m(gs)
+  assert numpy.allclose(m.x, x_ref, eps)  
   assert abs(score_ref-score) < eps
 
   # Check using alternate forward() method
-  Ux = numpy.ndarray(shape=(m.dim_cd,), dtype=numpy.float64)
+  supervector_length = m.supervector_length
+  Ux = numpy.ndarray(shape=(supervector_length,), dtype=numpy.float64)
   m.estimate_ux(gs, Ux)
   score = m.forward_ux(gs, Ux)
   assert abs(score_ref-score) < eps
@@ -357,14 +378,16 @@ def test_ISVMachine():
   # x and Ux
   x = numpy.ndarray((2,), numpy.float64)
   m.estimate_x(gs, x)
-  x_py = estimate_x(m.dim_c, m.dim_d, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
+  n_gaussians,dim,_    = m.shape  
+  x_py = estimate_x(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(x, x_py, eps)
 
   ux = numpy.ndarray((6,), numpy.float64)
   m.estimate_ux(gs, ux)
-  ux_py = estimate_ux(m.dim_c, m.dim_d, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
+  n_gaussians,dim,_    = m.shape  
+  ux_py = estimate_ux(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(ux, ux_py, eps)
-  assert numpy.allclose(m.__x__, x, eps)
+  assert numpy.allclose(m.x, x, eps)
 
   score = m.forward_ux(gs, ux)
   assert abs(score_ref-score) < eps

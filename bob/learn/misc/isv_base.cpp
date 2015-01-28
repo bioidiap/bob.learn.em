@@ -1,5 +1,5 @@
 /**
- * @date Wed Jan 27 17:03:15 2015 +0200
+ * @date Wed Jan 28 11:13:15 2015 +0200
  * @author Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
  *
  * @brief Python API for bob::learn::em
@@ -13,83 +13,81 @@
 /************ Constructor Section *********************************/
 /******************************************************************/
 
-static auto JFABase_doc = bob::extension::ClassDoc(
-  BOB_EXT_MODULE_PREFIX ".JFABase",
-  "A JFABase instance can be seen as a container for U, V and D when performing Joint Factor Analysis (JFA)."
+static auto ISVBase_doc = bob::extension::ClassDoc(
+  BOB_EXT_MODULE_PREFIX ".ISVBase",
+
+  "A ISVBase instance can be seen as a container for U and D when performing Joint Factor Analysis (JFA)."
   "References: [Vogt2008,McCool2013]",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
-    "Constructor. Builds a new JFABase",
+    "Creates a ISVBase",
     "",
     true
   )
-  .add_prototype("gmm,ru,rv","")
+  .add_prototype("gmm,ru","")
   .add_prototype("other","")
   .add_prototype("hdf5","")
   .add_prototype("","")
 
   .add_parameter("gmm", ":py:class:`bob.learn.misc.GMMMachine`", "The Universal Background Model.")
   .add_parameter("ru", "int", "Size of U (Within client variation matrix). In the end the U matrix will have (number_of_gaussians * feature_dimension x ru)")
-  .add_parameter("rv", "int", "Size of V (Between client variation matrix). In the end the U matrix will have (number_of_gaussians * feature_dimension x rv)")
-  .add_parameter("other", ":py:class:`bob.learn.misc.JFABase`", "A JFABase object to be copied.")
+  .add_parameter("other", ":py:class:`bob.learn.misc.ISVBase`", "A ISVBase object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
 );
 
 
-static int PyBobLearnMiscJFABase_init_copy(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+static int PyBobLearnMiscISVBase_init_copy(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = JFABase_doc.kwlist(1);
-  PyBobLearnMiscJFABaseObject* o;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscJFABase_Type, &o)){
-    JFABase_doc.print_usage();
+  char** kwlist = ISVBase_doc.kwlist(1);
+  PyBobLearnMiscISVBaseObject* o;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscISVBase_Type, &o)){
+    ISVBase_doc.print_usage();
     return -1;
   }
 
-  self->cxx.reset(new bob::learn::misc::JFABase(*o->cxx));
+  self->cxx.reset(new bob::learn::misc::ISVBase(*o->cxx));
   return 0;
 }
 
 
-static int PyBobLearnMiscJFABase_init_hdf5(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+static int PyBobLearnMiscISVBase_init_hdf5(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = JFABase_doc.kwlist(2);
+  char** kwlist = ISVBase_doc.kwlist(2);
 
   PyBobIoHDF5FileObject* config = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)){
-    JFABase_doc.print_usage();
+    ISVBase_doc.print_usage();
     return -1;
   }
 
-  self->cxx.reset(new bob::learn::misc::JFABase(*(config->f)));
+  self->cxx.reset(new bob::learn::misc::ISVBase(*(config->f)));
 
   return 0;
 }
 
 
-static int PyBobLearnMiscJFABase_init_ubm(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+static int PyBobLearnMiscISVBase_init_ubm(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = JFABase_doc.kwlist(0);
+  char** kwlist = ISVBase_doc.kwlist(0);
   
   PyBobLearnMiscGMMMachineObject* ubm;
   int ru = 1;
-  int rv = 1;
 
   //Here we have to select which keyword argument to read  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!ii", kwlist, &PyBobLearnMiscGMMMachine_Type, &ubm,
-                                                                &ru, &rv)){
-    JFABase_doc.print_usage();
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!i", kwlist, &PyBobLearnMiscGMMMachine_Type, &ubm, &ru)){
+    ISVBase_doc.print_usage();
     return -1;
   }
   
-  self->cxx.reset(new bob::learn::misc::JFABase(ubm->cxx, ru, rv));
+  self->cxx.reset(new bob::learn::misc::ISVBase(ubm->cxx, ru));
   return 0;
 }
 
 
-static int PyBobLearnMiscJFABase_init(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+static int PyBobLearnMiscISVBase_init(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // get the number of command line arguments
@@ -109,38 +107,37 @@ static int PyBobLearnMiscJFABase_init(PyBobLearnMiscJFABaseObject* self, PyObjec
       }
 
       // If the constructor input is Gaussian object
-     if (PyBobLearnMiscJFABase_Check(arg))
-       return PyBobLearnMiscJFABase_init_copy(self, args, kwargs);
+     if (PyBobLearnMiscISVBase_Check(arg))
+       return PyBobLearnMiscISVBase_init_copy(self, args, kwargs);
       // If the constructor input is a HDF5
      else if (PyBobIoHDF5File_Check(arg))
-       return PyBobLearnMiscJFABase_init_hdf5(self, args, kwargs);
+       return PyBobLearnMiscISVBase_init_hdf5(self, args, kwargs);
     }
-    case 3:
-      return PyBobLearnMiscJFABase_init_ubm(self, args, kwargs);
+    case 2:
+      return PyBobLearnMiscISVBase_init_ubm(self, args, kwargs);
     default:
-      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 1 or 3 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
-      JFABase_doc.print_usage();
+      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 1 or 2 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
+      ISVBase_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create JFABase", 0)
+  BOB_CATCH_MEMBER("cannot create ISVBase", 0)
   return 0;
 }
 
 
-
-static void PyBobLearnMiscJFABase_delete(PyBobLearnMiscJFABaseObject* self) {
+static void PyBobLearnMiscISVBase_delete(PyBobLearnMiscISVBaseObject* self) {
   self->cxx.reset();
   Py_TYPE(self)->tp_free((PyObject*)self);
 }
 
-static PyObject* PyBobLearnMiscJFABase_RichCompare(PyBobLearnMiscJFABaseObject* self, PyObject* other, int op) {
+static PyObject* PyBobLearnMiscISVBase_RichCompare(PyBobLearnMiscISVBaseObject* self, PyObject* other, int op) {
   BOB_TRY
 
-  if (!PyBobLearnMiscJFABase_Check(other)) {
+  if (!PyBobLearnMiscISVBase_Check(other)) {
     PyErr_Format(PyExc_TypeError, "cannot compare `%s' with `%s'", Py_TYPE(self)->tp_name, Py_TYPE(other)->tp_name);
     return 0;
   }
-  auto other_ = reinterpret_cast<PyBobLearnMiscJFABaseObject*>(other);
+  auto other_ = reinterpret_cast<PyBobLearnMiscISVBaseObject*>(other);
   switch (op) {
     case Py_EQ:
       if (*self->cxx==*other_->cxx) Py_RETURN_TRUE; else Py_RETURN_FALSE;
@@ -150,11 +147,11 @@ static PyObject* PyBobLearnMiscJFABase_RichCompare(PyBobLearnMiscJFABaseObject* 
       Py_INCREF(Py_NotImplemented);
       return Py_NotImplemented;
   }
-  BOB_CATCH_MEMBER("cannot compare JFABase objects", 0)
+  BOB_CATCH_MEMBER("cannot compare ISVBase objects", 0)
 }
 
-int PyBobLearnMiscJFABase_Check(PyObject* o) {
-  return PyObject_IsInstance(o, reinterpret_cast<PyObject*>(&PyBobLearnMiscJFABase_Type));
+int PyBobLearnMiscISVBase_Check(PyObject* o) {
+  return PyObject_IsInstance(o, reinterpret_cast<PyObject*>(&PyBobLearnMiscISVBase_Type));
 }
 
 
@@ -165,13 +162,13 @@ int PyBobLearnMiscJFABase_Check(PyObject* o) {
 /***** shape *****/
 static auto shape = bob::extension::VariableDoc(
   "shape",
-  "(int,int, int, int)",
-  "A tuple that represents the number of gaussians, dimensionality of each Gaussian, dimensionality of the rU (within client variability matrix) and dimensionality of the rV (between client variability matrix) ``(#Gaussians, #Inputs, #rU, #rV)``.",
+  "(int,int, int)",
+  "A tuple that represents the number of gaussians, dimensionality of each Gaussian, dimensionality of the rU (within client variability matrix) `(#Gaussians, #Inputs, #rU)`.",
   ""
 );
-PyObject* PyBobLearnMiscJFABase_getShape(PyBobLearnMiscJFABaseObject* self, void*) {
+PyObject* PyBobLearnMiscISVBase_getShape(PyBobLearnMiscISVBaseObject* self, void*) {
   BOB_TRY
-  return Py_BuildValue("(i,i,i,i)", self->cxx->getNGaussians(), self->cxx->getNInputs(), self->cxx->getDimRu(), self->cxx->getDimRv());
+  return Py_BuildValue("(i,i,i)", self->cxx->getNGaussians(), self->cxx->getNInputs(), self->cxx->getDimRu());
   BOB_CATCH_MEMBER("shape could not be read", 0)
 }
 
@@ -185,7 +182,7 @@ static auto supervector_length = bob::extension::VariableDoc(
   
   "@warning An exception is thrown if no Universal Background Model has been set yet."
 );
-PyObject* PyBobLearnMiscJFABase_getSupervectorLength(PyBobLearnMiscJFABaseObject* self, void*) {
+PyObject* PyBobLearnMiscISVBase_getSupervectorLength(PyBobLearnMiscISVBaseObject* self, void*) {
   BOB_TRY
   return Py_BuildValue("i", self->cxx->getSupervectorLength());
   BOB_CATCH_MEMBER("supervector_length could not be read", 0)
@@ -199,12 +196,12 @@ static auto U = bob::extension::VariableDoc(
   "Returns the U matrix (within client variability matrix)",
   ""
 );
-PyObject* PyBobLearnMiscJFABase_getU(PyBobLearnMiscJFABaseObject* self, void*){
+PyObject* PyBobLearnMiscISVBase_getU(PyBobLearnMiscISVBaseObject* self, void*){
   BOB_TRY
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getU());
   BOB_CATCH_MEMBER("``u`` could not be read", 0)
 }
-int PyBobLearnMiscJFABase_setU(PyBobLearnMiscJFABaseObject* self, PyObject* value, void*){
+int PyBobLearnMiscISVBase_setU(PyBobLearnMiscISVBaseObject* self, PyObject* value, void*){
   BOB_TRY
   PyBlitzArrayObject* o;
   if (!PyBlitzArray_Converter(value, &o)){
@@ -219,33 +216,6 @@ int PyBobLearnMiscJFABase_setU(PyBobLearnMiscJFABaseObject* self, PyObject* valu
   BOB_CATCH_MEMBER("``u`` matrix could not be set", -1)
 }
 
-/***** v *****/
-static auto V = bob::extension::VariableDoc(
-  "v",
-  "array_like <float, 2D>",
-  "Returns the V matrix (between client variability matrix)",
-  ""
-);
-PyObject* PyBobLearnMiscJFABase_getV(PyBobLearnMiscJFABaseObject* self, void*){
-  BOB_TRY
-  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getV());
-  BOB_CATCH_MEMBER("``v`` could not be read", 0)
-}
-int PyBobLearnMiscJFABase_setV(PyBobLearnMiscJFABaseObject* self, PyObject* value, void*){
-  BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, V.name());
-    return -1;
-  }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "v");
-  if (!b) return -1;
-  self->cxx->setV(*b);
-  return 0;
-  BOB_CATCH_MEMBER("``v`` matrix could not be set", -1)
-}
-
 
 /***** d *****/
 static auto D = bob::extension::VariableDoc(
@@ -254,12 +224,12 @@ static auto D = bob::extension::VariableDoc(
   "Returns the diagonal matrix diag(d) (as a 1D vector)",
   ""
 );
-PyObject* PyBobLearnMiscJFABase_getD(PyBobLearnMiscJFABaseObject* self, void*){
+PyObject* PyBobLearnMiscISVBase_getD(PyBobLearnMiscISVBaseObject* self, void*){
   BOB_TRY
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getD());
   BOB_CATCH_MEMBER("``d`` could not be read", 0)
 }
-int PyBobLearnMiscJFABase_setD(PyBobLearnMiscJFABaseObject* self, PyObject* value, void*){
+int PyBobLearnMiscISVBase_setD(PyBobLearnMiscISVBaseObject* self, PyObject* value, void*){
   BOB_TRY
   PyBlitzArrayObject* o;
   if (!PyBlitzArray_Converter(value, &o)){
@@ -282,7 +252,7 @@ static auto ubm = bob::extension::VariableDoc(
   "Returns the UBM (Universal Background Model",
   ""
 );
-PyObject* PyBobLearnMiscJFABase_getUBM(PyBobLearnMiscJFABaseObject* self, void*){
+PyObject* PyBobLearnMiscISVBase_getUBM(PyBobLearnMiscISVBaseObject* self, void*){
   BOB_TRY
 
   boost::shared_ptr<bob::learn::misc::GMMMachine> ubm_gmmMachine = self->cxx->getUbm();
@@ -295,7 +265,7 @@ PyObject* PyBobLearnMiscJFABase_getUBM(PyBobLearnMiscJFABaseObject* self, void*)
   return Py_BuildValue("O",retval);
   BOB_CATCH_MEMBER("ubm could not be read", 0)
 }
-int PyBobLearnMiscJFABase_setUBM(PyBobLearnMiscJFABaseObject* self, PyObject* value, void*){
+int PyBobLearnMiscISVBase_setUBM(PyBobLearnMiscISVBaseObject* self, PyObject* value, void*){
   BOB_TRY
 
   if (!PyBobLearnMiscGMMMachine_Check(value)){
@@ -314,11 +284,10 @@ int PyBobLearnMiscJFABase_setUBM(PyBobLearnMiscJFABaseObject* self, PyObject* va
 
 
 
-
-static PyGetSetDef PyBobLearnMiscJFABase_getseters[] = { 
+static PyGetSetDef PyBobLearnMiscISVBase_getseters[] = { 
   {
    shape.name(),
-   (getter)PyBobLearnMiscJFABase_getShape,
+   (getter)PyBobLearnMiscISVBase_getShape,
    0,
    shape.doc(),
    0
@@ -326,7 +295,7 @@ static PyGetSetDef PyBobLearnMiscJFABase_getseters[] = {
   
   {
    supervector_length.name(),
-   (getter)PyBobLearnMiscJFABase_getSupervectorLength,
+   (getter)PyBobLearnMiscISVBase_getSupervectorLength,
    0,
    supervector_length.doc(),
    0
@@ -334,32 +303,24 @@ static PyGetSetDef PyBobLearnMiscJFABase_getseters[] = {
   
   {
    U.name(),
-   (getter)PyBobLearnMiscJFABase_getU,
-   (setter)PyBobLearnMiscJFABase_setU,
+   (getter)PyBobLearnMiscISVBase_getU,
+   (setter)PyBobLearnMiscISVBase_setU,
    U.doc(),
    0
   },
   
   {
-   V.name(),
-   (getter)PyBobLearnMiscJFABase_getV,
-   (setter)PyBobLearnMiscJFABase_setV,
-   V.doc(),
-   0
-  },
-
-  {
    D.name(),
-   (getter)PyBobLearnMiscJFABase_getD,
-   (setter)PyBobLearnMiscJFABase_setD,
+   (getter)PyBobLearnMiscISVBase_getD,
+   (setter)PyBobLearnMiscISVBase_setD,
    D.doc(),
    0
   },
 
   {
    ubm.name(),
-   (getter)PyBobLearnMiscJFABase_getUBM,
-   (setter)PyBobLearnMiscJFABase_setUBM,
+   (getter)PyBobLearnMiscISVBase_getUBM,
+   (setter)PyBobLearnMiscISVBase_setUBM,
    ubm.doc(),
    0
   },
@@ -377,11 +338,11 @@ static PyGetSetDef PyBobLearnMiscJFABase_getseters[] = {
 /*** save ***/
 static auto save = bob::extension::FunctionDoc(
   "save",
-  "Save the configuration of the JFABase to a given HDF5 file"
+  "Save the configuration of the ISVBase to a given HDF5 file"
 )
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for writing");
-static PyObject* PyBobLearnMiscJFABase_Save(PyBobLearnMiscJFABaseObject* self,  PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnMiscISVBase_Save(PyBobLearnMiscISVBaseObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
   
@@ -400,11 +361,11 @@ static PyObject* PyBobLearnMiscJFABase_Save(PyBobLearnMiscJFABaseObject* self,  
 /*** load ***/
 static auto load = bob::extension::FunctionDoc(
   "load",
-  "Load the configuration of the JFABase to a given HDF5 file"
+  "Load the configuration of the ISVBase to a given HDF5 file"
 )
 .add_prototype("hdf5")
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
-static PyObject* PyBobLearnMiscJFABase_Load(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnMiscISVBase_Load(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
   char** kwlist = load.kwlist(0);  
@@ -423,28 +384,28 @@ static PyObject* PyBobLearnMiscJFABase_Load(PyBobLearnMiscJFABaseObject* self, P
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
   
-  "Compares this JFABase with the ``other`` one to be approximately the same.",
+  "Compares this ISVBase with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
   "and any other values internal to this machine."
 )
 .add_prototype("other, [r_epsilon], [a_epsilon]","output")
-.add_parameter("other", ":py:class:`bob.learn.misc.JFABase`", "A JFABase object to be compared.")
+.add_parameter("other", ":py:class:`bob.learn.misc.ISVBase`", "A ISVBase object to be compared.")
 .add_parameter("r_epsilon", "float", "Relative precision.")
 .add_parameter("a_epsilon", "float", "Absolute precision.")
 .add_return("output","bool","True if it is similar, otherwise false.");
-static PyObject* PyBobLearnMiscJFABase_IsSimilarTo(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwds) {
+static PyObject* PyBobLearnMiscISVBase_IsSimilarTo(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwds) {
 
   /* Parses input arguments in a single shot */
   char** kwlist = is_similar_to.kwlist(0);
 
   //PyObject* other = 0;
-  PyBobLearnMiscJFABaseObject* other = 0;
+  PyBobLearnMiscISVBaseObject* other = 0;
   double r_epsilon = 1.e-5;
   double a_epsilon = 1.e-8;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|dd", kwlist,
-        &PyBobLearnMiscJFABase_Type, &other,
+        &PyBobLearnMiscISVBase_Type, &other,
         &r_epsilon, &a_epsilon)){
 
         is_similar_to.print_usage(); 
@@ -461,36 +422,30 @@ static PyObject* PyBobLearnMiscJFABase_IsSimilarTo(PyBobLearnMiscJFABaseObject* 
 /*** resize ***/
 static auto resize = bob::extension::FunctionDoc(
   "resize",
-  "Resets the dimensionality of the subspace U and V. "
-  "U and V are hence uninitialized",
+  "Resets the dimensionality of the subspace U. "
+  "U is hence uninitialized.",
   0,
   true
 )
-.add_prototype("rU,rV")
-.add_parameter("rU", "int", "Size of U (Within client variation matrix)")
-.add_parameter("rV", "int", "Size of V (Between client variation matrix)");
-static PyObject* PyBobLearnMiscJFABase_resize(PyBobLearnMiscJFABaseObject* self, PyObject* args, PyObject* kwargs) {
+.add_prototype("rU")
+.add_parameter("rU", "int", "Size of U (Within client variation matrix)");
+static PyObject* PyBobLearnMiscISVBase_resize(PyBobLearnMiscISVBaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = resize.kwlist(0);
 
   int rU = 0;
-  int rV = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &rU, &rV)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rU)) Py_RETURN_NONE;
 
   if (rU <= 0){
     PyErr_Format(PyExc_TypeError, "rU must be greater than zero");
     resize.print_usage();
     return 0;
   }
-  if (rV <= 0){
-    PyErr_Format(PyExc_TypeError, "rV must be greater than zero");
-    resize.print_usage();
-    return 0;
-  }
-  self->cxx->resize(rU, rV);
+
+  self->cxx->resize(rU);
 
   BOB_CATCH_MEMBER("cannot perform the resize method", 0)
 
@@ -500,28 +455,28 @@ static PyObject* PyBobLearnMiscJFABase_resize(PyBobLearnMiscJFABaseObject* self,
 
 
 
-static PyMethodDef PyBobLearnMiscJFABase_methods[] = {
+static PyMethodDef PyBobLearnMiscISVBase_methods[] = {
   {
     save.name(),
-    (PyCFunction)PyBobLearnMiscJFABase_Save,
+    (PyCFunction)PyBobLearnMiscISVBase_Save,
     METH_VARARGS|METH_KEYWORDS,
     save.doc()
   },
   {
     load.name(),
-    (PyCFunction)PyBobLearnMiscJFABase_Load,
+    (PyCFunction)PyBobLearnMiscISVBase_Load,
     METH_VARARGS|METH_KEYWORDS,
     load.doc()
   },
   {
     is_similar_to.name(),
-    (PyCFunction)PyBobLearnMiscJFABase_IsSimilarTo,
+    (PyCFunction)PyBobLearnMiscISVBase_IsSimilarTo,
     METH_VARARGS|METH_KEYWORDS,
     is_similar_to.doc()
   },
   {
     resize.name(),
-    (PyCFunction)PyBobLearnMiscJFABase_resize,
+    (PyCFunction)PyBobLearnMiscISVBase_resize,
     METH_VARARGS|METH_KEYWORDS,
     resize.doc()
   },
@@ -534,35 +489,35 @@ static PyMethodDef PyBobLearnMiscJFABase_methods[] = {
 /************ Module Section **************************************/
 /******************************************************************/
 
-// Define the JFA type struct; will be initialized later
-PyTypeObject PyBobLearnMiscJFABase_Type = {
+// Define the ISV type struct; will be initialized later
+PyTypeObject PyBobLearnMiscISVBase_Type = {
   PyVarObject_HEAD_INIT(0,0)
   0
 };
 
-bool init_BobLearnMiscJFABase(PyObject* module)
+bool init_BobLearnMiscISVBase(PyObject* module)
 {
   // initialize the type struct
-  PyBobLearnMiscJFABase_Type.tp_name      = JFABase_doc.name();
-  PyBobLearnMiscJFABase_Type.tp_basicsize = sizeof(PyBobLearnMiscJFABaseObject);
-  PyBobLearnMiscJFABase_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
-  PyBobLearnMiscJFABase_Type.tp_doc       = JFABase_doc.doc();
+  PyBobLearnMiscISVBase_Type.tp_name      = ISVBase_doc.name();
+  PyBobLearnMiscISVBase_Type.tp_basicsize = sizeof(PyBobLearnMiscISVBaseObject);
+  PyBobLearnMiscISVBase_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
+  PyBobLearnMiscISVBase_Type.tp_doc       = ISVBase_doc.doc();
 
   // set the functions
-  PyBobLearnMiscJFABase_Type.tp_new         = PyType_GenericNew;
-  PyBobLearnMiscJFABase_Type.tp_init        = reinterpret_cast<initproc>(PyBobLearnMiscJFABase_init);
-  PyBobLearnMiscJFABase_Type.tp_dealloc     = reinterpret_cast<destructor>(PyBobLearnMiscJFABase_delete);
-  PyBobLearnMiscJFABase_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscJFABase_RichCompare);
-  PyBobLearnMiscJFABase_Type.tp_methods     = PyBobLearnMiscJFABase_methods;
-  PyBobLearnMiscJFABase_Type.tp_getset      = PyBobLearnMiscJFABase_getseters;
-  //PyBobLearnMiscJFABase_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscJFABase_forward);
+  PyBobLearnMiscISVBase_Type.tp_new         = PyType_GenericNew;
+  PyBobLearnMiscISVBase_Type.tp_init        = reinterpret_cast<initproc>(PyBobLearnMiscISVBase_init);
+  PyBobLearnMiscISVBase_Type.tp_dealloc     = reinterpret_cast<destructor>(PyBobLearnMiscISVBase_delete);
+  PyBobLearnMiscISVBase_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscISVBase_RichCompare);
+  PyBobLearnMiscISVBase_Type.tp_methods     = PyBobLearnMiscISVBase_methods;
+  PyBobLearnMiscISVBase_Type.tp_getset      = PyBobLearnMiscISVBase_getseters;
+  //PyBobLearnMiscISVBase_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscISVBase_forward);
 
 
   // check that everything is fine
-  if (PyType_Ready(&PyBobLearnMiscJFABase_Type) < 0) return false;
+  if (PyType_Ready(&PyBobLearnMiscISVBase_Type) < 0) return false;
 
   // add the type to the module
-  Py_INCREF(&PyBobLearnMiscJFABase_Type);
-  return PyModule_AddObject(module, "JFABase", (PyObject*)&PyBobLearnMiscJFABase_Type) >= 0;
+  Py_INCREF(&PyBobLearnMiscISVBase_Type);
+  return PyModule_AddObject(module, "ISVBase", (PyObject*)&PyBobLearnMiscISVBase_Type) >= 0;
 }
 

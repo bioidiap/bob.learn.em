@@ -200,16 +200,16 @@ class JFAMachine
     * @brief Execute the machine
     *
     * @param input input data used by the machine
-    * @param score value computed by the machine
     * @warning Inputs are checked
+    * @return score value computed by the machine
     */
-    void forward(const bob::learn::misc::GMMStats& input, double& score) const;
+    double forward(const bob::learn::misc::GMMStats& input);
     /**
      * @brief Computes a score for the given UBM statistics and given the
      * Ux vector
      */
-    void forward(const bob::learn::misc::GMMStats& gmm_stats,
-      const blitz::Array<double,1>& Ux, double& score) const;
+    double forward(const bob::learn::misc::GMMStats& gmm_stats,
+      const blitz::Array<double,1>& Ux);
 
     /**
      * @brief Execute the machine
@@ -218,7 +218,7 @@ class JFAMachine
      * @param score value computed by the machine
      * @warning Inputs are NOT checked
      */
-    void forward_(const bob::learn::misc::GMMStats& input, double& score) const;
+    double forward_(const bob::learn::misc::GMMStats& input);
 
   private:
     /**

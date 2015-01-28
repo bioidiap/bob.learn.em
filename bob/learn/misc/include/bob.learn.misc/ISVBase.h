@@ -147,8 +147,8 @@ class ISVBase
     { return m_base.getDimRu(); }
 
     /**
-     * @brief Resets the dimensionality of the subspace U and V
-     * U and V are hence uninitialized.
+     * @brief Resets the dimensionality of the subspace U
+     * U is hence uninitialized.
      */
     void resize(const size_t ru)
     { m_base.resize(ru, 1);

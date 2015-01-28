@@ -28,6 +28,10 @@
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 
 #include <bob.learn.misc/JFABase.h>
+#include <bob.learn.misc/ISVBase.h>
+
+#include <bob.learn.misc/JFAMachine.h>
+#include <bob.learn.misc/ISVMachine.h>
 
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -165,6 +169,40 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscJFABase_Type;
 bool init_BobLearnMiscJFABase(PyObject* module);
 int PyBobLearnMiscJFABase_Check(PyObject* o);
+
+
+// ISVBase
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::ISVBase> cxx;
+} PyBobLearnMiscISVBaseObject;
+
+extern PyTypeObject PyBobLearnMiscISVBase_Type;
+bool init_BobLearnMiscISVBase(PyObject* module);
+int PyBobLearnMiscISVBase_Check(PyObject* o);
+
+
+// JFAMachine
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::JFAMachine> cxx;
+} PyBobLearnMiscJFAMachineObject;
+
+extern PyTypeObject PyBobLearnMiscJFAMachine_Type;
+bool init_BobLearnMiscJFAMachine(PyObject* module);
+int PyBobLearnMiscJFAMachine_Check(PyObject* o);
+
+
+// ISVMachine
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::ISVMachine> cxx;
+} PyBobLearnMiscISVMachineObject;
+
+extern PyTypeObject PyBobLearnMiscISVMachine_Type;
+bool init_BobLearnMiscISVMachine(PyObject* module);
+int PyBobLearnMiscISVMachine_Check(PyObject* o);
+
 
 
 #endif // BOB_LEARN_EM_MAIN_H
