@@ -131,11 +131,6 @@ class GMMMachine
     const blitz::Array<double,2> getVariances() const;
     
     /**
-     * Get the variance supervector
-     */
-    //void getVarianceSupervector(blitz::Array<double,1> &variance_supervector) const;
-    
-    /**
      * Returns a const reference to the supervector (Put in cache)
      */
     const blitz::Array<double,1>& getVarianceSupervector() const;
