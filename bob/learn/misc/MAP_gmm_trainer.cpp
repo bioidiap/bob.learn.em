@@ -81,7 +81,6 @@ static int PyBobLearnMiscMAPGMMTrainer_init_base_trainer(PyBobLearnMiscMAPGMMTra
                                                                  &aux)))
     reynolds_adaptation = false;
   else{
-    std::cout << PyDict_Contains(kwargs, keyword_alpha) << std::endl;  
     PyErr_Format(PyExc_RuntimeError, "%s. The third argument must be a keyword argument.", Py_TYPE(self)->tp_name);
     MAP_GMMTrainer_doc.print_usage();
     return -1;
