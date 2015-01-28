@@ -27,6 +27,8 @@
 #include <bob.learn.misc/ML_GMMTrainer.h>
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 
+#include <bob.learn.misc/JFABase.h>
+
 
 #if PY_VERSION_HEX >= 0x03000000
 #define PyInt_Check PyLong_Check
@@ -152,6 +154,17 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscMAPGMMTrainer_Type;
 bool init_BobLearnMiscMAPGMMTrainer(PyObject* module);
 int PyBobLearnMiscMAPGMMTrainer_Check(PyObject* o);
+
+
+// JFABase
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::JFABase> cxx;
+} PyBobLearnMiscJFABaseObject;
+
+extern PyTypeObject PyBobLearnMiscJFABase_Type;
+bool init_BobLearnMiscJFABase(PyObject* module);
+int PyBobLearnMiscJFABase_Check(PyObject* o);
 
 
 #endif // BOB_LEARN_EM_MAIN_H

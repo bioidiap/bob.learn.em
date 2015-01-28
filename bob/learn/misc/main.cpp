@@ -48,6 +48,7 @@ static PyObject* create_module (void) {
   if (!init_BobLearnMiscGMMBaseTrainer(module)) return 0;
   if (!init_BobLearnMiscMLGMMTrainer(module)) return 0;  
   if (!init_BobLearnMiscMAPGMMTrainer(module)) return 0;
+  if (!init_BobLearnMiscJFABase(module)) return 0;
 
 
   static void* PyBobLearnMisc_API[PyBobLearnMisc_API_pointers];
