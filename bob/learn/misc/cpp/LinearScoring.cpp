@@ -101,7 +101,7 @@ void bob::learn::misc::linearScoring(const std::vector<boost::shared_ptr<const b
   // Allocate and get the mean supervector
   for(size_t i=0; i<models.size(); ++i) {
     blitz::Array<double,1> mod(CD);
-    models[i]->getMeanSupervector(mod);
+    mod = models[i]->getMeanSupervector();
     models_b.push_back(mod);
   }
   const blitz::Array<double,1>& ubm_mean = ubm.getMeanSupervector();
@@ -123,7 +123,7 @@ void bob::learn::misc::linearScoring(const std::vector<boost::shared_ptr<const b
   // Allocate and get the mean supervector
   for(size_t i=0; i<models.size(); ++i) {
     blitz::Array<double,1> mod(CD);
-    models[i]->getMeanSupervector(mod);
+    mod = models[i]->getMeanSupervector();
     models_b.push_back(mod);
   }
   const blitz::Array<double,1>& ubm_mean = ubm.getMeanSupervector();
