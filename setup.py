@@ -57,7 +57,7 @@ setup(
           "bob/learn/misc/cpp/Gaussian.cpp",
           "bob/learn/misc/cpp/GMMMachine.cpp",
           "bob/learn/misc/cpp/GMMStats.cpp",
-          #"bob/learn/misc/cpp/IVectorMachine.cpp",
+          "bob/learn/misc/cpp/IVectorMachine.cpp",
           "bob/learn/misc/cpp/KMeansMachine.cpp",
           "bob/learn/misc/cpp/LinearScoring.cpp",
           #"bob/learn/misc/cpp/PLDAMachine.cpp",
@@ -117,6 +117,8 @@ setup(
           "bob/learn/misc/isv_base.cpp",
           "bob/learn/misc/jfa_machine.cpp",
           "bob/learn/misc/isv_machine.cpp",
+          
+          "bob/learn/misc/ivector_machine.cpp",
 
           "bob/learn/misc/main.cpp",
         ],

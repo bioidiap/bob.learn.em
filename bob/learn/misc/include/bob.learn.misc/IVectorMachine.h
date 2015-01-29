@@ -9,7 +9,6 @@
 #define BOB_LEARN_MISC_IVECTOR_MACHINE_H
 
 #include <blitz/array.h>
-#include <bob.learn.misc/Machine.h>
 #include <bob.learn.misc/GMMMachine.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <bob.io.base/HDF5File.h>
@@ -24,7 +23,7 @@ namespace bob { namespace learn { namespace misc {
  *    N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet,
  *   IEEE Trans. on Audio, Speech and Language Processing
  */
-class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStats, blitz::Array<double,1> >
+class IVectorMachine
 {
   public:
     /**
@@ -124,7 +123,7 @@ class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStat
      * @warning An exception is thrown if no Universal Background Model has
      *   been set yet.
      */
-    const size_t getDimC() const
+    const size_t getNGaussians() const
     { return m_ubm->getNGaussians(); }
 
     /**
@@ -132,7 +131,7 @@ class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStat
      * @warning An exception is thrown if no Universal Background Model has
      *   been set yet.
      */
-    const size_t getDimD() const
+    const size_t getNInputs() const
     { return m_ubm->getNInputs(); }
 
     /**
@@ -141,7 +140,7 @@ class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStat
      * @warning An exception is thrown if no Universal Background Model has
      *   been set yet.
      */
-    const size_t getDimCD() const
+    const size_t getSupervectorLength() const
     { return m_ubm->getNGaussians()*m_ubm->getNInputs(); }
 
     /**
@@ -229,7 +228,7 @@ class IVectorMachine: public bob::learn::misc::Machine<bob::learn::misc::GMMStat
      */
     void forward_(const bob::learn::misc::GMMStats& input, blitz::Array<double,1>& output) const;
 
-  protected:
+  private:
     /**
      * @brief Apply the variance flooring thresholds.
      * This method is called when using setVarianceThresholds()

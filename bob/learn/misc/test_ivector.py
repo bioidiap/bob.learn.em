@@ -32,14 +32,15 @@ class IVectorMachinePy():
 
   def resize(self):
     if self.m_ubm:
-      dim_cd = self.m_ubm.dim_c * self.m_ubm.dim_d
+      dim_cd = self.m_ubm.shape[0] * self.m_ubm.shape[1]
       self.m_t = numpy.random.randn(dim_cd, self.m_dim_t)
       self.m_sigma = numpy.random.randn(dim_cd)
 
   def precompute(self):
     if self.m_ubm and self.m_t is not None and self.m_sigma is not None:
-      dim_c = self.m_ubm.dim_c
-      dim_d = self.m_ubm.dim_d
+      #dim_c = self.m_ubm.dim_c
+      #dim_d = self.m_ubm.dim_d
+      dim_c,dim_d = self.m_ubm.shape
       self.m_cache_TtSigmaInv = {}
       self.m_cache_TtSigmaInvT = {}
       for c in range(dim_c):
@@ -78,13 +79,14 @@ class IVectorMachinePy():
 
   def _get_TtSigmaInv_Fnorm(self, N, F):
     # Initialization
-    dim_c = self.m_ubm.dim_c
-    dim_d = self.m_ubm.dim_d
+    #dim_c = self.m_ubm.dim_c
+    #dim_d = self.m_ubm.dim_d
+    dim_c,dim_d = self.m_ubm.shape
     mean_supervector = self.m_ubm.mean_supervector
     TtSigmaInv_Fnorm = numpy.zeros(shape=(self.m_dim_t,), dtype=numpy.float64)
 
     # Loop over each Gaussian component
-    dim_c = self.m_ubm.dim_c
+    dim_c = self.m_ubm.shape[0]
     for c in range(dim_c):
       start             = c*dim_d
       end               = (c+1)*dim_d
@@ -94,8 +96,9 @@ class IVectorMachinePy():
 
   def _get_I_TtSigmaInvNT(self, N):
     # Initialization
-    dim_c = self.m_ubm.dim_c
-    dim_d = self.m_ubm.dim_d
+    #dim_c = self.m_ubm.dim_c
+    #dim_d = self.m_ubm.dim_d
+    dim_c, dim_d = self.m_ubm.shape
 
     TtSigmaInvNT = numpy.eye(self.m_dim_t, dtype=numpy.float64)
     for c in range(dim_c):
@@ -152,5 +155,5 @@ def test_machine():
   mc.sigma = sigma
 
   wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
-  wij = mc.forward(gs)
+  wij = mc(gs)
   assert numpy.allclose(wij_ref, wij, 1e-5)

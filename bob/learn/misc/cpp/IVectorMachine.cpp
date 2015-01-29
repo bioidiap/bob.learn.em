@@ -18,7 +18,7 @@ bob::learn::misc::IVectorMachine::IVectorMachine()
 bob::learn::misc::IVectorMachine::IVectorMachine(const boost::shared_ptr<bob::learn::misc::GMMMachine> ubm,
     const size_t rt, const double variance_threshold):
   m_ubm(ubm), m_rt(rt),
-  m_T(getDimCD(),rt), m_sigma(getDimCD()),
+  m_T(getSupervectorLength(),rt), m_sigma(getSupervectorLength()),
   m_variance_threshold(variance_threshold)
 {
   resizePrecompute();
@@ -204,7 +204,7 @@ void bob::learn::misc::IVectorMachine::resizeTmp()
 void bob::learn::misc::IVectorMachine::forward(const bob::learn::misc::GMMStats& gs,
   blitz::Array<double,1>& ivector) const
 {
-  bob::core::array::assertSameDimensionLength(ivector.extent(0), (int)m_rt);
+  bob::core::array::assertSameDimensionLength(ivector.extent(0), (int)m_rt);  
   forward_(gs, ivector);
 }
 
@@ -214,7 +214,7 @@ void bob::learn::misc::IVectorMachine::computeIdTtSigmaInvT(
   // Computes \f$(Id + \sum_{c=1}^{C} N_{i,j,c} T^{T} \Sigma_{c}^{-1} T)\f$
   blitz::Range rall = blitz::Range::all();
   bob::math::eye(output);
-  for (int c=0; c<(int)getDimC(); ++c)
+  for (int c=0; c<(int)getNGaussians(); ++c)
     output += gs.n(c) * m_cache_Tct_sigmacInv_Tc(c, rall, rall);
 }
 
@@ -224,7 +224,7 @@ void bob::learn::misc::IVectorMachine::computeTtSigmaInvFnorm(
   // Computes \f$T^{T} \Sigma^{-1} \sum_{c=1}^{C} (F_c - N_c ubmmean_{c})\f$
   blitz::Range rall = blitz::Range::all();
   output = 0;
-  for (int c=0; c<(int)getDimC(); ++c)
+  for (int c=0; c<(int)getNGaussians(); ++c)
   {
     m_tmp_d = gs.sumPx(c,rall) - gs.n(c) * m_ubm->getGaussian(c)->getMean();
     blitz::Array<double,2> Tct_sigmacInv = m_cache_Tct_sigmacInv(c, rall, rall);

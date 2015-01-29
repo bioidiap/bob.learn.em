@@ -48,13 +48,11 @@ static int PyBobLearnMiscGMMMachine_init_number(PyBobLearnMiscGMMMachineObject* 
 
   if(n_gaussians < 0){
     PyErr_Format(PyExc_TypeError, "gaussians argument must be greater than or equal to zero");
-    GMMMachine_doc.print_usage();
     return -1;
   }
 
   if(n_inputs < 0){
     PyErr_Format(PyExc_TypeError, "input argument must be greater than or equal to zero");
-    GMMMachine_doc.print_usage();
     return -1;
    }
 

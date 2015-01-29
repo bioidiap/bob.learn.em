@@ -82,6 +82,11 @@ static int PyBobLearnMiscISVBase_init_ubm(PyBobLearnMiscISVBaseObject* self, PyO
     return -1;
   }
   
+  if(ru < 0){
+    PyErr_Format(PyExc_TypeError, "ru argument must be greater than or equal to one");
+    return -1;
+  }
+  
   self->cxx.reset(new bob::learn::misc::ISVBase(ubm->cxx, ru));
   return 0;
 }

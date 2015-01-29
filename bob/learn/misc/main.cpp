@@ -52,7 +52,8 @@ static PyObject* create_module (void) {
   if (!init_BobLearnMiscISVBase(module)) return 0;
 
   if (!init_BobLearnMiscJFAMachine(module)) return 0;
-  if (!init_BobLearnMiscISVMachine(module)) return 0;  
+  if (!init_BobLearnMiscISVMachine(module)) return 0;
+  if (!init_BobLearnMiscIVectorMachine(module)) return 0;  
 
 
   static void* PyBobLearnMisc_API[PyBobLearnMisc_API_pointers];

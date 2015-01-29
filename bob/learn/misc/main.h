@@ -32,6 +32,7 @@
 
 #include <bob.learn.misc/JFAMachine.h>
 #include <bob.learn.misc/ISVMachine.h>
+#include <bob.learn.misc/IVectorMachine.h>
 
 
 #if PY_VERSION_HEX >= 0x03000000
@@ -202,6 +203,17 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscISVMachine_Type;
 bool init_BobLearnMiscISVMachine(PyObject* module);
 int PyBobLearnMiscISVMachine_Check(PyObject* o);
+
+
+// IVectorMachine
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::IVectorMachine> cxx;
+} PyBobLearnMiscIVectorMachineObject;
+
+extern PyTypeObject PyBobLearnMiscIVectorMachine_Type;
+bool init_BobLearnMiscIVectorMachine(PyObject* module);
+int PyBobLearnMiscIVectorMachine_Check(PyObject* o);
 
 
 
