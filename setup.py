@@ -60,7 +60,7 @@ setup(
           "bob/learn/misc/cpp/IVectorMachine.cpp",
           "bob/learn/misc/cpp/KMeansMachine.cpp",
           "bob/learn/misc/cpp/LinearScoring.cpp",
-          #"bob/learn/misc/cpp/PLDAMachine.cpp",
+          "bob/learn/misc/cpp/PLDAMachine.cpp",
           #"bob/learn/misc/cpp/ZTNorm.cpp",
 
           "bob/learn/misc/cpp/FABase.cpp",
