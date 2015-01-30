@@ -31,7 +31,7 @@ static auto IVectorMachine_doc = bob::extension::ClassDoc(
 
   .add_parameter("ubm", ":py:class:`bob.learn.misc.GMMMachine`", "The Universal Background Model.")
   .add_parameter("rt", "int", "Size of the Total Variability matrix (CD x rt).")
-  .add_parameter("variance_threshold", "double", "Variance flooring threshold for the Sigma (diagonal) matrix")
+  .add_parameter("variance_threshold", "double", "Variance flooring threshold for the :math:`\\Sigma` (diagonal) matrix")
 
   .add_parameter("other", ":py:class:`bob.learn.misc.IVectorMachine`", "A IVectorMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
@@ -450,6 +450,39 @@ static PyObject* PyBobLearnMiscIVectorMachine_Forward(PyBobLearnMiscIVectorMachi
 
 }
 
+/*** resize ***/
+static auto resize = bob::extension::FunctionDoc(
+  "resize",
+  "Resets the dimensionality of the subspace T. ",
+  0,
+  true
+)
+.add_prototype("rT")
+.add_parameter("rT", "int", "Size of T (Total variability matrix)");
+static PyObject* PyBobLearnMiscIVectorMachine_resize(PyBobLearnMiscIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  /* Parses input arguments in a single shot */
+  char** kwlist = resize.kwlist(0);
+
+  int rT = 0;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rT)) Py_RETURN_NONE;
+
+  if (rT < 1){
+    PyErr_Format(PyExc_TypeError, "rU must be greater than one");
+    resize.print_usage();
+    return 0;
+  }
+
+  self->cxx->resize(rT);
+
+  BOB_CATCH_MEMBER("cannot perform the resize method", 0)
+
+  Py_RETURN_NONE;
+}
+
+
 
 static PyMethodDef PyBobLearnMiscIVectorMachine_methods[] = {
   {
@@ -469,6 +502,12 @@ static PyMethodDef PyBobLearnMiscIVectorMachine_methods[] = {
     (PyCFunction)PyBobLearnMiscIVectorMachine_IsSimilarTo,
     METH_VARARGS|METH_KEYWORDS,
     is_similar_to.doc()
+  },
+  {
+    resize.name(),
+    (PyCFunction)PyBobLearnMiscIVectorMachine_resize,
+    METH_VARARGS|METH_KEYWORDS,
+    resize.doc()
   },
 
 /*

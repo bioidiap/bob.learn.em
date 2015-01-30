@@ -11,7 +11,6 @@
 #ifndef BOB_LEARN_MISC_PLDAMACHINE_H
 #define BOB_LEARN_MISC_PLDAMACHINE_H
 
-#include <bob.learn.misc/Machine.h>
 #include <blitz/array.h>
 #include <bob.io.base/HDF5File.h>
 #include <map>
@@ -432,7 +431,7 @@ class PLDABase
  * 3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed,
  *     Elder and Prince, TPAMI'2012
  */
-class PLDAMachine: public Machine<blitz::Array<double,1>, double>
+class PLDAMachine
 {
   public:
     /**

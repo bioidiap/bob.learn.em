@@ -119,6 +119,8 @@ setup(
           "bob/learn/misc/isv_machine.cpp",
           
           "bob/learn/misc/ivector_machine.cpp",
+          "bob/learn/misc/plda_base.cpp",
+          "bob/learn/misc/plda_machine.cpp",          
 
           "bob/learn/misc/main.cpp",
         ],
