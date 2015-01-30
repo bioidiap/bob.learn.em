@@ -8,12 +8,11 @@
 """Tests PLDA machine
 """
 
+import numpy
 import os
 import tempfile
-import math
-import numpy
-import numpy.linalg
 import nose.tools
+import math
 
 import bob.io.base
 
@@ -100,30 +99,30 @@ def compute_loglike_constterm(F, G, sigma, a):
 def compute_log_likelihood_point_estimate(observation, mu, F, G, sigma, hi, wij):
   """
   This function computes p(x_{ij} | h_{i}, w_{ij}, \Theta), which is given by
-    N_{x}[\mu + Fh_{i} + Gw_{ij} + epsilon_{ij}, \Sigma], N_{x} being a
-    Gaussian distribution. As it returns the corresponding log likelihood,
-    this is given by the sum of the following three terms:
-      C1 = -dim_d/2 log(2pi)
-      C2 = -1/2 log(det(\Sigma))
-      C3 = -1/2 (x_{ij}-\mu-Fh_{i}-Gw_{ij})^{T}\Sigma^{-1}(x_{ij}-\mu-Fh_{i}-Gw_{ij})
+  N_{x}[\mu + Fh_{i} + Gw_{ij} + epsilon_{ij}, \Sigma], N_{x} being a
+  Gaussian distribution. As it returns the corresponding log likelihood,
+  this is given by the sum of the following three terms:
+  C1 = -dim_d/2 log(2pi)
+  C2 = -1/2 log(det(\Sigma))
+  C3 = -1/2 (x_{ij}-\mu-Fh_{i}-Gw_{ij})^{T}\Sigma^{-1}(x_{ij}-\mu-Fh_{i}-Gw_{ij})
   """
 
   ### Pre-computes some of the constants
   dim_d          = observation.shape[0]             # A scalar
-  log_2pi        = numpy.log(2. * numpy.pi);        # A scalar
-  C1             = -(dim_d / 2.) * log_2pi;         # A scalar
-  C2             = -(1. / 2.) * numpy.sum( numpy.log(sigma) ); # (dim_d, 1)
+  log_2pi        = numpy.log(2. * numpy.pi)        # A scalar
+  C1             = -(dim_d / 2.) * log_2pi         # A scalar
+  C2             = -(1. / 2.) * numpy.sum( numpy.log(sigma) ) # (dim_d, 1)
 
   ### Subtract the identity and session components from the observed vector.
-  session_plus_identity  = numpy.dot(F, hi) + numpy.dot(G, wij);
-  normalised_observation = numpy.reshape(observation - mu - session_plus_identity, (dim_d,1));
+  session_plus_identity  = numpy.dot(F, hi) + numpy.dot(G, wij)
+  normalised_observation = numpy.reshape(observation - mu - session_plus_identity, (dim_d,1))
   ### Now calculate C3
-  sigma_inverse  = numpy.reshape(1. / sigma, (dim_d,1));                      # (dim_d, 1)
-  C3             = -(1. / 2.) * numpy.sum(normalised_observation * sigma_inverse * normalised_observation);
+  sigma_inverse  = numpy.reshape(1. / sigma, (dim_d,1))                      # (dim_d, 1)
+  C3             = -(1. / 2.) * numpy.sum(normalised_observation * sigma_inverse * normalised_observation)
 
   ### Returns the log likelihood
-  log_likelihood     = C1 + C2 + C3;
-  return (log_likelihood);
+  log_likelihood     = C1 + C2 + C3
+  return (log_likelihood)
 
 
 def compute_log_likelihood(observations, mu, F, G, sigma):
@@ -178,7 +177,6 @@ def compute_log_likelihood(observations, mu, F, G, sigma):
 
 
 def test_plda_basemachine():
-
   # Data used for performing the tests
   sigma = numpy.ndarray(C_dim_d, 'float64')
   sigma.fill(0.01)
@@ -211,27 +209,27 @@ def test_plda_basemachine():
     -0.000000012993151,  0.999999999999996], 'float64').reshape(C_dim_f, C_dim_f)
 
   # Constructor tests
-  m = PLDABase()
-  assert m.dim_d == 0
-  assert m.dim_f == 0
-  assert m.dim_g == 0
-  del m
+  #m = PLDABase()
+  #assert m.dim_d == 0
+  #assert m.dim_f == 0
+  #assert m.dim_g == 0
+  #del m
   m = PLDABase(C_dim_d, C_dim_f, C_dim_g)
-  assert m.dim_d == C_dim_d
-  assert m.dim_f == C_dim_f
-  assert m.dim_g == C_dim_g
+  assert m.shape[0] == C_dim_d
+  assert m.shape[1] == C_dim_f
+  assert m.shape[2] == C_dim_g
   assert abs(m.variance_threshold - 0.) < 1e-10
   del m
   m = PLDABase(C_dim_d, C_dim_f, C_dim_g, 1e-2)
-  assert m.dim_d == C_dim_d
-  assert m.dim_f == C_dim_f
-  assert m.dim_g == C_dim_g
+  assert m.shape[0] == C_dim_d
+  assert m.shape[1] == C_dim_f
+  assert m.shape[2] == C_dim_g
   assert abs(m.variance_threshold - 1e-2) < 1e-10
   del m
 
   # Defines base machine
-  m = PLDABase()
-  m.resize(C_dim_d, C_dim_f, C_dim_g)
+  m = PLDABase(C_dim_d, C_dim_f, C_dim_g)
+  #m.resize(C_dim_d, C_dim_f, C_dim_g)
   # Sets the current mu, F, G and sigma
   m.mu = mu
   m.f = C_F
@@ -368,7 +366,10 @@ def test_plda_basemachine_loglikelihood_pointestimate():
   m.g = C_G
   m.sigma = sigma
 
-  assert equals(m.compute_log_likelihood_point_estimate(xij, hi, wij), compute_log_likelihood_point_estimate(xij, mu, C_F, C_G, sigma, hi, wij), 1e-6)
+  #assert equals(m.compute_log_likelihood_point_estimate(xij, hi, wij), compute_log_likelihood_point_estimate(xij, mu, C_F, C_G, sigma, hi, wij), 1e-6)
+  log_likelihood_point_estimate        = m.compute_log_likelihood_point_estimate(xij, hi, wij)
+  log_likelihood_point_estimate_python = compute_log_likelihood_point_estimate(xij,         mu, C_F, C_G, sigma, hi, wij)
+  assert equals(log_likelihood_point_estimate, log_likelihood_point_estimate_python, 1e-6)
 
 
 def test_plda_machine():
@@ -390,15 +391,15 @@ def test_plda_machine():
 
   # Test constructors and dim getters
   m = PLDAMachine(mb)
-  assert m.dim_d == C_dim_d
-  assert m.dim_f == C_dim_f
-  assert m.dim_g == C_dim_g
+  assert m.shape[0] == C_dim_d
+  assert m.shape[1]== C_dim_f
+  assert m.shape[2] == C_dim_g
 
-  m0 = PLDAMachine()
-  m0.plda_base = mb
-  assert m0.dim_d == C_dim_d
-  assert m0.dim_f == C_dim_f
-  assert m0.dim_g == C_dim_g
+  m0 = PLDAMachine(mb)
+  #m0.plda_base = mb
+  assert m0.shape[0]  == C_dim_d
+  assert m0.shape[1]  == C_dim_f
+  assert m0.shape[2]  == C_dim_g
 
   # Defines machine
   n_samples = 2
@@ -441,13 +442,13 @@ def test_plda_machine():
   assert (m_loaded.has_log_like_const_term(3)) is False
 
   # Check exceptions
-  m_loaded2 = PLDAMachine()
-  m_loaded2.load(bob.io.base.HDF5File(filename))
-  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_d')
-  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_f')
-  nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_g')
-  nose.tools.assert_raises(RuntimeError, m_loaded2.forward, [1.])
-  nose.tools.assert_raises(RuntimeError, m_loaded2.compute_log_likelihood, [1.])
+  #m_loaded2 = PLDAMachine(bob.io.base.HDF5File(filename))
+  #m_loaded2.load(bob.io.base.HDF5File(filename))
+  #nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'shape')
+  #nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_f')
+  #nose.tools.assert_raises(RuntimeError, getattr, m_loaded2, 'dim_g')
+  #nose.tools.assert_raises(RuntimeError, m_loaded2.forward, [1.])
+  #nose.tools.assert_raises(RuntimeError, m_loaded2.compute_log_likelihood, [1.])
 
   # Clean-up
   os.unlink(filename)
@@ -487,11 +488,11 @@ def test_plda_machine_log_likelihood_Python():
   ar2_s = numpy.vstack([ar2_e, ar2_p])
   m.log_likelihood = m.compute_log_likelihood(ar2_e, False)
   llr = m.compute_log_likelihood(ar2_s, True) - (m.compute_log_likelihood(ar2_s, False) + m.log_likelihood)
-  assert abs(m.forward(ar2_s) - llr) < 1e-10
+  assert abs(m(ar2_s) - llr) < 1e-10
   ar2_p2d = numpy.random.randn(3,C_dim_d)
   ar2_s2d = numpy.vstack([ar2_e, ar2_p2d])
   llr2d = m.compute_log_likelihood(ar2_s2d, True) - (m.compute_log_likelihood(ar2_s2d, False) + m.log_likelihood)
-  assert abs(m.forward(ar2_s2d) - llr2d) < 1e-10
+  assert abs(m(ar2_s2d) - llr2d) < 1e-10
 
 def test_plda_machine_log_likelihood_Prince():
 

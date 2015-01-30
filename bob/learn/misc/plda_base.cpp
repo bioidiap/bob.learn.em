@@ -120,7 +120,7 @@ static int PyBobLearnMiscPLDABase_init(PyBobLearnMiscPLDABaseObject* self, PyObj
 
   // get the number of command line arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
- 
+
   if(nargs==1){
     //Reading the input argument
     PyObject* arg = 0;
@@ -382,6 +382,62 @@ static PyObject* PyBobLearnMiscPLDABase_getLogDetSigma(PyBobLearnMiscPLDABaseObj
 }
 
 
+/***** variance_threshold *****/
+static auto variance_threshold = bob::extension::VariableDoc(
+  "variance_threshold",
+  "double",
+  "",
+  ""
+);
+static PyObject* PyBobLearnMiscPLDABase_getVarianceThreshold(PyBobLearnMiscPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  return Py_BuildValue("d",self->cxx->getVarianceThreshold());
+  BOB_CATCH_MEMBER("variance_threshold could not be read", 0)
+}
+int PyBobLearnMiscPLDABase_setVarianceThreshold(PyBobLearnMiscPLDABaseObject* self, PyObject* value, void*){
+  BOB_TRY
+
+  if (!PyNumber_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an float", Py_TYPE(self)->tp_name, variance_threshold.name());
+    return -1;
+  }
+
+  self->cxx->setVarianceThreshold(PyFloat_AS_DOUBLE(value));
+  BOB_CATCH_MEMBER("variance_threshold could not be set", -1)
+  return 0;
+}
+
+
+
+
+/***** sigma *****/
+static auto sigma = bob::extension::VariableDoc(
+  "sigma",
+  "array_like <float, 1D>",
+  "Gets the :math:`\\sigma` (diagonal) covariance matrix of the PLDA model",
+  ""
+);
+static PyObject* PyBobLearnMiscPLDABase_getSigma(PyBobLearnMiscPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getSigma());
+  BOB_CATCH_MEMBER("sigma could not be read", 0)
+}
+int PyBobLearnMiscPLDABase_setSigma(PyBobLearnMiscPLDABaseObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, sigma.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "sigma");
+  if (!b) return -1;
+  self->cxx->setSigma(*b);
+  return 0;
+  BOB_CATCH_MEMBER("`sigma` vector could not be set", -1)
+}
+
+
 static PyGetSetDef PyBobLearnMiscPLDABase_getseters[] = { 
   {
    shape.name(),
@@ -460,7 +516,20 @@ static PyGetSetDef PyBobLearnMiscPLDABase_getseters[] = {
    __logdet_sigma__.doc(),
    0
   },
-
+  {
+   sigma.name(),
+   (getter)PyBobLearnMiscPLDABase_getSigma,
+   (setter)PyBobLearnMiscPLDABase_setSigma,
+   sigma.doc(),
+   0
+  },
+  {
+   variance_threshold.name(),
+   (getter)PyBobLearnMiscPLDABase_getVarianceThreshold,
+   (setter)PyBobLearnMiscPLDABase_setVarianceThreshold,
+   variance_threshold.doc(),
+   0
+  },
   {0}  // Sentinel
 };
 
@@ -598,9 +667,9 @@ static PyObject* PyBobLearnMiscPLDABase_resize(PyBobLearnMiscPLDABaseObject* sel
 }
 
 
-/***** gamma *****/
-static auto gamma_var = bob::extension::FunctionDoc(
-  "gamma",
+/***** get_gamma *****/
+static auto get_gamma = bob::extension::FunctionDoc(
+  "get_gamma",
   "Gets the :math:`\\gamma_a` matrix for a given :math:`a` (number of samples). "
   ":math:`gamma_{a} = (Id + a F^T \beta F)^{-1} = \\mathcal{F}_{a}`",
   0,
@@ -612,13 +681,13 @@ static auto gamma_var = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnMiscPLDABase_getGamma(PyBobLearnMiscPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
-  char** kwlist = gamma_var.kwlist(0);
+  char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getGamma(i));
-  BOB_CATCH_MEMBER("`gamma` could not be read", 0)
+  BOB_CATCH_MEMBER("`get_gamma` could not be read", 0)
 }
 
 
@@ -915,10 +984,10 @@ static PyMethodDef PyBobLearnMiscPLDABase_methods[] = {
     resize.doc()
   },
   {
-    gamma_var.name(),
+    get_gamma.name(),
     (PyCFunction)PyBobLearnMiscPLDABase_getGamma,
     METH_VARARGS|METH_KEYWORDS,
-    gamma_var.doc()
+    get_gamma.doc()
   },
   {
     has_gamma.name(),

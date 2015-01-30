@@ -641,9 +641,9 @@ class PLDAMachine
     /**
      * @brief Computes a log likelihood ratio from a 1D or 2D blitz::Array
      */
-    void forward(const blitz::Array<double,1>& sample, double& score) const;
-    void forward_(const blitz::Array<double,1>& sample, double& score) const;
-    void forward(const blitz::Array<double,2>& samples, double& score) const;
+    double forward(const blitz::Array<double,1>& sample);
+    double forward_(const blitz::Array<double,1>& sample);
+    double forward(const blitz::Array<double,2>& samples);
 
 
   private:

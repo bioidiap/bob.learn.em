@@ -13,6 +13,8 @@
 /************ Constructor Section *********************************/
 /******************************************************************/
 
+static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* converts PyObject to bool and returns false if object is NULL */
+
 static auto PLDAMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".PLDAMachine",
 
@@ -181,7 +183,7 @@ static auto n_samples = bob::extension::VariableDoc(
 );
 static PyObject* PyBobLearnMiscPLDAMachine_getNSamples(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  return Py_BuildValue("d",self->cxx->getNSamples());
+  return Py_BuildValue("i",self->cxx->getNSamples());
   BOB_CATCH_MEMBER("n_samples could not be read", 0)
 }
 int PyBobLearnMiscPLDAMachine_setNSamples(PyBobLearnMiscPLDAMachineObject* self, PyObject* value, void*){
@@ -228,6 +230,99 @@ int PyBobLearnMiscPLDAMachine_setWSumXitBetaXi(PyBobLearnMiscPLDAMachineObject* 
   return 0;
 }
 
+
+/***** plda_base *****/
+static auto plda_base = bob::extension::VariableDoc(
+  "plda_base",
+  ":py:class:`bob.learn.misc.PLDABase`",
+  "The PLDABase attached to this machine",
+  ""
+);
+PyObject* PyBobLearnMiscPLDAMachine_getPLDABase(PyBobLearnMiscPLDAMachineObject* self, void*){
+  BOB_TRY
+
+  boost::shared_ptr<bob::learn::misc::PLDABase> plda_base_o = self->cxx->getPLDABase();
+
+  //Allocating the correspondent python object
+  PyBobLearnMiscPLDABaseObject* retval =
+    (PyBobLearnMiscPLDABaseObject*)PyBobLearnMiscPLDABase_Type.tp_alloc(&PyBobLearnMiscPLDABase_Type, 0);
+  retval->cxx = plda_base_o;
+
+  return Py_BuildValue("O",retval);
+  BOB_CATCH_MEMBER("plda_base could not be read", 0)
+}
+int PyBobLearnMiscPLDAMachine_setPLDABase(PyBobLearnMiscPLDAMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+
+  if (!PyBobLearnMiscPLDABase_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a :py:class:`bob.learn.misc.PLDABase`", Py_TYPE(self)->tp_name, plda_base.name());
+    return -1;
+  }
+
+  PyBobLearnMiscPLDABaseObject* plda_base_o = 0;
+  PyArg_Parse(value, "O!", &PyBobLearnMiscPLDABase_Type,&plda_base_o);
+
+  self->cxx->setPLDABase(plda_base_o->cxx);
+
+  return 0;
+  BOB_CATCH_MEMBER("plda_base could not be set", -1)  
+}
+
+
+/***** weighted_sum *****/
+static auto weighted_sum = bob::extension::VariableDoc(
+  "weighted_sum",
+  "array_like <float, 1D>",
+  "Get/Set :math:``\\sum_{i} F^T \\beta x_{i}` value",
+  ""
+);
+static PyObject* PyBobLearnMiscPLDAMachine_getWeightedSum(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getWeightedSum());
+  BOB_CATCH_MEMBER("weighted_sum could not be read", 0)
+}
+int PyBobLearnMiscPLDAMachine_setWeightedSum(PyBobLearnMiscPLDAMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, weighted_sum.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "weighted_sum");
+  if (!b) return -1;
+  self->cxx->setWeightedSum(*b);
+  return 0;
+  BOB_CATCH_MEMBER("`weighted_sum` vector could not be set", -1)
+}
+
+
+/***** log_likelihood *****/
+static auto log_likelihood = bob::extension::VariableDoc(
+  "log_likelihood",
+  "double",
+  "",
+  ""
+);
+static PyObject* PyBobLearnMiscPLDAMachine_getLogLikelihood(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  return Py_BuildValue("d",self->cxx->getLogLikelihood());
+  BOB_CATCH_MEMBER("log_likelihood could not be read", 0)
+}
+int PyBobLearnMiscPLDAMachine_setLogLikelihood(PyBobLearnMiscPLDAMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+
+  if (!PyNumber_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, log_likelihood.name());
+    return -1;
+  }
+
+  self->cxx->setLogLikelihood(PyFloat_AS_DOUBLE(value));
+  BOB_CATCH_MEMBER("log_likelihood could not be set", -1)
+  return 0;
+}
+
+
 static PyGetSetDef PyBobLearnMiscPLDAMachine_getseters[] = { 
   {
    shape.name(),
@@ -248,6 +343,27 @@ static PyGetSetDef PyBobLearnMiscPLDAMachine_getseters[] = {
    (getter)PyBobLearnMiscPLDAMachine_getWSumXitBetaXi,
    (setter)PyBobLearnMiscPLDAMachine_setWSumXitBetaXi,
    w_sum_xit_beta_xi.doc(),
+   0
+  },
+  {
+   plda_base.name(),
+   (getter)PyBobLearnMiscPLDAMachine_getPLDABase,
+   (setter)PyBobLearnMiscPLDAMachine_setPLDABase,
+   plda_base.doc(),
+   0
+  },
+  {
+   weighted_sum.name(),
+   (getter)PyBobLearnMiscPLDAMachine_getWeightedSum,
+   (setter)PyBobLearnMiscPLDAMachine_setWeightedSum,
+   weighted_sum.doc(),
+   0
+  },
+  {
+   log_likelihood.name(),
+   (getter)PyBobLearnMiscPLDAMachine_getLogLikelihood,
+   (setter)PyBobLearnMiscPLDAMachine_setLogLikelihood,
+   log_likelihood.doc(),
    0
   },
   {0}  // Sentinel
@@ -344,9 +460,9 @@ static PyObject* PyBobLearnMiscPLDAMachine_IsSimilarTo(PyBobLearnMiscPLDAMachine
 }
 
 
-/***** gamma *****/
-static auto gamma_var = bob::extension::FunctionDoc(
-  "gamma",
+/***** get_gamma *****/
+static auto get_gamma = bob::extension::FunctionDoc(
+  "get_gamma",
   "Gets the :math:`\\gamma_a` matrix for a given :math:`a` (number of samples). "
   ":math:`gamma_{a} = (Id + a F^T \beta F)^{-1} = \\mathcal{F}_{a}`",
   0,
@@ -358,13 +474,13 @@ static auto gamma_var = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnMiscPLDAMachine_getGamma(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
-  char** kwlist = gamma_var.kwlist(0);
+  char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getGamma(i));
-  BOB_CATCH_MEMBER("`gamma` could not be read", 0)
+  BOB_CATCH_MEMBER("`get_gamma` could not be read", 0)
 }
 
 
@@ -511,29 +627,70 @@ static PyObject* PyBobLearnMiscPLDAMachine_clearMaps(PyBobLearnMiscPLDAMachineOb
 
 
 /***** compute_log_likelihood *****/
-/*
 static auto compute_log_likelihood = bob::extension::FunctionDoc(
   "compute_log_likelihood",
   "Compute the log-likelihood of the given sample and (optionally) the enrolled samples",
   0,
   true
 )
-.add_prototype("sample,use_enrolled_samples","output")
+.add_prototype("sample,with_enrolled_samples","output")
 .add_parameter("sample", "array_like <float, 1D>", "Sample")
-.add_parameter("use_enrolled_samples", "bool", "")
+.add_parameter("with_enrolled_samples", "bool", "")
 .add_return("output","double","The log-likelihood");
 static PyObject* PyBobLearnMiscPLDAMachine_computeLogLikelihood(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
   char** kwlist = compute_log_likelihood.kwlist(0);
+
+  PyBlitzArrayObject* samples;
+  PyObject* with_enrolled_samples = 0;
   
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, )) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
+                                                                 &PyBool_Type, &with_enrolled_samples)) Py_RETURN_NONE;
+  auto samples_ = make_safe(samples);
 
-  return Py_BuildValue("d",self->cxx->getLogLikeConstTerm(i));
+  blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
 
-  BOB_CATCH_MEMBER("`get_log_like_const_term` could not be read", 0)    
+   //There are 2 methods in C++, one <double,1> and the another <double,2>
+  if (blitz_test.extent(1)==0)
+    return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(samples), f(with_enrolled_samples)));
+  else
+    return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(samples), f(with_enrolled_samples)));
+
+  BOB_CATCH_MEMBER("`compute_log_likelihood` could not be read", 0)    
 }
-*/
+
+
+/***** forward *****/
+static auto forward = bob::extension::FunctionDoc(
+  "forward",
+  "Computes a log likelihood ratio from a 1D or 2D blitz::Array",
+  0,
+  true
+)
+.add_prototype("samples","output")
+.add_parameter("samples", "array_like <float, 1D>", "Sample")
+.add_return("output","double","The log-likelihood ratio");
+static PyObject* PyBobLearnMiscPLDAMachine_forward(PyBobLearnMiscPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+  
+  char** kwlist = forward.kwlist(0);
+
+  PyBlitzArrayObject* samples;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &samples)) Py_RETURN_NONE;
+  auto samples_ = make_safe(samples);
+  blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
+
+   //There are 2 methods in C++, one <double,1> and the another <double,2>
+  if (blitz_test.extent(1)==0)
+    return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,1>(samples)));
+  else
+    return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,2>(samples)));
+
+  BOB_CATCH_MEMBER("`forward` could not be read", 0)    
+}
+
 
 static PyMethodDef PyBobLearnMiscPLDAMachine_methods[] = {
   {
@@ -555,10 +712,10 @@ static PyMethodDef PyBobLearnMiscPLDAMachine_methods[] = {
     is_similar_to.doc()
   },
   {
-    gamma_var.name(),
+    get_gamma.name(),
     (PyCFunction)PyBobLearnMiscPLDAMachine_getGamma,
     METH_VARARGS|METH_KEYWORDS,
-    gamma_var.doc()
+    get_gamma.doc()
   },
   {
     has_gamma.name(),
@@ -583,7 +740,7 @@ static PyMethodDef PyBobLearnMiscPLDAMachine_methods[] = {
     (PyCFunction)PyBobLearnMiscPLDAMachine_getAddLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     get_add_log_like_const_term.doc()
-  },  
+  },
   {
     get_log_like_const_term.name(),
     (PyCFunction)PyBobLearnMiscPLDAMachine_getLogLikeConstTerm,
@@ -595,6 +752,12 @@ static PyMethodDef PyBobLearnMiscPLDAMachine_methods[] = {
     (PyCFunction)PyBobLearnMiscPLDAMachine_clearMaps,
     METH_NOARGS,
     clear_maps.doc()
+  },
+  {
+    compute_log_likelihood.name(),
+    (PyCFunction)PyBobLearnMiscPLDAMachine_computeLogLikelihood,
+    METH_VARARGS|METH_KEYWORDS,
+    compute_log_likelihood.doc()
   },
   {0} /* Sentinel */
 };
@@ -625,7 +788,7 @@ bool init_BobLearnMiscPLDAMachine(PyObject* module)
   PyBobLearnMiscPLDAMachine_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnMiscPLDAMachine_RichCompare);
   PyBobLearnMiscPLDAMachine_Type.tp_methods     = PyBobLearnMiscPLDAMachine_methods;
   PyBobLearnMiscPLDAMachine_Type.tp_getset      = PyBobLearnMiscPLDAMachine_getseters;
-  //PyBobLearnMiscPLDAMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscPLDAMachine_forward);
+  PyBobLearnMiscPLDAMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnMiscPLDAMachine_forward);
 
 
   // check that everything is fine

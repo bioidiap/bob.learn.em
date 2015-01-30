@@ -807,22 +807,22 @@ void bob::learn::misc::PLDAMachine::clearMaps()
   m_cache_loglike_constterm.clear();
 }
 
-void bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,1>& sample, double& score) const
+double bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,1>& sample)
 {
-  forward_(sample,score);
+  return forward_(sample);
 }
 
-void bob::learn::misc::PLDAMachine::forward_(const blitz::Array<double,1>& sample, double& score) const
+double bob::learn::misc::PLDAMachine::forward_(const blitz::Array<double,1>& sample)
 {
   // Computes the log likelihood ratio
-  score = computeLogLikelihood(sample, true) - // match
+  return computeLogLikelihood(sample, true) - // match
           (computeLogLikelihood(sample, false) + m_loglikelihood); // no match
 }
 
-void bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,2>& samples, double& score) const
+double bob::learn::misc::PLDAMachine::forward(const blitz::Array<double,2>& samples)
 {
   // Computes the log likelihood ratio
-  score = computeLogLikelihood(samples, true) - // match
+  return computeLogLikelihood(samples, true) - // match
           (computeLogLikelihood(samples, false) + m_loglikelihood); // no match
 }
 
