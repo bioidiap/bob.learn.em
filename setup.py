@@ -61,7 +61,7 @@ setup(
           "bob/learn/misc/cpp/KMeansMachine.cpp",
           "bob/learn/misc/cpp/LinearScoring.cpp",
           "bob/learn/misc/cpp/PLDAMachine.cpp",
-          #"bob/learn/misc/cpp/ZTNorm.cpp",
+          "bob/learn/misc/cpp/ZTNorm.cpp",
 
           "bob/learn/misc/cpp/FABase.cpp",
           "bob/learn/misc/cpp/JFABase.cpp",
@@ -120,7 +120,8 @@ setup(
           
           "bob/learn/misc/ivector_machine.cpp",
           "bob/learn/misc/plda_base.cpp",
-          "bob/learn/misc/plda_machine.cpp",          
+          "bob/learn/misc/plda_machine.cpp",
+          "bob/learn/misc/ztnorm.cpp",
 
           "bob/learn/misc/main.cpp",
         ],

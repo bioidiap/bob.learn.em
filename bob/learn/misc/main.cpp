@@ -10,7 +10,27 @@
 #endif
 #include "main.h"
 
-static PyMethodDef module_methods[] = {};
+static PyMethodDef module_methods[] = {
+  {
+    zt_norm.name(),
+    (PyCFunction)PyBobLearnMisc_ztNorm,
+    METH_VARARGS|METH_KEYWORDS,
+    zt_norm.doc()
+  },
+  {
+    t_norm.name(),
+    (PyCFunction)PyBobLearnMisc_tNorm,
+    METH_VARARGS|METH_KEYWORDS,
+    t_norm.doc()
+  },
+  {
+    z_norm.name(),
+    (PyCFunction)PyBobLearnMisc_zNorm,
+    METH_VARARGS|METH_KEYWORDS,
+    z_norm.doc()
+  },
+  {0}//Sentinel
+};
 
 
 PyDoc_STRVAR(module_docstr, "Bob EM based Machine Learning Routines");

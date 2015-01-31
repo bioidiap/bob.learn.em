@@ -34,6 +34,9 @@
 #include <bob.learn.misc/ISVMachine.h>
 #include <bob.learn.misc/IVectorMachine.h>
 #include <bob.learn.misc/PLDAMachine.h>
+#include <bob.learn.misc/ZTNorm.h>
+
+#include "ztnorm.cpp"
 
 
 #if PY_VERSION_HEX >= 0x03000000

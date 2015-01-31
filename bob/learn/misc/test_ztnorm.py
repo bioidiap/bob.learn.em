@@ -14,7 +14,8 @@ import numpy
 from bob.io.base.test_utils import datafile
 import bob.io.base
 
-from . import znorm, tnorm, ztnorm
+#from . import znorm, tnorm, ztnorm
+import bob.learn.misc
 
 def sameValue(vect_A, vect_B):
   sameMatrix = numpy.zeros((vect_A.shape[0], vect_B.shape[0]), 'bool')
@@ -59,8 +60,8 @@ def test_ztnorm_simple():
   znorm_id = numpy.array([1, 2, 3, 4],'uint32')
   # 2x1
   tnorm_id = numpy.array([1, 5],'uint32')
-
-  scores = ztnorm(my_A, my_B, my_C, my_D,
+  
+  scores = bob.learn.misc.ztnorm(my_A, my_B, my_C, my_D,
       sameValue(tnorm_id, znorm_id))
 
   ref_scores = numpy.array([[-4.45473107e+00, -3.29289322e+00, -1.50519101e+01, -8.42086557e-01, 6.46544511e-03], [-8.27619927e-01,  7.07106781e-01,  1.13757710e+01,  2.01641412e+00, 7.63765080e-01], [ 2.52913570e+00,  2.70710678e+00,  1.24400233e+01,  7.07106781e-01, 6.46544511e-03]], 'float64')
@@ -75,7 +76,7 @@ def test_ztnorm_big():
 
   # ZT-Norm
   ref_scores = bob.io.base.load(datafile("ztnorm_result.hdf5", __name__))
-  scores = ztnorm(my_A, my_B, my_C, my_D)
+  scores = bob.learn.misc.ztnorm(my_A, my_B, my_C, my_D)
   assert (abs(scores - ref_scores) < 1e-7).all()
 
   # T-Norm
@@ -101,7 +102,7 @@ def test_tnorm_simple():
   assert (abs(zC - zC_py) < 1e-7).all()
 
   empty = numpy.zeros(shape=(0,0), dtype=numpy.float64)
-  zC = ztnorm(my_A, empty, my_C, empty)
+  zC = bob.learn.misc.ztnorm(my_A, empty, my_C, empty)
   assert (abs(zC - zC_py) < 1e-7).all()
 
 def test_znorm_simple():
@@ -117,5 +118,5 @@ def test_znorm_simple():
   assert (abs(zA - zA_py) < 1e-7).all()
 
   empty = numpy.zeros(shape=(0,0), dtype=numpy.float64)
-  zA = ztnorm(my_A, my_B, empty, empty)
+  zA = bob.learn.misc.ztnorm(my_A, my_B, empty, empty)
   assert (abs(zA - zA_py) < 1e-7).all()
