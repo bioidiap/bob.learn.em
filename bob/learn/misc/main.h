@@ -28,13 +28,16 @@
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 
 #include <bob.learn.misc/JFABase.h>
-#include <bob.learn.misc/ISVBase.h>
-
 #include <bob.learn.misc/JFAMachine.h>
+#include <bob.learn.misc/JFATrainer.h>
+#include <bob.learn.misc/ISVBase.h>
 #include <bob.learn.misc/ISVMachine.h>
+
+
 #include <bob.learn.misc/IVectorMachine.h>
 #include <bob.learn.misc/PLDAMachine.h>
 #include <bob.learn.misc/ZTNorm.h>
+
 
 #include "ztnorm.cpp"
 
@@ -197,6 +200,16 @@ extern PyTypeObject PyBobLearnMiscJFAMachine_Type;
 bool init_BobLearnMiscJFAMachine(PyObject* module);
 int PyBobLearnMiscJFAMachine_Check(PyObject* o);
 
+// JFATrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::JFATrainer> cxx;
+} PyBobLearnMiscJFATrainerObject;
+
+
+extern PyTypeObject PyBobLearnMiscJFATrainer_Type;
+bool init_BobLearnMiscJFATrainer(PyObject* module);
+int PyBobLearnMiscJFATrainer_Check(PyObject* o);
 
 // ISVMachine
 typedef struct {

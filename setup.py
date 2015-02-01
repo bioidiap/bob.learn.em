@@ -69,10 +69,13 @@ setup(
           "bob/learn/misc/cpp/JFAMachine.cpp",
           "bob/learn/misc/cpp/ISVMachine.cpp",
 
+          "bob/learn/misc/cpp/FABaseTrainer.cpp",
+          "bob/learn/misc/cpp/JFATrainer.cpp",
+          #"bob/learn/misc/cpp/ISVTrainer.cpp",
+
           #"bob/learn/misc/cpp/EMPCATrainer.cpp",
           "bob/learn/misc/cpp/GMMBaseTrainer.cpp",
           #"bob/learn/misc/cpp/IVectorTrainer.cpp",
-          #"bob/learn/misc/cpp/JFATrainer.cpp",
           "bob/learn/misc/cpp/KMeansTrainer.cpp",
           "bob/learn/misc/cpp/MAP_GMMTrainer.cpp",
           "bob/learn/misc/cpp/ML_GMMTrainer.cpp",
@@ -113,9 +116,11 @@ setup(
           "bob/learn/misc/gmm_base_trainer.cpp",
           "bob/learn/misc/ML_gmm_trainer.cpp",
           "bob/learn/misc/MAP_gmm_trainer.cpp",
+
           "bob/learn/misc/jfa_base.cpp",
-          "bob/learn/misc/isv_base.cpp",
           "bob/learn/misc/jfa_machine.cpp",
+          "bob/learn/misc/jfa_trainer.cpp",
+          "bob/learn/misc/isv_base.cpp",
           "bob/learn/misc/isv_machine.cpp",
           
           "bob/learn/misc/ivector_machine.cpp",
