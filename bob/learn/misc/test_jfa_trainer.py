@@ -13,8 +13,7 @@ import numpy.linalg
 
 import bob.core.random
 
-from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, JFATrainer
-#, ISVTrainer
+from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, JFATrainer, ISVTrainer
 
 
 def equals(x, y, epsilon):
@@ -233,7 +232,6 @@ def test_ISVTrainAndEnrol():
   for i in range(10):
     t.e_step(mb, TRAINING_STATS)
     t.m_step(mb, TRAINING_STATS)
-  t.finalize(mb, TRAINING_STATS)
 
   assert numpy.allclose(mb.d, d_ref, eps)
   assert numpy.allclose(mb.u, u_ref, eps)

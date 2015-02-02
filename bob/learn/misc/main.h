@@ -30,8 +30,10 @@
 #include <bob.learn.misc/JFABase.h>
 #include <bob.learn.misc/JFAMachine.h>
 #include <bob.learn.misc/JFATrainer.h>
+
 #include <bob.learn.misc/ISVBase.h>
 #include <bob.learn.misc/ISVMachine.h>
+#include <bob.learn.misc/ISVTrainer.h>
 
 
 #include <bob.learn.misc/IVectorMachine.h>
@@ -221,6 +223,15 @@ extern PyTypeObject PyBobLearnMiscISVMachine_Type;
 bool init_BobLearnMiscISVMachine(PyObject* module);
 int PyBobLearnMiscISVMachine_Check(PyObject* o);
 
+// ISVTrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::ISVTrainer> cxx;
+} PyBobLearnMiscISVTrainerObject;
+
+extern PyTypeObject PyBobLearnMiscISVTrainer_Type;
+bool init_BobLearnMiscISVTrainer(PyObject* module);
+int PyBobLearnMiscISVTrainer_Check(PyObject* o);
 
 // IVectorMachine
 typedef struct {

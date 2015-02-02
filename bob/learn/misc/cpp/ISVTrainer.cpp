@@ -19,42 +19,38 @@
 
 
 //////////////////////////// ISVTrainer ///////////////////////////
-bob::learn::misc::ISVTrainer::ISVTrainer(const size_t max_iterations, const double relevance_factor):
-  EMTrainer<bob::learn::misc::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >
-    (0.001, max_iterations, false),
-  m_relevance_factor(relevance_factor)
-{
-}
+bob::learn::misc::ISVTrainer::ISVTrainer(const double relevance_factor, const double convergence_threshold):
+  m_relevance_factor(relevance_factor),
+  m_convergence_threshold(convergence_threshold),
+  m_rng(new boost::mt19937())
+{}
 
 bob::learn::misc::ISVTrainer::ISVTrainer(const bob::learn::misc::ISVTrainer& other):
-  EMTrainer<bob::learn::misc::ISVBase, std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >
-    (other.m_convergence_threshold, other.m_max_iterations,
-     other.m_compute_likelihood),
-  m_relevance_factor(other.m_relevance_factor)
-{
-}
+  m_convergence_threshold(other.m_convergence_threshold),
+  m_relevance_factor(other.m_relevance_factor),
+  m_rng(other.m_rng)
+{}
 
 bob::learn::misc::ISVTrainer::~ISVTrainer()
-{
-}
+{}
 
 bob::learn::misc::ISVTrainer& bob::learn::misc::ISVTrainer::operator=
 (const bob::learn::misc::ISVTrainer& other)
 {
   if (this != &other)
   {
-    bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
-      std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::operator=(other);
-    m_relevance_factor = other.m_relevance_factor;
+    m_convergence_threshold = other.m_convergence_threshold;
+    m_rng                   = other.m_rng;
+    m_relevance_factor      = other.m_relevance_factor;
   }
   return *this;
 }
 
 bool bob::learn::misc::ISVTrainer::operator==(const bob::learn::misc::ISVTrainer& b) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
-            std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::operator==(b) &&
-          m_relevance_factor == b.m_relevance_factor;
+  return m_convergence_threshold == b.m_convergence_threshold && 
+         m_rng == b.m_rng && 
+         m_relevance_factor == b.m_relevance_factor;
 }
 
 bool bob::learn::misc::ISVTrainer::operator!=(const bob::learn::misc::ISVTrainer& b) const
@@ -65,9 +61,9 @@ bool bob::learn::misc::ISVTrainer::operator!=(const bob::learn::misc::ISVTrainer
 bool bob::learn::misc::ISVTrainer::is_similar_to(const bob::learn::misc::ISVTrainer& b,
   const double r_epsilon, const double a_epsilon) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::ISVBase,
-            std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > > >::is_similar_to(b, r_epsilon, a_epsilon) &&
-          m_relevance_factor == b.m_relevance_factor;
+  return m_convergence_threshold == b.m_convergence_threshold && 
+         m_rng == b.m_rng && 
+         m_relevance_factor == b.m_relevance_factor;
 }
 
 void bob::learn::misc::ISVTrainer::initialize(bob::learn::misc::ISVBase& machine,
@@ -89,11 +85,6 @@ void bob::learn::misc::ISVTrainer::initializeD(bob::learn::misc::ISVBase& machin
   d = sqrt(machine.getBase().getUbmVariance() / m_relevance_factor);
 }
 
-void bob::learn::misc::ISVTrainer::finalize(bob::learn::misc::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
-{
-}
-
 void bob::learn::misc::ISVTrainer::eStep(bob::learn::misc::ISVBase& machine,
   const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
 {
@@ -105,8 +96,7 @@ void bob::learn::misc::ISVTrainer::eStep(bob::learn::misc::ISVBase& machine,
   m_base_trainer.computeAccumulatorsU(base, ar);
 }
 
-void bob::learn::misc::ISVTrainer::mStep(bob::learn::misc::ISVBase& machine,
-  const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar)
+void bob::learn::misc::ISVTrainer::mStep(bob::learn::misc::ISVBase& machine)
 {
   blitz::Array<double,2>& U = machine.updateU();
   m_base_trainer.updateU(U);

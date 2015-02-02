@@ -31,7 +31,7 @@ class JFATrainer
     /**
      * @brief Constructor
      */
-    JFATrainer(const size_t max_iterations=10);
+    JFATrainer();
 
     /**
      * @brief Copy onstructor

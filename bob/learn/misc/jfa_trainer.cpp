@@ -987,7 +987,7 @@ PyTypeObject PyBobLearnMiscJFATrainer_Type = {
 
 bool init_BobLearnMiscJFATrainer(PyObject* module)
 {
-  // initialize the type struct
+  // initialize the type JFATrainer
   PyBobLearnMiscJFATrainer_Type.tp_name      = JFATrainer_doc.name();
   PyBobLearnMiscJFATrainer_Type.tp_basicsize = sizeof(PyBobLearnMiscJFATrainerObject);
   PyBobLearnMiscJFATrainer_Type.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;//Enable the class inheritance;

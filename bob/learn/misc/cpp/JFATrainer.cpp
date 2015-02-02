@@ -19,7 +19,7 @@
 
 
 //////////////////////////// JFATrainer ///////////////////////////
-bob::learn::misc::JFATrainer::JFATrainer(const size_t max_iterations):
+bob::learn::misc::JFATrainer::JFATrainer():
   m_rng(new boost::mt19937())
 {}
 

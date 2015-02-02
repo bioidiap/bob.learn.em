@@ -25,14 +25,13 @@
 
 namespace bob { namespace learn { namespace misc {
 
-
 class ISVTrainer
 {
   public:
     /**
      * @brief Constructor
      */
-    ISVTrainer(const size_t max_iterations=10, const double relevance_factor=4.);
+    ISVTrainer(const double relevance_factor=4., const double convergence_threshold = 0.001);
 
     /**
      * @brief Copy onstructor
@@ -70,11 +69,6 @@ class ISVTrainer
      */
     virtual void initialize(bob::learn::misc::ISVBase& machine,
       const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
-    /**
-     * @brief This methods performs some actions after the EM loop.
-     */
-    virtual void finalize(bob::learn::misc::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
 
     /**
      * @brief Calculates and saves statistics across the dataset
@@ -87,8 +81,7 @@ class ISVTrainer
      * @brief Performs a maximization step to update the parameters of the
      * factor analysis model.
      */
-    virtual void mStep(bob::learn::misc::ISVBase& machine,
-      const std::vector<std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > >& ar);
+    virtual void mStep(bob::learn::misc::ISVBase& machine);
 
     /**
      * @brief Computes the average log likelihood using the current estimates
@@ -150,7 +143,12 @@ class ISVTrainer
 
     // Attributes
     bob::learn::misc::FABaseTrainer m_base_trainer;
+
     double m_relevance_factor;
+
+    double m_convergence_threshold; ///< convergence threshold
+
+    boost::shared_ptr<boost::mt19937> m_rng; ///< The random number generator for the inialization};
 };
 
 } } } // namespaces
