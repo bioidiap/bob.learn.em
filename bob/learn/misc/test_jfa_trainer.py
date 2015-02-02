@@ -13,8 +13,8 @@ import numpy.linalg
 
 import bob.core.random
 
-from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, \
-    JFATrainer, ISVTrainer
+from . import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, JFATrainer
+#, ISVTrainer
 
 
 def equals(x, y, epsilon):

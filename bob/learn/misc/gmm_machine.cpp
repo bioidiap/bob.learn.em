@@ -277,7 +277,20 @@ PyObject* PyBobLearnMiscGMMMachine_getVarianceSupervector(PyBobLearnMiscGMMMachi
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getVarianceSupervector());
   BOB_CATCH_MEMBER("variance_supervector could not be read", 0)
 }
-
+int PyBobLearnMiscGMMMachine_setVarianceSupervector(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, variance_supervector.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance_supervector");
+  if (!b) return -1;
+  self->cxx->setVarianceSupervector(*b);
+  return 0;
+  BOB_CATCH_MEMBER("variance_supervector could not be set", -1)
+}
 
 /***** mean_supervector *****/
 static auto mean_supervector = bob::extension::VariableDoc(
@@ -291,6 +304,21 @@ PyObject* PyBobLearnMiscGMMMachine_getMeanSupervector(PyBobLearnMiscGMMMachineOb
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMeanSupervector());
   BOB_CATCH_MEMBER("mean_supervector could not be read", 0)
 }
+int PyBobLearnMiscGMMMachine_setMeanSupervector(PyBobLearnMiscGMMMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* o;
+  if (!PyBlitzArray_Converter(value, &o)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, mean_supervector.name());
+    return -1;
+  }
+  auto o_ = make_safe(o);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "mean_supervector");
+  if (!b) return -1;
+  self->cxx->setMeanSupervector(*b);
+  return 0;
+  BOB_CATCH_MEMBER("mean_supervector could not be set", -1)
+}
+
 
 
 /***** variance_thresholds *****/
@@ -362,7 +390,7 @@ static PyGetSetDef PyBobLearnMiscGMMMachine_getseters[] = {
   {
    variance_supervector.name(),
    (getter)PyBobLearnMiscGMMMachine_getVarianceSupervector,
-   0,
+   (setter)PyBobLearnMiscGMMMachine_setVarianceSupervector,
    variance_supervector.doc(),
    0
   },
@@ -370,7 +398,7 @@ static PyGetSetDef PyBobLearnMiscGMMMachine_getseters[] = {
   {
    mean_supervector.name(),
    (getter)PyBobLearnMiscGMMMachine_getMeanSupervector,
-   0,
+   (setter)PyBobLearnMiscGMMMachine_setMeanSupervector,
    mean_supervector.doc(),
    0
   },

@@ -14,6 +14,7 @@ from .version import module as __version__
 from .__kmeans_trainer__ import *
 from .__ML_gmm_trainer__ import *
 from .__MAP_gmm_trainer__ import *
+from .__jfa_trainer__ import *
 
 
 def ztnorm_same_value(vect_a, vect_b):

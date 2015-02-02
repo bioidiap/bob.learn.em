@@ -35,21 +35,21 @@ class JFATrainer (_JFATrainer):
         The data to be trained
     """
     #V Subspace
-    for i in self._max_iterations:
-      self.eStep1(jfa_base, data)
-      self.mStep1(jfa_base, data)
+    for i in range(self._max_iterations):
+      self.e_step1(jfa_base, data)
+      self.m_step1(jfa_base, data)
     self.finalize1(jfa_base, data)
 
     #U subspace
-    for i in self._max_iterations:
-      self.eStep2(jfa_base, data)
-      self.mStep2(jfa_base, data)
+    for i in range(self._max_iterations):
+      self.e_step2(jfa_base, data)
+      self.m_step2(jfa_base, data)
     self.finalize2(jfa_base, data)
 
     # d subspace
-    for i in self._max_iterations:
-      self.eStep3(jfa_base, data)
-      self.mStep3(jfa_base, data)
+    for i in range(self._max_iterations):
+      self.e_step3(jfa_base, data)
+      self.m_step3(jfa_base, data)
     self.finalize3(jfa_base, data)
 
 
@@ -67,7 +67,5 @@ class JFATrainer (_JFATrainer):
     self.train_loop(jfa_base, data)
 
 
-  def enrol(self, jfa_base, data):
-
 # copy the documentation from the base class
-__doc__ = _KMeansTrainer.__doc__
+__doc__ = _JFATrainer.__doc__
