@@ -17,9 +17,6 @@
 static int extract_GMMStats_1d(PyObject *list,
                              std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> >& training_data)
 {
-  std::cout << " #################### "  << std::endl;
-  std::cout << PyList_GET_SIZE(list) << std::endl;
-
   for (int i=0; i<PyList_GET_SIZE(list); i++){
   
     PyBobLearnMiscGMMStatsObject* stats;
@@ -878,7 +875,7 @@ static auto enrol = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("jfa_machine,features, n_inter")
+.add_prototype("jfa_machine,features,n_iter","")
 .add_parameter("jfa_machine", ":py:class:`bob.learn.misc.JFAMachine`", "JFAMachine Object")
 .add_parameter("features", "list(:py:class:`bob.learn.misc.GMMStats`)`", "")
 .add_parameter("n_iter", "int", "Number of iterations");
@@ -890,10 +887,11 @@ static PyObject* PyBobLearnMiscJFATrainer_enrol(PyBobLearnMiscJFATrainerObject* 
 
   PyBobLearnMiscJFAMachineObject* jfa_machine = 0;
   PyObject* stats = 0;
-  int n_iter = 0;
+  int n_iter = 1;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!d", kwlist, &PyBobLearnMiscJFAMachine_Type, &jfa_machine,
-                                                                 &PyList_Type, &stats, &n_iter)) Py_RETURN_NONE;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!i", kwlist, &PyBobLearnMiscJFAMachine_Type, &jfa_machine,
+                                                                  &PyList_Type, &stats, &n_iter)) Py_RETURN_NONE;
 
   std::vector<boost::shared_ptr<bob::learn::misc::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
