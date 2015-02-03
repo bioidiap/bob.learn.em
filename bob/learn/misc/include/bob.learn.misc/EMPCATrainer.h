@@ -11,7 +11,6 @@
 #ifndef BOB_LEARN_MISC_EMPCA_TRAINER_H
 #define BOB_LEARN_MISC_EMPCA_TRAINER_H
 
-#include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.linear/machine.h>
 #include <blitz/array.h>
 
@@ -38,7 +37,7 @@ namespace bob { namespace learn { namespace misc {
  *  - \f$\epsilon\f$ is the noise of the data (dimension \f$f\f$)
  *      Gaussian with zero-mean and covariance matrix \f$\sigma^2 Id\f$
  */
-class EMPCATrainer: public EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> >
+class EMPCATrainer
 {
   public: //api
     /**
@@ -46,8 +45,7 @@ class EMPCATrainer: public EMTrainer<bob::learn::linear::Machine, blitz::Array<d
      * resulting components in the linear machine and set it up to
      * extract the variable means automatically.
      */
-    EMPCATrainer(double convergence_threshold=0.001,
-      size_t max_iterations=10, bool compute_likelihood=true);
+    EMPCATrainer(bool compute_likelihood=true);
 
     /**
      * @brief Copy constructor
@@ -85,11 +83,6 @@ class EMPCATrainer: public EMTrainer<bob::learn::linear::Machine, blitz::Array<d
      */
     virtual void initialize(bob::learn::linear::Machine& machine,
       const blitz::Array<double,2>& ar);
-    /**
-     * @brief This methods performs some actions after the EM loop.
-      */
-   virtual void finalize(bob::learn::linear::Machine& machine,
-      const blitz::Array<double,2>& ar);
 
     /**
      * @brief Calculates and saves statistics across the dataset, and saves
@@ -123,7 +116,24 @@ class EMPCATrainer: public EMTrainer<bob::learn::linear::Machine, blitz::Array<d
      */
     double getSigma2() const { return m_sigma2; }
 
+    /**
+     * @brief Sets the Random Number Generator
+     */
+    void setRng(const boost::shared_ptr<boost::mt19937> rng)
+    { m_rng = rng; }
+
+    /**
+     * @brief Gets the Random Number Generator
+     */
+    const boost::shared_ptr<boost::mt19937> getRng() const
+    { return m_rng; }
+
+
   private: //representation
+
+    bool m_compute_likelihood;
+    boost::shared_ptr<boost::mt19937> m_rng;
+
     blitz::Array<double,2> m_S; /// Covariance of the training data (required only if we need to compute the log likelihood)
     blitz::Array<double,2> m_z_first_order; /// Current mean of the \f$z_{n}\f$ latent variable
     blitz::Array<double,3> m_z_second_order; /// Current covariance of the \f$z_{n}\f$ latent variable

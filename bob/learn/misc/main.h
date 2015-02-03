@@ -12,6 +12,7 @@
 #include <bob.blitz/cleanup.h>
 #include <bob.core/random_api.h>
 #include <bob.io.base/api.h>
+#include <bob.learn.linear/api.h>
 #include <bob.extension/documentation.h>
 
 #define BOB_LEARN_EM_MODULE
@@ -38,6 +39,8 @@
 
 #include <bob.learn.misc/IVectorMachine.h>
 #include <bob.learn.misc/IVectorTrainer.h>
+
+#include <bob.learn.misc/EMPCATrainer.h>
 
 #include <bob.learn.misc/PLDAMachine.h>
 #include <bob.learn.misc/ZTNorm.h>
@@ -277,6 +280,17 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscPLDAMachine_Type;
 bool init_BobLearnMiscPLDAMachine(PyObject* module);
 int PyBobLearnMiscPLDAMachine_Check(PyObject* o);
+
+
+// EMPCATrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::EMPCATrainer> cxx;
+} PyBobLearnMiscEMPCATrainerObject;
+
+extern PyTypeObject PyBobLearnMiscEMPCATrainer_Type;
+bool init_BobLearnMiscEMPCATrainer(PyObject* module);
+int PyBobLearnMiscEMPCATrainer_Check(PyObject* o);
 
 
 

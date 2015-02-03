@@ -18,10 +18,9 @@
 #include <bob.math/inv.h>
 #include <bob.math/stats.h>
 
-bob::learn::misc::EMPCATrainer::EMPCATrainer(double convergence_threshold,
-    size_t max_iterations, bool compute_likelihood):
-  EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> >(convergence_threshold,
-    max_iterations, compute_likelihood),
+bob::learn::misc::EMPCATrainer::EMPCATrainer(bool compute_likelihood):
+  m_compute_likelihood(compute_likelihood),
+  m_rng(new boost::mt19937()),
   m_S(0,0),
   m_z_first_order(0,0), m_z_second_order(0,0,0),
   m_inW(0,0), m_invM(0,0), m_sigma2(0), m_f_log2pi(0),
@@ -33,8 +32,8 @@ bob::learn::misc::EMPCATrainer::EMPCATrainer(double convergence_threshold,
 }
 
 bob::learn::misc::EMPCATrainer::EMPCATrainer(const bob::learn::misc::EMPCATrainer& other):
-  EMTrainer<bob::learn::linear::Machine, blitz::Array<double,2> >(other.m_convergence_threshold,
-    other.m_max_iterations, other.m_compute_likelihood),
+  m_compute_likelihood(other.m_compute_likelihood),
+  m_rng(other.m_rng),
   m_S(bob::core::array::ccopy(other.m_S)),
   m_z_first_order(bob::core::array::ccopy(other.m_z_first_order)),
   m_z_second_order(bob::core::array::ccopy(other.m_z_second_order)),
@@ -62,8 +61,8 @@ bob::learn::misc::EMPCATrainer& bob::learn::misc::EMPCATrainer::operator=
 {
   if (this != &other)
   {
-    bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
-      blitz::Array<double,2> >::operator=(other);
+    m_rng                   = other.m_rng;
+	m_compute_likelihood    = other.m_compute_likelihood;
     m_S = bob::core::array::ccopy(other.m_S);
     m_z_first_order = bob::core::array::ccopy(other.m_z_first_order);
     m_z_second_order = bob::core::array::ccopy(other.m_z_second_order);
@@ -87,8 +86,8 @@ bob::learn::misc::EMPCATrainer& bob::learn::misc::EMPCATrainer::operator=
 bool bob::learn::misc::EMPCATrainer::operator==
   (const bob::learn::misc::EMPCATrainer &other) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
-           blitz::Array<double,2> >::operator==(other) &&
+  return m_compute_likelihood == other.m_compute_likelihood &&
+        m_rng                   == other.m_rng &&
         bob::core::array::isEqual(m_S, other.m_S) &&
         bob::core::array::isEqual(m_z_first_order, other.m_z_first_order) &&
         bob::core::array::isEqual(m_z_second_order, other.m_z_second_order) &&
@@ -108,15 +107,15 @@ bool bob::learn::misc::EMPCATrainer::is_similar_to
   (const bob::learn::misc::EMPCATrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::linear::Machine,
-           blitz::Array<double,2> >::is_similar_to(other, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_S, other.m_S, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_z_first_order, other.m_z_first_order, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_z_second_order, other.m_z_second_order, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_inW, other.m_inW, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_invM, other.m_invM, r_epsilon, a_epsilon) &&
-        bob::core::isClose(m_sigma2, other.m_sigma2, r_epsilon, a_epsilon) &&
-        bob::core::isClose(m_f_log2pi, other.m_f_log2pi, r_epsilon, a_epsilon);
+  return m_compute_likelihood == other.m_compute_likelihood &&
+         m_rng                == other.m_rng &&
+         bob::core::array::isClose(m_S, other.m_S, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_z_first_order, other.m_z_first_order, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_z_second_order, other.m_z_second_order, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_inW, other.m_inW, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_invM, other.m_invM, r_epsilon, a_epsilon) &&
+         bob::core::isClose(m_sigma2, other.m_sigma2, r_epsilon, a_epsilon) &&
+         bob::core::isClose(m_f_log2pi, other.m_f_log2pi, r_epsilon, a_epsilon);
 }
 
 void bob::learn::misc::EMPCATrainer::initialize(bob::learn::linear::Machine& machine,
@@ -137,10 +136,6 @@ void bob::learn::misc::EMPCATrainer::initialize(bob::learn::linear::Machine& mac
   computeInvM();
 }
 
-void bob::learn::misc::EMPCATrainer::finalize(bob::learn::linear::Machine& machine,
-  const blitz::Array<double,2>& ar)
-{
-}
 
 void bob::learn::misc::EMPCATrainer::initMembers(
   const bob::learn::linear::Machine& machine,
