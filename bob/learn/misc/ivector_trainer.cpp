@@ -26,9 +26,8 @@ static int extract_GMMStats_1d(PyObject *list,
       PyErr_Format(PyExc_RuntimeError, "Expected GMMStats objects");
       return -1;
     }
-    bob::learn::misc::GMMStats *stats_pointer = stats->cxx.get();
-    std::cout << " #### " << std::endl;
-    training_data.push_back(*(stats_pointer));
+    training_data.push_back(*stats->cxx);
+
   }
   return 0;
 }
@@ -360,9 +359,8 @@ static PyObject* PyBobLearnMiscIVectorTrainer_e_step(PyBobLearnMiscIVectorTraine
   if(extract_GMMStats_1d(stats ,training_data)==0)
     self->cxx->eStep(*ivector_machine->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
-
   Py_RETURN_NONE;
+  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 }
 
 

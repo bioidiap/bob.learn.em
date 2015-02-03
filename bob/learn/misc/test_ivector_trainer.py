@@ -11,7 +11,7 @@ import numpy
 import numpy.linalg
 import numpy.random
 
-from . import GMMMachine, GMMStats, IVectorMachine, IVectorTrainer
+from bob.learn.misc import GMMMachine, GMMStats, IVectorMachine, IVectorTrainer
 
 ### Test class inspired by an implementation of Chris McCool
 ### Chris McCool (chris.mccool@nicta.com.au)
@@ -229,7 +229,7 @@ def test_trainer_nosigma():
 
   # Initialization
   trainer = IVectorTrainer()
-  trainer.initialize(m, data)
+  trainer.initialize(m)
   m.t = t
   m.sigma = sigma
   for it in range(2):
@@ -241,7 +241,7 @@ def test_trainer_nosigma():
       assert numpy.allclose(acc_Fnorm_Sigma_wij_ref[it][k], trainer.acc_fnormij_wij[k], 1e-5)
 
     # M-Step
-    trainer.m_step(m, data)
+    trainer.m_step(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
 
 def test_trainer_update_sigma():
@@ -343,7 +343,7 @@ def test_trainer_update_sigma():
 
   # Initialization
   trainer = IVectorTrainer(update_sigma=True)
-  trainer.initialize(m, data)
+  trainer.initialize(m)
   m.t = t
   m.sigma = sigma
   for it in range(2):
@@ -357,7 +357,7 @@ def test_trainer_update_sigma():
     assert numpy.allclose(N_ref[it], trainer.acc_nij, 1e-5)
 
     # M-Step
-    trainer.m_step(m, data)
+    trainer.m_step(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
     assert numpy.allclose(sigma_ref[it], m.sigma, 1e-5)
 

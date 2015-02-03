@@ -49,6 +49,7 @@ bob::learn::misc::IVectorTrainer::~IVectorTrainer()
 void bob::learn::misc::IVectorTrainer::initialize(
   bob::learn::misc::IVectorMachine& machine)
 {
+
   const int C = machine.getNGaussians();
   const int D = machine.getNInputs();
   const int Rt = machine.getDimRt();
@@ -67,6 +68,7 @@ void bob::learn::misc::IVectorTrainer::initialize(
   m_tmp_wij2.resize(Rt,Rt);
   m_tmp_d1.resize(D);
   m_tmp_t1.resize(Rt);
+
   m_tmp_dt1.resize(D,Rt);
   m_tmp_tt1.resize(Rt,Rt);
   m_tmp_tt2.resize(Rt,Rt);
@@ -105,6 +107,7 @@ void bob::learn::misc::IVectorTrainer::eStep(
     // b. Computes \f$Id + T^{T} \Sigma^{-1} T\f$
     machine.computeIdTtSigmaInvT(*it, m_tmp_tt1);
     // c. Computes \f$(Id + T^{T} \Sigma^{-1} T)^{-1}\f$
+
     bob::math::inv(m_tmp_tt1, m_tmp_tt2);
     // d. Computes \f$E{wij} = (Id + T^{T} \Sigma^{-1} T)^{-1} T^{T} \Sigma^{-1} F_{norm}\f$
     bob::math::prod(m_tmp_tt2, m_tmp_t1, m_tmp_wij); // E{wij}

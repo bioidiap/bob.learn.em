@@ -229,6 +229,7 @@ void bob::learn::misc::IVectorMachine::computeTtSigmaInvFnorm(
     m_tmp_d = gs.sumPx(c,rall) - gs.n(c) * m_ubm->getGaussian(c)->getMean();
     blitz::Array<double,2> Tct_sigmacInv = m_cache_Tct_sigmacInv(c, rall, rall);
     bob::math::prod(Tct_sigmacInv, m_tmp_d, m_tmp_t2);
+
     output += m_tmp_t2;
   }
 }
