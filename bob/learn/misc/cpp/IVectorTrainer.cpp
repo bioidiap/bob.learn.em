@@ -7,30 +7,26 @@
 
 
 #include <bob.learn.misc/IVectorTrainer.h>
-#include <bob.learn.misc/IVectorMachine.h>
+#include <bob.core/check.h>
 #include <bob.core/array_copy.h>
 #include <bob.core/array_random.h>
-#include <bob.core/check.h>
 #include <bob.math/inv.h>
+#include <bob.core/check.h>
+#include <bob.core/array_repmat.h>
+#include <algorithm>
+
 #include <bob.math/linear.h>
 #include <bob.math/linsolve.h>
-#include <boost/shared_ptr.hpp>
 
-bob::learn::misc::IVectorTrainer::IVectorTrainer(const bool update_sigma,
-    const double convergence_threshold,
-    const size_t max_iterations, bool compute_likelihood):
-  bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
-    std::vector<bob::learn::misc::GMMStats> >(convergence_threshold,
-      max_iterations, compute_likelihood),
-  m_update_sigma(update_sigma)
-{
-}
+bob::learn::misc::IVectorTrainer::IVectorTrainer(const bool update_sigma):
+  m_update_sigma(update_sigma),
+  m_rng(new boost::mt19937())
+{}
 
 bob::learn::misc::IVectorTrainer::IVectorTrainer(const bob::learn::misc::IVectorTrainer& other):
-  bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
-    std::vector<bob::learn::misc::GMMStats> >(other),
   m_update_sigma(other.m_update_sigma)
 {
+  m_rng                   = other.m_rng;
   m_acc_Nij_wij2.reference(bob::core::array::ccopy(other.m_acc_Nij_wij2));
   m_acc_Fnormij_wij.reference(bob::core::array::ccopy(other.m_acc_Fnormij_wij));
   m_acc_Nij.reference(bob::core::array::ccopy(other.m_acc_Nij));
@@ -51,11 +47,10 @@ bob::learn::misc::IVectorTrainer::~IVectorTrainer()
 }
 
 void bob::learn::misc::IVectorTrainer::initialize(
-  bob::learn::misc::IVectorMachine& machine,
-  const std::vector<bob::learn::misc::GMMStats>& data)
+  bob::learn::misc::IVectorMachine& machine)
 {
-  const int C = machine.getDimC();
-  const int D = machine.getDimD();
+  const int C = machine.getNGaussians();
+  const int D = machine.getNInputs();
   const int Rt = machine.getDimRt();
 
   // Cache
@@ -91,7 +86,7 @@ void bob::learn::misc::IVectorTrainer::eStep(
   const std::vector<bob::learn::misc::GMMStats>& data)
 {
   blitz::Range rall = blitz::Range::all();
-  const int C = machine.getDimC();
+  const int C = machine.getNGaussians();
 
   // Reinitializes accumulators to 0
   m_acc_Nij_wij2 = 0.;
@@ -144,14 +139,13 @@ void bob::learn::misc::IVectorTrainer::eStep(
 }
 
 void bob::learn::misc::IVectorTrainer::mStep(
-  bob::learn::misc::IVectorMachine& machine,
-  const std::vector<bob::learn::misc::GMMStats>& data)
+  bob::learn::misc::IVectorMachine& machine)
 {
   blitz::Range rall = blitz::Range::all();
   blitz::Array<double,2>& T = machine.updateT();
   blitz::Array<double,1>& sigma = machine.updateSigma();
-  const int C = (int)machine.getDimC();
-  const int D = (int)machine.getDimD();
+  const int C = (int)machine.getNGaussians();
+  const int D = (int)machine.getNInputs();
   for (int c=0; c<C; ++c)
   {
     // Solves linear system A.T = B to update T, based on accumulators of
@@ -178,26 +172,11 @@ void bob::learn::misc::IVectorTrainer::mStep(
 }
 
 
-double bob::learn::misc::IVectorTrainer::computeLikelihood(
-  bob::learn::misc::IVectorMachine& machine)
-{
-  // TODO: implementation
-  return 0;
-}
-
-void bob::learn::misc::IVectorTrainer::finalize(
-  bob::learn::misc::IVectorMachine& machine,
-  const std::vector<bob::learn::misc::GMMStats>& data)
-{
-}
-
 bob::learn::misc::IVectorTrainer& bob::learn::misc::IVectorTrainer::operator=
   (const bob::learn::misc::IVectorTrainer &other)
 {
   if (this != &other)
-  {
-    bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
-      std::vector<bob::learn::misc::GMMStats> >::operator=(other);
+  {    
     m_update_sigma = other.m_update_sigma;
 
     m_acc_Nij_wij2.reference(bob::core::array::ccopy(other.m_acc_Nij_wij2));
@@ -220,13 +199,11 @@ bob::learn::misc::IVectorTrainer& bob::learn::misc::IVectorTrainer::operator=
 bool bob::learn::misc::IVectorTrainer::operator==
   (const bob::learn::misc::IVectorTrainer &other) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
-           std::vector<bob::learn::misc::GMMStats> >::operator==(other) &&
-        m_update_sigma == other.m_update_sigma &&
-        bob::core::array::isEqual(m_acc_Nij_wij2, other.m_acc_Nij_wij2) &&
-        bob::core::array::isEqual(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij) &&
-        bob::core::array::isEqual(m_acc_Nij, other.m_acc_Nij) &&
-        bob::core::array::isEqual(m_acc_Snormij, other.m_acc_Snormij);
+  return m_update_sigma == other.m_update_sigma &&
+         bob::core::array::isEqual(m_acc_Nij_wij2, other.m_acc_Nij_wij2) &&
+         bob::core::array::isEqual(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij) &&
+         bob::core::array::isEqual(m_acc_Nij, other.m_acc_Nij) &&
+         bob::core::array::isEqual(m_acc_Snormij, other.m_acc_Snormij);
 }
 
 bool bob::learn::misc::IVectorTrainer::operator!=
@@ -239,12 +216,10 @@ bool bob::learn::misc::IVectorTrainer::is_similar_to
   (const bob::learn::misc::IVectorTrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine,
-           std::vector<bob::learn::misc::GMMStats> >::is_similar_to(other, r_epsilon, a_epsilon) &&
-        m_update_sigma == other.m_update_sigma &&
-        bob::core::array::isClose(m_acc_Nij_wij2, other.m_acc_Nij_wij2, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_acc_Nij, other.m_acc_Nij, r_epsilon, a_epsilon) &&
-        bob::core::array::isClose(m_acc_Snormij, other.m_acc_Snormij, r_epsilon, a_epsilon);
+  return m_update_sigma == other.m_update_sigma &&
+         bob::core::array::isClose(m_acc_Nij_wij2, other.m_acc_Nij_wij2, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_acc_Fnormij_wij, other.m_acc_Fnormij_wij, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_acc_Nij, other.m_acc_Nij, r_epsilon, a_epsilon) &&
+         bob::core::array::isClose(m_acc_Snormij, other.m_acc_Snormij, r_epsilon, a_epsilon);
 }
 

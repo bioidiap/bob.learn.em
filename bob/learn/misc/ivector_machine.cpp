@@ -285,6 +285,43 @@ int PyBobLearnMiscIVectorMachine_setVarianceThreshold(PyBobLearnMiscIVectorMachi
 }
 
 
+/***** ubm *****/
+static auto ubm = bob::extension::VariableDoc(
+  "ubm",
+  ":py:class:`bob.learn.misc.GMMMachine`",
+  "Returns the UBM (Universal Background Model",
+  ""
+);
+PyObject* PyBobLearnMiscIVectorMachine_getUBM(PyBobLearnMiscIVectorMachineObject* self, void*){
+  BOB_TRY
+
+  boost::shared_ptr<bob::learn::misc::GMMMachine> ubm_gmmMachine = self->cxx->getUbm();
+
+  //Allocating the correspondent python object
+  PyBobLearnMiscGMMMachineObject* retval =
+    (PyBobLearnMiscGMMMachineObject*)PyBobLearnMiscGMMMachine_Type.tp_alloc(&PyBobLearnMiscGMMMachine_Type, 0);
+  retval->cxx = ubm_gmmMachine;
+
+  return Py_BuildValue("O",retval);
+  BOB_CATCH_MEMBER("ubm could not be read", 0)
+}
+int PyBobLearnMiscIVectorMachine_setUBM(PyBobLearnMiscIVectorMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+
+  if (!PyBobLearnMiscGMMMachine_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a :py:class:`bob.learn.misc.GMMMachine`", Py_TYPE(self)->tp_name, ubm.name());
+    return -1;
+  }
+
+  PyBobLearnMiscGMMMachineObject* ubm_gmmMachine = 0;
+  PyArg_Parse(value, "O!", &PyBobLearnMiscGMMMachine_Type,&ubm_gmmMachine);
+
+  self->cxx->setUbm(ubm_gmmMachine->cxx);
+
+  return 0;
+  BOB_CATCH_MEMBER("ubm could not be set", -1)  
+}
+
 
 static PyGetSetDef PyBobLearnMiscIVectorMachine_getseters[] = { 
   {
@@ -324,6 +361,14 @@ static PyGetSetDef PyBobLearnMiscIVectorMachine_getseters[] = {
    (getter)PyBobLearnMiscIVectorMachine_getSigma,
    (setter)PyBobLearnMiscIVectorMachine_setSigma,
    sigma.doc(),
+   0
+  },
+
+  {
+   ubm.name(),
+   (getter)PyBobLearnMiscIVectorMachine_getUBM,
+   (setter)PyBobLearnMiscIVectorMachine_setUBM,
+   ubm.doc(),
    0
   },
 
@@ -483,6 +528,64 @@ static PyObject* PyBobLearnMiscIVectorMachine_resize(PyBobLearnMiscIVectorMachin
 }
 
 
+/*** __compute_Id_TtSigmaInvT__ ***/
+static auto __compute_Id_TtSigmaInvT__ = bob::extension::FunctionDoc(
+  "__compute_Id_TtSigmaInvT__",
+  "",
+  "", 
+  true
+)
+.add_prototype("stats")
+.add_parameter("stats", ":py:class:`bob.learn.misc.GMMStats`", "Statistics as input");
+static PyObject* PyBobLearnMiscIVectorMachine_compute_Id_TtSigmaInvT__(PyBobLearnMiscIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  char** kwlist = __compute_Id_TtSigmaInvT__.kwlist(0);
+
+  PyBobLearnMiscGMMStatsObject* stats = 0;
+  
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGMMStats_Type, &stats))
+    Py_RETURN_NONE;
+
+
+  blitz::Array<double,2> output(self->cxx->getDimRt(), self->cxx->getDimRt());
+  self->cxx->computeIdTtSigmaInvT(*stats->cxx, output);
+  return PyBlitzArrayCxx_AsConstNumpy(output);
+  
+  BOB_CATCH_MEMBER("cannot __compute_Id_TtSigmaInvT__", 0)
+}
+
+
+
+/*** __compute_TtSigmaInvFnorm__ ***/
+static auto __compute_TtSigmaInvFnorm__ = bob::extension::FunctionDoc(
+  "__compute_TtSigmaInvFnorm__",
+  "",
+  "", 
+  true
+)
+.add_prototype("stats")
+.add_parameter("stats", ":py:class:`bob.learn.misc.GMMStats`", "Statistics as input");
+static PyObject* PyBobLearnMiscIVectorMachine_compute_TtSigmaInvFnorm__(PyBobLearnMiscIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  char** kwlist = __compute_TtSigmaInvFnorm__.kwlist(0);
+
+  PyBobLearnMiscGMMStatsObject* stats = 0;
+  
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGMMStats_Type, &stats))
+    Py_RETURN_NONE;
+
+
+  blitz::Array<double,1> output(self->cxx->getDimRt());
+  self->cxx->computeTtSigmaInvFnorm(*stats->cxx, output);
+  return PyBlitzArrayCxx_AsConstNumpy(output);
+  
+  BOB_CATCH_MEMBER("cannot __compute_TtSigmaInvFnorm__", 0)
+}
+
+
+
 
 static PyMethodDef PyBobLearnMiscIVectorMachine_methods[] = {
   {
@@ -508,6 +611,18 @@ static PyMethodDef PyBobLearnMiscIVectorMachine_methods[] = {
     (PyCFunction)PyBobLearnMiscIVectorMachine_resize,
     METH_VARARGS|METH_KEYWORDS,
     resize.doc()
+  },
+  {
+    __compute_Id_TtSigmaInvT__.name(),
+    (PyCFunction)PyBobLearnMiscIVectorMachine_compute_Id_TtSigmaInvT__,
+    METH_VARARGS|METH_KEYWORDS,
+    __compute_Id_TtSigmaInvT__.doc()
+  },
+  {
+    __compute_TtSigmaInvFnorm__.name(),
+    (PyCFunction)PyBobLearnMiscIVectorMachine_compute_TtSigmaInvFnorm__,
+    METH_VARARGS|METH_KEYWORDS,
+    __compute_TtSigmaInvFnorm__.doc()
   },
 
 /*

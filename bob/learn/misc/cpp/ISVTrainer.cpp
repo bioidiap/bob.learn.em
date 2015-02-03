@@ -19,17 +19,16 @@
 
 
 //////////////////////////// ISVTrainer ///////////////////////////
-bob::learn::misc::ISVTrainer::ISVTrainer(const double relevance_factor, const double convergence_threshold):
+bob::learn::misc::ISVTrainer::ISVTrainer(const double relevance_factor):
   m_relevance_factor(relevance_factor),
-  m_convergence_threshold(convergence_threshold),
   m_rng(new boost::mt19937())
 {}
 
 bob::learn::misc::ISVTrainer::ISVTrainer(const bob::learn::misc::ISVTrainer& other):
-  m_convergence_threshold(other.m_convergence_threshold),
-  m_relevance_factor(other.m_relevance_factor),
   m_rng(other.m_rng)
-{}
+{
+  m_relevance_factor      = other.m_relevance_factor;
+}
 
 bob::learn::misc::ISVTrainer::~ISVTrainer()
 {}
@@ -39,7 +38,6 @@ bob::learn::misc::ISVTrainer& bob::learn::misc::ISVTrainer::operator=
 {
   if (this != &other)
   {
-    m_convergence_threshold = other.m_convergence_threshold;
     m_rng                   = other.m_rng;
     m_relevance_factor      = other.m_relevance_factor;
   }
@@ -48,8 +46,7 @@ bob::learn::misc::ISVTrainer& bob::learn::misc::ISVTrainer::operator=
 
 bool bob::learn::misc::ISVTrainer::operator==(const bob::learn::misc::ISVTrainer& b) const
 {
-  return m_convergence_threshold == b.m_convergence_threshold && 
-         m_rng == b.m_rng && 
+  return m_rng == b.m_rng && 
          m_relevance_factor == b.m_relevance_factor;
 }
 
@@ -61,9 +58,8 @@ bool bob::learn::misc::ISVTrainer::operator!=(const bob::learn::misc::ISVTrainer
 bool bob::learn::misc::ISVTrainer::is_similar_to(const bob::learn::misc::ISVTrainer& b,
   const double r_epsilon, const double a_epsilon) const
 {
-  return m_convergence_threshold == b.m_convergence_threshold && 
-         m_rng == b.m_rng && 
-         m_relevance_factor == b.m_relevance_factor;
+  return  m_rng == b.m_rng && 
+          m_relevance_factor == b.m_relevance_factor;
 }
 
 void bob::learn::misc::ISVTrainer::initialize(bob::learn::misc::ISVBase& machine,

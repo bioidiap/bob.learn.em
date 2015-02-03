@@ -94,7 +94,7 @@ static auto ISVTrainer_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("relevance_factor,convergence_threshold","")
+  .add_prototype("relevance_factor","")
   .add_prototype("other","")
   .add_prototype("","")
   .add_parameter("other", ":py:class:`bob.learn.misc.ISVTrainer`", "A ISVTrainer object to be copied.")
@@ -121,9 +121,9 @@ static int PyBobLearnMiscISVTrainer_init_number(PyBobLearnMiscISVTrainerObject* 
 
   char** kwlist = ISVTrainer_doc.kwlist(0);
   double relevance_factor      = 4.;
-  double convergence_threshold = 0.001;
+
   //Parsing the input argments
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "dd", kwlist, &relevance_factor, &convergence_threshold))
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &relevance_factor))
     return -1;
 
   if(relevance_factor < 0){
@@ -131,12 +131,7 @@ static int PyBobLearnMiscISVTrainer_init_number(PyBobLearnMiscISVTrainerObject* 
     return -1;
   }
 
-  if(convergence_threshold < 0){
-    PyErr_Format(PyExc_TypeError, "convergence_threshold argument must be greater than zero");
-    return -1;
-   }
-
-  self->cxx.reset(new bob::learn::misc::ISVTrainer(relevance_factor, convergence_threshold));
+  self->cxx.reset(new bob::learn::misc::ISVTrainer(relevance_factor));
   return 0;
 }
 
@@ -153,15 +148,25 @@ static int PyBobLearnMiscISVTrainer_init(PyBobLearnMiscISVTrainerObject* self, P
       return 0;
     }
     case 1:{
-      // If the constructor input is ISVTrainer object
-      return PyBobLearnMiscISVTrainer_init_copy(self, args, kwargs);
-    }
-    case 2:{
-      // If the constructor input is ISVTrainer object
-      return PyBobLearnMiscISVTrainer_init_number(self, args, kwargs);
+      //Reading the input argument
+      PyObject* arg = 0;
+      if (PyTuple_Size(args))
+        arg = PyTuple_GET_ITEM(args, 0);
+      else {
+        PyObject* tmp = PyDict_Values(kwargs);
+        auto tmp_ = make_safe(tmp);
+        arg = PyList_GET_ITEM(tmp, 0);
+      }
+      
+      if(PyBobLearnMiscISVTrainer_Check(arg))
+        // If the constructor input is ISVTrainer object
+        return PyBobLearnMiscISVTrainer_init_copy(self, args, kwargs);
+      else
+        return PyBobLearnMiscISVTrainer_init_number(self, args, kwargs);
+
     }
     default:{
-      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires only 0, 1 or 2 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
+      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires only 0 or 1 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
       ISVTrainer_doc.print_usage();
       return -1;
     }
@@ -330,14 +335,14 @@ static PyGetSetDef PyBobLearnMiscISVTrainer_getseters[] = {
   {
    acc_u_a1.name(),
    (getter)PyBobLearnMiscISVTrainer_get_acc_u_a1,
-   (setter)PyBobLearnMiscISVTrainer_get_acc_u_a1,
+   (setter)PyBobLearnMiscISVTrainer_set_acc_u_a1,
    acc_u_a1.doc(),
    0
   },
   {
    acc_u_a2.name(),
    (getter)PyBobLearnMiscISVTrainer_get_acc_u_a2,
-   (setter)PyBobLearnMiscISVTrainer_get_acc_u_a2,
+   (setter)PyBobLearnMiscISVTrainer_set_acc_u_a2,
    acc_u_a2.doc(),
    0
   },

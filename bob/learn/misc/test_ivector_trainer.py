@@ -28,8 +28,8 @@ class IVectorTrainerPy():
 
   def initialize(self, machine, data):
     ubm = machine.ubm
-    self.m_dim_c = ubm.dim_c
-    self.m_dim_d = ubm.dim_d
+    self.m_dim_c = ubm.shape[0]
+    self.m_dim_d = ubm.shape[1]
     self.m_dim_t = machine.t.shape[1]
     self.m_meansupervector = ubm.mean_supervector
     t = numpy.random.randn(self.m_dim_c*self.m_dim_d, self.m_dim_t)

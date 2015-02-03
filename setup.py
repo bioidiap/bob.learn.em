@@ -75,7 +75,7 @@ setup(
 
           #"bob/learn/misc/cpp/EMPCATrainer.cpp",
           "bob/learn/misc/cpp/GMMBaseTrainer.cpp",
-          #"bob/learn/misc/cpp/IVectorTrainer.cpp",
+          "bob/learn/misc/cpp/IVectorTrainer.cpp",
           "bob/learn/misc/cpp/KMeansTrainer.cpp",
           "bob/learn/misc/cpp/MAP_GMMTrainer.cpp",
           "bob/learn/misc/cpp/ML_GMMTrainer.cpp",
@@ -126,6 +126,8 @@ setup(
           "bob/learn/misc/isv_trainer.cpp",
           
           "bob/learn/misc/ivector_machine.cpp",
+          "bob/learn/misc/ivector_trainer.cpp",
+          
           "bob/learn/misc/plda_base.cpp",
           "bob/learn/misc/plda_machine.cpp",
           "bob/learn/misc/ztnorm.cpp",

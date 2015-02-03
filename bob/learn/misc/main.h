@@ -37,6 +37,8 @@
 
 
 #include <bob.learn.misc/IVectorMachine.h>
+#include <bob.learn.misc/IVectorTrainer.h>
+
 #include <bob.learn.misc/PLDAMachine.h>
 #include <bob.learn.misc/ZTNorm.h>
 
@@ -242,6 +244,17 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscIVectorMachine_Type;
 bool init_BobLearnMiscIVectorMachine(PyObject* module);
 int PyBobLearnMiscIVectorMachine_Check(PyObject* o);
+
+
+// IVectorTrainer
+typedef struct {
+  PyObject_HEAD
+  boost::shared_ptr<bob::learn::misc::IVectorTrainer> cxx;
+} PyBobLearnMiscIVectorTrainerObject;
+
+extern PyTypeObject PyBobLearnMiscIVectorTrainer_Type;
+bool init_BobLearnMiscIVectorTrainer(PyObject* module);
+int PyBobLearnMiscIVectorTrainer_Check(PyObject* o);
 
 
 // PLDABase

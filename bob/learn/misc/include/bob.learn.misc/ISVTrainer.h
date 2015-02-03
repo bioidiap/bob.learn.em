@@ -31,7 +31,7 @@ class ISVTrainer
     /**
      * @brief Constructor
      */
-    ISVTrainer(const double relevance_factor=4., const double convergence_threshold = 0.001);
+    ISVTrainer(const double relevance_factor=4.);
 
     /**
      * @brief Copy onstructor
@@ -145,8 +145,6 @@ class ISVTrainer
     bob::learn::misc::FABaseTrainer m_base_trainer;
 
     double m_relevance_factor;
-
-    double m_convergence_threshold; ///< convergence threshold
 
     boost::shared_ptr<boost::mt19937> m_rng; ///< The random number generator for the inialization};
 };

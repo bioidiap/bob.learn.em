@@ -9,11 +9,14 @@
 #define BOB_LEARN_MISC_IVECTOR_TRAINER_H
 
 #include <blitz/array.h>
-#include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.misc/IVectorMachine.h>
 #include <bob.learn.misc/GMMStats.h>
 #include <boost/shared_ptr.hpp>
 #include <vector>
+#include <bob.core/array_copy.h>
+#include <boost/random.hpp>
+
+#include <boost/random/mersenne_twister.hpp>
 
 namespace bob { namespace learn { namespace misc {
 
@@ -25,15 +28,13 @@ namespace bob { namespace learn { namespace misc {
  *    N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet,
  *   IEEE Trans. on Audio, Speech and Language Processing
  */
-class IVectorTrainer: public bob::learn::misc::EMTrainer<bob::learn::misc::IVectorMachine, std::vector<bob::learn::misc::GMMStats> >
+class IVectorTrainer
 {
   public:
     /**
      * @brief Default constructor. Builds an IVectorTrainer
      */
-    IVectorTrainer(const bool update_sigma=false,
-      const double convergence_threshold=0.001,
-      const size_t max_iterations=10, const bool compute_likelihood=false);
+    IVectorTrainer(const bool update_sigma=false);
 
     /**
      * @brief Copy constructor
@@ -48,8 +49,7 @@ class IVectorTrainer: public bob::learn::misc::EMTrainer<bob::learn::misc::IVect
     /**
      * @brief Initialization before the EM loop
      */
-    virtual void initialize(bob::learn::misc::IVectorMachine& ivector,
-      const std::vector<bob::learn::misc::GMMStats>& data);
+    virtual void initialize(bob::learn::misc::IVectorMachine& ivector);
 
     /**
      * @brief Calculates statistics across the dataset,
@@ -68,20 +68,8 @@ class IVectorTrainer: public bob::learn::misc::EMTrainer<bob::learn::misc::IVect
      * @brief Maximisation step: Update the Total Variability matrix \f$T\f$
      * and \f$\Sigma\f$ if update_sigma is enabled.
      */
-    virtual void mStep(bob::learn::misc::IVectorMachine& ivector,
-      const std::vector<bob::learn::misc::GMMStats>& data);
+    virtual void mStep(bob::learn::misc::IVectorMachine& ivector);
 
-    /**
-     * @brief Computes the likelihood using current estimates
-     * @warning (currently unsupported)
-     */
-    virtual double computeLikelihood(bob::learn::misc::IVectorMachine& ivector);
-
-    /**
-     * @brief Finalization after the EM loop
-     */
-    virtual void finalize(bob::learn::misc::IVectorMachine& ivector,
-      const std::vector<bob::learn::misc::GMMStats>& data);
 
     /**
      * @brief Assigns from a different IVectorTrainer
@@ -152,6 +140,11 @@ class IVectorTrainer: public bob::learn::misc::EMTrainer<bob::learn::misc::IVect
     mutable blitz::Array<double,2> m_tmp_dt1;
     mutable blitz::Array<double,2> m_tmp_tt1;
     mutable blitz::Array<double,2> m_tmp_tt2;
+    
+    /**
+     * @brief The random number generator for the inialization
+     */
+    boost::shared_ptr<boost::mt19937> m_rng;    
 };
 
 } } } // namespaces

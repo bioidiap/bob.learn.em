@@ -11,7 +11,7 @@ import numpy
 # define the class
 class ISVTrainer (_ISVTrainer):
 
-  def __init__(self, max_iterations=10, relevance_factor=4., convergence_threshold = 0.001):
+  def __init__(self, max_iterations=10, relevance_factor=4.):
     """
     :py:class:`bob.learn.misc.ISVTrainer` constructor
 
@@ -19,7 +19,7 @@ class ISVTrainer (_ISVTrainer):
       max_iterations
         Number of maximum iterations
     """
-    _ISVTrainer.__init__(self, relevance_factor, convergence_threshold)
+    _ISVTrainer.__init__(self, relevance_factor)
     self._max_iterations         = max_iterations
 
 

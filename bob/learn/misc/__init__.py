@@ -16,6 +16,7 @@ from .__ML_gmm_trainer__ import *
 from .__MAP_gmm_trainer__ import *
 from .__jfa_trainer__ import *
 from .__isv_trainer__ import *
+from .__ivector_trainer__ import *
 
 
 def ztnorm_same_value(vect_a, vect_b):
