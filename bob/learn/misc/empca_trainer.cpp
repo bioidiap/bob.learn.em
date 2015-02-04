@@ -24,11 +24,12 @@ static auto EMPCATrainer_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("compute_likelihood","")
+  .add_prototype("convergence_threshold","")
   .add_prototype("other","")
   .add_prototype("","")
 
   .add_parameter("other", ":py:class:`bob.learn.misc.EMPCATrainer`", "A EMPCATrainer object to be copied.")
+  .add_parameter("convergence_threshold", "double", "")
 
 );
 

@@ -79,7 +79,7 @@ setup(
           "bob/learn/misc/cpp/KMeansTrainer.cpp",
           "bob/learn/misc/cpp/MAP_GMMTrainer.cpp",
           "bob/learn/misc/cpp/ML_GMMTrainer.cpp",
-          #"bob/learn/misc/cpp/PLDATrainer.cpp",
+          "bob/learn/misc/cpp/PLDATrainer.cpp",
         ],
         bob_packages = bob_packages,
         packages = packages,
@@ -132,6 +132,8 @@ setup(
           "bob/learn/misc/plda_machine.cpp",
 
           "bob/learn/misc/empca_trainer.cpp",
+
+          "bob/learn/misc/plda_trainer.cpp",
 
           "bob/learn/misc/ztnorm.cpp",
 

@@ -7,20 +7,26 @@
  * Copyright (C) Idiap Research Institute, Martigny, Switzerland
  */
 
+
 #include <bob.learn.misc/PLDATrainer.h>
+#include <bob.core/check.h>
 #include <bob.core/array_copy.h>
 #include <bob.core/array_random.h>
-#include <bob.math/linear.h>
 #include <bob.math/inv.h>
 #include <bob.math/svd.h>
+#include <bob.core/check.h>
+#include <bob.core/array_repmat.h>
 #include <algorithm>
-#include <vector>
 #include <limits>
+#include <vector>
 
-bob::learn::misc::PLDATrainer::PLDATrainer(const size_t max_iterations,
-    const bool use_sum_second_order):
-  EMTrainer<bob::learn::misc::PLDABase, std::vector<blitz::Array<double,2> > >
-    (0.001, max_iterations, false),
+#include <bob.math/linear.h>
+#include <bob.math/linsolve.h>
+
+
+
+bob::learn::misc::PLDATrainer::PLDATrainer(const bool use_sum_second_order):
+  m_rng(new boost::mt19937()),
   m_dim_d(0), m_dim_f(0), m_dim_g(0),
   m_use_sum_second_order(use_sum_second_order),
   m_initF_method(bob::learn::misc::PLDATrainer::RANDOM_F), m_initF_ratio(1.),
@@ -38,9 +44,7 @@ bob::learn::misc::PLDATrainer::PLDATrainer(const size_t max_iterations,
 }
 
 bob::learn::misc::PLDATrainer::PLDATrainer(const bob::learn::misc::PLDATrainer& other):
-  EMTrainer<bob::learn::misc::PLDABase, std::vector<blitz::Array<double,2> > >
-    (other.m_convergence_threshold, other.m_max_iterations,
-     other.m_compute_likelihood),
+  m_rng(other.m_rng),
   m_dim_d(other.m_dim_d), m_dim_f(other.m_dim_f), m_dim_g(other.m_dim_g),
   m_use_sum_second_order(other.m_use_sum_second_order),
   m_initF_method(other.m_initF_method), m_initF_ratio(other.m_initF_ratio),
@@ -71,8 +75,7 @@ bob::learn::misc::PLDATrainer& bob::learn::misc::PLDATrainer::operator=
 {
   if(this != &other)
   {
-    bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
-      std::vector<blitz::Array<double,2> > >::operator=(other);
+    m_rng = m_rng,
     m_dim_d = other.m_dim_d;
     m_dim_f = other.m_dim_f;
     m_dim_g = other.m_dim_g;
@@ -102,8 +105,7 @@ bob::learn::misc::PLDATrainer& bob::learn::misc::PLDATrainer::operator=
 bool bob::learn::misc::PLDATrainer::operator==
   (const bob::learn::misc::PLDATrainer& other) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
-           std::vector<blitz::Array<double,2> > >::operator==(other) &&
+  return m_rng == m_rng &&
          m_dim_d == other.m_dim_d &&
          m_dim_f == other.m_dim_f &&
          m_dim_g == other.m_dim_g &&
@@ -138,8 +140,7 @@ bool bob::learn::misc::PLDATrainer::is_similar_to
   (const bob::learn::misc::PLDATrainer &other, const double r_epsilon,
    const double a_epsilon) const
 {
-  return bob::learn::misc::EMTrainer<bob::learn::misc::PLDABase,
-           std::vector<blitz::Array<double,2> > >::is_similar_to(other, r_epsilon, a_epsilon) &&
+  return m_rng == m_rng &&
          m_dim_d == other.m_dim_d &&
          m_dim_f == other.m_dim_f &&
          m_dim_g == other.m_dim_g &&
@@ -745,12 +746,6 @@ void bob::learn::misc::PLDATrainer::updateSigma(bob::learn::misc::PLDABase& mach
   machine.applyVarianceThreshold();
 }
 
-double bob::learn::misc::PLDATrainer::computeLikelihood(bob::learn::misc::PLDABase& machine)
-{
-  double llh = 0.;
-  // TODO: implement log likelihood computation
-  return llh;
-}
 
 void bob::learn::misc::PLDATrainer::enrol(bob::learn::misc::PLDAMachine& plda_machine,
   const blitz::Array<double,2>& ar) const

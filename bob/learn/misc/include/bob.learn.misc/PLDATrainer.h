@@ -11,11 +11,13 @@
 #ifndef BOB_LEARN_MISC_PLDA_TRAINER_H
 #define BOB_LEARN_MISC_PLDA_TRAINER_H
 
-#include <bob.learn.misc/EMTrainer.h>
 #include <bob.learn.misc/PLDAMachine.h>
-#include <blitz/array.h>
-#include <map>
+#include <boost/shared_ptr.hpp>
 #include <vector>
+#include <map>
+#include <bob.core/array_copy.h>
+#include <boost/random.hpp>
+#include <boost/random/mersenne_twister.hpp>
 
 namespace bob { namespace learn { namespace misc {
 
@@ -31,8 +33,7 @@ namespace bob { namespace learn { namespace misc {
  * 3. 'Probabilistic Models for Inference about Identity', Li, Fu, Mohammed,
  *     Elder and Prince, TPAMI'2012
  */
-class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
-                                        std::vector<blitz::Array<double,2> > >
+class PLDATrainer
 {
   public: //api
     /**
@@ -40,7 +41,7 @@ class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
      * training stage will place the resulting components in the
      * PLDABase.
      */
-    PLDATrainer(const size_t max_iterations=100, const bool use_sum_second_order=true);
+    PLDATrainer(const bool use_sum_second_order);
 
     /**
      * @brief Copy constructor
@@ -70,18 +71,18 @@ class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
     /**
      * @brief Similarity operator
      */
-    virtual bool is_similar_to(const PLDATrainer& b,
+    bool is_similar_to(const PLDATrainer& b,
       const double r_epsilon=1e-5, const double a_epsilon=1e-8) const;
 
     /**
      * @brief Performs some initialization before the E- and M-steps.
      */
-    virtual void initialize(bob::learn::misc::PLDABase& machine,
+    void initialize(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
     /**
      * @brief Performs some actions after the end of the E- and M-steps.
       */
-    virtual void finalize(bob::learn::misc::PLDABase& machine,
+    void finalize(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     /**
@@ -89,21 +90,16 @@ class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
      * these as m_z_{first,second}_order.
      * The statistics will be used in the mStep() that follows.
      */
-    virtual void eStep(bob::learn::misc::PLDABase& machine,
+    void eStep(bob::learn::misc::PLDABase& machine,
       const std::vector<blitz::Array<double,2> >& v_ar);
 
     /**
      * @brief Performs a maximization step to update the parameters of the
      * PLDABase
      */
-    virtual void mStep(bob::learn::misc::PLDABase& machine,
+    void mStep(bob::learn::misc::PLDABase& machine,
        const std::vector<blitz::Array<double,2> >& v_ar);
 
-    /**
-     * @brief Computes the average log likelihood using the current estimates
-     * of the latent variables.
-     */
-    virtual double computeLikelihood(bob::learn::misc::PLDABase& machine);
 
     /**
      * @brief Sets whether the second order statistics are stored during the
@@ -223,6 +219,9 @@ class PLDATrainer: public EMTrainer<bob::learn::misc::PLDABase,
       const blitz::Array<double,2>& ar) const;
 
   private:
+  
+    boost::shared_ptr<boost::mt19937> m_rng;
+  
     //representation
     size_t m_dim_d; ///< Dimensionality of the input features
     size_t m_dim_f; ///< Size/rank of the \f$F\f$ subspace

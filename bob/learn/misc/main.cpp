@@ -119,6 +119,7 @@ static PyObject* create_module (void) {
   if (import_bob_blitz() < 0) return 0;
   if (import_bob_core_random() < 0) return 0;
   if (import_bob_io_base() < 0) return 0;
+  //if (import_bob_learn_linear() < 0) return 0;
 
   Py_INCREF(module);
   return module;
