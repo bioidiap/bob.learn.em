@@ -33,11 +33,25 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 }
 
 
+template <int N>
+static PyObject* vector_as_list(const std::vector<blitz::Array<double,N> >& vec)
+{
+  PyObject* list = PyList_New(vec.size());
+  for(size_t i=0; i<vec.size(); i++){
+    blitz::Array<double,N> numpy_array = vec[i];
+    PyObject* numpy_py_object = PyBlitzArrayCxx_AsNumpy(numpy_array);
+    PyList_SET_ITEM(list, i, numpy_py_object);
+  }
+  return list;
+}
+
+
 static auto PLDATrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".PLDATrainer",
   "This class can be used to train the :math:`$F$`, :math:`$G$ and "
-  " :math:`$\\Sigma$` matrices and the mean vector :math:`$\\mu$` of a PLDA model.",
+  " :math:`$\\Sigma$` matrices and the mean vector :math:`$\\mu$` of a PLDA model."
   "References: [ElShafey2014,PrinceElder2007,LiFu2012]",
+  ""
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
@@ -89,35 +103,29 @@ static int PyBobLearnMiscPLDATrainer_init(PyBobLearnMiscPLDATrainerObject* self,
   // get the number of command line arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
 
-  switch(nargs){
-    case 0:{
-      self->cxx.reset(new bob::learn::misc::PLDATrainer());
-      return 0;
+  if(nargs==1){
+    //Reading the input argument
+    PyObject* arg = 0;
+    if (PyTuple_Size(args))
+      arg = PyTuple_GET_ITEM(args, 0);
+    else {
+      PyObject* tmp = PyDict_Values(kwargs);
+      auto tmp_ = make_safe(tmp);
+      arg = PyList_GET_ITEM(tmp, 0);
     }
-    case 1:{
-      //Reading the input argument
-      PyObject* arg = 0;
-      if (PyTuple_Size(args))
-        arg = PyTuple_GET_ITEM(args, 0);
-      else {
-        PyObject* tmp = PyDict_Values(kwargs);
-        auto tmp_ = make_safe(tmp);
-        arg = PyList_GET_ITEM(tmp, 0);
-      }
       
-      if(PyBobLearnMiscPLDATrainer_Check(arg))
-        // If the constructor input is PLDATrainer object
-        return PyBobLearnMiscPLDATrainer_init_copy(self, args, kwargs);
-      else
-        return PyBobLearnMiscPLDATrainer_init_bool(self, args, kwargs);
-
-    }
-    default:{
-      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires only 0 or 1 argument, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
-      PLDATrainer_doc.print_usage();
-      return -1;
-    }
+    if(PyBobLearnMiscPLDATrainer_Check(arg))
+      // If the constructor input is PLDATrainer object
+      return PyBobLearnMiscPLDATrainer_init_copy(self, args, kwargs);
+    else
+      return PyBobLearnMiscPLDATrainer_init_bool(self, args, kwargs);
   }
+  else{
+    PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires only 0 or 1 argument, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
+    PLDATrainer_doc.print_usage();
+    return -1;
+  }
+
   BOB_CATCH_MEMBER("cannot create PLDATrainer", 0)
   return 0;
 }
@@ -167,7 +175,8 @@ static auto z_second_order = bob::extension::VariableDoc(
 );
 PyObject* PyBobLearnMiscPLDATrainer_get_z_second_order(PyBobLearnMiscPLDATrainerObject* self, void*){
   BOB_TRY
-  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getZSecondOrder());
+  //return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getZSecondOrder());
+  return vector_as_list(self->cxx->getZSecondOrder());
   BOB_CATCH_MEMBER("z_second_order could not be read", 0)
 }
 
@@ -193,7 +202,8 @@ static auto z_first_order = bob::extension::VariableDoc(
 );
 PyObject* PyBobLearnMiscPLDATrainer_get_z_first_order(PyBobLearnMiscPLDATrainerObject* self, void*){
   BOB_TRY
-  return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getZFirstOrder());
+  //return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getZFirstOrder());
+  return vector_as_list(self->cxx->getZFirstOrder());
   BOB_CATCH_MEMBER("z_first_order could not be read", 0)
 }
 
@@ -255,7 +265,7 @@ static PyObject* PyBobLearnMiscPLDATrainer_initialize(PyBobLearnMiscPLDATrainerO
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
-    self->cxx->initialize(*plda_machine->cxx, data_vector);
+    self->cxx->initialize(*plda_base->cxx, data_vector);
 
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 
@@ -287,7 +297,7 @@ static PyObject* PyBobLearnMiscPLDATrainer_e_step(PyBobLearnMiscPLDATrainerObjec
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
-    self->cxx->e_step(*plda_machine->cxx, data_vector);
+    self->cxx->eStep(*plda_base->cxx, data_vector);
 
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
@@ -319,7 +329,7 @@ static PyObject* PyBobLearnMiscPLDATrainer_m_step(PyBobLearnMiscPLDATrainerObjec
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
-    self->cxx->m_step(*plda_machine->cxx, data_vector);
+    self->cxx->mStep(*plda_base->cxx, data_vector);
 
   BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 
@@ -351,7 +361,7 @@ static PyObject* PyBobLearnMiscPLDATrainer_finalize(PyBobLearnMiscPLDATrainerObj
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
-    self->cxx->finalize(*plda_machine->cxx, data_vector);
+    self->cxx->finalize(*plda_base->cxx, data_vector);
 
   BOB_CATCH_MEMBER("cannot perform the finalize method", 0)
 
@@ -370,7 +380,7 @@ static auto enrol = bob::extension::FunctionDoc(
 .add_prototype("plda_machine,data")
 .add_parameter("plda_machine", ":py:class:`bob.learn.misc.PLDAMachine`", "PLDAMachine Object")
 .add_parameter("data", "list", "");
-static PyObject* PyBobLearnMiscPLDATrainer_finalize(PyBobLearnMiscPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnMiscPLDATrainer_enrol(PyBobLearnMiscPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */

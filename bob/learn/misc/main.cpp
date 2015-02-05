@@ -81,7 +81,8 @@ static PyObject* create_module (void) {
   if (!init_BobLearnMiscIVectorTrainer(module)) return 0;
     
   if (!init_BobLearnMiscPLDABase(module)) return 0;
-  if (!init_BobLearnMiscPLDAMachine(module)) return 0; 
+  if (!init_BobLearnMiscPLDAMachine(module)) return 0;
+  if (!init_BobLearnMiscPLDATrainer(module)) return 0; 
 
   if (!init_BobLearnMiscEMPCATrainer(module)) return 0;  
 

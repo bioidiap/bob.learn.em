@@ -77,8 +77,8 @@ class PythonPLDATrainer():
 
   def __init_f__(self, machine, data):
     n_ids = len(data)
-    S = numpy.zeros(shape=(machine.dim_d, n_ids), dtype=numpy.float64)
-    Si_sum = numpy.zeros(shape=(machine.dim_d,), dtype=numpy.float64)
+    S = numpy.zeros(shape=(machine.shape[0], n_ids), dtype=numpy.float64)
+    Si_sum = numpy.zeros(shape=(machine.shape[0],), dtype=numpy.float64)
     for i in range(n_ids):
       Si = S[:,i]
       data_i = data[i]
@@ -88,7 +88,7 @@ class PythonPLDATrainer():
       Si_sum += Si
     Si_sum /= n_ids
 
-    S = S - numpy.tile(Si_sum.reshape([machine.dim_d,1]), [1,n_ids])
+    S = S - numpy.tile(Si_sum.reshape([machine.shape[0],1]), [1,n_ids])
     U, sigma, S_ = numpy.linalg.svd(S, full_matrices=False)
     U_slice = U[:,0:self.m_dim_f]
     sigma_slice = sigma[0:self.m_dim_f]
@@ -99,9 +99,9 @@ class PythonPLDATrainer():
     n_samples = 0
     for v in data:
       n_samples += v.shape[0]
-    S = numpy.zeros(shape=(machine.dim_d, n_samples), dtype=numpy.float64)
-    Si_sum = numpy.zeros(shape=(machine.dim_d,), dtype=numpy.float64)
-    cache = numpy.zeros(shape=(machine.dim_d,), dtype=numpy.float64)
+    S = numpy.zeros(shape=(machine.shape[0], n_samples), dtype=numpy.float64)
+    Si_sum = numpy.zeros(shape=(machine.shape[0],), dtype=numpy.float64)
+    cache = numpy.zeros(shape=(machine.shape[0],), dtype=numpy.float64)
     c = 0
     for i in range(len(data)):
       cache = 0
@@ -115,7 +115,7 @@ class PythonPLDATrainer():
         c += 1
     Si_sum /= n_samples
 
-    S = S - numpy.tile(Si_sum.reshape([machine.dim_d,1]), [1,n_samples])
+    S = S - numpy.tile(Si_sum.reshape([machine.shape[0],1]), [1,n_samples])
     U, sigma, S_ = numpy.linalg.svd(S, full_matrices=False)
     U_slice = U[:,0:self.m_dim_g]
     sigma_slice_sqrt = numpy.sqrt(sigma[0:self.m_dim_g])
