@@ -47,6 +47,10 @@ static int extract_gmmmachine_list(PyObject *list,
 template <int N>
 int extract_array_list(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 {
+
+  if(list==0)
+    return 0;
+
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
     PyBlitzArrayObject* blitz_object; 
@@ -71,13 +75,13 @@ static auto linear_scoring = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("models, ubm_mean, ubm_variance, test_stats, test_channelOffset, frame_length_normalisation", "output")
+.add_prototype("models, ubm, test_stats, test_channelOffset, frame_length_normalisation", "output")
 .add_parameter("models", "", "")
 .add_parameter("ubm", "", "")
 .add_parameter("test_stats", "", "")
 .add_parameter("test_channelOffset", "", "")
 .add_parameter("frame_length_normalisation", "bool", "")
-.add_return("output","array_like<float,2>","Score");
+.add_return("output","array_like<float,1>","Score");
 static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = linear_scoring.kwlist(0);
@@ -85,51 +89,48 @@ static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObje
   //Cheking the number of arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
 
-  switch(nargs){
-  
     //Read a list of GMM
-    case 5:{
+  if((nargs >= 3) && (nargs<=5)){
 
-      PyObject* gmm_list_o                 = 0;
-      PyBobLearnMiscGMMMachineObject* ubm  = 0;
-      PyObject* stats_list_o               = 0;
-      PyObject* channel_offset_list_o      = 0;
-      PyObject* frame_length_normalisation = 0;
+    PyObject* gmm_list_o                 = 0;
+    PyBobLearnMiscGMMMachineObject* ubm  = 0;
+    PyObject* stats_list_o               = 0;
+    PyObject* channel_offset_list_o      = 0;
+    PyObject* frame_length_normalisation = Py_False;
 
-      if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!O!O!O!", kwlist, &PyList_Type, &gmm_list_o,
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!O!|O!O!", kwlist, &PyList_Type, &gmm_list_o,
                                                                        &PyBobLearnMiscGMMMachine_Type, &ubm,
                                                                        &PyList_Type, &stats_list_o,
                                                                        &PyList_Type, &channel_offset_list_o,
-                                                                       &PyBool_Type, frame_length_normalisation)){
-       linear_scoring.print_usage();
-       Py_RETURN_NONE;
-      }
+                                                                       &PyBool_Type, &frame_length_normalisation)){
+      linear_scoring.print_usage(); 
+      Py_RETURN_NONE;
+    }
 
-      std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> > stats_list;
-      if(extract_gmmstats_list(stats_list_o ,stats_list)!=0)
-        Py_RETURN_NONE;
+    std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> > stats_list;
+    if(extract_gmmstats_list(stats_list_o ,stats_list)!=0)
+      Py_RETURN_NONE;
 
-      std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> > gmm_list;
-      if(extract_gmmmachine_list(gmm_list_o ,gmm_list)!=0)
-        Py_RETURN_NONE;
+    std::vector<boost::shared_ptr<const bob::learn::misc::GMMMachine> > gmm_list;
+    if(extract_gmmmachine_list(gmm_list_o ,gmm_list)!=0)
+      Py_RETURN_NONE;
 
-      std::vector<blitz::Array<double,2> > channel_offset_list;
-      if(extract_array_list(channel_offset_list_o ,channel_offset_list)!=0)
-        Py_RETURN_NONE;
+    std::vector<blitz::Array<double,1> > channel_offset_list;
+    if(extract_array_list(channel_offset_list_o ,channel_offset_list)!=0)
+      Py_RETURN_NONE;
 
-
-      blitz::Array<double, 2> scores = blitz::Array<double, 2>(gmm_list.size(), stats_list.size());      
+    blitz::Array<double, 2> scores = blitz::Array<double, 2>(gmm_list.size(), stats_list.size());
+    if(channel_offset_list.size()==0)
+      bob::learn::misc::linearScoring(gmm_list, *ubm->cxx, stats_list, f(frame_length_normalisation),scores);
+    else
       bob::learn::misc::linearScoring(gmm_list, *ubm->cxx, stats_list, channel_offset_list, f(frame_length_normalisation),scores);
 
-      
-      return PyBlitzArrayCxx_AsConstNumpy(scores);
-    
-    }
-    default:{
-      PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - linear_scoring requires 5 or 6 arguments, but you provided %d (see help)", nargs);
-      linear_scoring.print_usage();
-      Py_RETURN_NONE;
-    }  
+    return PyBlitzArrayCxx_AsConstNumpy(scores);
+  }
+  else{
+    PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - linear_scoring requires 5 or 6 arguments, but you provided %d (see help)", nargs);
+    linear_scoring.print_usage();
+    Py_RETURN_NONE;
   }
   /*
   
