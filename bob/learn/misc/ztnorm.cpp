@@ -9,9 +9,6 @@
 
 #include "main.h"
 
-#ifndef BOB_LEARN_MISC_ZTNORM_BIND
-#define BOB_LEARN_MISC_ZTNORM_BIND
-
 /*** zt_norm ***/
 static auto zt_norm = bob::extension::FunctionDoc(
   "ztnorm",
@@ -146,6 +143,4 @@ static PyObject* PyBobLearnMisc_zNorm(PyObject*, PyObject* args, PyObject* kwarg
 
   return PyBlitzArrayCxx_AsConstNumpy(normalized_scores);
 }
-
-#endif
 

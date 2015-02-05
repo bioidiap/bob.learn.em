@@ -50,8 +50,6 @@
 #include <bob.learn.misc/ZTNorm.h>
 
 
-#include "ztnorm.cpp"
-
 
 #if PY_VERSION_HEX >= 0x03000000
 #define PyInt_Check PyLong_Check

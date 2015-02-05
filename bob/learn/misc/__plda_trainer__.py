@@ -11,7 +11,7 @@ import numpy
 # define the class
 class PLDATrainer (_PLDATrainer):
 
-  def __init__(self, max_iterations=10, use_sum_second_order=True):
+  def __init__(self, max_iterations=10, use_sum_second_order=False):
     """
     :py:class:`bob.learn.misc.PLDATrainer` constructor
 
@@ -39,10 +39,10 @@ class PLDATrainer (_PLDATrainer):
       
     for i in range(self._max_iterations):
       #eStep
-      self.eStep(plda_base, data);
+      self.e_step(plda_base, data);
       #mStep
-      self.mStep(plda_base);
-    self.finalize(plda_base);
+      self.m_step(plda_base, data);
+    self.finalize(plda_base, data);
 
 
 

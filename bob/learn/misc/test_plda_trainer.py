@@ -123,8 +123,8 @@ class PythonPLDATrainer():
 
   def __init_sigma__(self, machine, data, factor = 1.):
     """As a variance of the data"""
-    cache1 = numpy.zeros(shape=(machine.dim_d,), dtype=numpy.float64)
-    cache2 = numpy.zeros(shape=(machine.dim_d,), dtype=numpy.float64)
+    cache1 = numpy.zeros(shape=(machine.shape[0],), dtype=numpy.float64)
+    cache2 = numpy.zeros(shape=(machine.shape[0],), dtype=numpy.float64)
     n_samples = 0
     for v in data:
       for j in range(v.shape[0]):
@@ -145,10 +145,10 @@ class PythonPLDATrainer():
   def initialize(self, machine, data):
     self.__check_training_data__(data)
     n_features = data[0].shape[1]
-    if(machine.dim_d != n_features):
+    if(machine.shape[0] != n_features):
       raise RuntimeError("Inconsistent feature dimensionality between the machine and the training data set")
-    self.m_dim_f = machine.dim_f
-    self.m_dim_g = machine.dim_g
+    self.m_dim_f = machine.shape[1]
+    self.m_dim_g = machine.shape[2]
     self.__init_members__(data)
     # Warning: Default initialization of mu, F, G, sigma using scatters
     self.__init_mu_f_g_sigma__(machine, data)
@@ -237,7 +237,7 @@ class PythonPLDATrainer():
 
   def __update_f_and_g__(self, machine, data):
     ### Initialise the numerator and the denominator.
-    dim_d                          = machine.dim_d
+    dim_d                          = machine.shape[0]
     accumulated_B_numerator        = numpy.zeros((dim_d,self.m_dim_f+self.m_dim_g))
     accumulated_B_denominator      = numpy.linalg.inv(self.m_sum_z_second_order)
     mu                             = machine.mu
@@ -263,7 +263,7 @@ class PythonPLDATrainer():
 
   def __update_sigma__(self, machine, data):
     ### Initialise the accumulated Sigma
-    dim_d                          = machine.dim_d
+    dim_d                          = machine.shape[0]
     mu                             = machine.mu
     accumulated_sigma              = numpy.zeros(dim_d)   # An array (dim_d)
     number_of_observations         = 0
@@ -368,9 +368,9 @@ def test_plda_EM_vs_Python():
   m_py = PLDABase(D,nf,ng)
 
   # Sets the same initialization methods
-  t.init_f_method = PLDATrainer.BETWEEN_SCATTER
-  t.init_g_method = PLDATrainer.WITHIN_SCATTER
-  t.init_sigma_method = PLDATrainer.VARIANCE_DATA
+  t.init_f_method = 'BETWEEN_SCATTER'
+  t.init_g_method = 'WITHIN_SCATTER'
+  t.init_sigma_method = 'VARIANCE_DATA'
 
   t.train(m, l)
   t_py.train(m_py, l)
@@ -378,6 +378,7 @@ def test_plda_EM_vs_Python():
   assert numpy.allclose(m.f, m_py.f)
   assert numpy.allclose(m.g, m_py.g)
   assert numpy.allclose(m.sigma, m_py.sigma)
+
 
 def test_plda_EM_vs_Prince():
   # Data used for performing the tests
@@ -687,23 +688,28 @@ def test_plda_enrollment():
   t = PLDATrainer()
   t.enrol(m, a_enrol)
   ll = m.compute_log_likelihood(x3)
+  
   assert abs(ll - ll_ref) < 1e-10
 
   # reference obtained by computing the likelihood of [x1,x2,x3], [x1,x2]
   # and [x3] separately
   llr_ref = -4.43695386675
-  llr = m.forward(x3)
+  llr = m(x3)
   assert abs(llr - llr_ref) < 1e-10
   #
   llr_separate = m.compute_log_likelihood(numpy.array([x1,x2,x3]), False) - \
     (m.compute_log_likelihood(numpy.array([x1,x2]), False) + m.compute_log_likelihood(numpy.array([x3]), False))
   assert abs(llr - llr_separate) < 1e-10
 
+
+
 def test_plda_comparisons():
 
   t1 = PLDATrainer()
   t2 = PLDATrainer()
-  t2.rng = t1.rng
+
+  #t2.rng = t1.rng
+
   assert t1 == t2
   assert (t1 != t2 ) is False
   assert t1.is_similar_to(t2)
@@ -731,3 +737,5 @@ def test_plda_comparisons():
   assert (t1 == t2 ) is False
   assert t1 != t2
   assert (t1.is_similar_to(t2) ) is False
+
+  

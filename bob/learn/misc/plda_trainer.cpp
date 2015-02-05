@@ -10,9 +10,50 @@
 #include "main.h"
 #include <boost/make_shared.hpp>
 
-/******************************************************************/
-/************ Constructor Section *********************************/
-/******************************************************************/
+//Defining maps for each initializatio method
+static const std::map<std::string, bob::learn::misc::PLDATrainer::InitFMethod> FMethod = {{"RANDOM_F",  bob::learn::misc::PLDATrainer::RANDOM_F}, {"BETWEEN_SCATTER", bob::learn::misc::PLDATrainer::BETWEEN_SCATTER}};
+
+static const std::map<std::string, bob::learn::misc::PLDATrainer::InitGMethod> GMethod = {{"RANDOM_G",  bob::learn::misc::PLDATrainer::RANDOM_G}, {"WITHIN_SCATTER", bob::learn::misc::PLDATrainer::WITHIN_SCATTER}};
+
+static const std::map<std::string, bob::learn::misc::PLDATrainer::InitSigmaMethod> SigmaMethod = {{"RANDOM_SIGMA",  bob::learn::misc::PLDATrainer::RANDOM_SIGMA}, {"VARIANCE_G", bob::learn::misc::PLDATrainer::VARIANCE_G}, {"CONSTANT", bob::learn::misc::PLDATrainer::CONSTANT}, {"VARIANCE_DATA", bob::learn::misc::PLDATrainer::VARIANCE_DATA}};
+
+
+
+//String to type
+static inline bob::learn::misc::PLDATrainer::InitFMethod string2FMethod(const std::string& o){
+  auto it = FMethod.find(o);
+  if (it == FMethod.end()) throw std::runtime_error("The given FMethod '" + o + "' is not known; choose one of ('RANDOM_F','BETWEEN_SCATTER')");
+  else return it->second;
+}
+
+static inline bob::learn::misc::PLDATrainer::InitGMethod string2GMethod(const std::string& o){
+  auto it = GMethod.find(o);
+  if (it == GMethod.end()) throw std::runtime_error("The given GMethod '" + o + "' is not known; choose one of ('RANDOM_G','WITHIN_SCATTER')");
+  else return it->second;
+}
+
+static inline bob::learn::misc::PLDATrainer::InitSigmaMethod string2SigmaMethod(const std::string& o){
+  auto it = SigmaMethod.find(o);
+  if (it == SigmaMethod.end()) throw std::runtime_error("The given SigmaMethod '" + o + "' is not known; choose one of ('RANDOM_SIGMA','VARIANCE_G', 'CONSTANT', 'VARIANCE_DATA')");
+  else return it->second;
+}
+
+//Type to string
+static inline const std::string& FMethod2string(bob::learn::misc::PLDATrainer::InitFMethod o){
+  for (auto it = FMethod.begin(); it != FMethod.end(); ++it) if (it->second == o) return it->first;
+  throw std::runtime_error("The given FMethod type is not known");
+}
+
+static inline const std::string& GMethod2string(bob::learn::misc::PLDATrainer::InitGMethod o){
+  for (auto it = GMethod.begin(); it != GMethod.end(); ++it) if (it->second == o) return it->first;
+  throw std::runtime_error("The given GMethod type is not known");
+}
+
+static inline const std::string& SigmaMethod2string(bob::learn::misc::PLDATrainer::InitSigmaMethod o){
+  for (auto it = SigmaMethod.begin(); it != SigmaMethod.end(); ++it) if (it->second == o) return it->first;
+  throw std::runtime_error("The given SigmaMethod type is not known");
+}
+
 
 static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* converts PyObject to bool and returns false if object is NULL */
 
@@ -44,6 +85,11 @@ static PyObject* vector_as_list(const std::vector<blitz::Array<double,N> >& vec)
   }
   return list;
 }
+
+
+/******************************************************************/
+/************ Constructor Section *********************************/
+/******************************************************************/
 
 
 static auto PLDATrainer_doc = bob::extension::ClassDoc(
@@ -208,6 +254,117 @@ PyObject* PyBobLearnMiscPLDATrainer_get_z_first_order(PyBobLearnMiscPLDATrainerO
 }
 
 
+/***** rng *****/
+static auto rng = bob::extension::VariableDoc(
+  "rng",
+  "str",
+  "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.",
+  ""
+);
+PyObject* PyBobLearnMiscPLDATrainer_getRng(PyBobLearnMiscPLDATrainerObject* self, void*) {
+  BOB_TRY
+  //Allocating the correspondent python object
+  
+  PyBoostMt19937Object* retval =
+    (PyBoostMt19937Object*)PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type, 0);
+
+  retval->rng = self->cxx->getRng().get();
+  return Py_BuildValue("O", retval);
+  BOB_CATCH_MEMBER("Rng method could not be read", 0)
+}
+int PyBobLearnMiscPLDATrainer_setRng(PyBobLearnMiscPLDATrainerObject* self, PyObject* value, void*) {
+  BOB_TRY
+
+  if (!PyBoostMt19937_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an PyBoostMt19937_Check", Py_TYPE(self)->tp_name, rng.name());
+    return -1;
+  }
+
+  PyBoostMt19937Object* rng_object = 0;
+  PyArg_Parse(value, "O!", &PyBoostMt19937_Type, &rng_object);
+  self->cxx->setRng((boost::shared_ptr<boost::mt19937>)rng_object->rng);
+
+  return 0;
+  BOB_CATCH_MEMBER("Rng could not be set", 0)
+}
+
+
+/***** init_f_method *****/
+static auto init_f_method = bob::extension::VariableDoc(
+  "init_f_method",
+  "str",
+  "The method used for the initialization of :math:`$F$`.",
+  ""
+);
+PyObject* PyBobLearnMiscPLDATrainer_getFMethod(PyBobLearnMiscPLDATrainerObject* self, void*) {
+  BOB_TRY
+  return Py_BuildValue("s", FMethod2string(self->cxx->getInitFMethod()).c_str());
+  BOB_CATCH_MEMBER("init_f_method method could not be read", 0)
+}
+int PyBobLearnMiscPLDATrainer_setFMethod(PyBobLearnMiscPLDATrainerObject* self, PyObject* value, void*) {
+  BOB_TRY
+
+  if (!PyString_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an str", Py_TYPE(self)->tp_name, init_f_method.name());
+    return -1;
+  }
+  self->cxx->setInitFMethod(string2FMethod(PyString_AS_STRING(value)));
+
+  return 0;
+  BOB_CATCH_MEMBER("init_f_method method could not be set", 0)
+}
+
+
+/***** init_g_method *****/
+static auto init_g_method = bob::extension::VariableDoc(
+  "init_g_method",
+  "str",
+  "The method used for the initialization of :math:`$G$`.",
+  ""
+);
+PyObject* PyBobLearnMiscPLDATrainer_getGMethod(PyBobLearnMiscPLDATrainerObject* self, void*) {
+  BOB_TRY
+  return Py_BuildValue("s", GMethod2string(self->cxx->getInitGMethod()).c_str());
+  BOB_CATCH_MEMBER("init_g_method method could not be read", 0)
+}
+int PyBobLearnMiscPLDATrainer_setGMethod(PyBobLearnMiscPLDATrainerObject* self, PyObject* value, void*) {
+  BOB_TRY
+
+  if (!PyString_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an str", Py_TYPE(self)->tp_name, init_g_method.name());
+    return -1;
+  }
+  self->cxx->setInitGMethod(string2GMethod(PyString_AS_STRING(value)));
+
+  return 0;
+  BOB_CATCH_MEMBER("init_g_method method could not be set", 0)
+}
+
+
+/***** init_sigma_method *****/
+static auto init_sigma_method = bob::extension::VariableDoc(
+  "init_sigma_method",
+  "str",
+  "The method used for the initialization of :math:`$\\Sigma$`.",
+  ""
+);
+PyObject* PyBobLearnMiscPLDATrainer_getSigmaMethod(PyBobLearnMiscPLDATrainerObject* self, void*) {
+  BOB_TRY
+  return Py_BuildValue("s", SigmaMethod2string(self->cxx->getInitSigmaMethod()).c_str());
+  BOB_CATCH_MEMBER("init_sigma_method method could not be read", 0)
+}
+int PyBobLearnMiscPLDATrainer_setSigmaMethod(PyBobLearnMiscPLDATrainerObject* self, PyObject* value, void*) {
+  BOB_TRY
+
+  if (!PyString_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an str", Py_TYPE(self)->tp_name, init_sigma_method.name());
+    return -1;
+  }
+  self->cxx->setInitSigmaMethod(string2SigmaMethod(PyString_AS_STRING(value)));
+
+  return 0;
+  BOB_CATCH_MEMBER("init_sigma_method method could not be set", 0)
+}
 
 
 static PyGetSetDef PyBobLearnMiscPLDATrainer_getseters[] = { 
@@ -232,7 +389,34 @@ static PyGetSetDef PyBobLearnMiscPLDATrainer_getseters[] = {
    z_second_order.doc(),
    0
   },
-
+  {
+   rng.name(),
+   (getter)PyBobLearnMiscPLDATrainer_getRng,
+   (setter)PyBobLearnMiscPLDATrainer_setRng,
+   rng.doc(),
+   0
+  },
+  {
+   init_f_method.name(),
+   (getter)PyBobLearnMiscPLDATrainer_getFMethod,
+   (setter)PyBobLearnMiscPLDATrainer_setFMethod,
+   init_f_method.doc(),
+   0
+  },
+  {
+   init_g_method.name(),
+   (getter)PyBobLearnMiscPLDATrainer_getGMethod,
+   (setter)PyBobLearnMiscPLDATrainer_setGMethod,
+   init_g_method.doc(),
+   0
+  },
+  {
+   init_sigma_method.name(),
+   (getter)PyBobLearnMiscPLDATrainer_getSigmaMethod,
+   (setter)PyBobLearnMiscPLDATrainer_setSigmaMethod,
+   init_sigma_method.doc(),
+   0
+  },  
   {0}  // Sentinel
 };
 
@@ -384,7 +568,7 @@ static PyObject* PyBobLearnMiscPLDATrainer_enrol(PyBobLearnMiscPLDATrainerObject
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = finalize.kwlist(0);
+  char** kwlist = enrol.kwlist(0);
 
   PyBobLearnMiscPLDAMachineObject* plda_machine = 0;
   PyBlitzArrayObject* data = 0;
@@ -399,6 +583,46 @@ static PyObject* PyBobLearnMiscPLDATrainer_enrol(PyBobLearnMiscPLDATrainerObject
 
   Py_RETURN_NONE;
 }
+
+
+/*** is_similar_to ***/
+static auto is_similar_to = bob::extension::FunctionDoc(
+  "is_similar_to",
+  
+  "Compares this PLDATrainer with the ``other`` one to be approximately the same.",
+  "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
+  "relative and absolute precision for the ``weights``, ``biases`` "
+  "and any other values internal to this machine."
+)
+.add_prototype("other, [r_epsilon], [a_epsilon]","output")
+.add_parameter("other", ":py:class:`bob.learn.misc.PLDAMachine`", "A PLDAMachine object to be compared.")
+.add_parameter("r_epsilon", "float", "Relative precision.")
+.add_parameter("a_epsilon", "float", "Absolute precision.")
+.add_return("output","bool","True if it is similar, otherwise false.");
+static PyObject* PyBobLearnMiscPLDATrainer_IsSimilarTo(PyBobLearnMiscPLDATrainerObject* self, PyObject* args, PyObject* kwds) {
+
+  /* Parses input arguments in a single shot */
+  char** kwlist = is_similar_to.kwlist(0);
+
+  //PyObject* other = 0;
+  PyBobLearnMiscPLDATrainerObject* other = 0;
+  double r_epsilon = 1.e-5;
+  double a_epsilon = 1.e-8;
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwds, "O!|dd", kwlist,
+        &PyBobLearnMiscPLDATrainer_Type, &other,
+        &r_epsilon, &a_epsilon)){
+
+        is_similar_to.print_usage(); 
+        return 0;        
+  }
+
+  if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
+    Py_RETURN_TRUE;
+  else
+    Py_RETURN_FALSE;
+}
+
 
 
 static PyMethodDef PyBobLearnMiscPLDATrainer_methods[] = {
@@ -421,10 +645,22 @@ static PyMethodDef PyBobLearnMiscPLDATrainer_methods[] = {
     m_step.doc()
   },
   {
+    finalize.name(),
+    (PyCFunction)PyBobLearnMiscPLDATrainer_finalize,
+    METH_VARARGS|METH_KEYWORDS,
+    finalize.doc()
+  },  
+  {
     enrol.name(),
     (PyCFunction)PyBobLearnMiscPLDATrainer_enrol,
     METH_VARARGS|METH_KEYWORDS,
     enrol.doc()
+  },
+  {
+    is_similar_to.name(),
+    (PyCFunction)PyBobLearnMiscPLDATrainer_IsSimilarTo,
+    METH_VARARGS|METH_KEYWORDS,
+    is_similar_to.doc()
   },
   {0} /* Sentinel */
 };

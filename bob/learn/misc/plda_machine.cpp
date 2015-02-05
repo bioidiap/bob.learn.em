@@ -643,7 +643,7 @@ static PyObject* PyBobLearnMiscPLDAMachine_computeLogLikelihood(PyBobLearnMiscPL
   char** kwlist = compute_log_likelihood.kwlist(0);
 
   PyBlitzArrayObject* samples;
-  PyObject* with_enrolled_samples = 0;
+  PyObject* with_enrolled_samples = Py_True;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
                                                                  &PyBool_Type, &with_enrolled_samples)) Py_RETURN_NONE;

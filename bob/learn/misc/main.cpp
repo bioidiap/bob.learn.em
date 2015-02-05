@@ -9,6 +9,9 @@
 #undef NO_IMPORT_ARRAY
 #endif
 #include "main.h"
+#include "ztnorm.cpp"
+#include "linear_scoring.cpp"
+
 
 static PyMethodDef module_methods[] = {
   {

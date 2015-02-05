@@ -137,6 +137,8 @@ setup(
 
           "bob/learn/misc/ztnorm.cpp",
 
+          "bob/learn/misc/linear_scoring.cpp",
+
           "bob/learn/misc/main.cpp",
         ],
         bob_packages = bob_packages,

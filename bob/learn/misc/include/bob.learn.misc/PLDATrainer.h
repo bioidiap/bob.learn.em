@@ -217,6 +217,19 @@ class PLDATrainer
      */
     void enrol(bob::learn::misc::PLDAMachine& plda_machine,
       const blitz::Array<double,2>& ar) const;
+      
+      
+    /**
+     * @brief Sets the Random Number Generator
+     */
+    void setRng(const boost::shared_ptr<boost::mt19937> rng)
+    { m_rng = rng; }
+
+    /**
+     * @brief Gets the Random Number Generator
+     */
+    const boost::shared_ptr<boost::mt19937> getRng() const
+    { return m_rng; }      
 
   private:
   

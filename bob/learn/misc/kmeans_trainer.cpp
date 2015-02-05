@@ -282,7 +282,7 @@ int PyBobLearnMiscKMeansTrainer_setRng(PyBobLearnMiscKMeansTrainerObject* self, 
   BOB_TRY
 
   if (!PyBoostMt19937_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an PyBoostMt19937_Check", Py_TYPE(self)->tp_name, average_min_distance.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an PyBoostMt19937_Check", Py_TYPE(self)->tp_name, rng.name());
     return -1;
   }
 
