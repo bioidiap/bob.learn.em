@@ -906,10 +906,10 @@ static PyObject* PyBobLearnMiscPLDABase_computeLogLikelihoodPointEstimate(PyBobL
   BOB_TRY
   
   char** kwlist = compute_log_likelihood_point_estimate.kwlist(0);
-  PyBlitzArrayObject* xij, *hi, *wij = 0;  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &xij,
+  PyBlitzArrayObject* xij, *hi, *wij;  
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&", kwlist, &PyBlitzArray_Converter, &xij,
                                                                &PyBlitzArray_Converter, &hi,
-                                                               &PyBlitzArray_Converter, &wij)) Py_RETURN_NONE;
+                                                               &PyBlitzArray_Converter, &wij)) return 0;
 
   auto xij_ = make_safe(xij);
   auto hi_ = make_safe(hi);
