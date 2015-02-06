@@ -69,28 +69,72 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}
 
 
 /*** linear_scoring ***/
-static auto linear_scoring = bob::extension::FunctionDoc(
+static auto linear_scoring1 = bob::extension::FunctionDoc(
   "linear_scoring",
   "",
   0,
   true
 )
 .add_prototype("models, ubm, test_stats, test_channelOffset, frame_length_normalisation", "output")
-.add_parameter("models", "", "")
-.add_parameter("ubm", "", "")
-.add_parameter("test_stats", "", "")
-.add_parameter("test_channelOffset", "", "")
+.add_parameter("models", "list(:py:class:`bob.learn.misc.GMMMachine`)", "")
+.add_parameter("ubm", ":py:class:`bob.learn.misc.GMMMachine`", "")
+.add_parameter("test_stats", "list(:py:class:`bob.learn.misc.GMMStats`)", "")
+.add_parameter("test_channelOffset", "list(array_like<float,1>)", "")
 .add_parameter("frame_length_normalisation", "bool", "")
 .add_return("output","array_like<float,1>","Score");
-static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = linear_scoring.kwlist(0);
+
+static auto linear_scoring2 = bob::extension::FunctionDoc(
+  "linear_scoring",
+  "",
+  0,
+  true
+)
+.add_prototype("models, ubm_mean, ubm_variance, test_stats, test_channelOffset, frame_length_normalisation", "output")
+.add_parameter("models", "list(array_like<float,1>)", "")
+.add_parameter("ubm_mean", "list(array_like<float,1>)", "")
+.add_parameter("ubm_variance", "list(array_like<float,1>)", "")
+.add_parameter("test_stats", "list(:py:class:`bob.learn.misc.GMMStats`)", "")
+.add_parameter("test_channelOffset", "list(array_like<float,1>)", "")
+.add_parameter("frame_length_normalisation", "bool", "")
+.add_return("output","array_like<float,1>","Score");
+
+
+
+static auto linear_scoring3 = bob::extension::FunctionDoc(
+  "linear_scoring",
+  "",
+  0,
+  true
+)
+.add_prototype("model, ubm_mean, ubm_variance, test_stats, test_channelOffset, frame_length_normalisation", "output")
+.add_parameter("model", "array_like<float,1>", "")
+.add_parameter("ubm_mean", "array_like<float,1>", "")
+.add_parameter("ubm_variance", "array_like<float,1>", "")
+.add_parameter("test_stats", ":py:class:`bob.learn.misc.GMMStats`", "")
+.add_parameter("test_channelOffset", "array_like<float,1>", "")
+.add_parameter("frame_length_normalisation", "bool", "")
+.add_return("output","array_like<float,1>","Score");
+
+static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
     
   //Cheking the number of arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-
-    //Read a list of GMM
-  if((nargs >= 3) && (nargs<=5)){
+    
+  //Reading the first input argument
+  PyObject* arg = 0;
+  if (PyTuple_Size(args))
+    arg = PyTuple_GET_ITEM(args, 0);
+  else {
+    PyObject* tmp = PyDict_Values(kwargs);
+    auto tmp_ = make_safe(tmp);
+    arg = PyList_GET_ITEM(tmp, 0);
+  }
+  
+  //Checking the signature of the method (list of GMMMachine as input)
+  if ((PyList_Check(arg)) && PyBobLearnMiscGMMMachine_Check(PyList_GetItem(arg, 0)) && (nargs >= 3) && (nargs<=5) ){
+  
+    char** kwlist = linear_scoring1.kwlist(0);
 
     PyObject* gmm_list_o                 = 0;
     PyBobLearnMiscGMMMachineObject* ubm  = 0;
@@ -103,7 +147,7 @@ static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObje
                                                                        &PyList_Type, &stats_list_o,
                                                                        &PyList_Type, &channel_offset_list_o,
                                                                        &PyBool_Type, &frame_length_normalisation)){
-      linear_scoring.print_usage(); 
+      linear_scoring1.print_usage();
       Py_RETURN_NONE;
     }
 
@@ -127,54 +171,96 @@ static PyObject* PyBobLearnMisc_linear_scoring(PyObject*, PyObject* args, PyObje
 
     return PyBlitzArrayCxx_AsConstNumpy(scores);
   }
+
+  //Checking the signature of the method (list of arrays as input
+  else if ((PyList_Check(arg)) && PyArray_Check(PyList_GetItem(arg, 0)) && (nargs >= 4) && (nargs<=6) ){
+  
+    char** kwlist = linear_scoring2.kwlist(0);
+
+    PyObject* model_supervector_list_o        = 0;
+    PyBlitzArrayObject* ubm_means             = 0;
+    PyBlitzArrayObject* ubm_variances         = 0;
+    PyObject* stats_list_o                    = 0;
+    PyObject* channel_offset_list_o           = 0;
+    PyObject* frame_length_normalisation      = Py_False;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&O&O!|O!O!", kwlist, &PyList_Type, &model_supervector_list_o,
+                                                                       &PyBlitzArray_Converter, &ubm_means,
+                                                                       &PyBlitzArray_Converter, &ubm_variances,
+                                                                       &PyList_Type, &stats_list_o,
+                                                                       &PyList_Type, &channel_offset_list_o,
+                                                                       &PyBool_Type, &frame_length_normalisation)){
+      linear_scoring2.print_usage(); 
+      Py_RETURN_NONE;
+    }
+    
+    //protects acquired resources through this scope
+    auto ubm_means_ = make_safe(ubm_means);
+    auto ubm_variances_ = make_safe(ubm_variances);    
+
+    std::vector<blitz::Array<double,1> > model_supervector_list;
+    if(extract_array_list(model_supervector_list_o ,model_supervector_list)!=0)
+      Py_RETURN_NONE;
+
+    std::vector<boost::shared_ptr<const bob::learn::misc::GMMStats> > stats_list;
+    if(extract_gmmstats_list(stats_list_o ,stats_list)!=0)
+      Py_RETURN_NONE;
+
+    std::vector<blitz::Array<double,1> > channel_offset_list;
+    if(extract_array_list(channel_offset_list_o ,channel_offset_list)!=0)
+      Py_RETURN_NONE;
+
+    blitz::Array<double, 2> scores = blitz::Array<double, 2>(model_supervector_list.size(), stats_list.size());
+    if(channel_offset_list.size()==0)
+      bob::learn::misc::linearScoring(model_supervector_list, *PyBlitzArrayCxx_AsBlitz<double,1>(ubm_means),*PyBlitzArrayCxx_AsBlitz<double,1>(ubm_variances), stats_list, f(frame_length_normalisation),scores);
+    else
+      bob::learn::misc::linearScoring(model_supervector_list, *PyBlitzArrayCxx_AsBlitz<double,1>(ubm_means),*PyBlitzArrayCxx_AsBlitz<double,1>(ubm_variances), stats_list, channel_offset_list, f(frame_length_normalisation),scores);
+
+    return PyBlitzArrayCxx_AsConstNumpy(scores);
+  
+  }
+  
+  //Checking the signature of the method (list of arrays as input
+  else if (PyArray_Check(arg) && (nargs >= 5) && (nargs<=6) ){
+  
+    char** kwlist = linear_scoring3.kwlist(0);
+
+    PyBlitzArrayObject* model                 = 0;
+    PyBlitzArrayObject* ubm_means             = 0;
+    PyBlitzArrayObject* ubm_variances         = 0;
+    PyBobLearnMiscGMMStatsObject* stats       = 0;
+    PyBlitzArrayObject* channel_offset        = 0;
+    PyObject* frame_length_normalisation      = Py_False;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&O!O&|O!", kwlist, &PyBlitzArray_Converter, &model,
+                                                                       &PyBlitzArray_Converter, &ubm_means,
+                                                                       &PyBlitzArray_Converter, &ubm_variances,
+                                                                       &PyBobLearnMiscGMMStats_Type, &stats,
+                                                                       &PyBlitzArray_Converter, &channel_offset,
+                                                                       &PyBool_Type, &frame_length_normalisation)){
+      linear_scoring3.print_usage(); 
+      Py_RETURN_NONE;
+    }
+    
+    //protects acquired resources through this scope
+    auto model_ = make_safe(model);
+    auto ubm_means_ = make_safe(ubm_means);
+    auto ubm_variances_ = make_safe(ubm_variances);
+    auto channel_offset_ = make_safe(channel_offset);
+
+    double score = bob::learn::misc::linearScoring(*PyBlitzArrayCxx_AsBlitz<double,1>(model), *PyBlitzArrayCxx_AsBlitz<double,1>(ubm_means),*PyBlitzArrayCxx_AsBlitz<double,1>(ubm_variances), *stats->cxx, *PyBlitzArrayCxx_AsBlitz<double,1>(channel_offset), f(frame_length_normalisation));
+
+    return Py_BuildValue("d",score);
+  }
+
+  
   else{
     PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - linear_scoring requires 5 or 6 arguments, but you provided %d (see help)", nargs);
-    linear_scoring.print_usage();
+    linear_scoring1.print_usage();
+    linear_scoring2.print_usage();
+    linear_scoring3.print_usage();
     Py_RETURN_NONE;
   }
-  /*
-  
-  
-  PyBlitzArrayObject *rawscores_probes_vs_models_o, *rawscores_zprobes_vs_models_o, *rawscores_probes_vs_tmodels_o, 
-  *rawscores_zprobes_vs_tmodels_o, *mask_zprobes_vs_tmodels_istruetrial_o;
-
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&O&|O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
-                                                                       &PyBlitzArray_Converter, &rawscores_zprobes_vs_models_o,
-                                                                       &PyBlitzArray_Converter, &rawscores_probes_vs_tmodels_o,
-                                                                       &PyBlitzArray_Converter, &rawscores_zprobes_vs_tmodels_o,
-                                                                       &PyBlitzArray_Converter, &mask_zprobes_vs_tmodels_istruetrial_o)){
-    zt_norm.print_usage();
-    Py_RETURN_NONE;
-  }
-
-  // get the number of command line arguments
-  auto rawscores_probes_vs_models_          = make_safe(rawscores_probes_vs_models_o);
-  auto rawscores_zprobes_vs_models_         = make_safe(rawscores_zprobes_vs_models_o);
-  auto rawscores_probes_vs_tmodels_         = make_safe(rawscores_probes_vs_tmodels_o);
-  auto rawscores_zprobes_vs_tmodels_        = make_safe(rawscores_zprobes_vs_tmodels_o);
-  //auto mask_zprobes_vs_tmodels_istruetrial_ = make_safe(mask_zprobes_vs_tmodels_istruetrial_o);
-
-  blitz::Array<double,2>  rawscores_probes_vs_models = *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o);
-  blitz::Array<double,2> normalized_scores = blitz::Array<double,2>(rawscores_probes_vs_models.extent(0), rawscores_probes_vs_models.extent(1));
-
-  int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-
-  if(nargs==4)
-    bob::learn::misc::ztNorm(*PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o),
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_models_o),
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_tmodels_o),
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_tmodels_o),
-                             normalized_scores);
-  else
-    bob::learn::misc::ztNorm(*PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o), 
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_models_o), 
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_tmodels_o), 
-                             *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_tmodels_o), 
-                             *PyBlitzArrayCxx_AsBlitz<bool,2>(mask_zprobes_vs_tmodels_istruetrial_o),
-                             normalized_scores);
-
-  return PyBlitzArrayCxx_AsConstNumpy(normalized_scores);
-  */
 
 }
 

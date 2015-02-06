@@ -65,7 +65,7 @@ def test_LinearScoring():
   scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], [], True)
   assert (abs(scores - ref_scores_01) < 1e-7).all()
   #scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], (), True)
-  assert (abs(scores - ref_scores_01) < 1e-7).all()
+  #assert (abs(scores - ref_scores_01) < 1e-7).all()
   #scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], None, True)
   #assert (abs(scores - ref_scores_01) < 1e-7).all()
 
@@ -77,7 +77,7 @@ def test_LinearScoring():
   scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], test_channeloffset, True)
   assert (abs(scores - ref_scores_11) < 1e-7).all()
 
-"""
+
   # 2/ Use mean/variance supervectors
   # 2/a/ Without test_channelOffset, without frame-length normalisation
   scores = linear_scoring([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3])
@@ -95,6 +95,7 @@ def test_LinearScoring():
   scores = linear_scoring([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3], test_channeloffset, True)
   assert (abs(scores - ref_scores_11) < 1e-7).all()
 
+
   # 3/ Using single model/sample
   # 3/a/ without frame-length normalisation
   score = linear_scoring(model1.mean_supervector, ubm.mean_supervector, ubm.variance_supervector, stats1, test_channeloffset[0])
@@ -110,6 +111,7 @@ def test_LinearScoring():
   score = linear_scoring(model2.mean_supervector, ubm.mean_supervector, ubm.variance_supervector, stats3, test_channeloffset[2])
   assert abs(score - ref_scores_10[1,2]) < 1e-7
 
+
   # 3/b/ without frame-length normalisation
   score = linear_scoring(model1.mean_supervector, ubm.mean_supervector, ubm.variance_supervector, stats1, test_channeloffset[0], True)
   assert abs(score - ref_scores_11[0,0]) < 1e-7
@@ -123,4 +125,4 @@ def test_LinearScoring():
   assert abs(score - ref_scores_11[1,1]) < 1e-7
   score = linear_scoring(model2.mean_supervector, ubm.mean_supervector, ubm.variance_supervector, stats3, test_channeloffset[2], True)
   assert abs(score - ref_scores_11[1,2]) < 1e-7
-"""
+

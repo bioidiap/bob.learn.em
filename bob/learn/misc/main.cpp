@@ -33,10 +33,10 @@ static PyMethodDef module_methods[] = {
     z_norm.doc()
   },
   {
-    linear_scoring.name(),
+    linear_scoring1.name(),
     (PyCFunction)PyBobLearnMisc_linear_scoring,
     METH_VARARGS|METH_KEYWORDS,
-    linear_scoring.doc()
+    linear_scoring1.doc()
   },
 
   {0}//Sentinel
