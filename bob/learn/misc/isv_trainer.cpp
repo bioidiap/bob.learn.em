@@ -442,7 +442,7 @@ static auto m_step = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base,stats")
+.add_prototype("isv_base")
 .add_parameter("isv_base", ":py:class:`bob.learn.misc.ISVBase`", "ISVBase Object");
 static PyObject* PyBobLearnMiscISVTrainer_m_step(PyBobLearnMiscISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
@@ -452,7 +452,7 @@ static PyObject* PyBobLearnMiscISVTrainer_m_step(PyBobLearnMiscISVTrainerObject*
 
   PyBobLearnMiscISVBaseObject* isv_base = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscISVBase_Type, &isv_base)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscISVBase_Type, &isv_base)) return 0;
 
   self->cxx->mStep(*isv_base->cxx);
 
