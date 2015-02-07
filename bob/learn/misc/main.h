@@ -26,7 +26,7 @@
 #include <bob.learn.misc/KMeansMachine.h>
 
 #include <bob.learn.misc/KMeansTrainer.h>
-#include <bob.learn.misc/GMMBaseTrainer.h>
+//#include <bob.learn.misc/GMMBaseTrainer.h>
 #include <bob.learn.misc/ML_GMMTrainer.h>
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 
@@ -145,6 +145,7 @@ int PyBobLearnMiscKMeansTrainer_Check(PyObject* o);
 
 
 // GMMBaseTrainer
+/*
 typedef struct {
   PyObject_HEAD
   boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> cxx;
@@ -153,7 +154,7 @@ typedef struct {
 extern PyTypeObject PyBobLearnMiscGMMBaseTrainer_Type;
 bool init_BobLearnMiscGMMBaseTrainer(PyObject* module);
 int PyBobLearnMiscGMMBaseTrainer_Check(PyObject* o);
-
+*/
 
 // ML_GMMTrainer
 typedef struct {

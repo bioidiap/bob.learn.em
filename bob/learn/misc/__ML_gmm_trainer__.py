@@ -11,13 +11,17 @@ import numpy
 # define the class
 class ML_GMMTrainer(_ML_GMMTrainer):
 
-  def __init__(self, gmm_base_trainer, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True):
+  def __init__(self, update_means=True, update_variances=False, update_weights=False, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True):
     """
     :py:class:bob.learn.misc.ML_GMMTrainer constructor
 
     Keyword Parameters:
-      gmm_base_trainer
-        The base trainer (:py:class:`bob.learn.misc.GMMBaseTrainer`
+      update_means
+
+      update_variances
+
+      update_weights
+ 
       convergence_threshold
         Convergence threshold
       max_iterations
@@ -27,7 +31,7 @@ class ML_GMMTrainer(_ML_GMMTrainer):
         
     """
 
-    _ML_GMMTrainer.__init__(self, gmm_base_trainer)
+    _ML_GMMTrainer.__init__(self, update_means=update_means, update_variances=update_variances, update_weights=update_weights)
     self.convergence_threshold  = convergence_threshold
     self.max_iterations         = max_iterations
     self.converge_by_likelihood = converge_by_likelihood
@@ -53,10 +57,10 @@ class ML_GMMTrainer(_ML_GMMTrainer):
 
 
     #eStep
-    self.gmm_base_trainer.eStep(gmm_machine, data);
+    self.eStep(gmm_machine, data);
 
     if(self.converge_by_likelihood):
-      average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);    
+      average_output = self.compute_likelihood(gmm_machine);    
 
     for i in range(self.max_iterations):
       #saves average output from last iteration
@@ -66,11 +70,11 @@ class ML_GMMTrainer(_ML_GMMTrainer):
       self.mStep(gmm_machine);
 
       #eStep
-      self.gmm_base_trainer.eStep(gmm_machine, data);
+      self.eStep(gmm_machine, data);
 
       #Computes log likelihood if required
       if(self.converge_by_likelihood):
-        average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);
+        average_output = self.compute_likelihood(gmm_machine);
 
         #Terminates if converged (and likelihood computation is set)
         if abs((average_output_previous - average_output)/average_output_previous) <= self.convergence_threshold:

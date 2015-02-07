@@ -14,7 +14,7 @@ import bob.io.base
 from bob.io.base.test_utils import datafile
 
 from . import KMeansMachine, GMMMachine, KMeansTrainer, \
-    GMMBaseTrainer, ML_GMMTrainer, MAP_GMMTrainer
+    ML_GMMTrainer, MAP_GMMTrainer
 
 #, MAP_GMMTrainer
 
@@ -50,7 +50,7 @@ def test_gmm_ML_1():
   ar = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__))  
   gmm = loadGMM()
   
-  ml_gmmtrainer = ML_GMMTrainer(GMMBaseTrainer(True, True, True))
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True)
   ml_gmmtrainer.train(gmm, ar)
 
   #config = bob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
@@ -82,7 +82,7 @@ def test_gmm_ML_2():
   prior = 0.001
   max_iter_gmm = 25
   accuracy = 0.00001
-  ml_gmmtrainer = ML_GMMTrainer(GMMBaseTrainer(True, True, True, prior), converge_by_likelihood=True)
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior, converge_by_likelihood=True)
   ml_gmmtrainer.max_iterations = max_iter_gmm
   ml_gmmtrainer.convergence_threshold = accuracy
   
@@ -96,8 +96,6 @@ def test_gmm_ML_2():
   variancesML_ref = bob.io.base.load(datafile('variancesAfterML.hdf5', __name__))
   weightsML_ref = bob.io.base.load(datafile('weightsAfterML.hdf5', __name__))
 
-
-  print sum(sum(gmm.means - meansML_ref))
 
   # Compare to current results
   assert equals(gmm.means, meansML_ref, 3e-3)
@@ -115,7 +113,7 @@ def test_gmm_MAP_1():
   gmm = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
   gmmprior = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__)))
 
-  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False),gmmprior, relevance_factor=4.)  
+  map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, prior_gmm=gmmprior, relevance_factor=4.)  
   #map_gmmtrainer.set_prior_gmm(gmmprior)
   map_gmmtrainer.train(gmm, ar)
 
@@ -142,7 +140,7 @@ def test_gmm_MAP_2():
   gmm.variances = variances
   gmm.weights = weights
 
-  map_adapt = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, mean_var_update_responsibilities_threshold=0.),gmm, relevance_factor=4.)
+  map_adapt = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, mean_var_update_responsibilities_threshold=0.,prior_gmm=gmm, relevance_factor=4.)
   #map_adapt.set_prior_gmm(gmm)
 
   gmm_adapted = GMMMachine(2,50)
@@ -186,7 +184,7 @@ def test_gmm_MAP_3():
   max_iter_gmm = 1
   accuracy = 0.00001
   map_factor = 0.5
-  map_gmmtrainer = MAP_GMMTrainer(GMMBaseTrainer(True, False, False, prior), prior_gmm, alpha=map_factor)
+  map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, convergence_threshold=prior, prior_gmm=prior_gmm, alpha=map_factor)
   map_gmmtrainer.max_iterations = max_iter_gmm
   map_gmmtrainer.convergence_threshold = accuracy
 

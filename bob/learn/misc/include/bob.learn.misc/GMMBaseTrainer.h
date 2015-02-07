@@ -30,9 +30,9 @@ class GMMBaseTrainer
      * @brief Default constructor
      */
     GMMBaseTrainer(const bool update_means=true,
-      const bool update_variances=false, const bool update_weights=false,
-      const double mean_var_update_responsibilities_threshold =
-        std::numeric_limits<double>::epsilon());
+                   const bool update_variances=false, 
+                   const bool update_weights=false,
+                   const double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon());
 
     /**
      * @brief Copy constructor
@@ -47,7 +47,7 @@ class GMMBaseTrainer
     /**
      * @brief Initialization before the EM steps
      */
-    virtual void initialize(bob::learn::misc::GMMMachine& gmm);
+    void initialize(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Calculates and saves statistics across the dataset,
@@ -58,14 +58,14 @@ class GMMBaseTrainer
      * The statistics, m_ss, will be used in the mStep() that follows.
      * Implements EMTrainer::eStep(double &)
      */
-    virtual void eStep(bob::learn::misc::GMMMachine& gmm,
+     void eStep(bob::learn::misc::GMMMachine& gmm,
       const blitz::Array<double,2>& data);
 
     /**
      * @brief Computes the likelihood using current estimates of the latent
      * variables
      */
-    virtual double computeLikelihood(bob::learn::misc::GMMMachine& gmm);
+    double computeLikelihood(bob::learn::misc::GMMMachine& gmm);
 
 
     /**

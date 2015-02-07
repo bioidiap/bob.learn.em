@@ -11,13 +11,17 @@ import numpy
 # define the class
 class MAP_GMMTrainer(_MAP_GMMTrainer):
 
-  def __init__(self, gmm_base_trainer, prior_gmm, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, **kwargs):
+  def __init__(self, prior_gmm, update_means=True, update_variances=False, update_weights=False, convergence_threshold=0.001, max_iterations=10, converge_by_likelihood=True, **kwargs):
     """
     :py:class:`bob.learn.misc.MAP_GMMTrainer` constructor
 
     Keyword Parameters:
-      gmm_base_trainer
-        The base trainer (:py:class:`bob.learn.misc.GMMBaseTrainer`)
+      update_means
+
+      update_variances
+
+      update_weights
+
       prior_gmm
         A :py:class:`bob.learn.misc.GMMMachine` to be adapted
       convergence_threshold
@@ -34,10 +38,10 @@ class MAP_GMMTrainer(_MAP_GMMTrainer):
 
     if kwargs.get('alpha')!=None:
       alpha = kwargs.get('alpha')
-      _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, alpha=alpha)
+      _MAP_GMMTrainer.__init__(self, prior_gmm,alpha=alpha, update_means=update_means, update_variances=update_variances,update_weights=update_weights)
     else:
       relevance_factor = kwargs.get('relevance_factor')
-      _MAP_GMMTrainer.__init__(self, gmm_base_trainer, prior_gmm, relevance_factor=relevance_factor)
+      _MAP_GMMTrainer.__init__(self, prior_gmm, relevance_factor=relevance_factor, update_means=update_means, update_variances=update_variances,update_weights=update_weights)
     
     self.convergence_threshold  = convergence_threshold
     self.max_iterations         = max_iterations
@@ -67,10 +71,10 @@ class MAP_GMMTrainer(_MAP_GMMTrainer):
 
 
     #eStep
-    self.gmm_base_trainer.eStep(gmm_machine, data);
+    self.eStep(gmm_machine, data);
 
     if(self.converge_by_likelihood):
-      average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);    
+      average_output = self.compute_likelihood(gmm_machine);    
 
     for i in range(self.max_iterations):
       #saves average output from last iteration
@@ -80,11 +84,11 @@ class MAP_GMMTrainer(_MAP_GMMTrainer):
       self.mStep(gmm_machine);
 
       #eStep
-      self.gmm_base_trainer.eStep(gmm_machine, data);
+      self.eStep(gmm_machine, data);
 
       #Computes log likelihood if required
       if(self.converge_by_likelihood):
-        average_output = self.gmm_base_trainer.compute_likelihood(gmm_machine);
+        average_output = self.compute_likelihood(gmm_machine);
 
         #Terminates if converged (and likelihood computation is set)
         if abs((average_output_previous - average_output)/average_output_previous) <= self.convergence_threshold:

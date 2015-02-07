@@ -8,8 +8,18 @@
 #include <bob.learn.misc/MAP_GMMTrainer.h>
 #include <bob.core/check.h>
 
-bob::learn::misc::MAP_GMMTrainer::MAP_GMMTrainer(boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer, boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm, const bool reynolds_adaptation, const double relevance_factor, const double alpha):
-  m_gmm_base_trainer(gmm_base_trainer),
+bob::learn::misc::MAP_GMMTrainer::MAP_GMMTrainer(
+   const bool update_means,
+   const bool update_variances,
+   const bool update_weights,
+   const double mean_var_update_responsibilities_threshold,
+
+   const bool reynolds_adaptation, 
+   const double relevance_factor, 
+   const double alpha,
+   boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm):
+
+  m_gmm_base_trainer(update_means, update_variances, update_weights, mean_var_update_responsibilities_threshold),
   m_prior_gmm(prior_gmm)
 {
   m_reynolds_adaptation = reynolds_adaptation;
@@ -37,7 +47,7 @@ void bob::learn::misc::MAP_GMMTrainer::initialize(bob::learn::misc::GMMMachine& 
     throw std::runtime_error("MAP_GMMTrainer: Prior GMM distribution has not been set");
 
   // Allocate memory for the sufficient statistics and initialise
-  m_gmm_base_trainer->initialize(gmm);
+  m_gmm_base_trainer.initialize(gmm);
 
   const size_t n_gaussians = gmm.getNGaussians();
   // TODO: check size?
@@ -78,13 +88,13 @@ void bob::learn::misc::MAP_GMMTrainer::mStep(bob::learn::misc::GMMMachine& gmm)
   if (!m_reynolds_adaptation)
     m_cache_alpha = m_alpha;
   else
-    m_cache_alpha = m_gmm_base_trainer->getGMMStats().n(i) / (m_gmm_base_trainer->getGMMStats().n(i) + m_relevance_factor);
+    m_cache_alpha = m_gmm_base_trainer.getGMMStats().n(i) / (m_gmm_base_trainer.getGMMStats().n(i) + m_relevance_factor);
 
   // - Update weights if requested
   //   Equation 11 of Reynolds et al., "Speaker Verification Using Adapted Gaussian Mixture Models", Digital Signal Processing, 2000
-  if (m_gmm_base_trainer->getUpdateWeights()) {
+  if (m_gmm_base_trainer.getUpdateWeights()) {
     // Calculate the maximum likelihood weights
-    m_cache_ml_weights = m_gmm_base_trainer->getGMMStats().n / static_cast<double>(m_gmm_base_trainer->getGMMStats().T); //cast req. for linux/32-bits & osx
+    m_cache_ml_weights = m_gmm_base_trainer.getGMMStats().n / static_cast<double>(m_gmm_base_trainer.getGMMStats().T); //cast req. for linux/32-bits & osx
 
     // Get the prior weights
     const blitz::Array<double,1>& prior_weights = m_prior_gmm->getWeights();
@@ -104,35 +114,35 @@ void bob::learn::misc::MAP_GMMTrainer::mStep(bob::learn::misc::GMMMachine& gmm)
   // Update GMM parameters
   // - Update means if requested
   //   Equation 12 of Reynolds et al., "Speaker Verification Using Adapted Gaussian Mixture Models", Digital Signal Processing, 2000
-  if (m_gmm_base_trainer->getUpdateMeans()) {
+  if (m_gmm_base_trainer.getUpdateMeans()) {
     // Calculate new means
     for (size_t i=0; i<n_gaussians; ++i) {
       const blitz::Array<double,1>& prior_means = m_prior_gmm->getGaussian(i)->getMean();
       blitz::Array<double,1>& means = gmm.getGaussian(i)->updateMean();
-      if (m_gmm_base_trainer->getGMMStats().n(i) < m_gmm_base_trainer->getMeanVarUpdateResponsibilitiesThreshold()) {
+      if (m_gmm_base_trainer.getGMMStats().n(i) < m_gmm_base_trainer.getMeanVarUpdateResponsibilitiesThreshold()) {
         means = prior_means;
       }
       else {
         // Use the maximum likelihood means
-        means = m_cache_alpha(i) * (m_gmm_base_trainer->getGMMStats().sumPx(i,blitz::Range::all()) / m_gmm_base_trainer->getGMMStats().n(i)) + (1-m_cache_alpha(i)) * prior_means;
+        means = m_cache_alpha(i) * (m_gmm_base_trainer.getGMMStats().sumPx(i,blitz::Range::all()) / m_gmm_base_trainer.getGMMStats().n(i)) + (1-m_cache_alpha(i)) * prior_means;
       }
     }
   }
 
   // - Update variance if requested
   //   Equation 13 of Reynolds et al., "Speaker Verification Using Adapted Gaussian Mixture Models", Digital Signal Processing, 2000
-  if (m_gmm_base_trainer->getUpdateVariances()) {
+  if (m_gmm_base_trainer.getUpdateVariances()) {
     // Calculate new variances (equation 13)
     for (size_t i=0; i<n_gaussians; ++i) {
       const blitz::Array<double,1>& prior_means = m_prior_gmm->getGaussian(i)->getMean();
       blitz::Array<double,1>& means = gmm.getGaussian(i)->updateMean();
       const blitz::Array<double,1>& prior_variances = m_prior_gmm->getGaussian(i)->getVariance();
       blitz::Array<double,1>& variances = gmm.getGaussian(i)->updateVariance();
-      if (m_gmm_base_trainer->getGMMStats().n(i) < m_gmm_base_trainer->getMeanVarUpdateResponsibilitiesThreshold()) {
+      if (m_gmm_base_trainer.getGMMStats().n(i) < m_gmm_base_trainer.getMeanVarUpdateResponsibilitiesThreshold()) {
         variances = (prior_variances + prior_means) - blitz::pow2(means);
       }
       else {
-        variances = m_cache_alpha(i) * m_gmm_base_trainer->getGMMStats().sumPxx(i,blitz::Range::all()) / m_gmm_base_trainer->getGMMStats().n(i) + (1-m_cache_alpha(i)) * (prior_variances + prior_means) - blitz::pow2(means);
+        variances = m_cache_alpha(i) * m_gmm_base_trainer.getGMMStats().sumPxx(i,blitz::Range::all()) / m_gmm_base_trainer.getGMMStats().n(i) + (1-m_cache_alpha(i)) * (prior_variances + prior_means) - blitz::pow2(means);
       }
       gmm.getGaussian(i)->applyVarianceThresholds();
     }

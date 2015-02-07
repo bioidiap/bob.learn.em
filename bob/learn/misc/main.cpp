@@ -75,7 +75,7 @@ static PyObject* create_module (void) {
   if (!init_BobLearnMiscGMMMachine(module)) return 0;
   if (!init_BobLearnMiscKMeansMachine(module)) return 0;
   if (!init_BobLearnMiscKMeansTrainer(module)) return 0;
-  if (!init_BobLearnMiscGMMBaseTrainer(module)) return 0;
+  //if (!init_BobLearnMiscGMMBaseTrainer(module)) return 0;
   if (!init_BobLearnMiscMLGMMTrainer(module)) return 0;  
   if (!init_BobLearnMiscMAPGMMTrainer(module)) return 0;
 

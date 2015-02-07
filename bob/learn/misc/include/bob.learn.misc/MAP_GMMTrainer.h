@@ -26,7 +26,15 @@ class MAP_GMMTrainer
     /**
      * @brief Default constructor
      */
-    MAP_GMMTrainer(boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer, boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm, const bool reynolds_adaptation=false, const double relevance_factor=4, const double alpha=0.5);
+    MAP_GMMTrainer(
+      const bool update_means=true,
+      const bool update_variances=false, 
+      const bool update_weights=false,
+      const double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon(),
+      const bool reynolds_adaptation=false, 
+      const double relevance_factor=4, 
+      const double alpha=0.5,
+      boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm = 0);
 
     /**
      * @brief Copy constructor
@@ -41,7 +49,7 @@ class MAP_GMMTrainer
     /**
      * @brief Initialization
      */
-    virtual void initialize(bob::learn::misc::GMMMachine& gmm);
+    void initialize(bob::learn::misc::GMMMachine& gmm);
 
     /**
      * @brief Assigns from a different MAP_GMMTrainer
@@ -72,6 +80,21 @@ class MAP_GMMTrainer
     bool setPriorGMM(boost::shared_ptr<bob::learn::misc::GMMMachine> prior_gmm);
 
     /**
+     * @brief Calculates and saves statistics across the dataset,
+     * and saves these as m_ss. Calculates the average
+     * log likelihood of the observations given the GMM,
+     * and returns this in average_log_likelihood.
+     *
+     * The statistics, m_ss, will be used in the mStep() that follows.
+     * Implements EMTrainer::eStep(double &)
+     */
+     void eStep(bob::learn::misc::GMMMachine& gmm,
+      const blitz::Array<double,2>& data){
+      m_gmm_base_trainer.eStep(gmm,data);
+     }
+
+
+    /**
      * @brief Performs a maximum a posteriori (MAP) update of the GMM
      * parameters using the accumulated statistics in m_ss and the
      * parameters of the prior model
@@ -80,13 +103,12 @@ class MAP_GMMTrainer
     void mStep(bob::learn::misc::GMMMachine& gmm);
 
     /**
-     * @brief Use a Torch3-like adaptation rule rather than Reynolds'one
-     * In this case, alpha is a configuration variable rather than a function of the zeroth
-     * order statistics and a relevance factor (should be in range [0,1])
+     * @brief Computes the likelihood using current estimates of the latent
+     * variables
      */
-    //void setT3MAP(const double alpha) { m_T3_adaptation = true; m_T3_alpha = alpha; }
-    //void unsetT3MAP() { m_T3_adaptation = false; }
-    
+    double computeLikelihood(bob::learn::misc::GMMMachine& gmm){
+      return m_gmm_base_trainer.computeLikelihood(gmm);
+    }    
     
     bool getReynoldsAdaptation()
     {return m_reynolds_adaptation;}
@@ -109,13 +131,6 @@ class MAP_GMMTrainer
     {m_alpha = alpha;}
 
 
-    boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> getGMMBaseTrainer()
-    {return m_gmm_base_trainer;}
-    
-    void setGMMBaseTrainer(boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer)
-    {m_gmm_base_trainer = gmm_base_trainer;}
-    
-
   protected:
 
     /**
@@ -123,12 +138,10 @@ class MAP_GMMTrainer
      */
     double m_relevance_factor;
 
-
     /**
     Base Trainer for the MAP algorithm. Basically implements the e-step
     */ 
-    boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> m_gmm_base_trainer;
-
+    bob::learn::misc::GMMBaseTrainer m_gmm_base_trainer;
 
     /**
      * The GMM to use as a prior for MAP adaptation.

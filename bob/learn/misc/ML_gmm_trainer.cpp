@@ -13,6 +13,8 @@
 /************ Constructor Section *********************************/
 /******************************************************************/
 
+static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* converts PyObject to bool and returns false if object is NULL */
+
 static auto ML_GMMTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ML_GMMTrainer",
   "This class implements the maximum likelihood M-step of the expectation-maximisation algorithm for a GMM Machine."
@@ -23,11 +25,16 @@ static auto ML_GMMTrainer_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("gmm_base_trainer","")
+  .add_prototype("update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
   .add_prototype("other","")
   .add_prototype("","")
 
-  .add_parameter("gmm_base_trainer", ":py:class:`bob.learn.misc.GMMBaseTrainer`", "A set GMMBaseTrainer object.")
+  .add_parameter("update_means", "bool", "Update means on each iteration")
+  .add_parameter("update_variances", "bool", "Update variances on each iteration")
+  .add_parameter("update_weights", "bool", "Update weights on each iteration")
+  .add_parameter("mean_var_update_responsibilities_threshold", "float", "Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of Bishop, `Pattern recognition and machine learning`, 2006 require a division by the responsibilities, which might be equal to zero because of numerical issue. This threshold is used to avoid such divisions.")
+
+
   .add_parameter("other", ":py:class:`bob.learn.misc.ML_GMMTrainer`", "A ML_GMMTrainer object to be copied.")
 );
 
@@ -48,15 +55,24 @@ static int PyBobLearnMiscMLGMMTrainer_init_copy(PyBobLearnMiscMLGMMTrainerObject
 
 static int PyBobLearnMiscMLGMMTrainer_init_base_trainer(PyBobLearnMiscMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = ML_GMMTrainer_doc.kwlist(1);
-  PyBobLearnMiscGMMBaseTrainerObject* o;
+  char** kwlist = ML_GMMTrainer_doc.kwlist(0);
   
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGMMBaseTrainer_Type, &o)){
+  PyObject* update_means     = 0;
+  PyObject* update_variances = 0;
+  PyObject* update_weights   = 0;
+  double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon();
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!O!d", kwlist, 
+                                   &PyBool_Type, &update_means, 
+                                   &PyBool_Type, &update_variances, 
+                                   &PyBool_Type, &update_weights, 
+                                   &mean_var_update_responsibilities_threshold)){
     ML_GMMTrainer_doc.print_usage();
     return -1;
   }
 
-  self->cxx.reset(new bob::learn::misc::ML_GMMTrainer(o->cxx));
+  self->cxx.reset(new bob::learn::misc::ML_GMMTrainer(f(update_means), f(update_variances), f(update_weights), 
+                                                       mean_var_update_responsibilities_threshold));
   return 0;
 }
 
@@ -65,30 +81,23 @@ static int PyBobLearnMiscMLGMMTrainer_init_base_trainer(PyBobLearnMiscMLGMMTrain
 static int PyBobLearnMiscMLGMMTrainer_init(PyBobLearnMiscMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-
-  if (nargs==1){ //default initializer ()
-    //Reading the input argument
-    PyObject* arg = 0;
-    if (PyTuple_Size(args))
-      arg = PyTuple_GET_ITEM(args, 0);
-    else {
-      PyObject* tmp = PyDict_Values(kwargs);
-      auto tmp_ = make_safe(tmp);
-      arg = PyList_GET_ITEM(tmp, 0);
-    }
-
-    // If the constructor input is GMMBaseTrainer object
-    if (PyBobLearnMiscGMMBaseTrainer_Check(arg))
-      return PyBobLearnMiscMLGMMTrainer_init_base_trainer(self, args, kwargs);
-    else
-      return PyBobLearnMiscMLGMMTrainer_init_copy(self, args, kwargs);
+  //Reading the input argument
+  PyObject* arg = 0;
+  if (PyTuple_Size(args))
+    arg = PyTuple_GET_ITEM(args, 0);
+  else {
+    PyObject* tmp = PyDict_Values(kwargs);
+    auto tmp_ = make_safe(tmp);
+    arg = PyList_GET_ITEM(tmp, 0);
   }
-  else{
-    PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 1, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
-    ML_GMMTrainer_doc.print_usage();
-    return -1;  
-  }
+
+  // If the constructor input is GMMBaseTrainer object
+  if (PyBobLearnMiscMLGMMTrainer_Check(arg))
+    return PyBobLearnMiscMLGMMTrainer_init_copy(self, args, kwargs);
+  else
+    return PyBobLearnMiscMLGMMTrainer_init_base_trainer(self, args, kwargs);
+
+
 
   BOB_CATCH_MEMBER("cannot create GMMBaseTrainer_init_bool", 0)
   return 0;
@@ -131,54 +140,7 @@ static PyObject* PyBobLearnMiscMLGMMTrainer_RichCompare(PyBobLearnMiscMLGMMTrain
 /************ Variables Section ***********************************/
 /******************************************************************/
 
-
-/***** gmm_base_trainer *****/
-static auto gmm_base_trainer = bob::extension::VariableDoc(
-  "gmm_base_trainer",
-  ":py:class:`bob.learn.misc.GMMBaseTrainer`",
-  "This class that implements the E-step of the expectation-maximisation algorithm.",
-  ""
-);
-PyObject* PyBobLearnMiscMLGMMTrainer_getGMMBaseTrainer(PyBobLearnMiscMLGMMTrainerObject* self, void*){
-  BOB_TRY
-  
-  boost::shared_ptr<bob::learn::misc::GMMBaseTrainer> gmm_base_trainer = self->cxx->getGMMBaseTrainer();
-
-  //Allocating the correspondent python object
-  PyBobLearnMiscGMMBaseTrainerObject* retval =
-    (PyBobLearnMiscGMMBaseTrainerObject*)PyBobLearnMiscGMMBaseTrainer_Type.tp_alloc(&PyBobLearnMiscGMMBaseTrainer_Type, 0);
-
-  retval->cxx = gmm_base_trainer;
-
-  return Py_BuildValue("O",retval);
-  BOB_CATCH_MEMBER("GMMBaseTrainer could not be read", 0)
-}
-int PyBobLearnMiscMLGMMTrainer_setGMMBaseTrainer(PyBobLearnMiscMLGMMTrainerObject* self, PyObject* value, void*){
-  BOB_TRY
-
-  if (!PyBobLearnMiscGMMBaseTrainer_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects a :py:class:`bob.learn.misc.GMMBaseTrainer`", Py_TYPE(self)->tp_name, gmm_base_trainer.name());
-    return -1;
-  }
-
-  PyBobLearnMiscGMMBaseTrainerObject* gmm_base_trainer = 0;
-  PyArg_Parse(value, "O!", &PyBobLearnMiscGMMBaseTrainer_Type,&gmm_base_trainer);
-
-  self->cxx->setGMMBaseTrainer(gmm_base_trainer->cxx);
-
-  return 0;
-  BOB_CATCH_MEMBER("gmm_base_trainer could not be set", -1)  
-}
-
-
 static PyGetSetDef PyBobLearnMiscMLGMMTrainer_getseters[] = { 
-  {
-    gmm_base_trainer.name(),
-    (getter)PyBobLearnMiscMLGMMTrainer_getGMMBaseTrainer,
-    (setter)PyBobLearnMiscMLGMMTrainer_setGMMBaseTrainer,
-    gmm_base_trainer.doc(),
-    0
-  },
   {0}  // Sentinel
 };
 
@@ -215,6 +177,40 @@ static PyObject* PyBobLearnMiscMLGMMTrainer_initialize(PyBobLearnMiscMLGMMTraine
 }
 
 
+/*** eStep ***/
+static auto eStep = bob::extension::FunctionDoc(
+  "eStep",
+  "Calculates and saves statistics across the dataset,"
+  "and saves these as m_ss. ",
+
+  "Calculates the average log likelihood of the observations given the GMM,"
+  "and returns this in average_log_likelihood."
+  "The statistics, m_ss, will be used in the mStep() that follows.",
+
+  true
+)
+.add_prototype("gmm_machine,data")
+.add_parameter("gmm_machine", ":py:class:`bob.learn.misc.GMMMachine`", "GMMMachine Object")
+.add_parameter("data", "array_like <float, 2D>", "Input data");
+static PyObject* PyBobLearnMiscMLGMMTrainer_eStep(PyBobLearnMiscMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  /* Parses input arguments in a single shot */
+  char** kwlist = eStep.kwlist(0);
+
+  PyBobLearnMiscGMMMachineObject* gmm_machine;
+  PyBlitzArrayObject* data = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnMiscGMMMachine_Type, &gmm_machine,
+                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+  auto data_ = make_safe(data);
+
+  self->cxx->eStep(*gmm_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
+
+  BOB_CATCH_MEMBER("cannot perform the eStep method", 0)
+
+  Py_RETURN_NONE;
+}
+
 
 /*** mStep ***/
 static auto mStep = bob::extension::FunctionDoc(
@@ -246,6 +242,31 @@ static PyObject* PyBobLearnMiscMLGMMTrainer_mStep(PyBobLearnMiscMLGMMTrainerObje
 }
 
 
+/*** computeLikelihood ***/
+static auto compute_likelihood = bob::extension::FunctionDoc(
+  "compute_likelihood",
+  "This functions returns the average min (Square Euclidean) distance (average distance to the closest mean)",
+  0,
+  true
+)
+.add_prototype("gmm_machine")
+.add_parameter("gmm_machine", ":py:class:`bob.learn.misc.GMMMachine`", "GMMMachine Object");
+static PyObject* PyBobLearnMiscMLGMMTrainer_compute_likelihood(PyBobLearnMiscMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  /* Parses input arguments in a single shot */
+  char** kwlist = compute_likelihood.kwlist(0);
+
+  PyBobLearnMiscGMMMachineObject* gmm_machine;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnMiscGMMMachine_Type, &gmm_machine)) Py_RETURN_NONE;
+
+  double value = self->cxx->computeLikelihood(*gmm_machine->cxx);
+  return Py_BuildValue("d", value);
+
+  BOB_CATCH_MEMBER("cannot perform the computeLikelihood method", 0)
+}
+
+
 
 static PyMethodDef PyBobLearnMiscMLGMMTrainer_methods[] = {
   {
@@ -255,10 +276,22 @@ static PyMethodDef PyBobLearnMiscMLGMMTrainer_methods[] = {
     initialize.doc()
   },
   {
+    eStep.name(),
+    (PyCFunction)PyBobLearnMiscMLGMMTrainer_eStep,
+    METH_VARARGS|METH_KEYWORDS,
+    eStep.doc()
+  },
+  {
     mStep.name(),
     (PyCFunction)PyBobLearnMiscMLGMMTrainer_mStep,
     METH_VARARGS|METH_KEYWORDS,
     mStep.doc()
+  },
+  {
+    compute_likelihood.name(),
+    (PyCFunction)PyBobLearnMiscMLGMMTrainer_compute_likelihood,
+    METH_VARARGS|METH_KEYWORDS,
+    compute_likelihood.doc()
   },
   {0} /* Sentinel */
 };
@@ -289,7 +322,7 @@ bool init_BobLearnMiscMLGMMTrainer(PyObject* module)
   PyBobLearnMiscMLGMMTrainer_Type.tp_richcompare  = reinterpret_cast<richcmpfunc>(PyBobLearnMiscMLGMMTrainer_RichCompare);
   PyBobLearnMiscMLGMMTrainer_Type.tp_methods      = PyBobLearnMiscMLGMMTrainer_methods;
   PyBobLearnMiscMLGMMTrainer_Type.tp_getset       = PyBobLearnMiscMLGMMTrainer_getseters;
-  //PyBobLearnMiscMLGMMTrainer_Type.tp_call         = reinterpret_cast<ternaryfunc>(PyBobLearnMiscMLGMMTrainer_compute_likelihood);
+  PyBobLearnMiscMLGMMTrainer_Type.tp_call         = reinterpret_cast<ternaryfunc>(PyBobLearnMiscMLGMMTrainer_compute_likelihood);
 
 
   // check that everything is fine
