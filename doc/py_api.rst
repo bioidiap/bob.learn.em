@@ -7,8 +7,8 @@
 ============
 
 This section includes information for using the pure Python API of
-``bob.learn.misc``.
+``bob.learn.em``.
 
 
-.. automodule:: bob.learn.misc
+.. automodule:: bob.learn.em
 
