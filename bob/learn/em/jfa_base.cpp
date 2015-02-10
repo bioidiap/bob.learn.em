@@ -15,8 +15,8 @@
 
 static auto JFABase_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".JFABase",
-  "A JFABase instance can be seen as a container for U, V and D when performing Joint Factor Analysis (JFA)."
-  "References: [Vogt2008,McCool2013]",
+  "A JFABase instance can be seen as a container for :math:`U`, :math:`V` and :math:`D` when performing Joint Factor Analysis (JFA).\n\n"
+  "References: [Vogt2008]_ [McCool2013]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -25,14 +25,14 @@ static auto JFABase_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("gmm,ru,rv","")
+  .add_prototype("ubm,ru,rv","")
   .add_prototype("other","")
   .add_prototype("hdf5","")
   .add_prototype("","")
 
-  .add_parameter("gmm", ":py:class:`bob.learn.em.GMMMachine`", "The Universal Background Model.")
-  .add_parameter("ru", "int", "Size of U (Within client variation matrix). In the end the U matrix will have (number_of_gaussians * feature_dimension x ru)")
-  .add_parameter("rv", "int", "Size of V (Between client variation matrix). In the end the U matrix will have (number_of_gaussians * feature_dimension x rv)")
+  .add_parameter("ubm", ":py:class:`bob.learn.em.GMMMachine`", "The Universal Background Model.")
+  .add_parameter("ru", "int", "Size of :math:`U` (Within client variation matrix). In the end the U matrix will have (#gaussians * #feature_dimension x ru)")
+  .add_parameter("rv", "int", "Size of :math:`V` (Between client variation matrix). In the end the U matrix will have (#gaussians * #feature_dimension x rv)")
   .add_parameter("other", ":py:class:`bob.learn.em.JFABase`", "A JFABase object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -176,7 +176,7 @@ int PyBobLearnEMJFABase_Check(PyObject* o) {
 static auto shape = bob::extension::VariableDoc(
   "shape",
   "(int,int, int, int)",
-  "A tuple that represents the number of gaussians, dimensionality of each Gaussian, dimensionality of the rU (within client variability matrix) and dimensionality of the rV (between client variability matrix) ``(#Gaussians, #Inputs, #rU, #rV)``.",
+  "A tuple that represents the number of gaussians, dimensionality of each Gaussian, dimensionality of the :math:`rU` (within client variability matrix) and dimensionality of the :math:`rV` (between client variability matrix) ``(#Gaussians, #Inputs, #rU, #rV)``.",
   ""
 );
 PyObject* PyBobLearnEMJFABase_getShape(PyBobLearnEMJFABaseObject* self, void*) {
@@ -206,7 +206,7 @@ PyObject* PyBobLearnEMJFABase_getSupervectorLength(PyBobLearnEMJFABaseObject* se
 static auto U = bob::extension::VariableDoc(
   "u",
   "array_like <float, 2D>",
-  "Returns the U matrix (within client variability matrix)",
+  "Returns the :math:`U` matrix (within client variability matrix)",
   ""
 );
 PyObject* PyBobLearnEMJFABase_getU(PyBobLearnEMJFABaseObject* self, void*){
@@ -233,7 +233,7 @@ int PyBobLearnEMJFABase_setU(PyBobLearnEMJFABaseObject* self, PyObject* value, v
 static auto V = bob::extension::VariableDoc(
   "v",
   "array_like <float, 2D>",
-  "Returns the V matrix (between client variability matrix)",
+  "Returns the :math:`V` matrix (between client variability matrix)",
   ""
 );
 PyObject* PyBobLearnEMJFABase_getV(PyBobLearnEMJFABaseObject* self, void*){
@@ -261,7 +261,7 @@ int PyBobLearnEMJFABase_setV(PyBobLearnEMJFABaseObject* self, PyObject* value, v
 static auto D = bob::extension::VariableDoc(
   "d",
   "array_like <float, 1D>",
-  "Returns the diagonal matrix diag(d) (as a 1D vector)",
+  "Returns the diagonal matrix :math:`diag(d)` (as a 1D vector)",
   ""
 );
 PyObject* PyBobLearnEMJFABase_getD(PyBobLearnEMJFABaseObject* self, void*){
@@ -477,8 +477,8 @@ static auto resize = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("rU,rV")
-.add_parameter("rU", "int", "Size of U (Within client variation matrix)")
-.add_parameter("rV", "int", "Size of V (Between client variation matrix)");
+.add_parameter("rU", "int", "Size of :math:`U` (Within client variation matrix)")
+.add_parameter("rV", "int", "Size of :math:`V` (Between client variation matrix)");
 static PyObject* PyBobLearnEMJFABase_resize(PyBobLearnEMJFABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 

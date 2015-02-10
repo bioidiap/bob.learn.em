@@ -539,7 +539,7 @@ static PyObject* PyBobLearnEMGMMMachine_resize(PyBobLearnEMGMMMachineObject* sel
 /*** log_likelihood ***/
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
-  "Output the log likelihood of the sample, x, i.e. log(p(x|GMM)). Inputs are checked.",
+  "Output the log likelihood of the sample, x, i.e. :math:`log(p(x|GMM))`. Inputs are checked.",
   ".. note:: The :py:meth:`__call__` function is an alias for this.", 
   true
 )
@@ -567,7 +567,7 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood(PyBobLearnEMGMMMachineObje
 /*** log_likelihood_ ***/
 static auto log_likelihood_ = bob::extension::FunctionDoc(
   "log_likelihood_",
-  "Output the log likelihood of the sample, x, i.e. log(p(x|GMM)). Inputs are NOT checked.",
+  "Output the log likelihood of the sample, x, i.e. :math:`log(p(x|GMM))`. Inputs are NOT checked.",
   "", 
   true
 )

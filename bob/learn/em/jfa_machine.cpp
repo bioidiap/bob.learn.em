@@ -15,8 +15,8 @@
 
 static auto JFAMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".JFAMachine",
-  "A JFAMachine. An attached :py:class:`bob.learn.em.JFABase` should be provided for Joint Factor Analysis. The :py:class:`bob.learn.em.JFAMachine` carries information about the speaker factors y and z, whereas a :py:class:`bob.learn.em.JFABase` carries information about the matrices U, V and D."
-  "References: [Vogt2008,McCool2013]",
+  "A JFAMachine. An attached :py:class:`bob.learn.em.JFABase` should be provided for Joint Factor Analysis. The :py:class:`bob.learn.em.JFAMachine` carries information about the speaker factors :math:`y` and :math:`z`, whereas a :py:class:`bob.learn.em.JFABase` carries information about the matrices :math:`U`, :math:`V` and :math:`D`.\n\n"
+  "References: [Vogt2008]_ [McCool2013]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -29,7 +29,7 @@ static auto JFAMachine_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("hdf5","")
 
-  .add_parameter("jfa", ":py:class:`bob.learn.em.JFABase`", "The JFABase associated with this machine")
+  .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "The JFABase associated with this machine")
   .add_parameter("other", ":py:class:`bob.learn.em.JFAMachine`", "A JFAMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -188,7 +188,7 @@ PyObject* PyBobLearnEMJFAMachine_getSupervectorLength(PyBobLearnEMJFAMachineObje
 static auto Y = bob::extension::VariableDoc(
   "y",
   "array_like <float, 1D>",
-  "Returns the y speaker factor. Eq (30) from [McCool2013]",
+  "Returns the :math:`y` speaker factor. Eq (30) from [McCool2013]_",
   ""
 );
 PyObject* PyBobLearnEMJFAMachine_getY(PyBobLearnEMJFAMachineObject* self, void*){
@@ -216,7 +216,7 @@ int PyBobLearnEMJFAMachine_setY(PyBobLearnEMJFAMachineObject* self, PyObject* va
 static auto Z = bob::extension::VariableDoc(
   "z",
   "array_like <float, 1D>",
-  "Returns the z speaker factor. Eq (31) from [McCool2013]",
+  "Returns the :math:`z` speaker factor. Eq (31) from [McCool2013]_",
   ""
 );
 PyObject* PyBobLearnEMJFAMachine_getZ(PyBobLearnEMJFAMachineObject* self, void*){
@@ -244,8 +244,8 @@ int PyBobLearnEMJFAMachine_setZ(PyBobLearnEMJFAMachineObject* self, PyObject* va
 static auto X = bob::extension::VariableDoc(
   "x",
   "array_like <float, 1D>",
-  "Returns the X session factor. Eq (29) from [McCool2013]",
-  "The latent variable x (last one computed). This is a feature provided for convenience, but this attribute is not 'part' of the machine. The session latent variable x is indeed not class-specific, but depends on the sample considered. Furthermore, it is not saved into the machine or used when comparing machines."
+  "Returns the :math:`X` session factor. Eq (29) from [McCool2013]_",
+  "The latent variable :math:`x` (last one computed). This is a feature provided for convenience, but this attribute is not 'part' of the machine. The session latent variable :math:`x` is indeed not class-specific, but depends on the sample considered. Furthermore, it is not saved into the machine or used when comparing machines."
 );
 PyObject* PyBobLearnEMJFAMachine_getX(PyBobLearnEMJFAMachineObject* self, void*){
   BOB_TRY

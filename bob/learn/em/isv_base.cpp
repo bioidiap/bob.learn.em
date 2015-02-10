@@ -16,8 +16,8 @@
 static auto ISVBase_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ISVBase",
 
-  "A ISVBase instance can be seen as a container for U and D when performing Joint Factor Analysis (JFA)."
-  "References: [Vogt2008,McCool2013]",
+  "A ISVBase instance can be seen as a container for U and D when performing Joint Factor Analysis (JFA).\n\n"
+  "References: [Vogt2008]_ [McCool2013]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -26,12 +26,12 @@ static auto ISVBase_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("gmm,ru","")
+  .add_prototype("ubm,ru","")
   .add_prototype("other","")
   .add_prototype("hdf5","")
   .add_prototype("","")
 
-  .add_parameter("gmm", ":py:class:`bob.learn.em.GMMMachine`", "The Universal Background Model.")
+  .add_parameter("ubm", ":py:class:`bob.learn.em.GMMMachine`", "The Universal Background Model.")
   .add_parameter("ru", "int", "Size of U (Within client variation matrix). In the end the U matrix will have (number_of_gaussians * feature_dimension x ru)")
   .add_parameter("other", ":py:class:`bob.learn.em.ISVBase`", "A ISVBase object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")

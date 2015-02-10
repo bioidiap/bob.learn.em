@@ -36,9 +36,9 @@ static auto PLDABase_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("hdf5","")
 
-  .add_parameter("dim_D", "int", "Dimensionality of the feature vector.")
-  .add_parameter("dim_F", "int", "Size of :math:`F`(between class variantion matrix).")
-  .add_parameter("dim_G", "int", "Size of :math:`G`(within class variantion matrix).")
+  .add_parameter("dim_d", "int", "Dimensionality of the feature vector.")
+  .add_parameter("dim_f", "int", "Size of :math:`F` (between class variantion matrix).")
+  .add_parameter("dim_g", "int", "Size of :math:`G` (within class variantion matrix).")
   .add_parameter("variance_threshold", "double", "The smallest possible value of the variance (Ignored if set to 0.)")
   
   .add_parameter("other", ":py:class:`bob.learn.em.PLDABase`", "A PLDABase object to be copied.")
@@ -190,7 +190,7 @@ int PyBobLearnEMPLDABase_Check(PyObject* o) {
 static auto shape = bob::extension::VariableDoc(
   "shape",
   "(int,int, int)",
-  "A tuple that represents the dimensionality of the feature vector :math:`dim_d`, the :math:`F` matrix and the :math:`G` matrix.",
+  "A tuple that represents the dimensionality of the feature vector dim_d, the :math:`F` matrix and the :math:`G` matrix.",
   ""
 );
 PyObject* PyBobLearnEMPLDABase_getShape(PyBobLearnEMPLDABaseObject* self, void*) {
@@ -259,7 +259,7 @@ int PyBobLearnEMPLDABase_setG(PyBobLearnEMPLDABaseObject* self, PyObject* value,
 static auto mu = bob::extension::VariableDoc(
   "mu",
   "array_like <float, 1D>",
-  "Gets the :math:`mu` mean vector of the PLDA model",
+  "Gets the :math:`\\mu` mean vector of the PLDA model",
   ""
 );
 PyObject* PyBobLearnEMPLDABase_getMu(PyBobLearnEMPLDABaseObject* self, void*){
@@ -626,14 +626,14 @@ static PyObject* PyBobLearnEMPLDABase_IsSimilarTo(PyBobLearnEMPLDABaseObject* se
 /*** resize ***/
 static auto resize = bob::extension::FunctionDoc(
   "resize",
-  "Resizes the dimensionality of the PLDA model. Paramaters :math:`\\mu`, :math:`\\F`, :math:`\\G` and :math:`\\Sigma` are reinitialized.",
+  "Resizes the dimensionality of the PLDA model. Paramaters :math:`\\mu`, :math:`F`, :math:`G` and :math:`\\Sigma` are reinitialized.",
   0,
   true
 )
-.add_prototype("dim_D,dim_F,dim_G")
-.add_parameter("dim_D", "int", "Dimensionality of the feature vector.")
-.add_parameter("dim_F", "int", "Size of :math:`F`(between class variantion matrix).")
-.add_parameter("dim_G", "int", "Size of :math:`F`(within class variantion matrix).");
+.add_prototype("dim_d,dim_f,dim_g")
+.add_parameter("dim_d", "int", "Dimensionality of the feature vector.")
+.add_parameter("dim_f", "int", "Size of :math:`F` (between class variantion matrix).")
+.add_parameter("dim_g", "int", "Size of :math:`G` (within class variantion matrix).");
 static PyObject* PyBobLearnEMPLDABase_resize(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -645,17 +645,17 @@ static PyObject* PyBobLearnEMPLDABase_resize(PyBobLearnEMPLDABaseObject* self, P
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &dim_D, &dim_F, &dim_G)) Py_RETURN_NONE;
 
   if(dim_D <= 0){
-    PyErr_Format(PyExc_TypeError, "dim_D argument must be greater than or equal to one");
+    PyErr_Format(PyExc_TypeError, "dim_d argument must be greater than or equal to one");
     Py_RETURN_NONE;
   }
   
   if(dim_F <= 0){
-    PyErr_Format(PyExc_TypeError, "dim_F argument must be greater than or equal to one");
+    PyErr_Format(PyExc_TypeError, "dim_f argument must be greater than or equal to one");
     Py_RETURN_NONE;
   }
 
   if(dim_G <= 0){
-    PyErr_Format(PyExc_TypeError, "dim_G argument must be greater than or equal to one");
+    PyErr_Format(PyExc_TypeError, "dim_g argument must be greater than or equal to one");
     Py_RETURN_NONE;
   }
 
@@ -671,7 +671,7 @@ static PyObject* PyBobLearnEMPLDABase_resize(PyBobLearnEMPLDABaseObject* self, P
 static auto get_gamma = bob::extension::FunctionDoc(
   "get_gamma",
   "Gets the :math:`\\gamma_a` matrix for a given :math:`a` (number of samples). "
-  ":math:`gamma_{a} = (Id + a F^T \beta F)^{-1} = \\mathcal{F}_{a}`",
+  ":math:`\\gamma_{a}=(Id + a F^T \\beta F)^{-1} = \\mathcal{F}_{a}`",
   0,
   true
 )
@@ -694,8 +694,8 @@ static PyObject* PyBobLearnEMPLDABase_getGamma(PyBobLearnEMPLDABaseObject* self,
 /***** has_gamma *****/
 static auto has_gamma = bob::extension::FunctionDoc(
   "has_gamma",
-  "Tells if the :math:`gamma_a` matrix for a given a (number of samples) exists. "
-  ":math:`gamma_a=(Id + a F^T \\beta F)^{-1}`",
+  "Tells if the :math:`\\gamma_a` matrix for a given a (number of samples) exists. "
+  ":math:`\\gamma_a=(Id + aF^T \\beta F)^{-1}`",
   0,
   true
 )
@@ -720,8 +720,8 @@ static PyObject* PyBobLearnEMPLDABase_hasGamma(PyBobLearnEMPLDABaseObject* self,
 /***** compute_gamma *****/
 static auto compute_gamma = bob::extension::FunctionDoc(
   "compute_gamma",
-  "Tells if the :math:`gamma_a` matrix for a given a (number of samples) exists."
-  ":math:`gamma_a = (Id + a F^T \\beta F)^{-1}`",
+  "Tells if the :math:`\\gamma_a` matrix for a given a (number of samples) exists."
+  " :math:`\\gamma_a=(Id + a F^T \\beta F)^{-1}`",
   0,
   true
 )
@@ -747,7 +747,7 @@ static PyObject* PyBobLearnEMPLDABase_computeGamma(PyBobLearnEMPLDABaseObject* s
 static auto get_add_gamma = bob::extension::FunctionDoc(
   "get_add_gamma",
    "Gets the :math:`gamma_a` matrix for a given :math:`f_a` (number of samples)."
-   ":math:`gamma_a = (Id + a F^T \\beta F)^{-1} = \\mathcal{F}_{a}`."
+   " :math:`\\gamma_a=(Id + a F^T \\beta F)^{-1} =\\mathcal{F}_{a}`."
    "Tries to find it from the base machine and then from this machine.",
   0,
   true
@@ -797,7 +797,7 @@ static PyObject* PyBobLearnEMPLDABase_hasLogLikeConstTerm(PyBobLearnEMPLDABaseOb
 /***** compute_log_like_const_term" *****/
 static auto compute_log_like_const_term = bob::extension::FunctionDoc(
   "compute_log_like_const_term",
-  "Computes the log likelihood constant term for a given :math:`a` (number of samples), given the provided :math:`gamma_a` matrix. "
+  "Computes the log likelihood constant term for a given :math:`a` (number of samples), given the provided :math:`\\gamma_a` matrix. "
   ":math:`l_{a} = \\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|\\gamma_a|)`",
 
   0,
@@ -851,7 +851,7 @@ static PyObject* PyBobLearnEMPLDABase_getAddLogLikeConstTerm(PyBobLearnEMPLDABas
 static auto get_log_like_const_term = bob::extension::FunctionDoc(
   "get_log_like_const_term",
    "Gets the log likelihood constant term for a given :math:`a` (number of samples). "
-    ":math:`l_{a} = \\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|\\gamma_a|)",
+    ":math:`l_{a}=\\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|\\gamma_a|)`",
   0,
   true
 )
@@ -873,10 +873,11 @@ static PyObject* PyBobLearnEMPLDABase_getLogLikeConstTerm(PyBobLearnEMPLDABaseOb
 /***** clear_maps *****/
 static auto clear_maps = bob::extension::FunctionDoc(
   "clear_maps",
-  "Clears the maps (:math:`gamma_a` and loglike_constterm_a).",
+  "Clears the maps (:math:`\\gamma_a` and loglike_constterm_a).",
   0,
   true
-);
+)
+.add_prototype("","");
 static PyObject* PyBobLearnEMPLDABase_clearMaps(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   

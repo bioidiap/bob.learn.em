@@ -19,8 +19,8 @@ static auto PLDAMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".PLDAMachine",
 
   "This class is a container for an enrolled identity/class. It contains information extracted from the enrollment samples. "
-  "It should be used in combination with a PLDABase instance."
-  "References: [ElShafey2014,PrinceElder2007,LiFu2012]",
+  "It should be used in combination with a PLDABase instance.\n\n"
+  "References: [ElShafey2014]_, [PrinceElder2007]_, [LiFu2012]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -35,7 +35,7 @@ static auto PLDAMachine_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("hdf5,plda_base","")
 
-  .add_parameter("plda_base", "`bob.learn.em.PLDABase`", "")  
+  .add_parameter("plda_base", ":py:class:`bob.learn.em.PLDABase`", "")  
   .add_parameter("other", ":py:class:`bob.learn.em.PLDAMachine`", "A PLDAMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -164,7 +164,7 @@ int PyBobLearnEMPLDAMachine_Check(PyObject* o) {
 static auto shape = bob::extension::VariableDoc(
   "shape",
   "(int,int, int)",
-  "A tuple that represents the dimensionality of the feature vector :math:`dim_d`, the :math:`F` matrix and the :math:`G` matrix.",
+  "A tuple that represents the dimensionality of the feature vector dim_d, the :math:`F` matrix and the :math:`G` matrix.",
   ""
 );
 PyObject* PyBobLearnEMPLDAMachine_getShape(PyBobLearnEMPLDAMachineObject* self, void*) {
@@ -273,7 +273,7 @@ int PyBobLearnEMPLDAMachine_setPLDABase(PyBobLearnEMPLDAMachineObject* self, PyO
 static auto weighted_sum = bob::extension::VariableDoc(
   "weighted_sum",
   "array_like <float, 1D>",
-  "Get/Set :math:``\\sum_{i} F^T \\beta x_{i}` value",
+  "Get/Set :math:`\\sum_{i} F^T \\beta x_{i}` value",
   ""
 );
 static PyObject* PyBobLearnEMPLDAMachine_getWeightedSum(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
@@ -464,7 +464,7 @@ static PyObject* PyBobLearnEMPLDAMachine_IsSimilarTo(PyBobLearnEMPLDAMachineObje
 static auto get_gamma = bob::extension::FunctionDoc(
   "get_gamma",
   "Gets the :math:`\\gamma_a` matrix for a given :math:`a` (number of samples). "
-  ":math:`gamma_{a} = (Id + a F^T \beta F)^{-1} = \\mathcal{F}_{a}`",
+  ":math:`\\gamma_{a}=(Id + a F^T \\beta F)^{-1}= \\mathcal{F}_{a}`",
   0,
   true
 )
@@ -487,8 +487,8 @@ static PyObject* PyBobLearnEMPLDAMachine_getGamma(PyBobLearnEMPLDAMachineObject*
 /***** has_gamma *****/
 static auto has_gamma = bob::extension::FunctionDoc(
   "has_gamma",
-  "Tells if the :math:`gamma_a` matrix for a given a (number of samples) exists. "
-  ":math:`gamma_a=(Id + a F^T \\beta F)^{-1}`",
+  "Tells if the :math:`\\gamma_a` matrix for a given a (number of samples) exists. "
+  ":math:`\\gamma_a=(Id + a F^T \\beta F)^{-1}`",
   0,
   true
 )
@@ -514,7 +514,7 @@ static PyObject* PyBobLearnEMPLDAMachine_hasGamma(PyBobLearnEMPLDAMachineObject*
 static auto get_add_gamma = bob::extension::FunctionDoc(
   "get_add_gamma",
    "Gets the :math:`gamma_a` matrix for a given :math:`f_a` (number of samples)."
-   ":math:`gamma_a = (Id + a F^T \\beta F)^{-1} = \\mathcal{F}_{a}`."
+   " :math:`\\gamma_a=(Id + a F^T \\beta F)^{-1} =\\mathcal{F}_{a}`."
    "Tries to find it from the base machine and then from this machine.",
   0,
   true
@@ -566,7 +566,7 @@ static auto get_add_log_like_const_term = bob::extension::FunctionDoc(
   "get_add_log_like_const_term",
 
    "Gets the log likelihood constant term for a given :math:`a` (number of samples). "
-   ":math:`l_{a} = \\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|\\gamma_a|)`",
+   ":math:`l_{a} = \\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|gamma_a|)`",
   0,
   true
 )
@@ -590,7 +590,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getAddLogLikeConstTerm(PyBobLearnEMPLDA
 static auto get_log_like_const_term = bob::extension::FunctionDoc(
   "get_log_like_const_term",
    "Gets the log likelihood constant term for a given :math:`a` (number of samples). "
-    ":math:`l_{a} = \\frac{a}{2} ( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| +log|\\gamma_a|)",
+    ":math:`l_{a}=\\frac{a}{2}( -D log(2\\pi) -log|\\Sigma| +log|\\alpha| + log|\\gamma_a|)`",
   0,
   true
 )
@@ -612,10 +612,11 @@ static PyObject* PyBobLearnEMPLDAMachine_getLogLikeConstTerm(PyBobLearnEMPLDAMac
 /***** clear_maps *****/
 static auto clear_maps = bob::extension::FunctionDoc(
   "clear_maps",
-  "Clears the maps (:math:`gamma_a` and loglike_constterm_a).",
+  "Clears the maps (:math:`\\gamma_a` and loglike_constterm_a).",
   0,
   true
-);
+)
+.add_prototype("","");
 static PyObject* PyBobLearnEMPLDAMachine_clearMaps(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   

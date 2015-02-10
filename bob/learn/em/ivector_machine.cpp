@@ -15,8 +15,8 @@
 
 static auto IVectorMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".IVectorMachine",
-  "An IVectorMachine consists of a Total Variability subspace \f$T\f$ and allows the extraction of IVector"
-  "References: [Dehak2010]",
+  "An IVectorMachine consists of a Total Variability subspace :math:`T` and allows the extraction of IVector"
+  "References: [Dehak2010]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -202,7 +202,7 @@ PyObject* PyBobLearnEMIVectorMachine_getSupervectorLength(PyBobLearnEMIVectorMac
 static auto T = bob::extension::VariableDoc(
   "t",
   "array_like <float, 2D>",
-  "Returns the Total Variability matrix",
+  "Returns the Total Variability matrix, :math:`T`",
   ""
 );
 PyObject* PyBobLearnEMIVectorMachine_getT(PyBobLearnEMIVectorMachineObject* self, void*){
@@ -289,7 +289,7 @@ int PyBobLearnEMIVectorMachine_setVarianceThreshold(PyBobLearnEMIVectorMachineOb
 static auto ubm = bob::extension::VariableDoc(
   "ubm",
   ":py:class:`bob.learn.em.GMMMachine`",
-  "Returns the UBM (Universal Background Model",
+  "Returns the UBM (Universal Background Model)",
   ""
 );
 PyObject* PyBobLearnEMIVectorMachine_getUBM(PyBobLearnEMIVectorMachineObject* self, void*){

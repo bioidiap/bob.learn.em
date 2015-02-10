@@ -15,8 +15,8 @@
 
 static auto ISVMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ISVMachine",
-  "A ISVMachine. An attached :py:class:`bob.learn.em.ISVBase` should be provided for Joint Factor Analysis. The :py:class:`bob.learn.em.ISVMachine` carries information about the speaker factors y and z, whereas a :py:class:`bob.learn.em.JFABase` carries information about the matrices U, V and D."
-  "References: [Vogt2008,McCool2013]",
+  "A ISVMachine. An attached :py:class:`bob.learn.em.ISVBase` should be provided for Joint Factor Analysis. The :py:class:`bob.learn.em.ISVMachine` carries information about the speaker factors :math:`y` and :math:`z`, whereas a :py:class:`bob.learn.em.JFABase` carries information about the matrices :math:`U` and :math:`D`.\n\n"
+  "References: [Vogt2008_ [McCool2013]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -29,7 +29,7 @@ static auto ISVMachine_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("hdf5","")
 
-  .add_parameter("isv", ":py:class:`bob.learn.em.ISVBase`", "The ISVBase associated with this machine")
+  .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "The ISVBase associated with this machine")
   .add_parameter("other", ":py:class:`bob.learn.em.ISVMachine`", "A ISVMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -187,7 +187,7 @@ PyObject* PyBobLearnEMISVMachine_getSupervectorLength(PyBobLearnEMISVMachineObje
 static auto Z = bob::extension::VariableDoc(
   "z",
   "array_like <float, 1D>",
-  "Returns the z speaker factor. Eq (31) from [McCool2013]",
+  "Returns the :math:`z` speaker factor. Eq (31) from [McCool2013]_",
   ""
 );
 PyObject* PyBobLearnEMISVMachine_getZ(PyBobLearnEMISVMachineObject* self, void*){
@@ -215,8 +215,8 @@ int PyBobLearnEMISVMachine_setZ(PyBobLearnEMISVMachineObject* self, PyObject* va
 static auto X = bob::extension::VariableDoc(
   "x",
   "array_like <float, 1D>",
-  "Returns the X session factor. Eq (29) from [McCool2013]",
-  "The latent variable x (last one computed). This is a feature provided for convenience, but this attribute is not 'part' of the machine. The session latent variable x is indeed not class-specific, but depends on the sample considered. Furthermore, it is not saved into the machine or used when comparing machines."
+  "Returns the :math:`X` session factor. Eq (29) from [McCool2013]_",
+  "The latent variable x (last one computed). This is a feature provided for convenience, but this attribute is not 'part' of the machine. The session latent variable :math:`x` is indeed not class-specific, but depends on the sample considered. Furthermore, it is not saved into the machine or used when comparing machines."
 );
 PyObject* PyBobLearnEMISVMachine_getX(PyBobLearnEMISVMachineObject* self, void*){
   BOB_TRY
@@ -404,7 +404,7 @@ static PyObject* PyBobLearnEMISVMachine_IsSimilarTo(PyBobLearnEMISVMachineObject
 static auto estimate_x = bob::extension::FunctionDoc(
   "estimate_x",
   "Estimates the session offset x (LPT assumption) given GMM statistics.",
-  "Estimates x from the GMM statistics considering the LPT assumption, that is the latent session variable x is approximated using the UBM", 
+  "Estimates :math:`x` from the GMM statistics considering the LPT assumption, that is the latent session variable :math:`x` is approximated using the UBM", 
   true
 )
 .add_prototype("stats,input")
