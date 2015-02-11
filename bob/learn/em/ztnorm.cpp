@@ -36,7 +36,7 @@ static PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs
                                                                        &PyBlitzArray_Converter, &rawscores_zprobes_vs_tmodels_o,
                                                                        &PyBlitzArray_Converter, &mask_zprobes_vs_tmodels_istruetrial_o)){
     zt_norm.print_usage();
-    Py_RETURN_NONE;
+    return 0;
   }
 
   // get the number of command line arguments
@@ -90,7 +90,7 @@ static PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs)
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
                                                                        &PyBlitzArray_Converter, &rawscores_probes_vs_tmodels_o)){
     zt_norm.print_usage();
-    Py_RETURN_NONE;
+    return 0;
   }
   
   auto rawscores_probes_vs_models_          = make_safe(rawscores_probes_vs_models_o);
@@ -127,7 +127,7 @@ static PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs)
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
                                                                        &PyBlitzArray_Converter, &rawscores_zprobes_vs_models_o)){
     zt_norm.print_usage();
-    Py_RETURN_NONE;
+    return 0;
   }
   
   auto rawscores_probes_vs_models_          = make_safe(rawscores_probes_vs_models_o);

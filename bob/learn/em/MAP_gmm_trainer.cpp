@@ -263,7 +263,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)){
     PyErr_Format(PyExc_RuntimeError, "%s.%s. Was not possible to read :py:class:`bob.learn.em.GMMMachine`", Py_TYPE(self)->tp_name, initialize.name());
-    Py_RETURN_NONE;
+    return 0;
   }
   self->cxx->initialize(*gmm_machine->cxx);
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
@@ -296,7 +296,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_eStep(PyBobLearnEMMAPGMMTrainerObject
   PyBobLearnEMGMMMachineObject* gmm_machine;
   PyBlitzArrayObject* data = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->eStep(*gmm_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -327,7 +327,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_mStep(PyBobLearnEMMAPGMMTrainerObject
 
   PyBobLearnEMGMMMachineObject* gmm_machine;
   
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)) return 0;
 
   self->cxx->mStep(*gmm_machine->cxx);
 
@@ -353,7 +353,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_compute_likelihood(PyBobLearnEMMAPGMM
   char** kwlist = compute_likelihood.kwlist(0);
 
   PyBobLearnEMGMMMachineObject* gmm_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)) return 0;
 
   double value = self->cxx->computeLikelihood(*gmm_machine->cxx);
   return Py_BuildValue("d", value);

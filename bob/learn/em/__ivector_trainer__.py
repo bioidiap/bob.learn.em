@@ -37,7 +37,7 @@ class IVectorTrainer (_IVectorTrainer):
     """
 
     #Initialization
-    self.initialize(ivector_machine, data);
+    self.initialize(ivector_machine);
       
     for i in range(self._max_iterations):
       #eStep

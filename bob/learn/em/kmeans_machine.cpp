@@ -339,7 +339,7 @@ static PyObject* PyBobLearnEMKMeansMachine_resize(PyBobLearnEMKMeansMachineObjec
   int n_means = 0;
   int n_inputs = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &n_means, &n_inputs)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &n_means, &n_inputs)) return 0;
 
   if (n_means <= 0){
     PyErr_Format(PyExc_TypeError, "n_means must be greater than zero");
@@ -375,7 +375,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_mean(PyBobLearnEMKMeansMachineObj
   char** kwlist = get_mean.kwlist(0);
 
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
  
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMean(i));
 
@@ -400,7 +400,7 @@ static PyObject* PyBobLearnEMKMeansMachine_set_mean(PyBobLearnEMKMeansMachineObj
 
   int i = 0;
   PyBlitzArrayObject* mean = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &mean)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &mean)) return 0;
   
   //protects acquired resources through this scope
   auto mean_ = make_safe(mean);
@@ -434,7 +434,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_distance_from_mean(PyBobLearnEMKM
   PyBlitzArrayObject* input = 0;
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i", kwlist, &PyBlitzArray_Converter, &input, &i)){ 
-    Py_RETURN_NONE;
+    return 0;
   }
 
   //protects acquired resources through this scope
@@ -463,7 +463,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_closest_mean(PyBobLearnEMKMeansMa
   char** kwlist = get_closest_mean.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -494,7 +494,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_min_distance(PyBobLearnEMKMeansMa
   char** kwlist = get_min_distance.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -525,7 +525,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
   char** kwlist =  get_variances_and_weights_for_each_cluster.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -562,7 +562,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
 
   PyBlitzArrayObject* variances = 0;
   PyBlitzArrayObject* weights   = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) return 0;
 
   //protects acquired resources through this scope
   auto weights_   = make_safe(weights);
@@ -598,7 +598,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
   PyBlitzArrayObject* data      = 0;
   PyBlitzArrayObject* variances = 0;
   PyBlitzArrayObject* weights   = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&", kwlist, &PyBlitzArray_Converter, &data, &PyBlitzArray_Converter, &variances, &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&", kwlist, &PyBlitzArray_Converter, &data, &PyBlitzArray_Converter, &variances, &PyBlitzArray_Converter, &weights)) return 0;
 
   //protects acquired resources through this scope
   auto data_      = make_safe(data);
@@ -633,7 +633,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
 
   PyBlitzArrayObject* variances = 0;
   PyBlitzArrayObject* weights   = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &variances,  &PyBlitzArray_Converter, &weights)) return 0;
 
   //protects acquired resources through this scope
   auto weights_   = make_safe(weights);

@@ -219,7 +219,7 @@ statistics of this input sample, and then calling the
 
   >>> gs = bob.learn.em.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
-  >>> score = m.forward(gs)
+  >>> score = m(gs)
 
 As with other machines you can save and re-load machines of this type using
 :py:meth:`bob.learn.em.JFAMachine.save` and the class constructor
@@ -273,7 +273,7 @@ statistics of this input sample, and then calling the
 
   >>> gs = bob.learn.em.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
-  >>> score = m.forward(gs)
+  >>> score = m(gs)
 
 As with other machines you can save and re-load machines of this type using
 :py:meth:`bob.learn.em.ISVMachine.save` and the class constructor
@@ -309,7 +309,7 @@ extracting the GMM sufficient statistics, and then estimating the i-vector:
 
   >>> gs = bob.learn.em.GMMStats(2,3)
   >>> gmm.acc_statistics(sample, gs)
-  >>> w_ij = m.forward(gs)
+  >>> w_ij = m(gs)
 
 As with other machines you can save and re-load machines of this type using
 :py:meth:`bob.learn.em.IVectorMachine.save` and the class constructor
@@ -472,11 +472,9 @@ set.
    :options: +NORMALIZE_WHITESPACE
 
    >>> relevance_factor = 4.
-   >>> trainer = bob.learn.em.MAP_GMMTrainer(relevance_factor, True, False, False) # mean adaptation only
+   >>> trainer = bob.learn.em.MAP_GMMTrainer(gmm, relevance_factor=relevance_factor, update_means=True, update_variances=False, update_weights=False) # mean adaptation only
    >>> trainer.convergence_threshold = 1e-5
    >>> trainer.max_iterations = 200
-   >>> trainer.set_prior_gmm(gmm)
-   True
    >>> gmmAdapted = bob.learn.em.GMMMachine(2,3) # Create a new machine for the MAP estimate
    >>> trainer.train(gmmAdapted, dataMAP)
    >>> print(gmmAdapted) # doctest: +SKIP

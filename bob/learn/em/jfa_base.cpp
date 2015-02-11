@@ -488,7 +488,7 @@ static PyObject* PyBobLearnEMJFABase_resize(PyBobLearnEMJFABaseObject* self, PyO
   int rU = 0;
   int rV = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &rU, &rV)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &rU, &rV)) return 0;
 
   if (rU <= 0){
     PyErr_Format(PyExc_TypeError, "rU must be greater than zero");

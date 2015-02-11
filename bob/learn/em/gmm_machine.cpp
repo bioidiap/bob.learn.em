@@ -553,7 +553,7 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood(PyBobLearnEMGMMMachineObje
 
   PyBlitzArrayObject* input = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 
@@ -581,7 +581,7 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood_(PyBobLearnEMGMMMachineObj
 
   PyBlitzArrayObject* input = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 
@@ -612,11 +612,17 @@ static PyObject* PyBobLearnEMGMMMachine_accStatistics(PyBobLearnEMGMMMachineObje
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input, 
                                                                  &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
-  self->cxx->accStatistics(*PyBlitzArrayCxx_AsBlitz<double,2>(input), *stats->cxx);
+  
+  blitz::Array<double,2>  blitz_test  = *PyBlitzArrayCxx_AsBlitz<double,2>(input);
+  if (blitz_test.extent(1)==0)
+    self->cxx->accStatistics(*PyBlitzArrayCxx_AsBlitz<double,1>(input), *stats->cxx);
+  else
+    self->cxx->accStatistics(blitz_test, *stats->cxx);  
+
 
   BOB_CATCH_MEMBER("cannot accumulate the statistics", 0)
   Py_RETURN_NONE;
@@ -641,15 +647,18 @@ static PyObject* PyBobLearnEMGMMMachine_accStatistics_(PyBobLearnEMGMMMachineObj
   PyBlitzArrayObject* input = 0;
   PyBobLearnEMGMMStatsObject* stats = 0;
 
-
-
  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input, 
                                                                  &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
-  self->cxx->accStatistics_(*PyBlitzArrayCxx_AsBlitz<double,2>(input), *stats->cxx);
+  
+  blitz::Array<double,2>  blitz_test  = *PyBlitzArrayCxx_AsBlitz<double,2>(input);
+  if (blitz_test.extent(1)==0)
+    self->cxx->accStatistics_(*PyBlitzArrayCxx_AsBlitz<double,1>(input), *stats->cxx);
+  else
+    self->cxx->accStatistics_(blitz_test, *stats->cxx);  
 
   BOB_CATCH_MEMBER("cannot accumulate the statistics", 0)
   Py_RETURN_NONE;
@@ -685,7 +694,6 @@ static PyObject* PyBobLearnEMGMMMachine_setVarianceThresholds_method(PyBobLearnE
     return 0;
 
 
-
   BOB_CATCH_MEMBER("cannot accumulate set the variance threshold", 0)
   Py_RETURN_NONE;
 }
@@ -710,7 +718,7 @@ static PyObject* PyBobLearnEMGMMMachine_get_gaussian(PyBobLearnEMGMMMachineObjec
 
   int i = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
  
   boost::shared_ptr<bob::learn::em::Gaussian> gaussian = self->cxx->getGaussian(i);
 

@@ -360,7 +360,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_initialize(PyBobLearnEMKMeansTrainerO
   PyBlitzArrayObject* data                          = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->initialize(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -392,7 +392,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_eStep(PyBobLearnEMKMeansTrainerObject
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
   PyBlitzArrayObject* data = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -420,7 +420,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_mStep(PyBobLearnEMKMeansTrainerObject
   char** kwlist = mStep.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) return 0;
 
   self->cxx->mStep(*kmeans_machine->cxx);
 
@@ -446,7 +446,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_compute_likelihood(PyBobLearnEMKMeans
   char** kwlist = compute_likelihood.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) return 0;
 
   double value = self->cxx->computeLikelihood(*kmeans_machine->cxx);
   return Py_BuildValue("d", value);
@@ -471,7 +471,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_reset_accumulators(PyBobLearnEMKMeans
   char** kwlist = reset_accumulators.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) return 0;
 
   bool value = self->cxx->resetAccumulators(*kmeans_machine->cxx);
   return Py_BuildValue("b", value);

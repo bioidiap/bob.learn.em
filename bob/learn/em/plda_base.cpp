@@ -642,7 +642,7 @@ static PyObject* PyBobLearnEMPLDABase_resize(PyBobLearnEMPLDABaseObject* self, P
 
   int dim_D, dim_F, dim_G = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &dim_D, &dim_F, &dim_G)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iii", kwlist, &dim_D, &dim_F, &dim_G)) return 0;
 
   if(dim_D <= 0){
     PyErr_Format(PyExc_TypeError, "dim_d argument must be greater than or equal to one");
@@ -684,7 +684,7 @@ static PyObject* PyBobLearnEMPLDABase_getGamma(PyBobLearnEMPLDABaseObject* self,
   char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getGamma(i));
   BOB_CATCH_MEMBER("`get_gamma` could not be read", 0)
@@ -707,7 +707,7 @@ static PyObject* PyBobLearnEMPLDABase_hasGamma(PyBobLearnEMPLDABaseObject* self,
   
   char** kwlist = has_gamma.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   if(self->cxx->hasGamma(i))
     Py_RETURN_TRUE;
@@ -734,7 +734,7 @@ static PyObject* PyBobLearnEMPLDABase_computeGamma(PyBobLearnEMPLDABaseObject* s
   char** kwlist = compute_gamma.kwlist(0);
   int i = 0;
   PyBlitzArrayObject* res = 0;  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) return 0;
 
   auto res_ = make_safe(res);  
 
@@ -761,7 +761,7 @@ static PyObject* PyBobLearnEMPLDABase_getAddGamma(PyBobLearnEMPLDABaseObject* se
   char** kwlist = get_add_gamma.kwlist(0);
 
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getAddGamma(i));
   BOB_CATCH_MEMBER("`get_add_gamma` could not be read", 0)
@@ -784,7 +784,7 @@ static PyObject* PyBobLearnEMPLDABase_hasLogLikeConstTerm(PyBobLearnEMPLDABaseOb
   
   char** kwlist = has_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   if(self->cxx->hasLogLikeConstTerm(i))
     Py_RETURN_TRUE;
@@ -812,7 +812,7 @@ static PyObject* PyBobLearnEMPLDABase_computeLogLikeConstTerm(PyBobLearnEMPLDABa
   char** kwlist = compute_log_like_const_term.kwlist(0);
   int i = 0;
   PyBlitzArrayObject* res = 0;  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) return 0;
 
   auto res_ = make_safe(res);  
 
@@ -839,7 +839,7 @@ static PyObject* PyBobLearnEMPLDABase_getAddLogLikeConstTerm(PyBobLearnEMPLDABas
   
   char** kwlist = get_add_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getAddLogLikeConstTerm(i));
 
@@ -863,7 +863,7 @@ static PyObject* PyBobLearnEMPLDABase_getLogLikeConstTerm(PyBobLearnEMPLDABaseOb
   
   char** kwlist = get_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getLogLikeConstTerm(i));
 

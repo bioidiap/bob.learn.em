@@ -484,7 +484,7 @@ static PyObject* PyBobLearnEMIVectorMachine_Forward(PyBobLearnEMIVectorMachineOb
   PyBobLearnEMGMMStatsObject* stats = 0;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
    blitz::Array<double,1> ivector(self->cxx->getDimRt());
    self->cxx->forward(*stats->cxx, ivector);
@@ -512,7 +512,7 @@ static PyObject* PyBobLearnEMIVectorMachine_resize(PyBobLearnEMIVectorMachineObj
 
   int rT = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rT)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rT)) return 0;
 
   if (rT < 1){
     PyErr_Format(PyExc_TypeError, "rU must be greater than one");
@@ -545,7 +545,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_Id_TtSigmaInvT__(PyBobLearnE
   PyBobLearnEMGMMStatsObject* stats = 0;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
 
   blitz::Array<double,2> output(self->cxx->getDimRt(), self->cxx->getDimRt());
@@ -574,7 +574,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_TtSigmaInvFnorm__(PyBobLearn
   PyBobLearnEMGMMStatsObject* stats = 0;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
 
   blitz::Array<double,1> output(self->cxx->getDimRt());

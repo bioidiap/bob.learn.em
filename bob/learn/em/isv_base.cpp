@@ -442,7 +442,7 @@ static PyObject* PyBobLearnEMISVBase_resize(PyBobLearnEMISVBaseObject* self, PyO
 
   int rU = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rU)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &rU)) return 0;
 
   if (rU <= 0){
     PyErr_Format(PyExc_TypeError, "rU must be greater than zero");

@@ -482,7 +482,7 @@ static PyObject* PyBobLearnEMGMMStats_resize(PyBobLearnEMGMMStatsObject* self, P
   int n_gaussians = 0;
   int n_inputs = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &n_gaussians, &n_inputs)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "ii", kwlist, &n_gaussians, &n_inputs)) return 0;
 
   if (n_gaussians <= 0){
     PyErr_Format(PyExc_TypeError, "n_gaussians must be greater than zero");

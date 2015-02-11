@@ -315,11 +315,11 @@ static PyObject* PyBobLearnEMGaussian_resize(PyBobLearnEMGaussianObject* self, P
   char** kwlist = resize.kwlist(0);
 
   int input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &input)) return 0;
   if (input <= 0){
     PyErr_Format(PyExc_TypeError, "input must be greater than zero");
     resize.print_usage();
-    Py_RETURN_NONE;
+    return 0;
   }
   self->cxx->setNInputs(input);
 
@@ -345,7 +345,7 @@ static PyObject* PyBobLearnEMGaussian_loglikelihood(PyBobLearnEMGaussianObject* 
 
   PyBlitzArrayObject* input = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 
@@ -369,7 +369,7 @@ static PyObject* PyBobLearnEMGaussian_loglikelihood_(PyBobLearnEMGaussianObject*
   char** kwlist = log_likelihood_.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 

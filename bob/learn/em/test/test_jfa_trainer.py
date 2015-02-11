@@ -230,8 +230,8 @@ def test_ISVTrainAndEnrol():
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
   for i in range(10):
-    t.e_step(mb, TRAINING_STATS)
-    t.m_step(mb)
+    t.eStep(mb, TRAINING_STATS)
+    t.mStep(mb)
 
   assert numpy.allclose(mb.d, d_ref, eps)
   assert numpy.allclose(mb.u, u_ref, eps)

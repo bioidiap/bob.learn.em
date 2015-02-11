@@ -234,14 +234,14 @@ def test_trainer_nosigma():
   m.sigma = sigma
   for it in range(2):
     # E-Step
-    trainer.e_step(m, data)
+    trainer.eStep(m, data)
     for k in acc_Nij_Sigma_wij2_ref[it]:
       assert numpy.allclose(acc_Nij_Sigma_wij2_ref[it][k], trainer.acc_nij_wij2[k], 1e-5)
     for k in acc_Fnorm_Sigma_wij_ref[it]:
       assert numpy.allclose(acc_Fnorm_Sigma_wij_ref[it][k], trainer.acc_fnormij_wij[k], 1e-5)
 
     # M-Step
-    trainer.m_step(m)
+    trainer.mStep(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
 
 def test_trainer_update_sigma():
@@ -348,7 +348,7 @@ def test_trainer_update_sigma():
   m.sigma = sigma
   for it in range(2):
     # E-Step
-    trainer.e_step(m, data)
+    trainer.eStep(m, data)
     for k in acc_Nij_Sigma_wij2_ref[it]:
       assert numpy.allclose(acc_Nij_Sigma_wij2_ref[it][k], trainer.acc_nij_wij2[k], 1e-5)
     for k in acc_Fnorm_Sigma_wij_ref[it]:
@@ -357,7 +357,7 @@ def test_trainer_update_sigma():
     assert numpy.allclose(N_ref[it], trainer.acc_nij, 1e-5)
 
     # M-Step
-    trainer.m_step(m)
+    trainer.mStep(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
     assert numpy.allclose(sigma_ref[it], m.sigma, 1e-5)
 

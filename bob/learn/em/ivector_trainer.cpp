@@ -323,7 +323,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) return 0;
 
   self->cxx->initialize(*ivector_machine->cxx);
 
@@ -335,7 +335,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "e_step",
+  "eStep",
   "Call the e-step procedure (for the U subspace).",
   "",
   true
@@ -353,7 +353,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_e_step(PyBobLearnEMIVectorTrainerObj
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<bob::learn::em::GMMStats> training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
@@ -366,7 +366,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_e_step(PyBobLearnEMIVectorTrainerObj
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "m_step",
+  "mStep",
   "Call the m-step procedure (for the U subspace).",
   "",
   true
@@ -381,7 +381,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObj
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) return 0;
 
   self->cxx->mStep(*ivector_machine->cxx);
 

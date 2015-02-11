@@ -457,7 +457,7 @@ static PyObject* PyBobLearnEMJFAMachine_estimateX(PyBobLearnEMJFAMachineObject* 
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
                                                                  &PyBlitzArray_Converter,&input))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -488,7 +488,7 @@ static PyObject* PyBobLearnEMJFAMachine_estimateUx(PyBobLearnEMJFAMachineObject*
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
                                                                  &PyBlitzArray_Converter,&input))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
@@ -519,7 +519,7 @@ static PyObject* PyBobLearnEMJFAMachine_ForwardUx(PyBobLearnEMJFAMachineObject* 
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
                                                                  &PyBlitzArray_Converter,&ux_input))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   auto ux_input_ = make_safe(ux_input);
@@ -548,7 +548,7 @@ static PyObject* PyBobLearnEMJFAMachine_Forward(PyBobLearnEMJFAMachineObject* se
   PyBobLearnEMGMMStatsObject* stats = 0;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
-    Py_RETURN_NONE;
+    return 0;
 
   //protects acquired resources through this scope
   double score = self->cxx->forward(*stats->cxx);

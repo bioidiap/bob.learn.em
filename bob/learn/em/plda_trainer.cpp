@@ -445,7 +445,7 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
   PyObject* data = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
-                                                                 &PyList_Type, &data)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &data)) return 0;
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
@@ -477,7 +477,7 @@ static PyObject* PyBobLearnEMPLDATrainer_e_step(PyBobLearnEMPLDATrainerObject* s
   PyObject* data = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
-                                                                 &PyList_Type, &data)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &data)) return 0;
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
@@ -509,7 +509,7 @@ static PyObject* PyBobLearnEMPLDATrainer_m_step(PyBobLearnEMPLDATrainerObject* s
   PyObject* data = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
-                                                                 &PyList_Type, &data)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &data)) return 0;
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
@@ -541,7 +541,7 @@ static PyObject* PyBobLearnEMPLDATrainer_finalize(PyBobLearnEMPLDATrainerObject*
   PyObject* data = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
-                                                                 &PyList_Type, &data)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &data)) return 0;
 
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
@@ -574,7 +574,7 @@ static PyObject* PyBobLearnEMPLDATrainer_enrol(PyBobLearnEMPLDATrainerObject* se
   PyBlitzArrayObject* data = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMPLDAMachine_Type, &plda_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
 
   auto data_ = make_safe(data);
   self->cxx->enrol(*plda_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));

@@ -212,7 +212,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_initialize(PyBobLearnEMEMPCATrainerObj
   PyBlitzArrayObject* data                          = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnLinearMachine_Type, &linear_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->initialize(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -242,7 +242,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_eStep(PyBobLearnEMEMPCATrainerObject* 
   PyBobLearnLinearMachineObject* linear_machine;
   PyBlitzArrayObject* data = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnLinearMachine_Type, &linear_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->eStep(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -273,7 +273,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_mStep(PyBobLearnEMEMPCATrainerObject* 
   PyBobLearnLinearMachineObject* linear_machine;
   PyBlitzArrayObject* data = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnLinearMachine_Type, &linear_machine,
-                                                                 &PyBlitzArray_Converter, &data)) Py_RETURN_NONE;
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
 
   self->cxx->mStep(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
@@ -301,7 +301,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_compute_likelihood(PyBobLearnEMEMPCATr
   char** kwlist = compute_likelihood.kwlist(0);
 
   PyBobLearnLinearMachineObject* linear_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnLinearMachine_Type, &linear_machine)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnLinearMachine_Type, &linear_machine)) return 0;
 
   double value = self->cxx->computeLikelihood(*linear_machine->cxx);
   return Py_BuildValue("d", value);

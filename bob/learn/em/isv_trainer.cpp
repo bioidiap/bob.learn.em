@@ -391,7 +391,7 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -405,7 +405,7 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "e_step",
+  "eStep",
   "Call the e-step procedure (for the U subspace).",
   "",
   true
@@ -423,7 +423,7 @@ static PyObject* PyBobLearnEMISVTrainer_e_step(PyBobLearnEMISVTrainerObject* sel
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -437,7 +437,7 @@ static PyObject* PyBobLearnEMISVTrainer_e_step(PyBobLearnEMISVTrainerObject* sel
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "m_step",
+  "mStep",
   "Call the m-step procedure (for the U subspace).",
   "",
   true
@@ -486,7 +486,7 @@ static PyObject* PyBobLearnEMISVTrainer_enrol(PyBobLearnEMISVTrainerObject* self
 
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!i", kwlist, &PyBobLearnEMISVMachine_Type, &isv_machine,
-                                                                  &PyList_Type, &stats, &n_iter)) Py_RETURN_NONE;
+                                                                  &PyList_Type, &stats, &n_iter)) return 0;
 
   std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)

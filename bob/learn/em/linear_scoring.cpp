@@ -148,7 +148,7 @@ static PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject
                                                                        &PyList_Type, &channel_offset_list_o,
                                                                        &PyBool_Type, &frame_length_normalisation)){
       linear_scoring1.print_usage();
-      Py_RETURN_NONE;
+      return 0;
     }
 
     std::vector<boost::shared_ptr<const bob::learn::em::GMMStats> > stats_list;
@@ -191,7 +191,7 @@ static PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject
                                                                        &PyList_Type, &channel_offset_list_o,
                                                                        &PyBool_Type, &frame_length_normalisation)){
       linear_scoring2.print_usage(); 
-      Py_RETURN_NONE;
+      return 0;
     }
     
     //protects acquired resources through this scope
@@ -239,7 +239,7 @@ static PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject
                                                                        &PyBlitzArray_Converter, &channel_offset,
                                                                        &PyBool_Type, &frame_length_normalisation)){
       linear_scoring3.print_usage(); 
-      Py_RETURN_NONE;
+      return 0;
     }
     
     //protects acquired resources through this scope
@@ -259,7 +259,7 @@ static PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject
     linear_scoring1.print_usage();
     linear_scoring2.print_usage();
     linear_scoring3.print_usage();
-    Py_RETURN_NONE;
+    return 0;
   }
 
 }

@@ -477,7 +477,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getGamma(PyBobLearnEMPLDAMachineObject*
   char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getGamma(i));
   BOB_CATCH_MEMBER("`get_gamma` could not be read", 0)
@@ -500,7 +500,7 @@ static PyObject* PyBobLearnEMPLDAMachine_hasGamma(PyBobLearnEMPLDAMachineObject*
   
   char** kwlist = has_gamma.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   if(self->cxx->hasGamma(i))
     Py_RETURN_TRUE;
@@ -528,7 +528,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getAddGamma(PyBobLearnEMPLDAMachineObje
   char** kwlist = get_add_gamma.kwlist(0);
 
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getAddGamma(i));
   BOB_CATCH_MEMBER("`get_add_gamma` could not be read", 0)
@@ -551,7 +551,7 @@ static PyObject* PyBobLearnEMPLDAMachine_hasLogLikeConstTerm(PyBobLearnEMPLDAMac
   
   char** kwlist = has_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   if(self->cxx->hasLogLikeConstTerm(i))
     Py_RETURN_TRUE;
@@ -578,7 +578,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getAddLogLikeConstTerm(PyBobLearnEMPLDA
   
   char** kwlist = get_add_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getAddLogLikeConstTerm(i));
 
@@ -602,7 +602,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getLogLikeConstTerm(PyBobLearnEMPLDAMac
   
   char** kwlist = get_log_like_const_term.kwlist(0);
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getLogLikeConstTerm(i));
 
@@ -647,7 +647,7 @@ static PyObject* PyBobLearnEMPLDAMachine_computeLogLikelihood(PyBobLearnEMPLDAMa
   PyObject* with_enrolled_samples = Py_True;
   
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
-                                                                 &PyBool_Type, &with_enrolled_samples)) Py_RETURN_NONE;
+                                                                 &PyBool_Type, &with_enrolled_samples)) return 0;
   auto samples_ = make_safe(samples);
 
   blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
@@ -679,7 +679,7 @@ static PyObject* PyBobLearnEMPLDAMachine_forward(PyBobLearnEMPLDAMachineObject* 
 
   PyBlitzArrayObject* samples;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &samples)) Py_RETURN_NONE;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &samples)) return 0;
   auto samples_ = make_safe(samples);
   blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
 

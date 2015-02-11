@@ -567,7 +567,7 @@ static PyObject* PyBobLearnEMJFATrainer_initialize(PyBobLearnEMJFATrainerObject*
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -599,7 +599,7 @@ static PyObject* PyBobLearnEMJFATrainer_e_step1(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -632,7 +632,7 @@ static PyObject* PyBobLearnEMJFATrainer_m_step1(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -664,7 +664,7 @@ static PyObject* PyBobLearnEMJFATrainer_finalize1(PyBobLearnEMJFATrainerObject* 
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -696,7 +696,7 @@ static PyObject* PyBobLearnEMJFATrainer_e_step2(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -728,7 +728,7 @@ static PyObject* PyBobLearnEMJFATrainer_m_step2(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -760,7 +760,7 @@ static PyObject* PyBobLearnEMJFATrainer_finalize2(PyBobLearnEMJFATrainerObject* 
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -792,7 +792,7 @@ static PyObject* PyBobLearnEMJFATrainer_e_step3(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -824,7 +824,7 @@ static PyObject* PyBobLearnEMJFATrainer_m_step3(PyBobLearnEMJFATrainerObject* se
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -856,7 +856,7 @@ static PyObject* PyBobLearnEMJFATrainer_finalize3(PyBobLearnEMJFATrainerObject* 
   PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
-                                                                 &PyList_Type, &stats)) Py_RETURN_NONE;
+                                                                 &PyList_Type, &stats)) return 0;
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
@@ -891,7 +891,7 @@ static PyObject* PyBobLearnEMJFATrainer_enrol(PyBobLearnEMJFATrainerObject* self
 
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!i", kwlist, &PyBobLearnEMJFAMachine_Type, &jfa_machine,
-                                                                  &PyList_Type, &stats, &n_iter)) Py_RETURN_NONE;
+                                                                  &PyList_Type, &stats, &n_iter)) return 0;
 
   std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
