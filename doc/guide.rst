@@ -359,6 +359,45 @@ In the previous section, the concept of a `machine` was introduced. A `machine`
 is fed by some input data, processes it and returns an output. Machines can be
 learnt using trainers in |project|.
 
+Expectation Maximization
+========================
+
+Each one of the following trainers has their own `initialize`, `eStep` and `mStep` methods in order to train the respective machines.
+For example, to train a K-Means with 10 iterations you can use the following steps.
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
+
+   >>> data           = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64') #Data
+   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
+   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine
+   >>> max_iterations = 10
+   >>> kmeans_trainer.initialize(kmeans_machine, data) #Initilizing the means with random values
+   >>> for i in range(max_iterations):
+   ...   kmeans_trainer.eStep(kmeans_machine, data)
+   ...   kmeans_trainer.mStep(kmeans_machine, data)
+   >>> print(kmeans_machine.means)
+   [[  -6.     6.  -100.5]
+   [   3.5   -3.5   99. ]]
+
+
+With that granularity you can train your K-Means (or any trainer procedure) with your own convergence criteria.
+Furthermore, to make the things even simpler, it is possible to train the K-Means (and have the same example as above) using the wrapper :py:method:`bob.learn.em.train` as in the example below:
+
+.. doctest::
+   :options: +NORMALIZE_WHITESPACE
+
+   >>> data           = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64') #Data
+   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
+   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine   
+   >>> max_iterations = 10
+   >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data, max_iterations = 10) #wrapper for the em trainer
+   >>> print(kmeans_machine.means)
+   [[  -6.     6.  -100.5]
+   [   3.5   -3.5   99. ]]
+
+
+
 K-means
 =======
 

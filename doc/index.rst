@@ -1,19 +1,18 @@
 .. vim: set fileencoding=utf-8 :
-.. Andre Anjos <andre.anjos@idiap.ch>
-.. Fri 13 Dec 2013 12:50:06 CET
+.. Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
+.. Tue 17 Feb 2015 13:50:06 CET
 ..
 .. Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 .. _bob.learn.em:
 
-======================================
- Miscellaneous Machine Learning Tools
-======================================
+================================================
+ Expectation Maximization Machine Learning Tools
+================================================
 
-.. todolist::
+The EM algorithm is an iterative method that estimates parameters for a statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step [WikiEM]_. 
 
-This package includes various machine learning utitilities which have not yet
-been ported into the new framework.
+This package contains a set of Pythonic bindings for Bob's Machines and Trainers.
 
 Documentation
 -------------
@@ -34,6 +33,7 @@ References
 ..   [ElShafey2014] *Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel*. **'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition'**, TPAMI'2014
 ..   [PrinceElder2007] *Prince and Elder*. **'Probabilistic Linear Discriminant Analysis for Inference About Identity'**, ICCV'2007
 ..   [LiFu2012] *Li, Fu, Mohammed, Elder and Prince*. **'Probabilistic Models for Inference about Identity'**,  TPAMI'2012
+..   [WikiEM] `Expectation Maximization <http://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm>`_
 
 
 
