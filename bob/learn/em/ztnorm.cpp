@@ -12,17 +12,18 @@
 /*** zt_norm ***/
 bob::extension::FunctionDoc zt_norm = bob::extension::FunctionDoc(
   "ztnorm",
-  "",
+  "Normalise raw scores with ZT-Norm."
+  "Assume that znorm and tnorm have no common subject id.",
   0,
   true
 )
 .add_prototype("rawscores_probes_vs_models,rawscores_zprobes_vs_models,rawscores_probes_vs_tmodels,rawscores_zprobes_vs_tmodels,mask_zprobes_vs_tmodels_istruetrial", "output")
-.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "")
-.add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "")
-.add_parameter("rawscores_probes_vs_tmodels", "array_like <float, 2D>", "")
-.add_parameter("rawscores_zprobes_vs_tmodels", "array_like <float, 2D>", "")
+.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "Raw set of scores")
+.add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "Z-Scores (raw scores of the Z probes against the models)")
+.add_parameter("rawscores_probes_vs_tmodels", "array_like <float, 2D>", "T-Scores (raw scores of the T probes against the models)")
+.add_parameter("rawscores_zprobes_vs_tmodels", "array_like <float, 2D>", "ZT-Scores (raw scores of the Z probes against the T-models)")
 .add_parameter("mask_zprobes_vs_tmodels_istruetrial", "array_like <float, 2D>", "")
-.add_return("output","array_like <float, 2D>","");
+.add_return("output","array_like <float, 2D>","The scores ZT Normalized");
 PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);
@@ -73,14 +74,14 @@ PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 /*** t_norm ***/
 bob::extension::FunctionDoc t_norm = bob::extension::FunctionDoc(
   "tnorm",
-  "",
+  "Normalise raw scores with T-Norm",
   0,
   true
 )
 .add_prototype("rawscores_probes_vs_models,rawscores_probes_vs_tmodels", "output")
-.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "")
-.add_parameter("rawscores_probes_vs_tmodels", "array_like <float, 2D>", "")
-.add_return("output","array_like <float, 2D>","");
+.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "Raw set of scores")
+.add_parameter("rawscores_probes_vs_tmodels", "array_like <float, 2D>", "T-Scores (raw scores of the T probes against the models)")
+.add_return("output","array_like <float, 2D>","The scores T Normalized");
 PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);
@@ -110,14 +111,14 @@ PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 /*** z_norm ***/
 bob::extension::FunctionDoc z_norm = bob::extension::FunctionDoc(
   "znorm",
-  "",
+  "Normalise raw scores with Z-Norm",
   0,
   true
 )
 .add_prototype("rawscores_probes_vs_models,rawscores_zprobes_vs_models", "output")
-.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "")
-.add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "")
-.add_return("output","array_like <float, 2D>","");
+.add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "Raw set of scores")
+.add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "Z-Scores (raw scores of the Z probes against the models)")
+.add_return("output","array_like <float, 2D>","The scores T Normalized");
 PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);

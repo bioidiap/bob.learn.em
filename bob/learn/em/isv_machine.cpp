@@ -16,7 +16,7 @@
 static auto ISVMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ISVMachine",
   "A ISVMachine. An attached :py:class:`bob.learn.em.ISVBase` should be provided for Joint Factor Analysis. The :py:class:`bob.learn.em.ISVMachine` carries information about the speaker factors :math:`y` and :math:`z`, whereas a :py:class:`bob.learn.em.JFABase` carries information about the matrices :math:`U` and :math:`D`.\n\n"
-  "References: [Vogt2008_ [McCool2013]_",
+  "References: [Vogt2008]_ [McCool2013]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(

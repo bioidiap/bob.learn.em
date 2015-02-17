@@ -8,7 +8,23 @@ import numpy
 import bob.learn.em
 
 def train(trainer, machine, data, max_iterations = 50, convergence_threshold=None, initialize=True):
+  """
+  Trains a machine given a trainer and the proper data
 
+  **Parameters**:
+    trainer
+      A trainer mechanism
+    machine
+      A container machine
+    data 
+      The data to be trained
+    max_iterations
+      The maximum number of iterations to train a machine
+    convergence_threshold
+      The convergence threshold to train a machine. If None, the training procedure will stop with the iterations criteria
+    initialize
+      If True, runs the initialization procedure
+  """
   #Initialization
   if initialize:
     trainer.initialize(machine, data)
@@ -37,6 +53,21 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
 
 
 def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True):
+  """
+  Trains a :py:class`bob.learn.em.JFABase` given a :py:class`bob.learn.em.JFATrainer` and the proper data
+
+  **Parameters**:
+    trainer
+      A trainer mechanism (:py:class`bob.learn.em.JFATrainer`)
+    machine
+      A container machine (:py:class`bob.learn.em.JFABase`)
+    data
+      The data to be trained list(list(:py:class`bob.learn.em.GMMStats`))
+    max_iterations
+      The maximum number of iterations to train a machine
+    initialize
+      If True, runs the initialization procedure
+  """
 
   if initialize:
     trainer.initialize(jfa_base, data)

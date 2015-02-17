@@ -94,9 +94,9 @@ static PyObject* vector_as_list(const std::vector<blitz::Array<double,N> >& vec)
 
 static auto PLDATrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".PLDATrainer",
-  "This class can be used to train the :math:`$F$`, :math:`$G$ and "
-  " :math:`$\\Sigma$` matrices and the mean vector :math:`$\\mu$` of a PLDA model."
-  "References: [ElShafey2014,PrinceElder2007,LiFu2012]",
+  "This class can be used to train the :math:`F`, :math:`G` and "
+  " :math:`\\Sigma` matrices and the mean vector :math:`\\mu` of a PLDA model."
+  "References: [ElShafey2014]_,[PrinceElder2007]_,[LiFu2012]_",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
