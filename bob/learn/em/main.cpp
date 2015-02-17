@@ -9,9 +9,6 @@
 #undef NO_IMPORT_ARRAY
 #endif
 #include "main.h"
-#include "ztnorm.cpp"
-#include "linear_scoring.cpp"
-
 
 static PyMethodDef module_methods[] = {
   {
@@ -75,7 +72,6 @@ static PyObject* create_module (void) {
   if (!init_BobLearnEMGMMMachine(module)) return 0;
   if (!init_BobLearnEMKMeansMachine(module)) return 0;
   if (!init_BobLearnEMKMeansTrainer(module)) return 0;
-  //if (!init_BobLearnEMGMMBaseTrainer(module)) return 0;
   if (!init_BobLearnEMMLGMMTrainer(module)) return 0;  
   if (!init_BobLearnEMMAPGMMTrainer(module)) return 0;
 
@@ -130,7 +126,7 @@ static PyObject* create_module (void) {
   if (import_bob_blitz() < 0) return 0;
   if (import_bob_core_random() < 0) return 0;
   if (import_bob_io_base() < 0) return 0;
-  //if (import_bob_learn_linear() < 0) return 0;
+  if (import_bob_learn_linear() < 0) return 0;
 
   Py_INCREF(module);
   return module;

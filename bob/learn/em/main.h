@@ -80,8 +80,6 @@
     return ret;\
   }
 
-static inline char* c(const char* o){return const_cast<char*>(o);}  /* converts const char* to char* */
-
 /// inserts the given key, value pair into the given dictionaries
 static inline int insert_item_string(PyObject* dict, PyObject* entries, const char* key, Py_ssize_t value){
   auto v = make_safe(Py_BuildValue("n", value));
@@ -308,5 +306,21 @@ bool init_BobLearnEMEMPCATrainer(PyObject* module);
 int PyBobLearnEMEMPCATrainer_Check(PyObject* o);
 
 
+//ZT Normalization
+PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs);
+extern bob::extension::FunctionDoc zt_norm;
+
+PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs);
+extern bob::extension::FunctionDoc t_norm;
+
+PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs);
+extern bob::extension::FunctionDoc z_norm;
+
+
+//Linear scoring
+PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs);
+extern bob::extension::FunctionDoc linear_scoring1;
+extern bob::extension::FunctionDoc linear_scoring2;
+extern bob::extension::FunctionDoc linear_scoring3;
 
 #endif // BOB_LEARN_EM_MAIN_H

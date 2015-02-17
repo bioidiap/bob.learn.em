@@ -313,8 +313,9 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("ivector_machine")
-.add_parameter("ivector_machine", ":py:class:`bob.learn.em.ISVBase`", "IVectorMachine Object");
+.add_prototype("ivector_machine, stats")
+.add_parameter("ivector_machine", ":py:class:`bob.learn.em.ISVBase`", "IVectorMachine Object")
+.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Ignored");
 static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -322,8 +323,10 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
   char** kwlist = initialize.kwlist(0);
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
+  PyObject* stats = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
+                                                                 &PyList_Type, &stats)) return 0;
 
   self->cxx->initialize(*ivector_machine->cxx);
 
@@ -371,8 +374,9 @@ static auto m_step = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("ivector_machine")
-.add_parameter("ivector_machine", ":py:class:`bob.learn.em.ISVBase`", "IVectorMachine Object");
+.add_prototype("ivector_machine, stats")
+.add_parameter("ivector_machine", ":py:class:`bob.learn.em.ISVBase`", "IVectorMachine Object")
+.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Ignored");
 static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -380,8 +384,10 @@ static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObj
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
+  PyObject* stats = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
+                                                                 &PyList_Type, &stats)) return 0;
 
   self->cxx->mStep(*ivector_machine->cxx);
 
@@ -448,6 +454,6 @@ bool init_BobLearnEMIVectorTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMIVectorTrainer_Type);
-  return PyModule_AddObject(module, "_IVectorTrainer", (PyObject*)&PyBobLearnEMIVectorTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "IVectorTrainer", (PyObject*)&PyBobLearnEMIVectorTrainer_Type) >= 0;
 }
 

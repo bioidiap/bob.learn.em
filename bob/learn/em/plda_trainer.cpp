@@ -132,10 +132,10 @@ static int PyBobLearnEMPLDATrainer_init_copy(PyBobLearnEMPLDATrainerObject* self
 static int PyBobLearnEMPLDATrainer_init_bool(PyBobLearnEMPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = PLDATrainer_doc.kwlist(0);
-  PyObject* use_sum_second_order;
+  PyObject* use_sum_second_order = Py_False;
 
   //Parsing the input argments
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBool_Type, &use_sum_second_order))
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O!", kwlist, &PyBool_Type, &use_sum_second_order))
     return -1;
 
   self->cxx.reset(new bob::learn::em::PLDATrainer(f(use_sum_second_order)));
@@ -149,7 +149,9 @@ static int PyBobLearnEMPLDATrainer_init(PyBobLearnEMPLDATrainerObject* self, PyO
   // get the number of command line arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
 
-  if(nargs==1){
+  if(nargs==0)
+    return PyBobLearnEMPLDATrainer_init_bool(self, args, kwargs);
+  else if(nargs==1){
     //Reading the input argument
     PyObject* arg = 0;
     if (PyTuple_Size(args))
@@ -367,6 +369,32 @@ int PyBobLearnEMPLDATrainer_setSigmaMethod(PyBobLearnEMPLDATrainerObject* self, 
 }
 
 
+static auto use_sum_second_order = bob::extension::VariableDoc(
+  "use_sum_second_order",
+  "bool",
+  "Tells whether the second order statistics are stored during the training procedure, or only their sum.",
+  ""
+);
+PyObject* PyBobLearnEMPLDATrainer_getUseSumSecondOrder(PyBobLearnEMPLDATrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("O",self->cxx->getUseSumSecondOrder()?Py_True:Py_False);
+  BOB_CATCH_MEMBER("use_sum_second_order could not be read", 0)
+}
+int PyBobLearnEMPLDATrainer_setUseSumSecondOrder(PyBobLearnEMPLDATrainerObject* self, PyObject* value, void*) {
+  BOB_TRY
+
+  if (!PyBool_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects an str", Py_TYPE(self)->tp_name, use_sum_second_order.name());
+    return -1;
+  }
+  self->cxx->setUseSumSecondOrder(f(value));
+
+  return 0;
+  BOB_CATCH_MEMBER("use_sum_second_order method could not be set", 0)
+}
+
+
+
 static PyGetSetDef PyBobLearnEMPLDATrainer_getseters[] = { 
   {
    z_first_order.name(),
@@ -416,7 +444,14 @@ static PyGetSetDef PyBobLearnEMPLDATrainer_getseters[] = {
    (setter)PyBobLearnEMPLDATrainer_setSigmaMethod,
    init_sigma_method.doc(),
    0
-  },  
+  },
+  {
+   use_sum_second_order.name(),
+   (getter)PyBobLearnEMPLDATrainer_getUseSumSecondOrder,
+   (setter)PyBobLearnEMPLDATrainer_setUseSumSecondOrder,
+   use_sum_second_order.doc(),
+   0
+  },
   {0}  // Sentinel
 };
 
@@ -459,8 +494,8 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "e_step",
-  "e_step before the EM steps",
+  "eStep",
+  "Expectation step before the EM steps",
   "",
   true
 )
@@ -491,8 +526,8 @@ static PyObject* PyBobLearnEMPLDATrainer_e_step(PyBobLearnEMPLDATrainerObject* s
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "m_step",
-  "m_step before the EM steps",
+  "mStep",
+  "Maximization step ",
   "",
   true
 )
@@ -699,6 +734,5 @@ bool init_BobLearnEMPLDATrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMPLDATrainer_Type);
-  return PyModule_AddObject(module, "_PLDATrainer", (PyObject*)&PyBobLearnEMPLDATrainer_Type) >= 0;
+  return PyModule_AddObject(module, "PLDATrainer", (PyObject*)&PyBobLearnEMPLDATrainer_Type) >= 0;
 }
-

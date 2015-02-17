@@ -133,6 +133,18 @@ class ISVTrainer
     { m_base_trainer.setAccUA1(acc); }
     void setAccUA2(const blitz::Array<double,2>& acc)
     { m_base_trainer.setAccUA2(acc); }
+    
+    /**
+     * @brief Sets the Random Number Generator
+     */
+    void setRng(const boost::shared_ptr<boost::mt19937> rng)
+    { m_rng = rng; }
+
+    /**
+     * @brief Gets the Random Number Generator
+     */
+    const boost::shared_ptr<boost::mt19937> getRng() const
+    { return m_rng; }
 
 
   private:

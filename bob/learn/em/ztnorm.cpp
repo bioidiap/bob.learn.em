@@ -10,7 +10,7 @@
 #include "main.h"
 
 /*** zt_norm ***/
-static auto zt_norm = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc zt_norm = bob::extension::FunctionDoc(
   "ztnorm",
   "",
   0,
@@ -23,7 +23,7 @@ static auto zt_norm = bob::extension::FunctionDoc(
 .add_parameter("rawscores_zprobes_vs_tmodels", "array_like <float, 2D>", "")
 .add_parameter("mask_zprobes_vs_tmodels_istruetrial", "array_like <float, 2D>", "")
 .add_return("output","array_like <float, 2D>","");
-static PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
+PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);
   
@@ -71,7 +71,7 @@ static PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs
 
 
 /*** t_norm ***/
-static auto t_norm = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc t_norm = bob::extension::FunctionDoc(
   "tnorm",
   "",
   0,
@@ -81,7 +81,7 @@ static auto t_norm = bob::extension::FunctionDoc(
 .add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "")
 .add_parameter("rawscores_probes_vs_tmodels", "array_like <float, 2D>", "")
 .add_return("output","array_like <float, 2D>","");
-static PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
+PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);
   
@@ -108,7 +108,7 @@ static PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs)
 
 
 /*** z_norm ***/
-static auto z_norm = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc z_norm = bob::extension::FunctionDoc(
   "znorm",
   "",
   0,
@@ -118,7 +118,7 @@ static auto z_norm = bob::extension::FunctionDoc(
 .add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "")
 .add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "")
 .add_return("output","array_like <float, 2D>","");
-static PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs) {
+PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = zt_norm.kwlist(0);
   

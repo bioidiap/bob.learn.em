@@ -156,20 +156,21 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("gmm_machine")
-.add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object");
+.add_prototype("gmm_machine,data")
+.add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
+.add_parameter("data", "array_like <float, 2D>", "Ignored.");
 static PyObject* PyBobLearnEMMLGMMTrainer_initialize(PyBobLearnEMMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = initialize.kwlist(0);
-
   PyBobLearnEMGMMMachineObject* gmm_machine = 0;
+  PyBlitzArrayObject* data                  = 0;  
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)){
-    PyErr_Format(PyExc_RuntimeError, "%s.%s. Was not possible to read :py:class:`bob.learn.em.GMMMachine`", Py_TYPE(self)->tp_name, initialize.name());
-    return 0;
-  }
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+                                                                  &PyBlitzArray_Converter, &data)) return 0;
+  auto data_ = make_safe(data);
+
   self->cxx->initialize(*gmm_machine->cxx);
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 
@@ -222,17 +223,22 @@ static auto mStep = bob::extension::FunctionDoc(
 
   true
 )
-.add_prototype("gmm_machine")
-.add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object");
+.add_prototype("gmm_machine,data")
+.add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
+.add_parameter("data", "array_like <float, 2D>", "Ignored.");
 static PyObject* PyBobLearnEMMLGMMTrainer_mStep(PyBobLearnEMMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = mStep.kwlist(0);
 
-  PyBobLearnEMGMMMachineObject* gmm_machine;
-  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine)) return 0;
+  PyBobLearnEMGMMMachineObject* gmm_machine = 0;
+  PyBlitzArrayObject* data                  = 0;  
+
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+                                                                  &PyBlitzArray_Converter, &data)) return 0;
+  if(data != NULL)
+    auto data_ = make_safe(data);
 
   self->cxx->mStep(*gmm_machine->cxx);
 
@@ -330,6 +336,6 @@ bool init_BobLearnEMMLGMMTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMMLGMMTrainer_Type);
-  return PyModule_AddObject(module, "_ML_GMMTrainer", (PyObject*)&PyBobLearnEMMLGMMTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "ML_GMMTrainer", (PyObject*)&PyBobLearnEMMLGMMTrainer_Type) >= 0;
 }
 

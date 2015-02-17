@@ -81,7 +81,7 @@ def test_JFATrainer_updateYandV():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = JFATrainer(10)
+  t = JFATrainer()
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -115,7 +115,7 @@ def test_JFATrainer_updateXandU():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = JFATrainer(10)
+  t = JFATrainer()
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -148,7 +148,7 @@ def test_JFATrainer_updateZandD():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   m = JFABase(ubm,2,2)
-  t = JFATrainer(10)
+  t = JFATrainer()
   t.initialize(m, TRAINING_STATS)
   m.u = M_u
   m.v = M_v
@@ -173,12 +173,12 @@ def test_JFATrainAndEnrol():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   mb = JFABase(ubm, 2, 2)
-  t = JFATrainer(10)
+  t = JFATrainer()
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
   mb.v = M_v
   mb.d = M_d
-  t.train_loop(mb, TRAINING_STATS)
+  bob.learn.em.train_jfa(t,mb, TRAINING_STATS, initialize=False)
 
   v_ref = numpy.array([[0.245364911936476, 0.978133261775424], [0.769646805052223, 0.940070736856596], [0.310779202800089, 1.456332053893072],
         [0.184760934399551, 2.265139705602147], [0.701987784039800, 0.081632150899400], [0.074344030229297, 1.090248340917255]], 'float64')
@@ -225,7 +225,7 @@ def test_ISVTrainAndEnrol():
   ubm.mean_supervector = UBM_MEAN
   ubm.variance_supervector = UBM_VAR
   mb = ISVBase(ubm,2)
-  t = ISVTrainer(10, 4.)
+  t = ISVTrainer(4.)
   #t.train(mb, TRAINING_STATS)
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
@@ -252,6 +252,7 @@ def test_ISVTrainAndEnrol():
   t.enrol(m, gse, 5)
   assert numpy.allclose(m.z, z_ref, eps)
 
+
 def test_JFATrainInitialize():
   # Check that the initialization is consistent and using the rng (cf. issue #118)
 
@@ -266,7 +267,7 @@ def test_JFATrainInitialize():
   jb = JFABase(ubm, 2, 2)
   # first round
   rng = bob.core.random.mt19937(0)
-  jt = JFATrainer(10)
+  jt = JFATrainer()
   jt.rng = rng
   jt.initialize(jb, TRAINING_STATS)
   u1 = jb.u

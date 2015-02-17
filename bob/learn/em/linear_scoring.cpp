@@ -69,7 +69,7 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}
 
 
 /*** linear_scoring ***/
-static auto linear_scoring1 = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc linear_scoring1 = bob::extension::FunctionDoc(
   "linear_scoring",
   "",
   0,
@@ -84,7 +84,7 @@ static auto linear_scoring1 = bob::extension::FunctionDoc(
 .add_return("output","array_like<float,1>","Score");
 
 
-static auto linear_scoring2 = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc linear_scoring2 = bob::extension::FunctionDoc(
   "linear_scoring",
   "",
   0,
@@ -101,7 +101,7 @@ static auto linear_scoring2 = bob::extension::FunctionDoc(
 
 
 
-static auto linear_scoring3 = bob::extension::FunctionDoc(
+bob::extension::FunctionDoc linear_scoring3 = bob::extension::FunctionDoc(
   "linear_scoring",
   "",
   0,
@@ -116,7 +116,7 @@ static auto linear_scoring3 = bob::extension::FunctionDoc(
 .add_parameter("frame_length_normalisation", "bool", "")
 .add_return("output","array_like<float,1>","Score");
 
-static PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
+PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
     
   //Cheking the number of arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);

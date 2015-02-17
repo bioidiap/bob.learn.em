@@ -15,6 +15,8 @@ from bob.io.base.test_utils import datafile
 
 from bob.learn.em import KMeansMachine, GMMMachine, KMeansTrainer, \
     ML_GMMTrainer, MAP_GMMTrainer
+    
+import bob.learn.em
 
 #, MAP_GMMTrainer
 
@@ -51,7 +53,8 @@ def test_gmm_ML_1():
   gmm = loadGMM()
   
   ml_gmmtrainer = ML_GMMTrainer(True, True, True)
-  ml_gmmtrainer.train(gmm, ar)
+  #ml_gmmtrainer.train(gmm, ar)
+  bob.learn.em.train(ml_gmmtrainer, gmm, ar, convergence_threshold=0.001)
 
   #config = bob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
   #gmm.save(config)
@@ -82,14 +85,12 @@ def test_gmm_ML_2():
   prior = 0.001
   max_iter_gmm = 25
   accuracy = 0.00001
-  ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior, converge_by_likelihood=True)
-  ml_gmmtrainer.max_iterations = max_iter_gmm
-  ml_gmmtrainer.convergence_threshold = accuracy
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior)
   
   # Run ML
-  ml_gmmtrainer.train(gmm, ar)
-
-
+  #ml_gmmtrainer.train(gmm, ar)
+  bob.learn.em.train(ml_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy)
+  
   # Test results
   # Load torch3vision reference
   meansML_ref = bob.io.base.load(datafile('meansAfterML.hdf5', __name__, path="../data/"))
@@ -114,11 +115,9 @@ def test_gmm_MAP_1():
   gmmprior = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/")))
 
   map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, prior_gmm=gmmprior, relevance_factor=4.)  
-  #map_gmmtrainer.set_prior_gmm(gmmprior)
-  map_gmmtrainer.train(gmm, ar)
-
-  #config = bob.io.base.HDF5File(datafile('gmm_MAP.hdf5", 'w', __name__))
-  #gmm.save(config)
+  
+  #map_gmmtrainer.train(gmm, ar)
+  bob.learn.em.train(map_gmmtrainer, gmm, ar)
 
   gmm_ref = GMMMachine(bob.io.base.HDF5File(datafile('gmm_MAP.hdf5', __name__, path="../data/")))
 
@@ -141,15 +140,15 @@ def test_gmm_MAP_2():
   gmm.weights = weights
 
   map_adapt = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, mean_var_update_responsibilities_threshold=0.,prior_gmm=gmm, relevance_factor=4.)
-  #map_adapt.set_prior_gmm(gmm)
 
   gmm_adapted = GMMMachine(2,50)
   gmm_adapted.means = means
   gmm_adapted.variances = variances
   gmm_adapted.weights = weights
 
-  map_adapt.max_iterations = 1
-  map_adapt.train(gmm_adapted, data)
+  #map_adapt.max_iterations = 1
+  #map_adapt.train(gmm_adapted, data)
+  bob.learn.em.train(map_adapt, gmm_adapted, data, max_iterations = 1)
 
   new_means = bob.io.base.load(datafile('new_adapted_mean.hdf5', __name__, path="../data/"))
 
@@ -184,15 +183,16 @@ def test_gmm_MAP_3():
   max_iter_gmm = 1
   accuracy = 0.00001
   map_factor = 0.5
-  map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, convergence_threshold=prior, prior_gmm=prior_gmm, alpha=map_factor)
-  map_gmmtrainer.max_iterations = max_iter_gmm
-  map_gmmtrainer.convergence_threshold = accuracy
+  map_gmmtrainer = MAP_GMMTrainer(prior_gmm, alpha=map_factor, update_means=True, update_variances=False, update_weights=False, convergence_threshold=prior)
+  #map_gmmtrainer.max_iterations = max_iter_gmm
+  #map_gmmtrainer.convergence_threshold = accuracy
 
   gmm = GMMMachine(n_gaussians, n_inputs)
   gmm.set_variance_thresholds(threshold)
 
   # Train
-  map_gmmtrainer.train(gmm, ar)
+  #map_gmmtrainer.train(gmm, ar)
+  bob.learn.em.train(map_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy)
 
   # Test results
   # Load torch3vision reference

@@ -366,7 +366,7 @@ static auto get_mean = bob::extension::FunctionDoc(
   ".. note:: An exception is thrown if i is out of range.", 
   true
 )
-.add_prototype("i")
+.add_prototype("i","mean")
 .add_parameter("i", "int", "Index of the mean")
 .add_return("mean","array_like <float, 1D>","Mean array");
 static PyObject* PyBobLearnEMKMeansMachine_get_mean(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {

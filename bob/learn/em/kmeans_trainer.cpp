@@ -27,7 +27,7 @@ static inline const std::string& IM2string(bob::learn::em::KMeansTrainer::Initia
 
 
 static auto KMeansTrainer_doc = bob::extension::ClassDoc(
-  BOB_EXT_MODULE_PREFIX "._KMeansTrainer",
+  BOB_EXT_MODULE_PREFIX ".KMeansTrainer",
   "Trains a KMeans machine."
   "This class implements the expectation-maximization algorithm for a k-means machine."
   "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006"
@@ -411,8 +411,9 @@ static auto mStep = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("kmeans_machine")
-.add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object");
+.add_prototype("kmeans_machine,data")
+.add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
+.add_parameter("data", "array_like <float, 2D>", "Ignored.");
 static PyObject* PyBobLearnEMKMeansTrainer_mStep(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -420,7 +421,11 @@ static PyObject* PyBobLearnEMKMeansTrainer_mStep(PyBobLearnEMKMeansTrainerObject
   char** kwlist = mStep.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) return 0;
+  PyBlitzArrayObject* data = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
+  if(data!=NULL)
+    auto data_ = make_safe(data);
 
   self->cxx->mStep(*kmeans_machine->cxx);
 
@@ -548,6 +553,6 @@ bool init_BobLearnEMKMeansTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMKMeansTrainer_Type);
-  return PyModule_AddObject(module, "_KMeansTrainer", (PyObject*)&PyBobLearnEMKMeansTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "KMeansTrainer", (PyObject*)&PyBobLearnEMKMeansTrainer_Type) >= 0;
 }
 

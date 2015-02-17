@@ -1008,6 +1008,6 @@ bool init_BobLearnEMJFATrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMJFATrainer_Type);
-  return PyModule_AddObject(module, "_JFATrainer", (PyObject*)&PyBobLearnEMJFATrainer_Type) >= 0;
+  return PyModule_AddObject(module, "JFATrainer", (PyObject*)&PyBobLearnEMJFATrainer_Type) >= 0;
 }
 

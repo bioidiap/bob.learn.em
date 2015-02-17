@@ -391,10 +391,8 @@ be called.
    :options: +NORMALIZE_WHITESPACE
 
    >>> kmeansTrainer = bob.learn.em.KMeansTrainer()
-   >>> kmeansTrainer.max_iterations = 200
-   >>> kmeansTrainer.convergence_threshold = 1e-5
 
-   >>> kmeansTrainer.train(kmeans, data) # Train the KMeansMachine
+   >>> bob.learn.em.train(kmeansTrainer, kmeans, data, max_iterations = 200, convergence_threshold = 1e-5) # Train the KMeansMachine   
    >>> print(kmeans.means)
    [[ -6.   6.  -100.5]
     [  3.5 -3.5   99. ]]
@@ -428,9 +426,7 @@ and the criterion used to determine if the parameters have converged.
    :options: +NORMALIZE_WHITESPACE
 
    >>> trainer = bob.learn.em.ML_GMMTrainer(True, True, True) # update means/variances/weights at each iteration
-   >>> trainer.convergence_threshold = 1e-5
-   >>> trainer.max_iterations = 200
-   >>> trainer.train(gmm, data)
+   >>> bob.learn.em.train(trainer, gmm, data, max_iterations = 200, convergence_threshold = 1e-5)
    >>> print(gmm) # doctest: +SKIP
 
 
@@ -476,7 +472,7 @@ set.
    >>> trainer.convergence_threshold = 1e-5
    >>> trainer.max_iterations = 200
    >>> gmmAdapted = bob.learn.em.GMMMachine(2,3) # Create a new machine for the MAP estimate
-   >>> trainer.train(gmmAdapted, dataMAP)
+   >>> bob.learn.em.train(trainer, gmmAdapted, dataMAP)
    >>> print(gmmAdapted) # doctest: +SKIP
 
 
@@ -529,7 +525,7 @@ Next, we initialize a trainer, which is an instance of
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> jfa_trainer = bob.learn.em.JFATrainer(10) # 10 is the number of iterations
+   >>> jfa_trainer = bob.learn.em.JFATrainer()
 
 The training process is started by calling the
 :py:meth:`bob.learn.em.JFATrainer.train`.
@@ -537,7 +533,7 @@ The training process is started by calling the
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> jfa_trainer.train(jfa_base, TRAINING_STATS)
+   >>> bob.learn.em.train_jfa(jfa_trainer, jfa_base, TRAINING_STATS, max_iterations=10)
 
 Once the training is finished (i.e. the subspaces :math:`U`, :math:`V` and
 :math:`D` are estimated), the JFA model can be shared and used by several
@@ -590,7 +586,7 @@ Next, we initialize a trainer, which is an instance of
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> isv_trainer = bob.learn.em.ISVTrainer(10, 4.) # 10 is the number of iterations, and 4 is the relevance factor
+   >>> isv_trainer = bob.learn.em.ISVTrainer(relevance_factor=4.) # 4 is the relevance factor
 
 The training process is started by calling the
 :py:meth:`bob.learn.em.ISVTrainer.train`.
@@ -598,7 +594,7 @@ The training process is started by calling the
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> isv_trainer.train(isv_base, TRAINING_STATS)
+   >>> bob.learn.em.train(isv_trainer, isv_base, TRAINING_STATS, max_iterations=10)
 
 Once the training is finished (i.e. the subspaces :math:`V` and :math:`D` are
 estimated), the ISV model can be shared and used by several class-specific
@@ -638,7 +634,7 @@ Next, we initialize a trainer, which is an instance of
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> ivec_trainer = bob.learn.em.IVectorTrainer(update_sigma=True, max_iterations=10)
+   >>> ivec_trainer = bob.learn.em.IVectorTrainer(update_sigma=True)
    >>> TRAINING_STATS_flatten = [gs11, gs12, gs21, gs22]
 
 The training process is started by calling the
@@ -647,7 +643,7 @@ The training process is started by calling the
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> ivec_trainer.train(m, TRAINING_STATS_flatten)
+   >>> bob.learn.em.train(ivec_trainer, m, TRAINING_STATS_flatten, max_iterations=10)
 
 More information about the training process can be found in [15]_.
 
@@ -693,7 +689,7 @@ Learning a PLDA model can be performed by instantiating the class
    >>> pldabase = bob.learn.em.PLDABase(3,1,2)
 
    >>> trainer = bob.learn.em.PLDATrainer()
-   >>> trainer.train(pldabase, data)
+   >>> bob.learn.em.train(trainer, pldabase, data, max_iterations=10)
 
 Once trained, this PLDA model can be used to compute the log-likelihood of a
 set of samples given some hypothesis. For this purpose, a

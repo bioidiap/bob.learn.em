@@ -108,7 +108,8 @@ def test_kmeans_a():
   machine = KMeansMachine(2, 1)
 
   trainer = KMeansTrainer()
-  trainer.train(machine, data)
+  #trainer.train(machine, data)
+  bob.learn.em.train(trainer,machine,data)
 
   [variances, weights] = machine.get_variances_and_weights_for_each_cluster(data)
   variances_b = numpy.ndarray(shape=(2,1), dtype=numpy.float64)
@@ -140,9 +141,10 @@ def test_kmeans_b():
 
   trainer = KMeansTrainer()
   #trainer.seed = 1337
-  trainer.train(machine, arStd)
+  bob.learn.em.train(trainer,machine, arStd, convergence_threshold=0.001)
 
   [variances, weights] = machine.get_variances_and_weights_for_each_cluster(arStd)
+    
   means = machine.means
 
   multiplyVectorsByFactors(means, std)
@@ -160,22 +162,11 @@ def test_kmeans_b():
   assert equals(means, gmmMeans, 1e-3)
   assert equals(weights, gmmWeights, 1e-3)
   assert equals(variances, gmmVariances, 1e-3)
-  
-  # Check comparison operators
-  trainer1 = KMeansTrainer()
-  trainer2 = KMeansTrainer()
-  #trainer1.rng = trainer2.rng
-
-  #assert trainer1 == trainer2
-  #assert (trainer1 != trainer2) is False
-  trainer1.max_iterations = 1337
-  #assert (trainer1 == trainer2) is False
-  #assert trainer1 != trainer2
 
   # Check that there is no duplicate means during initialization
   machine = KMeansMachine(2, 1)
   trainer = KMeansTrainer()
   trainer.initialization_method = 'RANDOM_NO_DUPLICATE'
   data = numpy.array([[1.], [1.], [1.], [1.], [1.], [1.], [2.], [3.]])
-  trainer.train(machine, data)
+  bob.learn.em.train(trainer, machine, data)
   assert (numpy.isnan(machine.means).any()) == False
