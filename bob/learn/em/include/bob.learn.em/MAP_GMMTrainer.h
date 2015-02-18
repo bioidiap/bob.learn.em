@@ -34,7 +34,7 @@ class MAP_GMMTrainer
       const bool reynolds_adaptation=false, 
       const double relevance_factor=4, 
       const double alpha=0.5,
-      boost::shared_ptr<bob::learn::em::GMMMachine> prior_gmm = 0);
+      boost::shared_ptr<bob::learn::em::GMMMachine> prior_gmm = boost::shared_ptr<bob::learn::em::GMMMachine>());
 
     /**
      * @brief Copy constructor
