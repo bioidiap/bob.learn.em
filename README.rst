@@ -17,12 +17,22 @@
 .. image:: http://img.shields.io/pypi/dm/bob.learn.em.png
    :target: https://pypi.python.org/pypi/bob.learn.em
 
-===========================================
- Miscelaneous Machines and Trainers in Bob
-===========================================
+==================================================
+  Expectation Maximization Machine Learning Tools
+==================================================
 
-This package contains various Bob's machines and trainers which have not yet been fully ported into the new framework.
-**Functionality in this package is subject to modifications**, including deletions of classes and functions (which will be moved to other packages).
+The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step. 
+
+The package includes the machine definition per se and a selection of different trainers for specialized purposes:
+ - Maximum Likelihood (ML)
+ - Maximum a Posteriori (MAP)
+ - K-Means
+ - Inter Session Variability Modelling (ISV)
+ - Joint Factor Analysis (JFA)
+ - Total Variability Modeling (iVectors)
+ - Probabilistic Linear Discriminant Analysis (PLDA)
+ - EM Principal Component Analysis (EM-PCA)
+
 
 Installation
 ------------
