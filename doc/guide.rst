@@ -382,7 +382,7 @@ For example, to train a K-Means with 10 iterations you can use the following ste
 
 
 With that granularity you can train your K-Means (or any trainer procedure) with your own convergence criteria.
-Furthermore, to make the things even simpler, it is possible to train the K-Means (and have the same example as above) using the wrapper :py:method:`bob.learn.em.train` as in the example below:
+Furthermore, to make the things even simpler, it is possible to train the K-Means (and have the same example as above) using the wrapper :py:class:`bob.learn.em.train` as in the example below:
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
