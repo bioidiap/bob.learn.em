@@ -42,12 +42,6 @@ class KMeansTrainer
      */
     KMeansTrainer(InitializationMethod=RANDOM);
 
-    /*     
-    KMeansTrainer(double convergence_threshold=0.001,
-      size_t max_iterations=10, bool compute_likelihood=true,
-      InitializationMethod=RANDOM);*/
-      
-
     /**
      * @brief Virtualize destructor
      */

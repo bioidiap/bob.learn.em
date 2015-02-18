@@ -14,7 +14,13 @@
 /******************************************************************/
 
 // InitializationMethod type conversion
-static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM}, {"RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}, {"KMEANS_PLUS_PLUS", bob::learn::em::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS}};
+
+#if BOOST_VERSION >= 104700
+  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM},  {"RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}, {"KMEANS_PLUS_PLUS", bob::learn::em::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS}};
+#else
+  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM}, {"RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}};
+#endif
+
 static inline bob::learn::em::KMeansTrainer::InitializationMethod string2IM(const std::string& o){            /* converts string to InitializationMethod type */
   auto it = IM.find(o);
   if (it == IM.end()) throw std::runtime_error("The given InitializationMethod '" + o + "' is not known; choose one of ('RANDOM', 'RANDOM_NO_DUPLICATE', 'KMEANS_PLUS_PLUS')");
