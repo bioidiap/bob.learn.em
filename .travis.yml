@@ -2,17 +2,20 @@ language: python
 matrix:
   include:
   - python: 2.6
+    env:
+    - NUMPYSPEC===1.8.2
   - python: 2.7
     env:
+    - NUMPYSPEC===1.8.2
     - secure: eVYI9c4v/gdgMu9/HUrdOljH6xoWucjRNlQMfh24LA3g6j1dr52+SdCP59mzFqBiAIR8eBtipIkit23sQDn+ulw3bJSrLszXsWCKGywLVG/6QtgsqN9J17/RbUA2ZnfA86famA6Z4+CtJbW7nQPYidRQshPC85iiekftN9DwdeQ=
     - secure: a+hf3j24x0fyP8OP/8IiIp5aMn+GfYxf97vWtJV1U76J8eGNLyj+n/AsPx4y6OpRWy2qTf/90W5TxU/ruRxKRl3j78+W2sYCI1LiQIlNlVX6tMrLnm2YS5zvwH3jICCmRUmY7d0Vc5MrqBRoKnmA+1QqyDrdiCjWkNSh6Jcn5KA=
     - BOB_DOCUMENTATION_SERVER=https://www.idiap.ch/software/bob/docs/latest/bioidiap/%s/master
   - python: 3.2
     env:
-    - NUMPYSPEC===1.7.1
+    - NUMPYSPEC===1.8.2
   - python: 3.3
     env:
-    - NUMPYSPEC===1.8.0
+    - NUMPYSPEC===1.8.2
 before_install:
 - sudo add-apt-repository -y ppa:biometrics/bob
 - sudo apt-get update -qq
