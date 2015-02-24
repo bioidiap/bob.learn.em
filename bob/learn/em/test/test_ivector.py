@@ -107,7 +107,7 @@ class IVectorMachinePy():
     return TtSigmaInvNT
 
   def forward(self, gmmstats):
-    if self.m_ubm and not (self.m_t == None) and not (self.m_sigma == None):
+    if self.m_ubm and self.m_t is not None and self.m_sigma is not None:
       N = gmmstats.n
       F = gmmstats.sum_px
 
