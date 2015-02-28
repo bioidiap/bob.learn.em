@@ -302,7 +302,7 @@ PyObject* PyBobLearnEMIVectorMachine_getUBM(PyBobLearnEMIVectorMachineObject* se
     (PyBobLearnEMGMMMachineObject*)PyBobLearnEMGMMMachine_Type.tp_alloc(&PyBobLearnEMGMMMachine_Type, 0);
   retval->cxx = ubm_gmmMachine;
 
-  return Py_BuildValue("O",retval);
+  return Py_BuildValue("N",retval);
   BOB_CATCH_MEMBER("ubm could not be read", 0)
 }
 int PyBobLearnEMIVectorMachine_setUBM(PyBobLearnEMIVectorMachineObject* self, PyObject* value, void*){

@@ -535,7 +535,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
   
   self->cxx->getVariancesAndWeightsForEachCluster(*PyBlitzArrayCxx_AsBlitz<double,2>(input),variances,weights);
 
-  return Py_BuildValue("(O,O)",PyBlitzArrayCxx_AsConstNumpy(variances), PyBlitzArrayCxx_AsConstNumpy(weights));
+  return Py_BuildValue("(N,N)",PyBlitzArrayCxx_AsConstNumpy(variances), PyBlitzArrayCxx_AsConstNumpy(weights));
 
   BOB_CATCH_MEMBER("cannot compute the variances and weights for each cluster", 0)
 }

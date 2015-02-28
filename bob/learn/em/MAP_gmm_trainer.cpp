@@ -78,6 +78,9 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
   PyObject* keyword_relevance_factor = Py_BuildValue("s", kwlist1[1]);
   PyObject* keyword_alpha            = Py_BuildValue("s", kwlist2[1]);
 
+  auto keyword_relevance_factor_ = make_safe(keyword_relevance_factor);
+  auto keyword_alpha_            = make_safe(keyword_alpha);  
+  
   //Here we have to select which keyword argument to read  
   if (kwargs && PyDict_Contains(kwargs, keyword_relevance_factor) && (PyArg_ParseTupleAndKeywords(args, kwargs, "O!dO!|O!O!d", kwlist1, 
                                                                       &PyBobLearnEMGMMMachine_Type, &gmm_machine,
