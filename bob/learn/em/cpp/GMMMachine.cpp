@@ -31,6 +31,7 @@ bob::learn::em::GMMMachine::GMMMachine(const GMMMachine& other)
   copy(other);
 }
 
+
 bob::learn::em::GMMMachine& bob::learn::em::GMMMachine::operator=(const bob::learn::em::GMMMachine &other) {
   // protect against invalid self-assignment
   if (this != &other)
@@ -91,7 +92,9 @@ void bob::learn::em::GMMMachine::copy(const GMMMachine& other) {
   initCache();
 }
 
-bob::learn::em::GMMMachine::~GMMMachine() { }
+
+bob::learn::em::GMMMachine::~GMMMachine() { 
+}
 
 
 /////////////////////

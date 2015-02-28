@@ -720,16 +720,13 @@ static PyObject* PyBobLearnEMGMMMachine_get_gaussian(PyBobLearnEMGMMMachineObjec
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
  
-  boost::shared_ptr<bob::learn::em::Gaussian> gaussian = self->cxx->getGaussian(i);
-
   //Allocating the correspondent python object
   PyBobLearnEMGaussianObject* retval =
     (PyBobLearnEMGaussianObject*)PyBobLearnEMGaussian_Type.tp_alloc(&PyBobLearnEMGaussian_Type, 0);
 
-  retval->cxx = gaussian;
-   
-  //return reinterpret_cast<PyObject*>(retval);
-  return Py_BuildValue("O",retval);
+  retval->cxx = self->cxx->getGaussian(i);
+
+  return Py_BuildValue("N",retval);
 
   BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
 }

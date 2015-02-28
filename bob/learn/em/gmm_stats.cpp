@@ -84,13 +84,23 @@ static int PyBobLearnEMGMMStats_init_hdf5(PyBobLearnEMGMMStatsObject* self, PyOb
 
   char** kwlist = GMMStats_doc.kwlist(2);
 
+  /*
   PyBobIoHDF5FileObject* config = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBobIoHDF5File_Converter, &config)){
     GMMStats_doc.print_usage();
     return -1;
   }
+  */
 
-  self->cxx.reset(new bob::learn::em::GMMStats(*(config->f)));
+  PyObject* config = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobIoHDF5File_Type, &config)){
+    GMMStats_doc.print_usage();
+    return -1;
+  }
+  
+  auto h5f = reinterpret_cast<PyBobIoHDF5FileObject*>(config);  
+  
+  self->cxx.reset(new bob::learn::em::GMMStats(*(h5f->f)));
 
   return 0;
 }
