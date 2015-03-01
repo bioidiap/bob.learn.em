@@ -267,7 +267,7 @@ PyObject* PyBobLearnEMISVBase_getUBM(PyBobLearnEMISVBaseObject* self, void*){
     (PyBobLearnEMGMMMachineObject*)PyBobLearnEMGMMMachine_Type.tp_alloc(&PyBobLearnEMGMMMachine_Type, 0);
   retval->cxx = ubm_gmmMachine;
 
-  return Py_BuildValue("O",retval);
+  return Py_BuildValue("N",retval);
   BOB_CATCH_MEMBER("ubm could not be read", 0)
 }
 int PyBobLearnEMISVBase_setUBM(PyBobLearnEMISVBaseObject* self, PyObject* value, void*){

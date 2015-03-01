@@ -271,7 +271,7 @@ PyObject* PyBobLearnEMJFAMachine_getJFABase(PyBobLearnEMJFAMachineObject* self, 
     (PyBobLearnEMJFABaseObject*)PyBobLearnEMJFABase_Type.tp_alloc(&PyBobLearnEMJFABase_Type, 0);
   retval->cxx = jfa_base_o;
 
-  return Py_BuildValue("O",retval);
+  return Py_BuildValue("N",retval);
   BOB_CATCH_MEMBER("jfa_base could not be read", 0)
 }
 int PyBobLearnEMJFAMachine_setJFABase(PyBobLearnEMJFAMachineObject* self, PyObject* value, void*){

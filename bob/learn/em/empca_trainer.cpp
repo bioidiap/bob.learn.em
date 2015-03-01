@@ -155,7 +155,7 @@ PyObject* PyBobLearnEMEMPCATrainer_getRng(PyBobLearnEMEMPCATrainerObject* self, 
     (PyBoostMt19937Object*)PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type, 0);
 
   retval->rng = self->cxx->getRng().get();
-  return Py_BuildValue("O", retval);
+  return Py_BuildValue("N", retval);
   BOB_CATCH_MEMBER("Rng method could not be read", 0)
 }
 int PyBobLearnEMEMPCATrainer_setRng(PyBobLearnEMEMPCATrainerObject* self, PyObject* value, void*) {

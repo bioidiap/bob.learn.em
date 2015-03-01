@@ -248,7 +248,7 @@ PyObject* PyBobLearnEMPLDAMachine_getPLDABase(PyBobLearnEMPLDAMachineObject* sel
     (PyBobLearnEMPLDABaseObject*)PyBobLearnEMPLDABase_Type.tp_alloc(&PyBobLearnEMPLDABase_Type, 0);
   retval->cxx = plda_base_o;
 
-  return Py_BuildValue("O",retval);
+  return Py_BuildValue("N",retval);
   BOB_CATCH_MEMBER("plda_base could not be read", 0)
 }
 int PyBobLearnEMPLDAMachine_setPLDABase(PyBobLearnEMPLDAMachineObject* self, PyObject* value, void*){
@@ -642,21 +642,28 @@ static PyObject* PyBobLearnEMPLDAMachine_computeLogLikelihood(PyBobLearnEMPLDAMa
   BOB_TRY
   
   char** kwlist = compute_log_likelihood.kwlist(0);
-
-  PyBlitzArrayObject* samples;
-  PyObject* with_enrolled_samples = Py_True;
   
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
-                                                                 &PyBool_Type, &with_enrolled_samples)) return 0;
+  PyBlitzArrayObject* samples;
+  PyArrayObject* numpy_samples; 
+  PyObject* with_enrolled_samples = Py_True;
+   
+  /*Convert to PyObject first to access the number of dimensions*/
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyArray_Type, &numpy_samples,
+                                                                  &PyBool_Type, &with_enrolled_samples)) return 0;
+  auto numpy_samples_ = make_safe(numpy_samples);
+  Py_INCREF(numpy_samples);
+  int dim = PyArray_NDIM(numpy_samples);
+  
+  /*Now converting to PyBlitzArrayObject*/
+  samples = reinterpret_cast<PyBlitzArrayObject*>(PyBlitzArray_FromNumpyArray(numpy_samples));
   auto samples_ = make_safe(samples);
-
-  blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
-
-   //There are 2 methods in C++, one <double,1> and the another <double,2>
-  if (blitz_test.extent(1)==0)
+  
+  /*Using the proper method according to the dimension*/
+  if (dim==1)
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(samples), f(with_enrolled_samples)));
   else
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(samples), f(with_enrolled_samples)));
+    
 
   BOB_CATCH_MEMBER("`compute_log_likelihood` could not be read", 0)    
 }
@@ -678,13 +685,20 @@ static PyObject* PyBobLearnEMPLDAMachine_forward(PyBobLearnEMPLDAMachineObject* 
   char** kwlist = forward.kwlist(0);
 
   PyBlitzArrayObject* samples;
+  PyArrayObject* numpy_samples; 
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &samples)) return 0;
+  /*Convert to PyObject first to access the number of dimensions*/
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyArray_Type, &numpy_samples)) return 0;
+  auto numpy_samples_ = make_safe(numpy_samples);
+  Py_INCREF(numpy_samples);
+  int dim = PyArray_NDIM(numpy_samples);
+  
+  /*Now converting to PyBlitzArrayObject*/
+  samples = reinterpret_cast<PyBlitzArrayObject*>(PyBlitzArray_FromNumpyArray(numpy_samples));
   auto samples_ = make_safe(samples);
-  blitz::Array<double,2>  blitz_test = *PyBlitzArrayCxx_AsBlitz<double,2>(samples);
 
    //There are 2 methods in C++, one <double,1> and the another <double,2>
-  if (blitz_test.extent(1)==0)
+  if(dim==1)
     return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,1>(samples)));
   else
     return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,2>(samples)));

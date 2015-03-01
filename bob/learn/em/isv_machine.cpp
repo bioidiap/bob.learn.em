@@ -242,7 +242,7 @@ PyObject* PyBobLearnEMISVMachine_getISVBase(PyBobLearnEMISVMachineObject* self, 
     (PyBobLearnEMISVBaseObject*)PyBobLearnEMISVBase_Type.tp_alloc(&PyBobLearnEMISVBase_Type, 0);
   retval->cxx = isv_base_o;
 
-  return Py_BuildValue("O",retval);
+  return Py_BuildValue("N",retval);
   BOB_CATCH_MEMBER("isv_base could not be read", 0)
 }
 int PyBobLearnEMISVMachine_setISVBase(PyBobLearnEMISVMachineObject* self, PyObject* value, void*){
