@@ -481,7 +481,6 @@ def test_plda_machine_log_likelihood_Python():
   assert abs(m.compute_log_likelihood(ar_s, False) - compute_log_likelihood(ar_s, mu, C_F, C_G, sigma)) < 1e-10
   ar_p2d = numpy.reshape(ar_p, (1,C_dim_d))
 
-  print ar_p.shape
   a = m.compute_log_likelihood(ar_p, False)
 
   assert abs(m.compute_log_likelihood(ar_p, False) - compute_log_likelihood(ar_p2d, mu, C_F, C_G, sigma)) < 1e-10
