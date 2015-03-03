@@ -84,6 +84,7 @@ static int PyBobLearnEMGMMMachine_init_hdf5(PyBobLearnEMGMMMachineObject* self, 
     GMMMachine_doc.print_usage();
     return -1;
   }
+  auto config_ = make_safe(config);
 
   self->cxx.reset(new bob::learn::em::GMMMachine(*(config->f)));
 
@@ -197,13 +198,32 @@ PyObject* PyBobLearnEMGMMMachine_getMeans(PyBobLearnEMGMMMachineObject* self, vo
 }
 int PyBobLearnEMGMMMachine_setMeans(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, means.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "means");
+  auto input_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, means.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, means.name());
+    return -1;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs() && input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians(), self->cxx->getNInputs(), input->shape[1], input->shape[0], means.name());
+    return -1;
+  }  
+  
+  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "means");
   if (!b) return -1;
   self->cxx->setMeans(*b);
   return 0;
@@ -224,13 +244,30 @@ PyObject* PyBobLearnEMGMMMachine_getVariances(PyBobLearnEMGMMMachineObject* self
 }
 int PyBobLearnEMGMMMachine_setVariances(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variances.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "variances");
+  auto input_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, variances.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, variances.name());
+    return -1;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs() && input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians(), self->cxx->getNInputs(), input->shape[1], input->shape[0], variances.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "variances");
   if (!b) return -1;
   self->cxx->setVariances(*b);
   return 0;
@@ -251,13 +288,30 @@ PyObject* PyBobLearnEMGMMMachine_getWeights(PyBobLearnEMGMMMachineObject* self, 
 }
 int PyBobLearnEMGMMMachine_setWeights(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, weights.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "weights");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, weights.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, weights.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians(), input->shape[0], weights.name());
+    return -1;
+  }  
+
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "weights");
   if (!b) return -1;
   self->cxx->setWeights(*b);
   return 0;
@@ -279,13 +333,30 @@ PyObject* PyBobLearnEMGMMMachine_getVarianceSupervector(PyBobLearnEMGMMMachineOb
 }
 int PyBobLearnEMGMMMachine_setVarianceSupervector(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, variance_supervector.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance_supervector");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, variance_supervector.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, variance_supervector.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs(), input->shape[0], variance_supervector.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "variance_supervector");
   if (!b) return -1;
   self->cxx->setVarianceSupervector(*b);
   return 0;
@@ -306,13 +377,30 @@ PyObject* PyBobLearnEMGMMMachine_getMeanSupervector(PyBobLearnEMGMMMachineObject
 }
 int PyBobLearnEMGMMMachine_setMeanSupervector(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, mean_supervector.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "mean_supervector");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, mean_supervector.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, mean_supervector.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs(), input->shape[0], mean_supervector.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "mean_supervector");
   if (!b) return -1;
   self->cxx->setMeanSupervector(*b);
   return 0;
@@ -335,13 +423,30 @@ PyObject* PyBobLearnEMGMMMachine_getVarianceThresholds(PyBobLearnEMGMMMachineObj
 }
 int PyBobLearnEMGMMMachine_setVarianceThresholds(PyBobLearnEMGMMMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variance_thresholds.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "variance_thresholds");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, variance_thresholds.name());
+    return -1;
+  }
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, variance_thresholds.name());
+    return -1;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs() && input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNGaussians(), self->cxx->getNInputs(), input->shape[1], input->shape[0], variance_thresholds.name());
+    return -1;
+  }   
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "variance_thresholds");
   if (!b) return -1;
   self->cxx->setVarianceThresholds(*b);
   return 0;
@@ -556,6 +661,25 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood(PyBobLearnEMGMMMachineObje
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+  
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `input`", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
+    log_likelihood.print_usage();
+    return 0;
+  }  
 
   double value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
   return Py_BuildValue("d", value);
@@ -584,6 +708,25 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood_(PyBobLearnEMGMMMachineObj
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+  
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `input`", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
+    log_likelihood.print_usage();
+    return 0;
+  }  
 
   double value = self->cxx->logLikelihood_(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
   return Py_BuildValue("d", value);
