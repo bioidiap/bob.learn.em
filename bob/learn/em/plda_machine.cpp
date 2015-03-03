@@ -67,7 +67,7 @@ static int PyBobLearnEMPLDAMachine_init_hdf5(PyBobLearnEMPLDAMachineObject* self
     PLDAMachine_doc.print_usage();
     return -1;
   }
-
+  auto config_ = make_safe(config);
   self->cxx.reset(new bob::learn::em::PLDAMachine(*(config->f),plda_base->cxx));
 
   return 0;
@@ -635,31 +635,23 @@ static auto compute_log_likelihood = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("sample,with_enrolled_samples","output")
-.add_parameter("sample", "array_like <float, 1D>", "Sample")
+.add_parameter("sample", "array_like <float, 1D>,array_like <float, 2D>", "Sample")
 .add_parameter("with_enrolled_samples", "bool", "")
-.add_return("output","double","The log-likelihood");
+.add_return("output","float","The log-likelihood");
 static PyObject* PyBobLearnEMPLDAMachine_computeLogLikelihood(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
   char** kwlist = compute_log_likelihood.kwlist(0);
   
   PyBlitzArrayObject* samples;
-  PyArrayObject* numpy_samples; 
   PyObject* with_enrolled_samples = Py_True;
    
-  /*Convert to PyObject first to access the number of dimensions*/
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyArray_Type, &numpy_samples,
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
                                                                   &PyBool_Type, &with_enrolled_samples)) return 0;
-  auto numpy_samples_ = make_safe(numpy_samples);
-  Py_INCREF(numpy_samples);
-  int dim = PyArray_NDIM(numpy_samples);
-  
-  /*Now converting to PyBlitzArrayObject*/
-  samples = reinterpret_cast<PyBlitzArrayObject*>(PyBlitzArray_FromNumpyArray(numpy_samples));
   auto samples_ = make_safe(samples);
   
   /*Using the proper method according to the dimension*/
-  if (dim==1)
+  if (samples->ndim==1)
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(samples), f(with_enrolled_samples)));
   else
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(samples), f(with_enrolled_samples)));
@@ -677,28 +669,21 @@ static auto forward = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("samples","output")
-.add_parameter("samples", "array_like <float, 1D>", "Sample")
-.add_return("output","double","The log-likelihood ratio");
+.add_parameter("samples", "array_like <float, 1D>,array_like <float, 2D>", "Sample")
+.add_return("output","float","The log-likelihood ratio");
 static PyObject* PyBobLearnEMPLDAMachine_forward(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   
   char** kwlist = forward.kwlist(0);
 
   PyBlitzArrayObject* samples;
-  PyArrayObject* numpy_samples; 
 
   /*Convert to PyObject first to access the number of dimensions*/
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyArray_Type, &numpy_samples)) return 0;
-  auto numpy_samples_ = make_safe(numpy_samples);
-  Py_INCREF(numpy_samples);
-  int dim = PyArray_NDIM(numpy_samples);
-  
-  /*Now converting to PyBlitzArrayObject*/
-  samples = reinterpret_cast<PyBlitzArrayObject*>(PyBlitzArray_FromNumpyArray(numpy_samples));
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &samples)) return 0;
   auto samples_ = make_safe(samples);
 
    //There are 2 methods in C++, one <double,1> and the another <double,2>
-  if(dim==1)
+  if(samples->ndim==1)
     return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,1>(samples)));
   else
     return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,2>(samples)));

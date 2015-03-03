@@ -719,22 +719,23 @@ def test_plda_comparisons():
 
   training_set = [numpy.array([[1,2,3,4]], numpy.float64), numpy.array([[3,4,3,4]], numpy.float64)]
   m = PLDABase(4,1,1,1e-8)
-  t1.rng.seed(37)
-  t1.initialize(m, training_set)
+  rng = bob.core.random.mt19937(37)
+  t1.initialize(m, training_set,rng)
   t1.eStep(m, training_set)
   t1.mStep(m, training_set)
   assert (t1 == t2 ) is False
   assert t1 != t2
   assert (t1.is_similar_to(t2) ) is False
-  t2.rng.seed(37)
-  t2.initialize(m, training_set)
+  rng = bob.core.random.mt19937(37)
+  t2.initialize(m, training_set, rng)
   t2.eStep(m, training_set)
   t2.mStep(m, training_set)
   assert t1 == t2
   assert (t1 != t2 ) is False
   assert t1.is_similar_to(t2)
-  t2.rng.seed(77)
-  t2.initialize(m, training_set)
+
+  rng = bob.core.random.mt19937(77)
+  t2.initialize(m, training_set, rng)
   t2.eStep(m, training_set)
   t2.mStep(m, training_set)
   assert (t1 == t2 ) is False

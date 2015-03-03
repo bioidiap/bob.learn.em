@@ -25,7 +25,7 @@ static auto IVectorMachine_doc = bob::extension::ClassDoc(
     "",
     true
   )
-  .add_prototype("ubm, rt, variance_threshold","")
+  .add_prototype("ubm,rt,variance_threshold","")
   .add_prototype("other","")
   .add_prototype("hdf5","")
 
@@ -62,7 +62,7 @@ static int PyBobLearnEMIVectorMachine_init_hdf5(PyBobLearnEMIVectorMachineObject
     IVectorMachine_doc.print_usage();
     return -1;
   }
-
+  auto config_ = make_safe(config);
   self->cxx.reset(new bob::learn::em::IVectorMachine(*(config->f)));
 
   return 0;
@@ -78,7 +78,8 @@ static int PyBobLearnEMIVectorMachine_init_ubm(PyBobLearnEMIVectorMachineObject*
   double variance_threshold = 1e-10;
 
   //Here we have to select which keyword argument to read  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!i|d", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine, &rt, &variance_threshold)){
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!i|d", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine, 
+                                                                  &rt, &variance_threshold)){
     IVectorMachine_doc.print_usage();
     return -1;
   }
@@ -624,15 +625,6 @@ static PyMethodDef PyBobLearnEMIVectorMachine_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     __compute_TtSigmaInvFnorm__.doc()
   },
-
-/*
-  {
-    forward.name(),
-    (PyCFunction)PyBobLearnEMIVectorMachine_Forward,
-    METH_VARARGS|METH_KEYWORDS,
-    forward.doc()
-  },*/
-
 
   {0} /* Sentinel */
 };

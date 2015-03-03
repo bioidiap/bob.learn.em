@@ -222,43 +222,43 @@ class PLDATrainer
     /**
      * @brief Sets the Random Number Generator
      */
-    void setRng(const boost::shared_ptr<boost::mt19937> rng)
+    void setRng(boost::shared_ptr<boost::mt19937> rng)
     { m_rng = rng; }
 
     /**
      * @brief Gets the Random Number Generator
      */
-    const boost::shared_ptr<boost::mt19937> getRng() const
+    boost::shared_ptr<boost::mt19937> getRng() const
     { return m_rng; }      
 
   private:
   
-    boost::shared_ptr<boost::mt19937> m_rng;
-  
-    //representation
-    size_t m_dim_d; ///< Dimensionality of the input features
-    size_t m_dim_f; ///< Size/rank of the \f$F\f$ subspace
-    size_t m_dim_g; ///< Size/rank of the \f$G\f$ subspace
-    bool m_use_sum_second_order; ///< If set, only the sum of the second order statistics is stored/allocated
-    InitFMethod m_initF_method; ///< Initialization method for \f$F\f$
-    double m_initF_ratio; ///< Ratio/factor used for the initialization of \f$F\f$
-    InitGMethod m_initG_method; ///< Initialization method for \f$G\f$
-    double m_initG_ratio; ///< Ratio/factor used for the initialization of \f$G\f$
-    InitSigmaMethod m_initSigma_method; ///< Initialization method for \f$\Sigma\f$
-    double m_initSigma_ratio; ///< Ratio/factor used for the initialization of \f$\Sigma\f$
+	    boost::shared_ptr<boost::mt19937> m_rng;
+	  
+	    //representation
+	    size_t m_dim_d; ///< Dimensionality of the input features
+	    size_t m_dim_f; ///< Size/rank of the \f$F\f$ subspace
+	    size_t m_dim_g; ///< Size/rank of the \f$G\f$ subspace
+	    bool m_use_sum_second_order; ///< If set, only the sum of the second order statistics is stored/allocated
+	    InitFMethod m_initF_method; ///< Initialization method for \f$F\f$
+	    double m_initF_ratio; ///< Ratio/factor used for the initialization of \f$F\f$
+	    InitGMethod m_initG_method; ///< Initialization method for \f$G\f$
+	    double m_initG_ratio; ///< Ratio/factor used for the initialization of \f$G\f$
+	    InitSigmaMethod m_initSigma_method; ///< Initialization method for \f$\Sigma\f$
+	    double m_initSigma_ratio; ///< Ratio/factor used for the initialization of \f$\Sigma\f$
 
-    // Statistics and covariance computed during the training process
-    blitz::Array<double,2> m_cache_S; ///< Covariance of the training data
-    std::vector<blitz::Array<double,2> > m_cache_z_first_order; ///< Current mean of the z_{n} latent variable (1 for each sample)
-    blitz::Array<double,2> m_cache_sum_z_second_order; ///< Current sum of the covariance of the z_{n} latent variable
-    std::vector<blitz::Array<double,3> > m_cache_z_second_order; ///< Current covariance of the z_{n} latent variable
-    // Precomputed
-    /**
-     * @brief Number of training samples for each individual in the training set
-     */
-    std::vector<size_t> m_cache_n_samples_per_id;
-    /**
-     * @brief Tells if there is an identity with a 'key'/particular number of
+	    // Statistics and covariance computed during the training process
+	    blitz::Array<double,2> m_cache_S; ///< Covariance of the training data
+	    std::vector<blitz::Array<double,2> > m_cache_z_first_order; ///< Current mean of the z_{n} latent variable (1 for each sample)
+	    blitz::Array<double,2> m_cache_sum_z_second_order; ///< Current sum of the covariance of the z_{n} latent variable
+	    std::vector<blitz::Array<double,3> > m_cache_z_second_order; ///< Current covariance of the z_{n} latent variable
+	    // Precomputed
+	    /**
+	     * @brief Number of training samples for each individual in the training set
+	     */
+	    std::vector<size_t> m_cache_n_samples_per_id;
+	    /**
+	     * @brief Tells if there is an identity with a 'key'/particular number of
      * training samples, and if corresponding matrices are up to date.
      */
     std::map<size_t,bool> m_cache_n_samples_in_training;

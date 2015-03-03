@@ -59,7 +59,7 @@ static int PyBobLearnEMJFAMachine_init_hdf5(PyBobLearnEMJFAMachineObject* self, 
     JFAMachine_doc.print_usage();
     return -1;
   }
-
+  auto config_ = make_safe(config);
   self->cxx.reset(new bob::learn::em::JFAMachine(*(config->f)));
 
   return 0;

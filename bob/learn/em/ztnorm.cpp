@@ -29,7 +29,7 @@ PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
   char** kwlist = zt_norm.kwlist(0);
   
   PyBlitzArrayObject *rawscores_probes_vs_models_o, *rawscores_zprobes_vs_models_o, *rawscores_probes_vs_tmodels_o, 
-  *rawscores_zprobes_vs_tmodels_o, *mask_zprobes_vs_tmodels_istruetrial_o;
+  *rawscores_zprobes_vs_tmodels_o, *mask_zprobes_vs_tmodels_istruetrial_o=0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&O&|O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
                                                                        &PyBlitzArray_Converter, &rawscores_zprobes_vs_models_o,
@@ -45,14 +45,12 @@ PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
   auto rawscores_zprobes_vs_models_         = make_safe(rawscores_zprobes_vs_models_o);
   auto rawscores_probes_vs_tmodels_         = make_safe(rawscores_probes_vs_tmodels_o);
   auto rawscores_zprobes_vs_tmodels_        = make_safe(rawscores_zprobes_vs_tmodels_o);
-  //auto mask_zprobes_vs_tmodels_istruetrial_ = make_safe(mask_zprobes_vs_tmodels_istruetrial_o);
+  auto mask_zprobes_vs_tmodels_istruetrial_ = make_xsafe(mask_zprobes_vs_tmodels_istruetrial_o);
 
   blitz::Array<double,2>  rawscores_probes_vs_models = *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o);
   blitz::Array<double,2> normalized_scores = blitz::Array<double,2>(rawscores_probes_vs_models.extent(0), rawscores_probes_vs_models.extent(1));
 
-  int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-
-  if(nargs==4)
+  if(!mask_zprobes_vs_tmodels_istruetrial_o)
     bob::learn::em::ztNorm(*PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o),
                              *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_models_o),
                              *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_tmodels_o),

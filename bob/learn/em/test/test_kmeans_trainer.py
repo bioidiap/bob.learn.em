@@ -90,9 +90,9 @@ def test_kmeans_noduplicate():
   # Defines machine and trainer
   machine = KMeansMachine(dim_c, dim_d)
   trainer = KMeansTrainer()
-  trainer.rng = bob.core.random.mt19937(seed)
+  rng = bob.core.random.mt19937(seed)
   trainer.initialization_method = 'RANDOM_NO_DUPLICATE'
-  trainer.initialize(machine, data)
+  trainer.initialize(machine, data, rng)
   # Makes sure that the two initial mean vectors selected are different
   assert equals(machine.get_mean(0), machine.get_mean(1), 1e-8) == False
 

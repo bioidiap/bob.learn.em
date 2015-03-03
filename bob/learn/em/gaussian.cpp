@@ -75,18 +75,9 @@ static int PyBobLearnEMGaussian_init_hdf5(PyBobLearnEMGaussianObject* self, PyOb
     Gaussian_doc.print_usage();
     return -1;
   }
+  auto config_ = make_safe(config);
   
-  try {
-    self->cxx.reset(new bob::learn::em::Gaussian(*(config->f)));
-  }
-  catch (std::exception& ex) {
-    PyErr_SetString(PyExc_RuntimeError, ex.what());
-    return -1;
-  }
-  catch (...) {
-    PyErr_Format(PyExc_RuntimeError, "cannot create new object of type `%s' - unknown exception thrown", Py_TYPE(self)->tp_name);
-    return -1;
-  }
+  self->cxx.reset(new bob::learn::em::Gaussian(*(config->f)));
 
   return 0;
 }
@@ -170,7 +161,7 @@ int PyBobLearnEMGaussian_Check(PyObject* o) {
 /***** MEAN *****/
 static auto mean = bob::extension::VariableDoc(
   "mean",
-  "array_like <double, 1D>",
+  "array_like <float, 1D>",
   "Mean of the Gaussian",
   ""
 );
@@ -181,13 +172,30 @@ PyObject* PyBobLearnEMGaussian_getMean(PyBobLearnEMGaussianObject* self, void*){
 }
 int PyBobLearnEMGaussian_setMean(PyBobLearnEMGaussianObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, mean.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "mean");
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, mean.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, mean.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], mean.name());
+    return -1;
+  }  
+
+  auto o_ = make_safe(input);
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "mean");
   if (!b) return -1;
   self->cxx->setMean(*b);
   return 0;
@@ -197,7 +205,7 @@ int PyBobLearnEMGaussian_setMean(PyBobLearnEMGaussianObject* self, PyObject* val
 /***** Variance *****/
 static auto variance = bob::extension::VariableDoc(
   "variance",
-  "array_like <double, 1D>",
+  "array_like <float, 1D>",
   "Variance of the Gaussian",
   ""
 );
@@ -208,13 +216,30 @@ PyObject* PyBobLearnEMGaussian_getVariance(PyBobLearnEMGaussianObject* self, voi
 }
 int PyBobLearnEMGaussian_setVariance(PyBobLearnEMGaussianObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, variance.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance");
+  auto input_ = make_safe(input);
+  
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, variance.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, variance.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], variance.name());
+    return -1;
+  }
+
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "variance");
   if (!b) return -1;
   self->cxx->setVariance(*b);
   return 0;
@@ -225,7 +250,7 @@ int PyBobLearnEMGaussian_setVariance(PyBobLearnEMGaussianObject* self, PyObject*
 /***** variance_thresholds *****/
 static auto variance_thresholds = bob::extension::VariableDoc(
   "variance_thresholds",
-  "array_like <double, 1D>",
+  "array_like <float, 1D>",
   "The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension. ",
   "The variance will be set to this value if an attempt is made to set it to a smaller value."
 );
@@ -236,13 +261,31 @@ PyObject* PyBobLearnEMGaussian_getVarianceThresholds(PyBobLearnEMGaussianObject*
 }
 int PyBobLearnEMGaussian_setVarianceThresholds(PyBobLearnEMGaussianObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, variance_thresholds.name());
     return -1;
+  }      
+
+  auto input_ = make_safe(input);
+
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, variance_thresholds.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, variance_thresholds.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], variance_thresholds.name());
+    return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "variance_thresholds");
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "variance_thresholds");
   if (!b) return -1;
   self->cxx->setVarianceThresholds(*b);
   return 0;
@@ -336,7 +379,7 @@ static auto log_likelihood = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("input","output")
-.add_parameter("input", "array_like <double, 1D>", "Input vector")
+.add_parameter("input", "array_like <float, 1D>", "Input vector")
 .add_return("output","float","The log likelihood");
 static PyObject* PyBobLearnEMGaussian_loglikelihood(PyBobLearnEMGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
@@ -348,6 +391,25 @@ static PyObject* PyBobLearnEMGaussian_loglikelihood(PyBobLearnEMGaussianObject* 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `input`", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
+    log_likelihood.print_usage();
+    return 0;
+  }  
 
   double value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
   return Py_BuildValue("d", value);
@@ -362,8 +424,8 @@ static auto log_likelihood_ = bob::extension::FunctionDoc(
   "Output the log likelihood given a sample. The input size is NOT checked."
 )
 .add_prototype("input","output")
-.add_parameter("input", "array_like <double, 1D>", "Input vector")
-.add_return("output","double","The log likelihood");
+.add_parameter("input", "array_like <float, 1D>", "Input vector")
+.add_return("output","float","The log likelihood");
 static PyObject* PyBobLearnEMGaussian_loglikelihood_(PyBobLearnEMGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   char** kwlist = log_likelihood_.kwlist(0);
@@ -372,6 +434,25 @@ static PyObject* PyBobLearnEMGaussian_loglikelihood_(PyBobLearnEMGaussianObject*
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input)) return 0;
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `input`", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64", Py_TYPE(self)->tp_name);
+    log_likelihood.print_usage();
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
+    log_likelihood.print_usage();
+    return 0;
+  }  
 
   double value = self->cxx->logLikelihood_(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
   return Py_BuildValue("d", value);
@@ -386,8 +467,7 @@ static auto save = bob::extension::FunctionDoc(
   "Save the configuration of the Gassian Machine to a given HDF5 file"
 )
 .add_prototype("hdf5")
-.add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for writing")
-;
+.add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for writing");
 static PyObject* PyBobLearnEMGaussian_Save(PyBobLearnEMGaussianObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
   

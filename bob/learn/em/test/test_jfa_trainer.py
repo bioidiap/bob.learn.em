@@ -268,16 +268,15 @@ def test_JFATrainInitialize():
   # first round
   rng = bob.core.random.mt19937(0)
   jt = JFATrainer()
-  jt.rng = rng
-  jt.initialize(jb, TRAINING_STATS)
+  #jt.rng = rng
+  jt.initialize(jb, TRAINING_STATS, rng)
   u1 = jb.u
   v1 = jb.v
   d1 = jb.d
 
   # second round
   rng = bob.core.random.mt19937(0)
-  jt.rng = rng
-  jt.initialize(jb, TRAINING_STATS)
+  jt.initialize(jb, TRAINING_STATS, rng)
   u2 = jb.u
   v2 = jb.v
   d2 = jb.d
@@ -301,15 +300,15 @@ def test_ISVTrainInitialize():
   # first round
   rng = bob.core.random.mt19937(0)
   it = ISVTrainer(10)
-  it.rng = rng
-  it.initialize(ib, TRAINING_STATS)
+  #it.rng = rng
+  it.initialize(ib, TRAINING_STATS, rng)
   u1 = ib.u
   d1 = ib.d
 
   # second round
   rng = bob.core.random.mt19937(0)
-  it.rng = rng
-  it.initialize(ib, TRAINING_STATS)
+  #it.rng = rng
+  it.initialize(ib, TRAINING_STATS, rng)
   u2 = ib.u
   d2 = ib.d
 

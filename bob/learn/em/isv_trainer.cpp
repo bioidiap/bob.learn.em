@@ -325,41 +325,6 @@ int PyBobLearnEMISVTrainer_set_Z(PyBobLearnEMISVTrainerObject* self, PyObject* v
 }
 
 
-/***** rng *****/
-static auto rng = bob::extension::VariableDoc(
-  "rng",
-  "str",
-  "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.",
-  ""
-);
-PyObject* PyBobLearnEMISVTrainer_getRng(PyBobLearnEMISVTrainerObject* self, void*) {
-  BOB_TRY
-  //Allocating the correspondent python object
-  
-  PyBoostMt19937Object* retval =
-    (PyBoostMt19937Object*)PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type, 0);
-
-  retval->rng = self->cxx->getRng().get();
-  return Py_BuildValue("N", retval);
-  BOB_CATCH_MEMBER("Rng method could not be read", 0)
-}
-int PyBobLearnEMISVTrainer_setRng(PyBobLearnEMISVTrainerObject* self, PyObject* value, void*) {
-  BOB_TRY
-
-  if (!PyBoostMt19937_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an PyBoostMt19937_Check", Py_TYPE(self)->tp_name, rng.name());
-    return -1;
-  }
-
-  PyBoostMt19937Object* boostObject = 0;
-  PyBoostMt19937_Converter(value, &boostObject);
-  self->cxx->setRng((boost::shared_ptr<boost::mt19937>)boostObject->rng);
-
-  return 0;
-  BOB_CATCH_MEMBER("Rng could not be set", 0)
-}
-
-
 static PyGetSetDef PyBobLearnEMISVTrainer_getseters[] = { 
   {
    acc_u_a1.name(),
@@ -390,14 +355,6 @@ static PyGetSetDef PyBobLearnEMISVTrainer_getseters[] = {
    0
   },
   
-  {
-   rng.name(),
-   (getter)PyBobLearnEMISVTrainer_getRng,
-   (setter)PyBobLearnEMISVTrainer_setRng,
-   rng.doc(),
-   0
-  },
-  
 
   {0}  // Sentinel
 };
@@ -414,9 +371,10 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base,stats")
+.add_prototype("isv_base,stats,rng")
 .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "ISVBase Object")
-.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
+.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object")
+.add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
 static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -425,9 +383,16 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
 
   PyBobLearnEMISVBaseObject* isv_base = 0;
   PyObject* stats = 0;
+  PyBoostMt19937Object* rng = 0;  
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
-                                                                 &PyList_Type, &stats)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
+                                                                 &PyList_Type, &stats,
+                                                                 &PyBoostMt19937_Type, &rng)) return 0;
+
+  if(rng){
+    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
+    self->cxx->setRng(rng_cpy);
+  }
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)

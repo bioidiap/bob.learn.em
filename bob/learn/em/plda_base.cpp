@@ -70,7 +70,7 @@ static int PyBobLearnEMPLDABase_init_hdf5(PyBobLearnEMPLDABaseObject* self, PyOb
     PLDABase_doc.print_usage();
     return -1;
   }
-
+  auto config_ = make_safe(config);
   self->cxx.reset(new bob::learn::em::PLDABase(*(config->f)));
 
   return 0;

@@ -86,7 +86,7 @@ static int PyBobLearnEMKMeansMachine_init_hdf5(PyBobLearnEMKMeansMachineObject* 
     KMeansMachine_doc.print_usage();
     return -1;
   }
-
+  auto config_ = make_safe(config);
   self->cxx.reset(new bob::learn::em::KMeansMachine(*(config->f)));
 
   return 0;

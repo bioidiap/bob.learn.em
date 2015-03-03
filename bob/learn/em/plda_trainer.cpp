@@ -256,41 +256,6 @@ PyObject* PyBobLearnEMPLDATrainer_get_z_first_order(PyBobLearnEMPLDATrainerObjec
 }
 
 
-/***** rng *****/
-static auto rng = bob::extension::VariableDoc(
-  "rng",
-  "str",
-  "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.",
-  ""
-);
-PyObject* PyBobLearnEMPLDATrainer_getRng(PyBobLearnEMPLDATrainerObject* self, void*) {
-  BOB_TRY
-  //Allocating the correspondent python object
-  
-  PyBoostMt19937Object* retval =
-    (PyBoostMt19937Object*)PyBoostMt19937_Type.tp_alloc(&PyBoostMt19937_Type, 0);
-
-  retval->rng = self->cxx->getRng().get();
-  return Py_BuildValue("O", retval);
-  BOB_CATCH_MEMBER("Rng method could not be read", 0)
-}
-int PyBobLearnEMPLDATrainer_setRng(PyBobLearnEMPLDATrainerObject* self, PyObject* value, void*) {
-  BOB_TRY
-
-  if (!PyBoostMt19937_Check(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an PyBoostMt19937_Check", Py_TYPE(self)->tp_name, rng.name());
-    return -1;
-  }
-
-  PyBoostMt19937Object* rng_object = 0;
-  PyArg_Parse(value, "O!", &PyBoostMt19937_Type, &rng_object);
-  self->cxx->setRng((boost::shared_ptr<boost::mt19937>)rng_object->rng);
-
-  return 0;
-  BOB_CATCH_MEMBER("Rng could not be set", 0)
-}
-
-
 /***** init_f_method *****/
 static auto init_f_method = bob::extension::VariableDoc(
   "init_f_method",
@@ -418,13 +383,6 @@ static PyGetSetDef PyBobLearnEMPLDATrainer_getseters[] = {
    0
   },
   {
-   rng.name(),
-   (getter)PyBobLearnEMPLDATrainer_getRng,
-   (setter)PyBobLearnEMPLDATrainer_setRng,
-   rng.doc(),
-   0
-  },
-  {
    init_f_method.name(),
    (getter)PyBobLearnEMPLDATrainer_getFMethod,
    (setter)PyBobLearnEMPLDATrainer_setFMethod,
@@ -467,9 +425,10 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("plda_base,data")
+.add_prototype("plda_base,data,rng")
 .add_parameter("plda_base", ":py:class:`bob.learn.em.PLDABase`", "PLDAMachine Object")
-.add_parameter("data", "list", "");
+.add_parameter("data", "list", "")
+.add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
 static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -478,13 +437,21 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
 
   PyBobLearnEMPLDABaseObject* plda_base = 0;
   PyObject* data = 0;
+  PyBoostMt19937Object* rng = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
-                                                                 &PyList_Type, &data)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base,
+                                                                 &PyList_Type, &data,
+                                                                 &PyBoostMt19937_Type, &rng)) return 0;
 
   std::vector<blitz::Array<double,2> > data_vector;
-  if(list_as_vector(data ,data_vector)==0)
+  if(list_as_vector(data ,data_vector)==0){
+    if(rng){
+      boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
+      self->cxx->setRng(rng_cpy);
+    }
+
     self->cxx->initialize(*plda_base->cxx, data_vector);
+  }
 
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 

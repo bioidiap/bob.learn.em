@@ -18,9 +18,10 @@ bob::learn::em::IVectorMachine::IVectorMachine()
 bob::learn::em::IVectorMachine::IVectorMachine(const boost::shared_ptr<bob::learn::em::GMMMachine> ubm,
     const size_t rt, const double variance_threshold):
   m_ubm(ubm), m_rt(rt),
-  m_T(getSupervectorLength(),rt), m_sigma(getSupervectorLength()),
+  m_T(getSupervectorLength(),rt),  m_sigma(getSupervectorLength()),
   m_variance_threshold(variance_threshold)
 {
+  m_sigma = 0.0;
   resizePrecompute();
 }
 
@@ -153,6 +154,7 @@ void bob::learn::em::IVectorMachine::precompute()
     blitz::Range rall = blitz::Range::all();
     const int C = (int)m_ubm->getNGaussians();
     const int D = (int)m_ubm->getNInputs();
+
     // T_{c}^{T}.sigma_{c}^{-1}
     for (int c=0; c<C; ++c)
     {

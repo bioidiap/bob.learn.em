@@ -62,6 +62,7 @@ static int PyBobLearnEMISVBase_init_hdf5(PyBobLearnEMISVBaseObject* self, PyObje
     ISVBase_doc.print_usage();
     return -1;
   }
+  auto config_ = make_safe(config);
 
   self->cxx.reset(new bob::learn::em::ISVBase(*(config->f)));
 
