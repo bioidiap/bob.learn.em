@@ -224,13 +224,31 @@ PyObject* PyBobLearnEMISVTrainer_get_acc_u_a1(PyBobLearnEMISVTrainerObject* self
 }
 int PyBobLearnEMISVTrainer_set_acc_u_a1(PyBobLearnEMISVTrainerObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 3D array of floats", Py_TYPE(self)->tp_name, acc_u_a1.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,3>(o, "acc_u_a1");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
+    return -1;
+  }  
+
+  if (input->ndim != 3){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 3D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA1().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA1().extent(1) && input->shape[2] != (Py_ssize_t)self->cxx->getAccUA1().extent(2)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA1().extent(0), (Py_ssize_t)self->cxx->getAccUA1().extent(1), (Py_ssize_t)self->cxx->getAccUA1().extent(2), (Py_ssize_t)input->shape[0], (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[2], acc_u_a1.name());
+    return -1;
+  }  
+
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,3>(input, "acc_u_a1");
   if (!b) return -1;
   self->cxx->setAccUA1(*b);
   return 0;
@@ -251,13 +269,30 @@ PyObject* PyBobLearnEMISVTrainer_get_acc_u_a2(PyBobLearnEMISVTrainerObject* self
 }
 int PyBobLearnEMISVTrainer_set_acc_u_a2(PyBobLearnEMISVTrainerObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, acc_u_a2.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "acc_u_a2");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA2().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA2().extent(1)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA2().extent(0), (Py_ssize_t)self->cxx->getAccUA2().extent(1), input->shape[0], input->shape[1], acc_u_a2.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "acc_u_a2");
   if (!b) return -1;
   self->cxx->setAccUA2(*b);
   return 0;

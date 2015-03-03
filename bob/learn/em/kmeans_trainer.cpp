@@ -329,6 +329,22 @@ static PyObject* PyBobLearnEMKMeansTrainer_initialize(PyBobLearnEMKMeansTrainerO
                                                                  &PyBlitzArray_Converter, &data,
                                                                   &PyBoostMt19937_Type, &rng)) return 0;
   auto data_ = make_safe(data);
+  
+  // perform check on the input  
+  if (data->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, initialize.name());
+    return 0;
+  }  
+
+  if (data->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, initialize.name());
+    return 0;
+  }  
+
+  if (data->shape[1] != (Py_ssize_t)kmeans_machine->cxx->getNInputs() ) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], initialize.name());
+    return 0;
+  }
 
   if(rng){
     boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
@@ -366,6 +382,21 @@ static PyObject* PyBobLearnEMKMeansTrainer_eStep(PyBobLearnEMKMeansTrainerObject
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
                                                                  &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
+
+  if (data->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    return 0;
+  }  
+
+  if (data->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    return 0;
+  }  
+
+  if (data->shape[1] != (Py_ssize_t)kmeans_machine->cxx->getNInputs() ) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], eStep.name());
+    return 0;
+  }
 
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 

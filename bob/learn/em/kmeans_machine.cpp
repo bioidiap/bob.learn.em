@@ -198,13 +198,30 @@ PyObject* PyBobLearnEMKMeansMachine_getMeans(PyBobLearnEMKMeansMachineObject* se
 }
 int PyBobLearnEMKMeansMachine_setMeans(PyBobLearnEMKMeansMachineObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, means.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "means");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, means.name());
+    return 0;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, means.name());
+    return 0;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs()) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], means.name());
+    return 0;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "means");
   if (!b) return -1;
   self->cxx->setMeans(*b);
   return 0;
@@ -405,6 +422,22 @@ static PyObject* PyBobLearnEMKMeansMachine_set_mean(PyBobLearnEMKMeansMachineObj
   //protects acquired resources through this scope
   auto mean_ = make_safe(mean);
 
+  // perform check on the input  
+  if (mean->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, set_mean.name());
+    return 0;
+  }  
+
+  if (mean->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, set_mean.name());
+    return 0;
+  }  
+
+  if (mean->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), mean->shape[0], set_mean.name());
+    return 0;
+  }  
+
   //setting the mean
   self->cxx->setMean(i, *PyBlitzArrayCxx_AsBlitz<double,1>(mean));
 
@@ -439,7 +472,23 @@ static PyObject* PyBobLearnEMKMeansMachine_get_distance_from_mean(PyBobLearnEMKM
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_distance_from_mean.name());
+    return 0;
+  }  
 
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_distance_from_mean.name());
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_distance_from_mean.name());
+    return 0;
+  }  
+  
   double output = self->cxx->getDistanceFromMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input),i);
   return Py_BuildValue("d", output);
 
@@ -470,6 +519,23 @@ static PyObject* PyBobLearnEMKMeansMachine_get_closest_mean(PyBobLearnEMKMeansMa
 
   size_t closest_mean = 0;
   double min_distance = -1;   
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_closest_mean.name());
+    return 0;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_closest_mean.name());
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_closest_mean.name());
+    return 0;
+  }    
+  
   self->cxx->getClosestMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input), closest_mean, min_distance);
     
   return Py_BuildValue("(i,d)", closest_mean, min_distance);
@@ -498,8 +564,24 @@ static PyObject* PyBobLearnEMKMeansMachine_get_min_distance(PyBobLearnEMKMeansMa
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+  double min_distance = 0;
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_min_distance.name());
+    return 0;
+  }  
 
-  double min_distance = 0;   
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_min_distance.name());
+    return 0;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_min_distance.name());
+    return 0;
+  }    
+  
   min_distance = self->cxx->getMinDistance(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
 
   return Py_BuildValue("d", min_distance);
@@ -529,6 +611,22 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
+
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_variances_and_weights_for_each_cluster.name());
+    return 0;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_variances_and_weights_for_each_cluster.name());
+    return 0;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs() ) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[1], get_variances_and_weights_for_each_cluster.name());
+    return 0;
+  }
 
   blitz::Array<double,2> variances(self->cxx->getNMeans(),self->cxx->getNInputs());
   blitz::Array<double,1> weights(self->cxx->getNMeans());

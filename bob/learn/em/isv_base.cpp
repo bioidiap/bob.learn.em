@@ -209,13 +209,30 @@ PyObject* PyBobLearnEMISVBase_getU(PyBobLearnEMISVBaseObject* self, void*){
 }
 int PyBobLearnEMISVBase_setU(PyBobLearnEMISVBaseObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, U.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "u");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, U.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, U.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getU().extent(0) && input->shape[1] != self->cxx->getU().extent(1)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getU().extent(0), (Py_ssize_t)self->cxx->getU().extent(1), (Py_ssize_t)input->shape[0], (Py_ssize_t)input->shape[1], U.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "u");
   if (!b) return -1;
   self->cxx->setU(*b);
   return 0;
@@ -237,13 +254,30 @@ PyObject* PyBobLearnEMISVBase_getD(PyBobLearnEMISVBaseObject* self, void*){
 }
 int PyBobLearnEMISVBase_setD(PyBobLearnEMISVBaseObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, D.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "d");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, D.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, D.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getD().extent(0)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getU().extent(0), (Py_ssize_t)input->shape[0], D.name());
+    return -1;
+  }  
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "d");
   if (!b) return -1;
   self->cxx->setD(*b);
   return 0;

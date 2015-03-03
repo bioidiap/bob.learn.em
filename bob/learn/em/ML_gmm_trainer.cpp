@@ -204,7 +204,23 @@ static PyObject* PyBobLearnEMMLGMMTrainer_eStep(PyBobLearnEMMLGMMTrainerObject* 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
                                                                  &PyBlitzArray_Converter, &data)) return 0;
   auto data_ = make_safe(data);
+  
+  // perform check on the input  
+  if (data->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    return 0;
+  }  
 
+  if (data->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    return 0;
+  }  
+
+  if (data->shape[1] != (Py_ssize_t)gmm_machine->cxx->getNInputs() ) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, gmm_machine->cxx->getNInputs(), data->shape[1], eStep.name());
+    return 0;
+  }
+  
   self->cxx->eStep(*gmm_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
   BOB_CATCH_MEMBER("cannot perform the eStep method", 0)

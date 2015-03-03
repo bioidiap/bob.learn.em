@@ -221,8 +221,6 @@ int PyBobLearnEMGMMMachine_setMeans(PyBobLearnEMGMMMachineObject* self, PyObject
     return -1;
   }  
   
-  
-  
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "means");
   if (!b) return -1;
   self->cxx->setMeans(*b);

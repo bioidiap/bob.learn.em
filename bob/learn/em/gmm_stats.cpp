@@ -187,13 +187,30 @@ PyObject* PyBobLearnEMGMMStats_getN(PyBobLearnEMGMMStatsObject* self, void*){
 }
 int PyBobLearnEMGMMStats_setN(PyBobLearnEMGMMStatsObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, n.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(o, "n");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, n.name());
+    return -1;
+  }  
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, n.name());
+    return -1;
+  }  
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->n.extent(0)){
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->n.extent(0), input->shape[0], n.name());
+    return -1;
+  }
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "n");
   if (!b) return -1;
   self->cxx->n = *b;
   return 0;
@@ -214,13 +231,30 @@ PyObject* PyBobLearnEMGMMStats_getSum_px(PyBobLearnEMGMMStatsObject* self, void*
 }
 int PyBobLearnEMGMMStats_setSum_px(PyBobLearnEMGMMStatsObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, sum_px.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "sum_px");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, sum_px.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, sum_px.name());
+    return -1;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->sumPx.extent(1) && input->shape[0] != (Py_ssize_t)self->cxx->sumPx.extent(0)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->sumPx.extent(1), (Py_ssize_t)self->cxx->sumPx.extent(0), (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[0], sum_px.name());
+    return -1;
+  }
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "sum_px");
   if (!b) return -1;
   self->cxx->sumPx = *b;
   return 0;
@@ -241,13 +275,30 @@ PyObject* PyBobLearnEMGMMStats_getSum_pxx(PyBobLearnEMGMMStatsObject* self, void
 }
 int PyBobLearnEMGMMStats_setSum_pxx(PyBobLearnEMGMMStatsObject* self, PyObject* value, void*){
   BOB_TRY
-  PyBlitzArrayObject* o;
-  if (!PyBlitzArray_Converter(value, &o)){
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a 2D array of floats", Py_TYPE(self)->tp_name, sum_pxx.name());
     return -1;
   }
-  auto o_ = make_safe(o);
-  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(o, "sum_pxx");
+  auto o_ = make_safe(input);
+  
+  // perform check on the input  
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, sum_pxx.name());
+    return -1;
+  }  
+
+  if (input->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, sum_pxx.name());
+    return -1;
+  }  
+
+  if (input->shape[1] != (Py_ssize_t)self->cxx->sumPxx.extent(1) && input->shape[0] != (Py_ssize_t)self->cxx->sumPxx.extent(0)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->sumPxx.extent(1), (Py_ssize_t)self->cxx->sumPxx.extent(0), (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[0], sum_pxx.name());
+    return -1;
+  }
+  
+  auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "sum_pxx");
   if (!b) return -1;
   self->cxx->sumPxx = *b;
   return 0;
