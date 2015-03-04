@@ -105,7 +105,7 @@ static int PyBobLearnEMGaussian_init(PyBobLearnEMGaussianObject* self, PyObject*
   }
 
   /**If the constructor input is a number**/
-  if (PyNumber_Check(arg)) 
+  if (PyBob_NumberCheck(arg)) 
     return PyBobLearnEMGaussian_init_number(self, args, kwargs);
   /**If the constructor input is Gaussian object**/
   else if (PyBobLearnEMGaussian_Check(arg))

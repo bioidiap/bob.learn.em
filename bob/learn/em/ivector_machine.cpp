@@ -270,7 +270,7 @@ PyObject* PyBobLearnEMIVectorMachine_getVarianceThreshold(PyBobLearnEMIVectorMac
 int PyBobLearnEMIVectorMachine_setVarianceThreshold(PyBobLearnEMIVectorMachineObject* self, PyObject* value, void*){
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, variance_threshold.name());
     return -1;
   }

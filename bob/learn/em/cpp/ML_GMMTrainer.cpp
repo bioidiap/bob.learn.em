@@ -41,6 +41,10 @@ void bob::learn::em::ML_GMMTrainer::mStep(bob::learn::em::GMMMachine& gmm)
   // Read options and variables
   const size_t n_gaussians = gmm.getNGaussians();
 
+ //Checking if it is necessary to resize the cache
+ if((size_t)m_cache_ss_n_thresholded.extent(0) != n_gaussians)
+   initialize(gmm); //If it is different for some reason, there is no way, you have to initialize
+
   // - Update weights if requested
   //   Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006
   if (m_gmm_base_trainer.getUpdateWeights()) {
@@ -101,12 +105,3 @@ bool bob::learn::em::ML_GMMTrainer::operator!=
 {
   return !(this->operator==(other));
 }
-
-/*
-bool bob::learn::em::ML_GMMTrainer::is_similar_to
-  (const bob::learn::em::ML_GMMTrainer &other, const double r_epsilon,
-   const double a_epsilon) const
-{
-  return m_gmm_base_trainer.is_similar_to(other, r_epsilon, a_epsilon);
-}
-*/

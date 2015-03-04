@@ -220,7 +220,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getWSumXitBetaXi(PyBobLearnEMPLDAMachin
 int PyBobLearnEMPLDAMachine_setWSumXitBetaXi(PyBobLearnEMPLDAMachineObject* self, PyObject* value, void*){
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an float", Py_TYPE(self)->tp_name, w_sum_xit_beta_xi.name());
     return -1;
   }
@@ -312,7 +312,7 @@ static PyObject* PyBobLearnEMPLDAMachine_getLogLikelihood(PyBobLearnEMPLDAMachin
 int PyBobLearnEMPLDAMachine_setLogLikelihood(PyBobLearnEMPLDAMachineObject* self, PyObject* value, void*){
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, log_likelihood.name());
     return -1;
   }

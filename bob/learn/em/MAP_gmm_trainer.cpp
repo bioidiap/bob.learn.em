@@ -185,7 +185,7 @@ PyObject* PyBobLearnEMMAPGMMTrainer_getRelevanceFactor(PyBobLearnEMMAPGMMTrainer
 int PyBobLearnEMMAPGMMTrainer_setRelevanceFactor(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* value, void*){
   BOB_TRY
   
-  if(!PyNumber_Check(value)){
+  if(!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, relevance_factor.name());
     return -1;
   }
@@ -211,7 +211,7 @@ PyObject* PyBobLearnEMMAPGMMTrainer_getAlpha(PyBobLearnEMMAPGMMTrainerObject* se
 int PyBobLearnEMMAPGMMTrainer_setAlpha(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* value, void*){
   BOB_TRY
   
-  if(!PyNumber_Check(value)){
+  if(!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, alpha.name());
     return -1;
   }

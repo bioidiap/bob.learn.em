@@ -350,7 +350,7 @@ PyObject* PyBobLearnEMGMMStats_getLog_likelihood(PyBobLearnEMGMMStatsObject* sel
 int PyBobLearnEMGMMStats_setLog_likelihood(PyBobLearnEMGMMStatsObject* self, PyObject* value, void*){
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, t.name());
     return -1;
   }

@@ -75,6 +75,10 @@ void bob::learn::em::MAP_GMMTrainer::mStep(bob::learn::em::GMMMachine& gmm)
 {
   // Read options and variables
   double n_gaussians = gmm.getNGaussians();
+  
+  //Checking if it is necessary to resize the cache
+  if((size_t)m_cache_alpha.extent(0) != n_gaussians)
+    initialize(gmm); //If it is different for some reason, there is no way, you have to initialize  
 
   // Check that the prior GMM has been specified
   if (!m_prior_gmm)

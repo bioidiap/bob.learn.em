@@ -49,7 +49,7 @@ static auto KMeansTrainer_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("","")
 
-  .add_parameter("initialization_method", "str", "The initialization method of the means")
+  .add_parameter("initialization_method", "str", "The initialization method of the means.\nPossible values are: 'RANDOM', 'RANDOM_NO_DUPLICATE', 'KMEANS_PLUS_PLUS' ")
   .add_parameter("other", ":py:class:`bob.learn.em.KMeansTrainer`", "A KMeansTrainer object to be copied.")
 
 );
@@ -162,7 +162,10 @@ static auto initialization_method = bob::extension::VariableDoc(
   "initialization_method",
   "str",
   "Initialization method.",
-  ""
+  "Possible values:\n"
+  " `RANDOM`: Random initialization \n\n"
+  " `RANDOM_NO_DUPLICATE`: Random initialization without repetition \n\n"
+  " `KMEANS_PLUS_PLUS`: Apply the kmeans++ initialization http://en.wikipedia.org/wiki/K-means%2B%2B  \n\n"
 );
 PyObject* PyBobLearnEMKMeansTrainer_getInitializationMethod(PyBobLearnEMKMeansTrainerObject* self, void*) {
   BOB_TRY
@@ -254,7 +257,7 @@ PyObject* PyBobLearnEMKMeansTrainer_getAverageMinDistance(PyBobLearnEMKMeansTrai
 int PyBobLearnEMKMeansTrainer_setAverageMinDistance(PyBobLearnEMKMeansTrainerObject* self, PyObject* value, void*) {
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, average_min_distance.name());
     return -1;
   }

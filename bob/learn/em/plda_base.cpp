@@ -397,7 +397,7 @@ static PyObject* PyBobLearnEMPLDABase_getVarianceThreshold(PyBobLearnEMPLDABaseO
 int PyBobLearnEMPLDABase_setVarianceThreshold(PyBobLearnEMPLDABaseObject* self, PyObject* value, void*){
   BOB_TRY
 
-  if (!PyNumber_Check(value)){
+  if (!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects an float", Py_TYPE(self)->tp_name, variance_threshold.name());
     return -1;
   }
