@@ -29,7 +29,6 @@ static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   .add_prototype("prior_gmm,relevance_factor, update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
   .add_prototype("prior_gmm,alpha, update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
   .add_prototype("other","")
-  .add_prototype("","")
 
   .add_parameter("prior_gmm", ":py:class:`bob.learn.em.GMMMachine`", "The prior GMM to be adapted (Universal Backgroud Model UBM).")
   .add_parameter("reynolds_adaptation", "bool", "Will use the Reynolds adaptation procedure? See Eq (14) from [Reynolds2000]_")
@@ -121,6 +120,15 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
 
 static int PyBobLearnEMMAPGMMTrainer_init(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
+
+  // get the number of command line arguments
+  int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
+
+  if (nargs==0){
+    PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s (see help)", Py_TYPE(self)->tp_name);
+    MAP_GMMTrainer_doc.print_usage();
+    return -1;
+  }
 
   // If the constructor input is GMMBaseTrainer object
   if(PyBobLearnEMMAPGMMTrainer_Check(args))

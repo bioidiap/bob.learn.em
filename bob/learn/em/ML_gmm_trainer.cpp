@@ -27,7 +27,6 @@ static auto ML_GMMTrainer_doc = bob::extension::ClassDoc(
   )
   .add_prototype("update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
   .add_prototype("other","")
-  .add_prototype("","")
 
   .add_parameter("update_means", "bool", "Update means on each iteration")
   .add_parameter("update_variances", "bool", "Update variances on each iteration")
@@ -62,7 +61,7 @@ static int PyBobLearnEMMLGMMTrainer_init_base_trainer(PyBobLearnEMMLGMMTrainerOb
   PyObject* update_weights   = Py_False;
   double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon();
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!O!d", kwlist, 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O!O!O!d", kwlist, 
                                    &PyBool_Type, &update_means, 
                                    &PyBool_Type, &update_variances, 
                                    &PyBool_Type, &update_weights, 
@@ -81,24 +80,29 @@ static int PyBobLearnEMMLGMMTrainer_init_base_trainer(PyBobLearnEMMLGMMTrainerOb
 static int PyBobLearnEMMLGMMTrainer_init(PyBobLearnEMMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  //Reading the input argument
-  PyObject* arg = 0;
-  if (PyTuple_Size(args))
-    arg = PyTuple_GET_ITEM(args, 0);
-  else {
-    PyObject* tmp = PyDict_Values(kwargs);
-    auto tmp_ = make_safe(tmp);
-    arg = PyList_GET_ITEM(tmp, 0);
+  // get the number of command line arguments
+  int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
+
+  if (nargs==0)
+    return PyBobLearnEMMLGMMTrainer_init_base_trainer(self, args, kwargs); 
+  else{  
+
+    //Reading the input argument
+    PyObject* arg = 0;
+    if (PyTuple_Size(args))
+      arg = PyTuple_GET_ITEM(args, 0);
+    else {
+      PyObject* tmp = PyDict_Values(kwargs);
+      auto tmp_ = make_safe(tmp);
+      arg = PyList_GET_ITEM(tmp, 0);
+    }
+    
+    // If the constructor input is GMMBaseTrainer object
+    if (PyBobLearnEMMLGMMTrainer_Check(arg))
+      return PyBobLearnEMMLGMMTrainer_init_copy(self, args, kwargs);
+    else
+      return PyBobLearnEMMLGMMTrainer_init_base_trainer(self, args, kwargs);
   }
-
-  // If the constructor input is GMMBaseTrainer object
-  if (PyBobLearnEMMLGMMTrainer_Check(arg))
-    return PyBobLearnEMMLGMMTrainer_init_copy(self, args, kwargs);
-  else
-    return PyBobLearnEMMLGMMTrainer_init_base_trainer(self, args, kwargs);
-
-
-
   BOB_CATCH_MEMBER("cannot create GMMBaseTrainer_init_bool", 0)
   return 0;
 }
