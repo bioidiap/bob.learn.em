@@ -261,7 +261,7 @@ static auto init_f_method = bob::extension::VariableDoc(
   "init_f_method",
   "str",
   "The method used for the initialization of :math:`$F$`.",
-  ""
+  "Possible values are: ('RANDOM_F', 'BETWEEN_SCATTER')"
 );
 PyObject* PyBobLearnEMPLDATrainer_getFMethod(PyBobLearnEMPLDATrainerObject* self, void*) {
   BOB_TRY
@@ -287,7 +287,7 @@ static auto init_g_method = bob::extension::VariableDoc(
   "init_g_method",
   "str",
   "The method used for the initialization of :math:`$G$`.",
-  ""
+  "Possible values are: ('RANDOM_G', 'BETWEEN_SCATTER')"
 );
 PyObject* PyBobLearnEMPLDATrainer_getGMethod(PyBobLearnEMPLDATrainerObject* self, void*) {
   BOB_TRY
@@ -307,13 +307,12 @@ int PyBobLearnEMPLDATrainer_setGMethod(PyBobLearnEMPLDATrainerObject* self, PyOb
   BOB_CATCH_MEMBER("init_g_method method could not be set", 0)
 }
 
-
 /***** init_sigma_method *****/
 static auto init_sigma_method = bob::extension::VariableDoc(
   "init_sigma_method",
   "str",
   "The method used for the initialization of :math:`$\\Sigma$`.",
-  ""
+  "Possible values are: ('RANDOM_SIGMA', 'VARIANCE_G', 'CONSTANT', 'VARIANCE_DATA')"
 );
 PyObject* PyBobLearnEMPLDATrainer_getSigmaMethod(PyBobLearnEMPLDATrainerObject* self, void*) {
   BOB_TRY
