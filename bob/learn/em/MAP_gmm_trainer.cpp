@@ -70,9 +70,9 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
   double relevance_factor = 4.0;
   double aux = 0;
 
-  PyObject* update_means     = 0;
-  PyObject* update_variances = 0;
-  PyObject* update_weights   = 0;
+  PyObject* update_means     = Py_True;
+  PyObject* update_variances = Py_False;
+  PyObject* update_weights   = Py_False;
   double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon();
 
   PyObject* keyword_relevance_factor = Py_BuildValue("s", kwlist1[1]);

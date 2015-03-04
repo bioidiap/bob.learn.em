@@ -57,9 +57,9 @@ static int PyBobLearnEMMLGMMTrainer_init_base_trainer(PyBobLearnEMMLGMMTrainerOb
 
   char** kwlist = ML_GMMTrainer_doc.kwlist(0);
   
-  PyObject* update_means     = 0;
-  PyObject* update_variances = 0;
-  PyObject* update_weights   = 0;
+  PyObject* update_means     = Py_True;
+  PyObject* update_variances = Py_False;
+  PyObject* update_weights   = Py_False;
   double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon();
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!O!d", kwlist, 
