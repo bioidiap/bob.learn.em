@@ -18,7 +18,7 @@ static int extract_GMMStats_1d(PyObject *list,
                              std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& training_data)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++){
-  
+
     PyBobLearnEMGMMStatsObject* stats;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyBobLearnEMGMMStats_Type, &stats)){
       PyErr_Format(PyExc_RuntimeError, "Expected GMMStats objects");
@@ -69,7 +69,7 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
-    PyBlitzArrayObject* blitz_object; 
+    PyBlitzArrayObject* blitz_object;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O&", &PyBlitzArray_Converter, &blitz_object)){
       PyErr_Format(PyExc_RuntimeError, "Expected numpy array object");
       return -1;
@@ -195,22 +195,22 @@ int PyBobLearnEMJFATrainer_set_acc_v_a1(PyBobLearnEMJFATrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_v_a1.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 3){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 3D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_v_a1.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccVA1().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccVA1().extent(1) && input->shape[2] != (Py_ssize_t)self->cxx->getAccVA1().extent(2)) {
     PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccVA1().extent(0), (Py_ssize_t)self->cxx->getAccVA1().extent(1), (Py_ssize_t)self->cxx->getAccVA1().extent(2), (Py_ssize_t)input->shape[0], (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[2], acc_v_a1.name());
     return -1;
-  }  
+  }
 
   auto b = PyBlitzArrayCxx_AsBlitz<double,3>(input, "acc_v_a1");
   if (!b) return -1;
@@ -239,24 +239,24 @@ int PyBobLearnEMJFATrainer_set_acc_v_a2(PyBobLearnEMJFATrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_v_a2.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_v_a2.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccVA2().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccVA2().extent(1)) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccVA2().extent(0), (Py_ssize_t)self->cxx->getAccVA2().extent(1), input->shape[0], input->shape[1], acc_v_a2.name());
     return -1;
-  }  
-  
-  
+  }
+
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "acc_v_a2");
   if (!b) return -1;
   self->cxx->setAccVA2(*b);
@@ -284,23 +284,23 @@ int PyBobLearnEMJFATrainer_set_acc_u_a1(PyBobLearnEMJFATrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 3){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 3D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA1().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA1().extent(1) && input->shape[2] != (Py_ssize_t)self->cxx->getAccUA1().extent(2)) {
     PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA1().extent(0), (Py_ssize_t)self->cxx->getAccUA1().extent(1), (Py_ssize_t)self->cxx->getAccUA1().extent(2), (Py_ssize_t)input->shape[0], (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[2], acc_u_a1.name());
     return -1;
-  }  
-  
+  }
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,3>(input, "acc_u_a1");
   if (!b) return -1;
   self->cxx->setAccUA1(*b);
@@ -328,23 +328,23 @@ int PyBobLearnEMJFATrainer_set_acc_u_a2(PyBobLearnEMJFATrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA2().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA2().extent(1)) {
     PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA2().extent(0), (Py_ssize_t)self->cxx->getAccUA2().extent(1), input->shape[0], input->shape[1], acc_u_a2.name());
     return -1;
-  }  
-  
+  }
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "acc_u_a2");
   if (!b) return -1;
   self->cxx->setAccUA2(*b);
@@ -372,24 +372,24 @@ int PyBobLearnEMJFATrainer_set_acc_d_a1(PyBobLearnEMJFATrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_d_a1.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_d_a1.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccDA1().extent(0)) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccDA1().extent(0), input->shape[0], acc_d_a1.name());
     return -1;
-  }  
-  
-  
+  }
+
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "acc_d_a1");
   if (!b) return -1;
   self->cxx->setAccDA1(*b);
@@ -418,16 +418,16 @@ int PyBobLearnEMJFATrainer_set_acc_d_a2(PyBobLearnEMJFATrainerObject* self, PyOb
   }
   auto o_ = make_safe(input);
 
-  // perform check on the input  
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_d_a2.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_d_a2.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccDA2().extent(0)) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccDA2().extent(0), input->shape[0], acc_d_a2.name());
@@ -461,12 +461,12 @@ int PyBobLearnEMJFATrainer_set_X(PyBobLearnEMJFATrainerObject* self, PyObject* v
     PyErr_Format(PyExc_TypeError, "Expected a list in `%s'", __X__.name());
     return -1;
   }
-    
+
   std::vector<blitz::Array<double,2> > data;
   if(list_as_vector(value ,data)==0){
     self->cxx->setX(data);
   }
-    
+
   return 0;
   BOB_CATCH_MEMBER("__X__ could not be written", 0)
 }
@@ -492,12 +492,12 @@ int PyBobLearnEMJFATrainer_set_Y(PyBobLearnEMJFATrainerObject* self, PyObject* v
     PyErr_Format(PyExc_TypeError, "Expected a list in `%s'", __Y__.name());
     return -1;
   }
-    
+
   std::vector<blitz::Array<double,1> > data;
   if(list_as_vector(value ,data)==0){
     self->cxx->setY(data);
   }
-    
+
   return 0;
   BOB_CATCH_MEMBER("__Y__ could not be written", 0)
 }
@@ -523,19 +523,19 @@ int PyBobLearnEMJFATrainer_set_Z(PyBobLearnEMJFATrainerObject* self, PyObject* v
     PyErr_Format(PyExc_TypeError, "Expected a list in `%s'", __Z__.name());
     return -1;
   }
-    
+
   std::vector<blitz::Array<double,1> > data;
   if(list_as_vector(value ,data)==0){
     self->cxx->setZ(data);
   }
-    
+
   return 0;
   BOB_CATCH_MEMBER("__Z__ could not be written", 0)
 }
 
 
 
-static PyGetSetDef PyBobLearnEMJFATrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMJFATrainer_getseters[] = {
   {
    acc_v_a1.name(),
    (getter)PyBobLearnEMJFATrainer_get_acc_v_a1,
@@ -599,8 +599,8 @@ static PyGetSetDef PyBobLearnEMJFATrainer_getseters[] = {
    __Z__.doc(),
    0
   },
-  
-  
+
+
 
   {0}  // Sentinel
 };
@@ -629,7 +629,7 @@ static PyObject* PyBobLearnEMJFATrainer_initialize(PyBobLearnEMJFATrainerObject*
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
-  PyBoostMt19937Object* rng = 0;  
+  PyBoostMt19937Object* rng = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base,
                                                                  &PyList_Type, &stats,
@@ -792,7 +792,7 @@ static auto m_step2 = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMJFATrainer_m_step2(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  // Parses input arguments in a single shot 
+  // Parses input arguments in a single shot
   char** kwlist = m_step2.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
@@ -939,9 +939,9 @@ static PyObject* PyBobLearnEMJFATrainer_finalize3(PyBobLearnEMJFATrainerObject* 
 }
 
 
-/*** enrol ***/
-static auto enrol = bob::extension::FunctionDoc(
-  "enrol",
+/*** enroll ***/
+static auto enroll = bob::extension::FunctionDoc(
+  "enroll",
   "",
   "",
   true
@@ -950,11 +950,11 @@ static auto enrol = bob::extension::FunctionDoc(
 .add_parameter("jfa_machine", ":py:class:`bob.learn.em.JFAMachine`", "JFAMachine Object")
 .add_parameter("features", "list(:py:class:`bob.learn.em.GMMStats`)`", "")
 .add_parameter("n_iter", "int", "Number of iterations");
-static PyObject* PyBobLearnEMJFATrainer_enrol(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_enroll(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = enrol.kwlist(0);
+  char** kwlist = enroll.kwlist(0);
 
   PyBobLearnEMJFAMachineObject* jfa_machine = 0;
   PyObject* stats = 0;
@@ -966,9 +966,9 @@ static PyObject* PyBobLearnEMJFATrainer_enrol(PyBobLearnEMJFATrainerObject* self
 
   std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
-    self->cxx->enrol(*jfa_machine->cxx, training_data, n_iter);
+    self->cxx->enroll(*jfa_machine->cxx, training_data, n_iter);
 
-  BOB_CATCH_MEMBER("cannot perform the enrol method", 0)
+  BOB_CATCH_MEMBER("cannot perform the enroll method", 0)
 
   Py_RETURN_NONE;
 }
@@ -1037,10 +1037,10 @@ static PyMethodDef PyBobLearnEMJFATrainer_methods[] = {
     finalize3.doc()
   },
   {
-    enrol.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_enrol,
+    enroll.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_enroll,
     METH_VARARGS|METH_KEYWORDS,
-    enrol.doc()
+    enroll.doc()
   },
   {0} /* Sentinel */
 };
@@ -1081,4 +1081,3 @@ bool init_BobLearnEMJFATrainer(PyObject* module)
   Py_INCREF(&PyBobLearnEMJFATrainer_Type);
   return PyModule_AddObject(module, "JFATrainer", (PyObject*)&PyBobLearnEMJFATrainer_Type) >= 0;
 }
-

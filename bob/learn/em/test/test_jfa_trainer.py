@@ -166,7 +166,7 @@ def test_JFATrainer_updateZandD():
 
 
 def test_JFATrainAndEnrol():
-  # Train and enrol a JFAMachine
+  # Train and enroll a JFAMachine
 
   # Calls the train function
   ubm = GMMMachine(2,3)
@@ -191,7 +191,7 @@ def test_JFATrainAndEnrol():
   assert numpy.allclose(mb.u, u_ref, eps)
   assert numpy.allclose(mb.d, d_ref, eps)
 
-  # Calls the enrol function
+  # Calls the enroll function
   m = JFAMachine(mb)
 
   Ne = numpy.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2,2))
@@ -204,7 +204,7 @@ def test_JFATrainAndEnrol():
   gse2.sum_px = Fe[:,1].reshape(2,3)
 
   gse = [gse1, gse2]
-  t.enrol(m, gse, 5)
+  t.enroll(m, gse, 5)
 
   y_ref = numpy.array([0.555991469319657, 0.002773650670010], 'float64')
   z_ref = numpy.array([8.2228e-20, 3.15216909492e-13, -1.48616735364395e-10, 1.0625905e-17, 3.7150503117895e-11, 1.71104e-19], 'float64')
@@ -213,7 +213,7 @@ def test_JFATrainAndEnrol():
 
 
 def test_ISVTrainAndEnrol():
-  # Train and enrol an 'ISVMachine'
+  # Train and enroll an 'ISVMachine'
 
   eps = 1e-10
   d_ref = numpy.array([0.39601136, 0.07348469, 0.47712682, 0.44738127, 0.43179856, 0.45086029], 'float64')
@@ -236,7 +236,7 @@ def test_ISVTrainAndEnrol():
   assert numpy.allclose(mb.d, d_ref, eps)
   assert numpy.allclose(mb.u, u_ref, eps)
 
-  # Calls the enrol function
+  # Calls the enroll function
   m = ISVMachine(mb)
 
   Ne = numpy.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2,2))
@@ -249,7 +249,7 @@ def test_ISVTrainAndEnrol():
   gse2.sum_px = Fe[:,1].reshape(2,3)
 
   gse = [gse1, gse2]
-  t.enrol(m, gse, 5)
+  t.enroll(m, gse, 5)
   assert numpy.allclose(m.z, z_ref, eps)
 
 

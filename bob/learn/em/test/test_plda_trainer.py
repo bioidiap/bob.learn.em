@@ -376,7 +376,7 @@ def test_plda_EM_vs_Python():
   #t.train(m, l)
   bob.learn.em.train(t, m, l, max_iterations=10)
   t_py.train(m_py, l)
-  
+
   assert numpy.allclose(m.mu, m_py.mu)
   assert numpy.allclose(m.f, m_py.f)
   assert numpy.allclose(m.g, m_py.g)
@@ -677,10 +677,10 @@ def test_plda_enrollment():
   x1 = numpy.array([0.8032, 0.3503, 0.4587, 0.9511, 0.1330, 0.0703, 0.7061])
   x2 = numpy.array([0.9317, 0.1089, 0.6517, 0.1461, 0.6940, 0.6256, 0.0437])
   x3 = numpy.array([0.7979, 0.9862, 0.4367, 0.3447, 0.0488, 0.2252, 0.5810])
-  a_enrol = []
-  a_enrol.append(x1)
-  a_enrol.append(x2)
-  a_enrol = numpy.array(a_enrol)
+  a_enroll = []
+  a_enroll.append(x1)
+  a_enroll.append(x2)
+  a_enroll = numpy.array(a_enroll)
 
   # reference likelihood from Prince implementation
   ll_ref = -182.8880743535197
@@ -689,9 +689,9 @@ def test_plda_enrollment():
   # and x3 as a probe sample
   m = PLDAMachine(mb)
   t = PLDATrainer()
-  t.enrol(m, a_enrol)
+  t.enroll(m, a_enroll)
   ll = m.compute_log_likelihood(x3)
-  
+
   assert abs(ll - ll_ref) < 1e-10
 
   # reference obtained by computing the likelihood of [x1,x2,x3], [x1,x2]
@@ -741,4 +741,3 @@ def test_plda_comparisons():
   assert (t1 == t2 ) is False
   assert t1 != t2
   assert (t1.is_similar_to(t2) ) is False
-

@@ -747,7 +747,7 @@ void bob::learn::em::PLDATrainer::updateSigma(bob::learn::em::PLDABase& machine,
 }
 
 
-void bob::learn::em::PLDATrainer::enrol(bob::learn::em::PLDAMachine& plda_machine,
+void bob::learn::em::PLDATrainer::enroll(bob::learn::em::PLDAMachine& plda_machine,
   const blitz::Array<double,2>& ar) const
 {
   // Gets dimension

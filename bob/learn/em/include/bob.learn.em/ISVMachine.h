@@ -178,7 +178,7 @@ class ISVMachine
     *
     * @param input input data used by the machine
     * @warning Inputs are checked
-    * @return score value computed by the machine    
+    * @return score value computed by the machine
     */
     double forward(const bob::learn::em::GMMStats& input);
     /**
@@ -193,7 +193,7 @@ class ISVMachine
      *
      * @param input input data used by the machine
      * @warning Inputs are NOT checked
-     * @return score value computed by the machine     
+     * @return score value computed by the machine
      */
     double forward_(const bob::learn::em::GMMStats& input);
 
@@ -214,7 +214,7 @@ class ISVMachine
     // UBM
     boost::shared_ptr<bob::learn::em::ISVBase> m_isv_base;
 
-    // y and z vectors/factors learned during the enrolment procedure
+    // y and z vectors/factors learned during the enrollment procedure
     blitz::Array<double,1> m_z;
 
     // cache

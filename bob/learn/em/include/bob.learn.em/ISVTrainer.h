@@ -92,7 +92,7 @@ class ISVTrainer
     /**
      * @brief Enrol a client
      */
-    void enrol(bob::learn::em::ISVMachine& machine,
+    void enroll(bob::learn::em::ISVMachine& machine,
       const std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& features,
       const size_t n_iter);
 
@@ -133,7 +133,7 @@ class ISVTrainer
     { m_base_trainer.setAccUA1(acc); }
     void setAccUA2(const blitz::Array<double,2>& acc)
     { m_base_trainer.setAccUA2(acc); }
-    
+
     /**
      * @brief Sets the Random Number Generator
      */

@@ -237,7 +237,7 @@ class JFAMachine
     // UBM
     boost::shared_ptr<bob::learn::em::JFABase> m_jfa_base;
 
-    // y and z vectors/factors learned during the enrolment procedure
+    // y and z vectors/factors learned during the enrollment procedure
     blitz::Array<double,1> m_y;
     blitz::Array<double,1> m_z;
 

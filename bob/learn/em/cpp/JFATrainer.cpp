@@ -174,7 +174,7 @@ void bob::learn::em::JFATrainer::train(bob::learn::em::JFABase& machine,
 }
 */
 
-void bob::learn::em::JFATrainer::enrol(bob::learn::em::JFAMachine& machine,
+void bob::learn::em::JFATrainer::enroll(bob::learn::em::JFAMachine& machine,
   const std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& ar,
   const size_t n_iter)
 {
@@ -197,4 +197,3 @@ void bob::learn::em::JFATrainer::enrol(bob::learn::em::JFAMachine& machine,
   machine.setY(y);
   machine.setZ(z);
 }
-

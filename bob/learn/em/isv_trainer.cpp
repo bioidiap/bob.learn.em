@@ -18,7 +18,7 @@ static int extract_GMMStats_1d(PyObject *list,
                              std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& training_data)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++){
-  
+
     PyBobLearnEMGMMStatsObject* stats;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyBobLearnEMGMMStats_Type, &stats)){
       PyErr_Format(PyExc_RuntimeError, "Expected GMMStats objects");
@@ -69,7 +69,7 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
-    PyBlitzArrayObject* blitz_object; 
+    PyBlitzArrayObject* blitz_object;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O&", &PyBlitzArray_Converter, &blitz_object)){
       PyErr_Format(PyExc_RuntimeError, "Expected numpy array object");
       return -1;
@@ -156,7 +156,7 @@ static int PyBobLearnEMISVTrainer_init(PyBobLearnEMISVTrainerObject* self, PyObj
         auto tmp_ = make_safe(tmp);
         arg = PyList_GET_ITEM(tmp, 0);
       }
-      
+
       if(PyBobLearnEMISVTrainer_Check(arg))
         // If the constructor input is ISVTrainer object
         return PyBobLearnEMISVTrainer_init_copy(self, args, kwargs);
@@ -230,24 +230,24 @@ int PyBobLearnEMISVTrainer_set_acc_u_a1(PyBobLearnEMISVTrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 3){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 3D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a1.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA1().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA1().extent(1) && input->shape[2] != (Py_ssize_t)self->cxx->getAccUA1().extent(2)) {
     PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA1().extent(0), (Py_ssize_t)self->cxx->getAccUA1().extent(1), (Py_ssize_t)self->cxx->getAccUA1().extent(2), (Py_ssize_t)input->shape[0], (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[2], acc_u_a1.name());
     return -1;
-  }  
+  }
 
-  
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,3>(input, "acc_u_a1");
   if (!b) return -1;
   self->cxx->setAccUA1(*b);
@@ -275,23 +275,23 @@ int PyBobLearnEMISVTrainer_set_acc_u_a2(PyBobLearnEMISVTrainerObject* self, PyOb
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, acc_u_a2.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getAccUA2().extent(0) && input->shape[1] != (Py_ssize_t)self->cxx->getAccUA2().extent(1)) {
     PyErr_Format(PyExc_TypeError, "`%s' 3D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getAccUA2().extent(0), (Py_ssize_t)self->cxx->getAccUA2().extent(1), input->shape[0], input->shape[1], acc_u_a2.name());
     return -1;
-  }  
-  
+  }
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "acc_u_a2");
   if (!b) return -1;
   self->cxx->setAccUA2(*b);
@@ -319,12 +319,12 @@ int PyBobLearnEMISVTrainer_set_X(PyBobLearnEMISVTrainerObject* self, PyObject* v
     PyErr_Format(PyExc_TypeError, "Expected a list in `%s'", __X__.name());
     return -1;
   }
-    
+
   std::vector<blitz::Array<double,2> > data;
   if(list_as_vector(value ,data)==0){
     self->cxx->setX(data);
   }
-    
+
   return 0;
   BOB_CATCH_MEMBER("__X__ could not be written", 0)
 }
@@ -349,18 +349,18 @@ int PyBobLearnEMISVTrainer_set_Z(PyBobLearnEMISVTrainerObject* self, PyObject* v
     PyErr_Format(PyExc_TypeError, "Expected a list in `%s'", __Z__.name());
     return -1;
   }
-    
+
   std::vector<blitz::Array<double,1> > data;
   if(list_as_vector(value ,data)==0){
     self->cxx->setZ(data);
   }
-    
+
   return 0;
   BOB_CATCH_MEMBER("__Z__ could not be written", 0)
 }
 
 
-static PyGetSetDef PyBobLearnEMISVTrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMISVTrainer_getseters[] = {
   {
    acc_u_a1.name(),
    (getter)PyBobLearnEMISVTrainer_get_acc_u_a1,
@@ -389,7 +389,7 @@ static PyGetSetDef PyBobLearnEMISVTrainer_getseters[] = {
    __Z__.doc(),
    0
   },
-  
+
 
   {0}  // Sentinel
 };
@@ -418,7 +418,7 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
 
   PyBobLearnEMISVBaseObject* isv_base = 0;
   PyObject* stats = 0;
-  PyBoostMt19937Object* rng = 0;  
+  PyBoostMt19937Object* rng = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O!|O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
                                                                  &PyList_Type, &stats,
@@ -484,11 +484,11 @@ static auto m_step = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMISVTrainer_m_step(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  // Parses input arguments in a single shot 
+  // Parses input arguments in a single shot
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMISVBaseObject* isv_base = 0;
-  PyObject* stats = 0;  
+  PyObject* stats = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
                                                                  &PyList_Type, &stats)) return 0;
@@ -502,9 +502,9 @@ static PyObject* PyBobLearnEMISVTrainer_m_step(PyBobLearnEMISVTrainerObject* sel
 
 
 
-/*** enrol ***/
-static auto enrol = bob::extension::FunctionDoc(
-  "enrol",
+/*** enroll ***/
+static auto enroll = bob::extension::FunctionDoc(
+  "enroll",
   "",
   "",
   true
@@ -513,11 +513,11 @@ static auto enrol = bob::extension::FunctionDoc(
 .add_parameter("isv_machine", ":py:class:`bob.learn.em.ISVMachine`", "ISVMachine Object")
 .add_parameter("features", "list(:py:class:`bob.learn.em.GMMStats`)`", "")
 .add_parameter("n_iter", "int", "Number of iterations");
-static PyObject* PyBobLearnEMISVTrainer_enrol(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMISVTrainer_enroll(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = enrol.kwlist(0);
+  char** kwlist = enroll.kwlist(0);
 
   PyBobLearnEMISVMachineObject* isv_machine = 0;
   PyObject* stats = 0;
@@ -529,9 +529,9 @@ static PyObject* PyBobLearnEMISVTrainer_enrol(PyBobLearnEMISVTrainerObject* self
 
   std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
-    self->cxx->enrol(*isv_machine->cxx, training_data, n_iter);
+    self->cxx->enroll(*isv_machine->cxx, training_data, n_iter);
 
-  BOB_CATCH_MEMBER("cannot perform the enrol method", 0)
+  BOB_CATCH_MEMBER("cannot perform the enroll method", 0)
 
   Py_RETURN_NONE;
 }
@@ -558,10 +558,10 @@ static PyMethodDef PyBobLearnEMISVTrainer_methods[] = {
     m_step.doc()
   },
   {
-    enrol.name(),
-    (PyCFunction)PyBobLearnEMISVTrainer_enrol,
+    enroll.name(),
+    (PyCFunction)PyBobLearnEMISVTrainer_enroll,
     METH_VARARGS|METH_KEYWORDS,
-    enrol.doc()
+    enroll.doc()
   },
   {0} /* Sentinel */
 };
@@ -602,4 +602,3 @@ bool init_BobLearnEMISVTrainer(PyObject* module)
   Py_INCREF(&PyBobLearnEMISVTrainer_Type);
   return PyModule_AddObject(module, "ISVTrainer", (PyObject*)&PyBobLearnEMISVTrainer_Type) >= 0;
 }
-

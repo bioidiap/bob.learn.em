@@ -145,7 +145,7 @@ class JFATrainer
     /**
      * @brief Enrol a client
      */
-    void enrol(bob::learn::em::JFAMachine& machine,
+    void enroll(bob::learn::em::JFAMachine& machine,
       const std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& features,
       const size_t n_iter);
 

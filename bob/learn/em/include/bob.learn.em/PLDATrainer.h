@@ -215,10 +215,10 @@ class PLDATrainer
     /**
      * @brief Main procedure for enrolling a PLDAMachine
      */
-    void enrol(bob::learn::em::PLDAMachine& plda_machine,
+    void enroll(bob::learn::em::PLDAMachine& plda_machine,
       const blitz::Array<double,2>& ar) const;
-      
-      
+
+
     /**
      * @brief Sets the Random Number Generator
      */
@@ -229,12 +229,12 @@ class PLDATrainer
      * @brief Gets the Random Number Generator
      */
     boost::shared_ptr<boost::mt19937> getRng() const
-    { return m_rng; }      
+    { return m_rng; }
 
   private:
-  
+
 	    boost::shared_ptr<boost::mt19937> m_rng;
-	  
+
 	    //representation
 	    size_t m_dim_d; ///< Dimensionality of the input features
 	    size_t m_dim_f; ///< Size/rank of the \f$F\f$ subspace

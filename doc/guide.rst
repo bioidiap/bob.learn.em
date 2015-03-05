@@ -178,7 +178,7 @@ portion of between-class variation.
 
 An instance of :py:class:`bob.learn.em.JFABase` carries information about
 the matrices :math:`U`, :math:`V` and :math:`D`, which can be shared between
-several classes.  In contrast, after the enrolment phase, an instance of
+several classes.  In contrast, after the enrollment phase, an instance of
 :py:class:`bob.learn.em.JFAMachine` carries class-specific information about
 the latent variables :math:`y` and :math:`z`.
 
@@ -389,7 +389,7 @@ Furthermore, to make the things even simpler, it is possible to train the K-Mean
 
    >>> data           = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64') #Data
    >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
-   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine   
+   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine
    >>> max_iterations = 10
    >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data, max_iterations = 10) #wrapper for the em trainer
    >>> print(kmeans_machine.means)
@@ -431,7 +431,7 @@ be called.
 
    >>> kmeansTrainer = bob.learn.em.KMeansTrainer()
 
-   >>> bob.learn.em.train(kmeansTrainer, kmeans, data, max_iterations = 200, convergence_threshold = 1e-5) # Train the KMeansMachine   
+   >>> bob.learn.em.train(kmeansTrainer, kmeans, data, max_iterations = 200, convergence_threshold = 1e-5) # Train the KMeansMachine
    >>> print(kmeans.means)
    [[ -6.   6.  -100.5]
     [  3.5 -3.5   99. ]]
@@ -600,7 +600,7 @@ the class-specific latent variables :math:`y` and :math:`z`:
    :options: +NORMALIZE_WHITESPACE
 
    >>> m = bob.learn.em.JFAMachine(jfa_base)
-   >>> jfa_trainer.enrol(m, gse, 5) # where 5 is the number of enrollment iterations
+   >>> jfa_trainer.enroll(m, gse, 5) # where 5 is the number of enrollment iterations
 
 More information about the training process can be found in [12]_ and [13]_.
 
@@ -645,7 +645,7 @@ estimate the class-specific latent variable :math:`z`:
    :options: +NORMALIZE_WHITESPACE
 
    >>> m = bob.learn.em.ISVMachine(isv_base)
-   >>> isv_trainer.enrol(m, gse, 5) # where 5 is the number of iterations
+   >>> isv_trainer.enroll(m, gse, 5) # where 5 is the number of iterations
 
 More information about the training process can be found in [14]_ and [13]_.
 
@@ -746,17 +746,17 @@ obtained by calling the
 
 If separate models for different classes need to be enrolled, each of them with
 a set of enrolment samples, then, several instances of
-:py:class:`bob.learn.em.PLDAMachine` need to be created and enroled using
-the :py:meth:`bob.learn.em.PLDATrainer.enrol()` method as follows.
+:py:class:`bob.learn.em.PLDAMachine` need to be created and enrolled using
+the :py:meth:`bob.learn.em.PLDATrainer.enroll()` method as follows.
 
 .. doctest::
 
    >>> plda1 = bob.learn.em.PLDAMachine(pldabase)
    >>> samples1 = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
-   >>> trainer.enrol(plda1, samples1)
+   >>> trainer.enroll(plda1, samples1)
    >>> plda2 = bob.learn.em.PLDAMachine(pldabase)
    >>> samples2 = numpy.array([[3.5,7,-49], [4.5,8.9,-99]], dtype=numpy.float64)
-   >>> trainer.enrol(plda2, samples2)
+   >>> trainer.enroll(plda2, samples2)
 
 Afterwards, the joint log-likelihood of the enrollment samples and of one or
 several test samples can be computed as previously described, and this
@@ -769,12 +769,12 @@ separately for each model.
    >>> l2 = plda2.compute_log_likelihood(sample)
 
 In a verification scenario, there are two possible hypotheses: 1.
-:math:`x_{test}` and :math:`x_{enrol}` share the same class.  2.
-:math:`x_{test}` and :math:`x_{enrol}` are from different classes.  Using the
+:math:`x_{test}` and :math:`x_{enroll}` share the same class.  2.
+:math:`x_{test}` and :math:`x_{enroll}` are from different classes.  Using the
 methods :py:meth:`bob.learn.em.PLDAMachine.forward` or
 :py:meth:`bob.learn.em.PLDAMachine.__call__` function, the corresponding
 log-likelihood ratio will be computed, which is defined in more formal way by:
-:math:`s = \ln(P(x_{test},x_{enrol})) - \ln(P(x_{test})P(x_{enrol}))`
+:math:`s = \ln(P(x_{test},x_{enroll})) - \ln(P(x_{test})P(x_{enroll}))`
 
 .. doctest::
 
@@ -807,4 +807,3 @@ log-likelihood ratio will be computed, which is defined in more formal way by:
 .. [15] http://dx.doi.org/10.1109/TASL.2010.2064307
 .. [16] http://dx.doi.org/10.1109/ICCV.2007.4409052
 .. [17] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
-

@@ -26,13 +26,13 @@ static void _ztNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
 
   // Compute the sizes
   int size_eval  = A.extent(0);
-  int size_enrol = A.extent(1);
+  int size_enroll = A.extent(1);
   int size_tnorm = (C ? C->extent(0) : 0);
   int size_znorm = (B ? B->extent(1) : 0);
 
   // Check the inputs
   bob::core::array::assertSameDimensionLength(A.extent(0), size_eval);
-  bob::core::array::assertSameDimensionLength(A.extent(1), size_enrol);
+  bob::core::array::assertSameDimensionLength(A.extent(1), size_enroll);
 
   if (B) {
     bob::core::array::assertSameDimensionLength(B->extent(1), size_znorm);
@@ -43,7 +43,7 @@ static void _ztNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
   if (C) {
     bob::core::array::assertSameDimensionLength(C->extent(0), size_tnorm);
     if (size_tnorm > 0)
-      bob::core::array::assertSameDimensionLength(C->extent(1), size_enrol);
+      bob::core::array::assertSameDimensionLength(C->extent(1), size_enroll);
   }
 
   if (D && size_znorm > 0 && size_tnorm > 0) {
@@ -57,7 +57,7 @@ static void _ztNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
   }
 
   bob::core::array::assertSameDimensionLength(scores.extent(0), size_eval);
-  bob::core::array::assertSameDimensionLength(scores.extent(1), size_enrol);
+  bob::core::array::assertSameDimensionLength(scores.extent(1), size_enroll);
 
   // Declare needed IndexPlaceholder
   blitz::firstIndex ii;
@@ -87,7 +87,7 @@ static void _ztNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
   else
     zA = A;
 
-  blitz::Array<double,2> zC(size_tnorm, size_enrol);
+  blitz::Array<double,2> zC(size_tnorm, size_enroll);
   if (D && size_tnorm > 0 && size_znorm > 0) {
     blitz::Array<double,1> mean_Dimp(size_tnorm);
     blitz::Array<double,1> std_Dimp(size_tnorm);
@@ -125,8 +125,8 @@ static void _ztNorm(const blitz::Array<double,2>& rawscores_probes_vs_models,
 
   if (C && size_tnorm > 0)
   {
-    blitz::Array<double,1> mean_zC(size_enrol);
-    blitz::Array<double,1> std_zC(size_enrol);
+    blitz::Array<double,1> mean_zC(size_enroll);
+    blitz::Array<double,1> std_zC(size_enroll);
 
     // ztA = (zA - mean(zC)) / std(zC)  [ztnorm on eval scores]
     mean_zC = blitz::mean(zC(jj, ii), jj);
@@ -179,4 +179,3 @@ void bob::learn::em::zNorm(const blitz::Array<double,2>& rawscores_probes_vs_mod
   _ztNorm(rawscores_probes_vs_models, &rawscores_zprobes_vs_models, NULL,
                  NULL, NULL, scores);
 }
-

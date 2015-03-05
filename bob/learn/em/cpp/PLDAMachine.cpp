@@ -827,13 +827,13 @@ double bob::learn::em::PLDAMachine::forward(const blitz::Array<double,2>& sample
 }
 
 double bob::learn::em::PLDAMachine::computeLogLikelihood(const blitz::Array<double,1>& sample,
-  bool enrol) const
+  bool enroll) const
 {
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
   // Check dimensionality
   bob::core::array::assertSameDimensionLength(sample.extent(0), getDimD());
 
-  int n_samples = 1 + (enrol?m_n_samples:0);
+  int n_samples = 1 + (enroll?m_n_samples:0);
 
   // 3/ Third term of the likelihood: -1/2*X^T*(SIGMA+A.A^T)^-1*X
   //    Efficient way: -1/2*sum_i(xi^T.sigma^-1.xi - xi^T.sigma^-1*G*(I+G^T.sigma^-1.G)^-1*G^T*sigma^-1.xi
@@ -842,9 +842,9 @@ double bob::learn::em::PLDAMachine::computeLogLikelihood(const blitz::Array<doub
   const blitz::Array<double,2>& beta = getPLDABase()->getBeta();
   const blitz::Array<double,2>& Ft_beta = getPLDABase()->getFtBeta();
   const blitz::Array<double,1>& mu = getPLDABase()->getMu();
-  double terma = (enrol?m_nh_sum_xit_beta_xi:0.);
+  double terma = (enroll?m_nh_sum_xit_beta_xi:0.);
   // sumWeighted
-  if (enrol && m_n_samples > 0) m_tmp_nf_1 = m_weighted_sum;
+  if (enroll && m_n_samples > 0) m_tmp_nf_1 = m_weighted_sum;
   else m_tmp_nf_1 = 0;
 
   // terma += -1 / 2. * (xi^t*beta*xi)
@@ -882,13 +882,13 @@ double bob::learn::em::PLDAMachine::computeLogLikelihood(const blitz::Array<doub
 }
 
 double bob::learn::em::PLDAMachine::computeLogLikelihood(const blitz::Array<double,2>& samples,
-  bool enrol) const
+  bool enroll) const
 {
   if (!m_plda_base) throw std::runtime_error("No PLDABase set to this machine");
   // Check dimensionality
   bob::core::array::assertSameDimensionLength(samples.extent(1), getDimD());
 
-  int n_samples = samples.extent(0) + (enrol?m_n_samples:0);
+  int n_samples = samples.extent(0) + (enroll?m_n_samples:0);
   // 3/ Third term of the likelihood: -1/2*X^T*(SIGMA+A.A^T)^-1*X
   //    Efficient way: -1/2*sum_i(xi^T.sigma^-1.xi - xi^T.sigma^-1*G*(I+G^T.sigma^-1.G)^-1*G^T*sigma^-1.xi
   //      -1/2*sumWeighted^T*(I+aF^T.(sigma^-1-sigma^-1*G*(I+G^T.sigma^-1.G)^-1*G^T*sigma^-1).F)^-1*sumWeighted
@@ -896,9 +896,9 @@ double bob::learn::em::PLDAMachine::computeLogLikelihood(const blitz::Array<doub
   const blitz::Array<double,2>& beta = getPLDABase()->getBeta();
   const blitz::Array<double,2>& Ft_beta = getPLDABase()->getFtBeta();
   const blitz::Array<double,1>& mu = getPLDABase()->getMu();
-  double terma = (enrol?m_nh_sum_xit_beta_xi:0.);
+  double terma = (enroll?m_nh_sum_xit_beta_xi:0.);
   // sumWeighted
-  if (enrol && m_n_samples > 0) m_tmp_nf_1 = m_weighted_sum;
+  if (enroll && m_n_samples > 0) m_tmp_nf_1 = m_weighted_sum;
   else m_tmp_nf_1 = 0;
   for (int k=0; k<samples.extent(0); ++k)
   {

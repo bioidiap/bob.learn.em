@@ -62,7 +62,7 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
-    PyBlitzArrayObject* blitz_object; 
+    PyBlitzArrayObject* blitz_object;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O&", &PyBlitzArray_Converter, &blitz_object)){
       PyErr_Format(PyExc_RuntimeError, "Expected numpy array object");
       return -1;
@@ -161,7 +161,7 @@ static int PyBobLearnEMPLDATrainer_init(PyBobLearnEMPLDATrainerObject* self, PyO
       auto tmp_ = make_safe(tmp);
       arg = PyList_GET_ITEM(tmp, 0);
     }
-      
+
     if(PyBobLearnEMPLDATrainer_Check(arg))
       // If the constructor input is PLDATrainer object
       return PyBobLearnEMPLDATrainer_init_copy(self, args, kwargs);
@@ -359,7 +359,7 @@ int PyBobLearnEMPLDATrainer_setUseSumSecondOrder(PyBobLearnEMPLDATrainerObject* 
 
 
 
-static PyGetSetDef PyBobLearnEMPLDATrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMPLDATrainer_getseters[] = {
   {
    z_first_order.name(),
    (getter)PyBobLearnEMPLDATrainer_get_z_first_order,
@@ -555,9 +555,9 @@ static PyObject* PyBobLearnEMPLDATrainer_finalize(PyBobLearnEMPLDATrainerObject*
 
 
 
-/*** enrol ***/
-static auto enrol = bob::extension::FunctionDoc(
-  "enrol",
+/*** enroll ***/
+static auto enroll = bob::extension::FunctionDoc(
+  "enroll",
   "Main procedure for enrolling a PLDAMachine",
   "",
   true
@@ -565,11 +565,11 @@ static auto enrol = bob::extension::FunctionDoc(
 .add_prototype("plda_machine,data")
 .add_parameter("plda_machine", ":py:class:`bob.learn.em.PLDAMachine`", "PLDAMachine Object")
 .add_parameter("data", "list", "");
-static PyObject* PyBobLearnEMPLDATrainer_enrol(PyBobLearnEMPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMPLDATrainer_enroll(PyBobLearnEMPLDATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = enrol.kwlist(0);
+  char** kwlist = enroll.kwlist(0);
 
   PyBobLearnEMPLDAMachineObject* plda_machine = 0;
   PyBlitzArrayObject* data = 0;
@@ -578,9 +578,9 @@ static PyObject* PyBobLearnEMPLDATrainer_enrol(PyBobLearnEMPLDATrainerObject* se
                                                                  &PyBlitzArray_Converter, &data)) return 0;
 
   auto data_ = make_safe(data);
-  self->cxx->enrol(*plda_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
+  self->cxx->enroll(*plda_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
-  BOB_CATCH_MEMBER("cannot perform the enrol method", 0)
+  BOB_CATCH_MEMBER("cannot perform the enroll method", 0)
 
   Py_RETURN_NONE;
 }
@@ -589,7 +589,7 @@ static PyObject* PyBobLearnEMPLDATrainer_enrol(PyBobLearnEMPLDATrainerObject* se
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this PLDATrainer with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -614,8 +614,8 @@ static PyObject* PyBobLearnEMPLDATrainer_IsSimilarTo(PyBobLearnEMPLDATrainerObje
         &PyBobLearnEMPLDATrainer_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -650,12 +650,12 @@ static PyMethodDef PyBobLearnEMPLDATrainer_methods[] = {
     (PyCFunction)PyBobLearnEMPLDATrainer_finalize,
     METH_VARARGS|METH_KEYWORDS,
     finalize.doc()
-  },  
+  },
   {
-    enrol.name(),
-    (PyCFunction)PyBobLearnEMPLDATrainer_enrol,
+    enroll.name(),
+    (PyCFunction)PyBobLearnEMPLDATrainer_enroll,
     METH_VARARGS|METH_KEYWORDS,
-    enrol.doc()
+    enroll.doc()
   },
   {
     is_similar_to.name(),

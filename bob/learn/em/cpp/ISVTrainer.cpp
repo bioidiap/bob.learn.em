@@ -46,7 +46,7 @@ bob::learn::em::ISVTrainer& bob::learn::em::ISVTrainer::operator=
 
 bool bob::learn::em::ISVTrainer::operator==(const bob::learn::em::ISVTrainer& b) const
 {
-  return m_rng == b.m_rng && 
+  return m_rng == b.m_rng &&
          m_relevance_factor == b.m_relevance_factor;
 }
 
@@ -58,7 +58,7 @@ bool bob::learn::em::ISVTrainer::operator!=(const bob::learn::em::ISVTrainer& b)
 bool bob::learn::em::ISVTrainer::is_similar_to(const bob::learn::em::ISVTrainer& b,
   const double r_epsilon, const double a_epsilon) const
 {
-  return  m_rng == b.m_rng && 
+  return  m_rng == b.m_rng &&
           m_relevance_factor == b.m_relevance_factor;
 }
 
@@ -105,7 +105,7 @@ double bob::learn::em::ISVTrainer::computeLikelihood(bob::learn::em::ISVBase& ma
   return 0;
 }
 
-void bob::learn::em::ISVTrainer::enrol(bob::learn::em::ISVMachine& machine,
+void bob::learn::em::ISVTrainer::enroll(bob::learn::em::ISVMachine& machine,
   const std::vector<boost::shared_ptr<bob::learn::em::GMMStats> >& ar,
   const size_t n_iter)
 {
@@ -125,6 +125,3 @@ void bob::learn::em::ISVTrainer::enrol(bob::learn::em::ISVMachine& machine,
   const blitz::Array<double,1> z(m_base_trainer.getZ()[0]);
   machine.setZ(z);
 }
-
-
-
