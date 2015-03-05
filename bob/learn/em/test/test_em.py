@@ -15,7 +15,7 @@ from bob.io.base.test_utils import datafile
 
 from bob.learn.em import KMeansMachine, GMMMachine, KMeansTrainer, \
     ML_GMMTrainer, MAP_GMMTrainer
-    
+
 import bob.learn.em
 
 #, MAP_GMMTrainer
@@ -49,23 +49,23 @@ def test_gmm_ML_1():
 
   # Trains a GMMMachine with ML_GMMTrainer
 
-  ar = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))  
+  ar = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))
   gmm = loadGMM()
-  
+
   ml_gmmtrainer = ML_GMMTrainer(True, True, True)
   #ml_gmmtrainer.train(gmm, ar)
   bob.learn.em.train(ml_gmmtrainer, gmm, ar, convergence_threshold=0.001)
 
   #config = bob.io.base.HDF5File(datafile('gmm_ML.hdf5", __name__), 'w')
   #gmm.save(config)
-  
+
   gmm_ref = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML.hdf5', __name__, path="../data/")))
   gmm_ref_32bit_debug = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML_32bit_debug.hdf5', __name__, path="../data/")))
   gmm_ref_32bit_release = GMMMachine(bob.io.base.HDF5File(datafile('gmm_ML_32bit_release.hdf5', __name__, path="../data/")))
 
   assert (gmm == gmm_ref) or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_release)
 
- 
+
 def test_gmm_ML_2():
 
   # Trains a GMMMachine with ML_GMMTrainer; compares to an old reference
@@ -86,11 +86,11 @@ def test_gmm_ML_2():
   max_iter_gmm = 25
   accuracy = 0.00001
   ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior)
-  
+
   # Run ML
   #ml_gmmtrainer.train(gmm, ar)
   bob.learn.em.train(ml_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy)
-  
+
   # Test results
   # Load torch3vision reference
   meansML_ref = bob.io.base.load(datafile('meansAfterML.hdf5', __name__, path="../data/"))
@@ -114,8 +114,8 @@ def test_gmm_MAP_1():
   gmm = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/")))
   gmmprior = GMMMachine(bob.io.base.HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/")))
 
-  map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, prior_gmm=gmmprior, relevance_factor=4.)  
-  
+  map_gmmtrainer = MAP_GMMTrainer(update_means=True, update_variances=False, update_weights=False, prior_gmm=gmmprior, relevance_factor=4.)
+
   #map_gmmtrainer.train(gmm, ar)
   bob.learn.em.train(map_gmmtrainer, gmm, ar)
 
@@ -183,7 +183,7 @@ def test_gmm_MAP_3():
   max_iter_gmm = 1
   accuracy = 0.00001
   map_factor = 0.5
-  map_gmmtrainer = MAP_GMMTrainer(prior_gmm, alpha=map_factor, update_means=True, update_variances=False, update_weights=False, convergence_threshold=prior)
+  map_gmmtrainer = MAP_GMMTrainer(prior_gmm, alpha=map_factor, update_means=True, update_variances=False, update_weights=False, mean_var_update_responsibilities_threshold=accuracy)
   #map_gmmtrainer.max_iterations = max_iter_gmm
   #map_gmmtrainer.convergence_threshold = accuracy
 
@@ -192,7 +192,7 @@ def test_gmm_MAP_3():
 
   # Train
   #map_gmmtrainer.train(gmm, ar)
-  bob.learn.em.train(map_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy)
+  bob.learn.em.train(map_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=prior)
 
   # Test results
   # Load torch3vision reference

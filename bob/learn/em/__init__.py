@@ -7,11 +7,9 @@ import bob.learn.linear
 import bob.extension
 bob.extension.load_bob_library('bob.learn.em', __file__)
 
-#from ._old_library import *
 from ._library import *
 from . import version
 from .version import module as __version__
-from .__MAP_gmm_trainer__ import *
 from .train import *
 
 def ztnorm_same_value(vect_a, vect_b):

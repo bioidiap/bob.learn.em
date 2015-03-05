@@ -17,28 +17,28 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* 
 
 static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".MAP_GMMTrainer",
-  "This class implements the maximum a posteriori M-step of the expectation-maximisation algorithm for a GMM Machine. The prior parameters are encoded in the form of a GMM (e.g. a universal background model). The EM algorithm thus performs GMM adaptation."
+  "This class implements the maximum a posteriori M-step of the expectation-maximization algorithm for a GMM Machine. The prior parameters are encoded in the form of a GMM (e.g. a universal background model). The EM algorithm thus performs GMM adaptation."
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
     "Creates a MAP_GMMTrainer",
-    "",
+    "Additionally to the copy constructor, there are two different ways to call this constructor, one using the ``relevance_factor`` and one using the ``alpha``, both which have the same signature. "
+    "Hence, the only way to differentiate the two functions is by using keyword arguments.",
     true
   )
 
-  .add_prototype("prior_gmm,relevance_factor, update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
-  .add_prototype("prior_gmm,alpha, update_means, [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
+  .add_prototype("prior_gmm, relevance_factor, [update_means], [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
+  .add_prototype("prior_gmm, alpha, [update_means], [update_variances], [update_weights], [mean_var_update_responsibilities_threshold]","")
   .add_prototype("other","")
 
-  .add_parameter("prior_gmm", ":py:class:`bob.learn.em.GMMMachine`", "The prior GMM to be adapted (Universal Backgroud Model UBM).")
-  .add_parameter("reynolds_adaptation", "bool", "Will use the Reynolds adaptation procedure? See Eq (14) from [Reynolds2000]_")
-  .add_parameter("relevance_factor", "double", "If set the reynolds_adaptation parameters, will apply the Reynolds Adaptation procedure. See Eq (14) from [Reynolds2000]_")
-  .add_parameter("alpha", "double", "Set directly the alpha parameter (Eq (14) from [Reynolds2000]_), ignoring zeroth order statistics as a weighting factor.")
+  .add_parameter("prior_gmm", ":py:class:`bob.learn.em.GMMMachine`", "The prior GMM to be adapted (Universal Background Model UBM).")
+  .add_parameter("relevance_factor", "float", "If set the Reynolds Adaptation procedure will be  applied. See Eq (14) from [Reynolds2000]_")
+  .add_parameter("alpha", "float", "Set directly the alpha parameter (Eq (14) from [Reynolds2000]_), ignoring zeroth order statistics as a weighting factor.")
 
-  .add_parameter("update_means", "bool", "Update means on each iteration")
-  .add_parameter("update_variances", "bool", "Update variances on each iteration")
-  .add_parameter("update_weights", "bool", "Update weights on each iteration")
-  .add_parameter("mean_var_update_responsibilities_threshold", "float", "Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of Bishop, `Pattern recognition and machine learning`, 2006 require a division by the responsibilities, which might be equal to zero because of numerical issue. This threshold is used to avoid such divisions.")
+  .add_parameter("update_means", "bool", "[Default: ``True``] Update means on each iteration")
+  .add_parameter("update_variances", "bool", "[Default: ``True``] Update variances on each iteration")
+  .add_parameter("update_weights", "bool", "[Default: ``True``] Update weights on each iteration")
+  .add_parameter("mean_var_update_responsibilities_threshold", "float", "[Default: min_float] Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of Bishop, `Pattern recognition and machine learning`, 2006 require a division by the responsibilities, which might be equal to zero because of numerical issue. This threshold is used to avoid such divisions.")
 
   .add_parameter("other", ":py:class:`bob.learn.em.MAP_GMMTrainer`", "A MAP_GMMTrainer object to be copied.")
 );
@@ -62,7 +62,7 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
 
   char** kwlist1 = MAP_GMMTrainer_doc.kwlist(0);
   char** kwlist2 = MAP_GMMTrainer_doc.kwlist(1);
-  
+
   PyBobLearnEMGMMMachineObject* gmm_machine;
   bool reynolds_adaptation   = false;
   double alpha = 0.5;
@@ -78,27 +78,31 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
   PyObject* keyword_alpha            = Py_BuildValue("s", kwlist2[1]);
 
   auto keyword_relevance_factor_ = make_safe(keyword_relevance_factor);
-  auto keyword_alpha_            = make_safe(keyword_alpha);  
-  
-  //Here we have to select which keyword argument to read  
-  if (kwargs && PyDict_Contains(kwargs, keyword_relevance_factor) && (PyArg_ParseTupleAndKeywords(args, kwargs, "O!dO!|O!O!d", kwlist1, 
-                                                                      &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                      &aux,
-                                                                      &PyBool_Type, &update_means, 
-                                                                      &PyBool_Type, &update_variances, 
-                                                                      &PyBool_Type, &update_weights, 
-                                                                      &mean_var_update_responsibilities_threshold)))
-    reynolds_adaptation = true;    
-  else if (kwargs && PyDict_Contains(kwargs, keyword_alpha) && (PyArg_ParseTupleAndKeywords(args, kwargs, "O!dO!|O!O!d", kwlist2, 
-                                                                 &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                 &aux,
-                                                                 &PyBool_Type, &update_means, 
-                                                                 &PyBool_Type, &update_variances, 
-                                                                 &PyBool_Type, &update_weights, 
-                                                                 &mean_var_update_responsibilities_threshold)))
+  auto keyword_alpha_            = make_safe(keyword_alpha);
+
+  //Here we have to select which keyword argument to read
+  if (kwargs && PyDict_Contains(kwargs, keyword_relevance_factor)){
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!d|O!O!O!d", kwlist1,
+          &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+          &aux,
+          &PyBool_Type, &update_means,
+          &PyBool_Type, &update_variances,
+          &PyBool_Type, &update_weights,
+          &mean_var_update_responsibilities_threshold))
+      return -1;
+    reynolds_adaptation = true;
+  } else if (kwargs && PyDict_Contains(kwargs, keyword_alpha)){
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!d|O!O!O!d", kwlist2,
+          &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+          &aux,
+          &PyBool_Type, &update_means,
+          &PyBool_Type, &update_variances,
+          &PyBool_Type, &update_weights,
+          &mean_var_update_responsibilities_threshold))
+      return -1;
     reynolds_adaptation = false;
-  else{
-    PyErr_Format(PyExc_RuntimeError, "%s. The second argument must be a keyword argument.", Py_TYPE(self)->tp_name);
+  } else {
+    PyErr_Format(PyExc_RuntimeError, "%s. One of the two keyword arguments '%s' or '%s' must be present.", Py_TYPE(self)->tp_name, kwlist1[1], kwlist2[1]);
     MAP_GMMTrainer_doc.print_usage();
     return -1;
   }
@@ -107,11 +111,11 @@ static int PyBobLearnEMMAPGMMTrainer_init_base_trainer(PyBobLearnEMMAPGMMTrainer
     relevance_factor = aux;
   else
     alpha = aux;
-  
-  
-  self->cxx.reset(new bob::learn::em::MAP_GMMTrainer(f(update_means), f(update_variances), f(update_weights), 
-                                                       mean_var_update_responsibilities_threshold, 
-                                                       reynolds_adaptation,relevance_factor, alpha, gmm_machine->cxx));
+
+
+  self->cxx.reset(new bob::learn::em::MAP_GMMTrainer(f(update_means), f(update_variances), f(update_weights),
+                                                       mean_var_update_responsibilities_threshold,
+                                                       reynolds_adaptation, relevance_factor, alpha, gmm_machine->cxx));
   return 0;
 
 }
@@ -202,12 +206,12 @@ PyObject* PyBobLearnEMMAPGMMTrainer_getRelevanceFactor(PyBobLearnEMMAPGMMTrainer
 }
 int PyBobLearnEMMAPGMMTrainer_setRelevanceFactor(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* value, void*){
   BOB_TRY
-  
+
   if(!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, relevance_factor.name());
     return -1;
   }
-  
+
   self->cxx->setRelevanceFactor(PyFloat_AS_DOUBLE(value));
   return 0;
   BOB_CATCH_MEMBER("relevance_factor could not be set", 0)
@@ -228,12 +232,12 @@ PyObject* PyBobLearnEMMAPGMMTrainer_getAlpha(PyBobLearnEMMAPGMMTrainerObject* se
 }
 int PyBobLearnEMMAPGMMTrainer_setAlpha(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* value, void*){
   BOB_TRY
-  
+
   if(!PyBob_NumberCheck(value)){
     PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, alpha.name());
     return -1;
   }
-  
+
   self->cxx->setAlpha(PyFloat_AS_DOUBLE(value));
   return 0;
   BOB_CATCH_MEMBER("alpha could not be set", 0)
@@ -241,7 +245,7 @@ int PyBobLearnEMMAPGMMTrainer_setAlpha(PyBobLearnEMMAPGMMTrainerObject* self, Py
 
 
 
-static PyGetSetDef PyBobLearnEMMAPGMMTrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMMAPGMMTrainer_getseters[] = {
   {
     alpha.name(),
     (getter)PyBobLearnEMMAPGMMTrainer_getAlpha,
@@ -282,14 +286,14 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
   char** kwlist = initialize.kwlist(0);
 
   PyBobLearnEMGMMMachineObject* gmm_machine = 0;
-  PyBlitzArrayObject* data                  = 0;  
+  PyBlitzArrayObject* data                  = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
                                                                   &PyBlitzArray_Converter, &data)) return 0;
   if(data != NULL)
     auto data_ = make_safe(data);
   self->cxx->initialize(*gmm_machine->cxx);
-  
+
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 
   Py_RETURN_NONE;
@@ -324,16 +328,16 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_eStep(PyBobLearnEMMAPGMMTrainerObject
   auto data_ = make_safe(data);
 
 
-  // perform check on the input  
+  // perform check on the input
   if (data->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, eStep.name());
     return 0;
-  }  
+  }
 
   if (data->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, eStep.name());
     return 0;
-  }  
+  }
 
   if (data->shape[1] != (Py_ssize_t)gmm_machine->cxx->getNInputs() ) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, gmm_machine->cxx->getNInputs(), data->shape[1], eStep.name());
@@ -353,8 +357,8 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_eStep(PyBobLearnEMMAPGMMTrainerObject
 static auto mStep = bob::extension::FunctionDoc(
   "mStep",
 
-   "Performs a maximum a posteriori (MAP) update of the GMM:"  
-   "* parameters using the accumulated statistics in :py:class:`bob.learn.em.GMMBaseTrainer.m_ss` and the" 
+   "Performs a maximum a posteriori (MAP) update of the GMM:"
+   "* parameters using the accumulated statistics in :py:class:`bob.learn.em.GMMBaseTrainer.m_ss` and the"
    "* parameters of the prior model",
   "",
   true
@@ -369,7 +373,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_mStep(PyBobLearnEMMAPGMMTrainerObject
   char** kwlist = mStep.kwlist(0);
 
   PyBobLearnEMGMMMachineObject* gmm_machine;
-  PyBlitzArrayObject* data                  = 0;  
+  PyBlitzArrayObject* data                  = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O&", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
                                                                   &PyBlitzArray_Converter, &data)) return 0;
@@ -473,6 +477,5 @@ bool init_BobLearnEMMAPGMMTrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMMAPGMMTrainer_Type);
-  return PyModule_AddObject(module, "_MAP_GMMTrainer", (PyObject*)&PyBobLearnEMMAPGMMTrainer_Type) >= 0;
+  return PyModule_AddObject(module, "MAP_GMMTrainer", (PyObject*)&PyBobLearnEMMAPGMMTrainer_Type) >= 0;
 }
-
