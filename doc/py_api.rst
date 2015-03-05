@@ -12,9 +12,11 @@ This section includes information for using the pure Python API of
 Classes
 -------
 
+
+Trainers
+........
+
 .. autosummary::
-  Trainers
-  --------
   
   bob.learn.em.KMeansTrainer
   bob.learn.em.ML_GMMTrainer
@@ -23,9 +25,12 @@ Classes
   bob.learn.em.JFATrainer  
   bob.learn.em.IVectorTrainer
   bob.learn.em.PLDATrainer
+  bob.learn.em.EMPCATrainer
   
-  Machines
-  --------
+Machines
+........
+
+.. autosummary::  
   
   bob.learn.em.KMeansMachine
   bob.learn.em.Gaussian

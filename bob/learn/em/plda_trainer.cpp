@@ -287,7 +287,7 @@ static auto init_g_method = bob::extension::VariableDoc(
   "init_g_method",
   "str",
   "The method used for the initialization of :math:`$G$`.",
-  "Possible values are: ('RANDOM_G', 'BETWEEN_SCATTER')"
+  "Possible values are: ('RANDOM_G', 'WITHIN_SCATTER')"
 );
 PyObject* PyBobLearnEMPLDATrainer_getGMethod(PyBobLearnEMPLDATrainerObject* self, void*) {
   BOB_TRY

@@ -7,27 +7,32 @@
 import numpy
 import bob.learn.em
 
-def train(trainer, machine, data, max_iterations = 50, convergence_threshold=None, initialize=True):
+def train(trainer, machine, data, max_iterations = 50, convergence_threshold=None, initialize=True, rng=None):
   """
   Trains a machine given a trainer and the proper data
 
   **Parameters**:
-    trainer
+    trainer : one of :py:class:`KMeansTrainer`, :py:class:`MAP_GMMTrainer`, :py:class:`ML_GMMTrainer`, :py:class:`ISVTrainer`, :py:class:`IVectorTrainer`, :py:class:`PLDATrainer`, :py:class:`EMPCATrainer`
       A trainer mechanism
-    machine
+    machine : one of :py:class:`KMeansMachine`, :py:class:`GMMMachine`, :py:class:`ISVBase`, :py:class:`IVectorMachine`, :py:class:`PLDAMachine`, :py:class:`bob.learn.linear.Machine`
       A container machine
-    data 
+    data : array_like <float, 2D>
       The data to be trained
-    max_iterations
+    max_iterations : int
       The maximum number of iterations to train a machine
-    convergence_threshold
+    convergence_threshold : float
       The convergence threshold to train a machine. If None, the training procedure will stop with the iterations criteria
-    initialize
+    initialize : bool
       If True, runs the initialization procedure
+    rng :  :py:class:`bob.core.random.mt19937`
+      The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop
   """
   #Initialization
   if initialize:
-    trainer.initialize(machine, data)
+    if rng is not None:
+      trainer.initialize(machine, data, rng)
+    else:
+      trainer.initialize(machine, data)
 
   trainer.eStep(machine, data)  
   average_output          = 0

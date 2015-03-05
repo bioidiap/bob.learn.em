@@ -14,7 +14,7 @@
 /******************************************************************/
 
 static auto EMPCATrainer_doc = bob::extension::ClassDoc(
-  BOB_EXT_MODULE_PREFIX "._EMPCATrainer",
+  BOB_EXT_MODULE_PREFIX ".EMPCATrainer",
   ""
 
 ).add_constructor(
@@ -338,6 +338,6 @@ bool init_BobLearnEMEMPCATrainer(PyObject* module)
 
   // add the type to the module
   Py_INCREF(&PyBobLearnEMEMPCATrainer_Type);
-  return PyModule_AddObject(module, "_EMPCATrainer", (PyObject*)&PyBobLearnEMEMPCATrainer_Type) >= 0;
+  return PyModule_AddObject(module, "EMPCATrainer", (PyObject*)&PyBobLearnEMEMPCATrainer_Type) >= 0;
 }
 
