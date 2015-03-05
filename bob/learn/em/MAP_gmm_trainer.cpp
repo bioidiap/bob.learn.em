@@ -130,8 +130,18 @@ static int PyBobLearnEMMAPGMMTrainer_init(PyBobLearnEMMAPGMMTrainerObject* self,
     return -1;
   }
 
+  //Reading the input argument
+  PyObject* arg = 0;
+  if (PyTuple_Size(args))
+    arg = PyTuple_GET_ITEM(args, 0);
+  else {
+    PyObject* tmp = PyDict_Values(kwargs);
+    auto tmp_ = make_safe(tmp);
+    arg = PyList_GET_ITEM(tmp, 0);
+  }
+
   // If the constructor input is GMMBaseTrainer object
-  if(PyBobLearnEMMAPGMMTrainer_Check(args))
+  if(PyBobLearnEMMAPGMMTrainer_Check(arg))
     return PyBobLearnEMMAPGMMTrainer_init_copy(self, args, kwargs);
   else{
     return PyBobLearnEMMAPGMMTrainer_init_base_trainer(self, args, kwargs);
