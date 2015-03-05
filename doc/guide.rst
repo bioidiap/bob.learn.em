@@ -508,10 +508,8 @@ set.
 
    >>> relevance_factor = 4.
    >>> trainer = bob.learn.em.MAP_GMMTrainer(gmm, relevance_factor=relevance_factor, update_means=True, update_variances=False, update_weights=False) # mean adaptation only
-   >>> trainer.convergence_threshold = 1e-5
-   >>> trainer.max_iterations = 200
    >>> gmmAdapted = bob.learn.em.GMMMachine(2,3) # Create a new machine for the MAP estimate
-   >>> bob.learn.em.train(trainer, gmmAdapted, dataMAP)
+   >>> bob.learn.em.train(trainer, gmmAdapted, dataMAP, max_iterations = 200, convergence_threshold = 1e-5)
    >>> print(gmmAdapted) # doctest: +SKIP
 
 
