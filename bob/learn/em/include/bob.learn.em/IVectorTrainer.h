@@ -121,6 +121,10 @@ class IVectorTrainer
     { bob::core::array::assertSameShape(acc, m_acc_Snormij);
       m_acc_Snormij = acc; }
 
+    void setRng(boost::shared_ptr<boost::mt19937> rng){
+      m_rng = rng;
+    };
+
   protected:
     // Attributes
     bool m_update_sigma;
@@ -140,11 +144,11 @@ class IVectorTrainer
     mutable blitz::Array<double,2> m_tmp_dt1;
     mutable blitz::Array<double,2> m_tmp_tt1;
     mutable blitz::Array<double,2> m_tmp_tt2;
-    
+
     /**
      * @brief The random number generator for the inialization
      */
-    boost::shared_ptr<boost::mt19937> m_rng;    
+    boost::shared_ptr<boost::mt19937> m_rng;
 };
 
 } } } // namespaces
