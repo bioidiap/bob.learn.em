@@ -144,7 +144,39 @@ static PyObject* PyBobLearnEMMLGMMTrainer_RichCompare(PyBobLearnEMMLGMMTrainerOb
 /************ Variables Section ***********************************/
 /******************************************************************/
 
+static auto gmm_statistics = bob::extension::VariableDoc(
+  "gmm_statistics",
+  ":py:class:`GMMStats`",
+  "The GMM statistics that were used internally in the E- and M-steps",
+  "Setting and getting the internal GMM statistics might be useful to parallelize the GMM training."
+);
+PyObject* PyBobLearnEMMLGMMTrainer_get_gmm_statistics(PyBobLearnEMMLGMMTrainerObject* self, void*){
+  BOB_TRY
+  PyBobLearnEMGMMStatsObject* stats = (PyBobLearnEMGMMStatsObject*)PyBobLearnEMGMMStats_Type.tp_alloc(&PyBobLearnEMGMMStats_Type, 0);
+  stats->cxx = self->cxx->base_trainer().getGMMStats();
+  return Py_BuildValue("N", stats);
+  BOB_CATCH_MEMBER("gmm_statistics could not be read", 0)
+}
+int PyBobLearnEMMLGMMTrainer_set_gmm_statistics(PyBobLearnEMMLGMMTrainerObject* self, PyObject* value, void*){
+  BOB_TRY
+  if (!PyBobLearnEMGMMStats_Check(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a GMMStats object", Py_TYPE(self)->tp_name, gmm_statistics.name());
+    return -1;
+  }
+  self->cxx->base_trainer().setGMMStats(reinterpret_cast<PyBobLearnEMGMMStatsObject*>(value)->cxx);
+  return 0;
+  BOB_CATCH_MEMBER("gmm_statistics could not be set", -1)
+}
+
+
 static PyGetSetDef PyBobLearnEMMLGMMTrainer_getseters[] = {
+  {
+   gmm_statistics.name(),
+   (getter)PyBobLearnEMMLGMMTrainer_get_gmm_statistics,
+   (setter)PyBobLearnEMMLGMMTrainer_set_gmm_statistics,
+   gmm_statistics.doc(),
+   0
+  },
   {0}  // Sentinel
 };
 
@@ -190,7 +222,7 @@ static auto e_step = bob::extension::FunctionDoc(
 
   "Calculates the average log likelihood of the observations given the GMM,"
   "and returns this in average_log_likelihood."
-  "The statistics, m_ss, will be used in the :py:func:`m_step` that follows.",
+  "The statistics, :py:attr:`gmm_statistics`, will be used in the :py:func:`m_step` that follows.",
 
   true
 )
@@ -237,7 +269,7 @@ static PyObject* PyBobLearnEMMLGMMTrainer_e_step(PyBobLearnEMMLGMMTrainerObject*
 static auto m_step = bob::extension::FunctionDoc(
   "m_step",
   "Performs a maximum likelihood (ML) update of the GMM parameters "
-  "using the accumulated statistics in :py:attr:`bob.learn.em.GMMBaseTrainer.m_ss`",
+  "using the accumulated statistics in :py:attr:`gmm_statistics`",
 
   "See Section 9.2.2 of Bishop, \"Pattern recognition and machine learning\", 2006",
 

@@ -28,11 +28,11 @@ class MAP_GMMTrainer
      */
     MAP_GMMTrainer(
       const bool update_means=true,
-      const bool update_variances=false, 
+      const bool update_variances=false,
       const bool update_weights=false,
       const double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon(),
-      const bool reynolds_adaptation=false, 
-      const double relevance_factor=4, 
+      const bool reynolds_adaptation=false,
+      const double relevance_factor=4,
       const double alpha=0.5,
       boost::shared_ptr<bob::learn::em::GMMMachine> prior_gmm = boost::shared_ptr<bob::learn::em::GMMMachine>());
 
@@ -108,14 +108,14 @@ class MAP_GMMTrainer
      */
     double computeLikelihood(bob::learn::em::GMMMachine& gmm){
       return m_gmm_base_trainer.computeLikelihood(gmm);
-    }    
-    
+    }
+
     bool getReynoldsAdaptation()
     {return m_reynolds_adaptation;}
 
     void setReynoldsAdaptation(const bool reynolds_adaptation)
     {m_reynolds_adaptation = reynolds_adaptation;}
-    
+
 
     double getRelevanceFactor()
     {return m_relevance_factor;}
@@ -130,6 +130,8 @@ class MAP_GMMTrainer
     void setAlpha(const double alpha)
     {m_alpha = alpha;}
 
+    bob::learn::em::GMMBaseTrainer& base_trainer(){return m_gmm_base_trainer;}
+
 
   protected:
 
@@ -140,7 +142,7 @@ class MAP_GMMTrainer
 
     /**
     Base Trainer for the MAP algorithm. Basically implements the e-step
-    */ 
+    */
     bob::learn::em::GMMBaseTrainer m_gmm_base_trainer;
 
     /**

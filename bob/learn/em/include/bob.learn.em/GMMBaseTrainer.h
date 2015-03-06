@@ -30,7 +30,7 @@ class GMMBaseTrainer
      * @brief Default constructor
      */
     GMMBaseTrainer(const bool update_means=true,
-                   const bool update_variances=false, 
+                   const bool update_variances=false,
                    const bool update_weights=false,
                    const double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon());
 
@@ -93,21 +93,21 @@ class GMMBaseTrainer
      * @brief Returns the internal GMM statistics. Useful to parallelize the
      * E-step
      */
-    const bob::learn::em::GMMStats getGMMStats() const
+    const boost::shared_ptr<bob::learn::em::GMMStats> getGMMStats() const
     { return m_ss; }
 
     /**
      * @brief Sets the internal GMM statistics. Useful to parallelize the
      * E-step
      */
-    void setGMMStats(const bob::learn::em::GMMStats& stats);
-    
+    void setGMMStats(boost::shared_ptr<bob::learn::em::GMMStats> stats);
+
     /**
      * update means on each iteration
-     */    
+     */
     bool getUpdateMeans()
     {return m_update_means;}
-    
+
     /**
      * update variances on each iteration
      */
@@ -117,19 +117,19 @@ class GMMBaseTrainer
 
     bool getUpdateWeights()
     {return m_update_weights;}
-    
-    
+
+
     double getMeanVarUpdateResponsibilitiesThreshold()
     {return m_mean_var_update_responsibilities_threshold;}
-    
+
 
   private:
-  
+
     /**
      * These are the sufficient statistics, calculated during the
      * E-step and used during the M-step
      */
-    bob::learn::em::GMMStats m_ss;
+    boost::shared_ptr<bob::learn::em::GMMStats> m_ss;
 
 
     /**

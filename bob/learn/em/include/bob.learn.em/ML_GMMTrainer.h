@@ -28,7 +28,7 @@ class ML_GMMTrainer{
      * @brief Default constructor
      */
     ML_GMMTrainer(const bool update_means=true,
-                  const bool update_variances=false, 
+                  const bool update_variances=false,
                   const bool update_weights=false,
                   const double mean_var_update_responsibilities_threshold = std::numeric_limits<double>::epsilon());
 
@@ -97,13 +97,15 @@ class ML_GMMTrainer{
      */
     bool is_similar_to(const ML_GMMTrainer& b, const double r_epsilon=1e-5,
       const double a_epsilon=1e-8) const;
-      
-    
+
+
+    bob::learn::em::GMMBaseTrainer& base_trainer(){return m_gmm_base_trainer;}
+
   protected:
 
     /**
     Base Trainer for the MAP algorithm. Basically implements the e-step
-    */ 
+    */
     bob::learn::em::GMMBaseTrainer m_gmm_base_trainer;
 
 
