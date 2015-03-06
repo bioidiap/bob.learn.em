@@ -35,7 +35,7 @@ static auto PLDAMachine_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("hdf5,plda_base","")
 
-  .add_parameter("plda_base", ":py:class:`bob.learn.em.PLDABase`", "")  
+  .add_parameter("plda_base", ":py:class:`bob.learn.em.PLDABase`", "")
   .add_parameter("other", ":py:class:`bob.learn.em.PLDAMachine`", "A PLDAMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -76,15 +76,15 @@ static int PyBobLearnEMPLDAMachine_init_hdf5(PyBobLearnEMPLDAMachineObject* self
 
 static int PyBobLearnEMPLDAMachine_init_pldabase(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = PLDAMachine_doc.kwlist(0);  
+  char** kwlist = PLDAMachine_doc.kwlist(0);
   PyBobLearnEMPLDABaseObject* plda_base;
-  
-  //Here we have to select which keyword argument to read  
+
+  //Here we have to select which keyword argument to read
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMPLDABase_Type, &plda_base)){
     PLDAMachine_doc.print_usage();
     return -1;
   }
-  
+
   self->cxx.reset(new bob::learn::em::PLDAMachine(plda_base->cxx));
   return 0;
 }
@@ -94,7 +94,7 @@ static int PyBobLearnEMPLDAMachine_init(PyBobLearnEMPLDAMachineObject* self, PyO
 
   // get the number of command line arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
- 
+
   if(nargs==1){
     //Reading the input argument
     PyObject* arg = 0;
@@ -265,7 +265,7 @@ int PyBobLearnEMPLDAMachine_setPLDABase(PyBobLearnEMPLDAMachineObject* self, PyO
   self->cxx->setPLDABase(plda_base_o->cxx);
 
   return 0;
-  BOB_CATCH_MEMBER("plda_base could not be set", -1)  
+  BOB_CATCH_MEMBER("plda_base could not be set", -1)
 }
 
 
@@ -323,21 +323,21 @@ int PyBobLearnEMPLDAMachine_setLogLikelihood(PyBobLearnEMPLDAMachineObject* self
 }
 
 
-static PyGetSetDef PyBobLearnEMPLDAMachine_getseters[] = { 
+static PyGetSetDef PyBobLearnEMPLDAMachine_getseters[] = {
   {
    shape.name(),
    (getter)PyBobLearnEMPLDAMachine_getShape,
    0,
    shape.doc(),
    0
-  },  
+  },
   {
    n_samples.name(),
    (getter)PyBobLearnEMPLDAMachine_getNSamples,
    (setter)PyBobLearnEMPLDAMachine_setNSamples,
    n_samples.doc(),
    0
-  },  
+  },
   {
    w_sum_xit_beta_xi.name(),
    (getter)PyBobLearnEMPLDAMachine_getWSumXitBetaXi,
@@ -386,9 +386,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMPLDAMachine_Save(PyBobLearnEMPLDAMachineObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -408,12 +408,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMPLDAMachine_Load(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -424,7 +424,7 @@ static PyObject* PyBobLearnEMPLDAMachine_Load(PyBobLearnEMPLDAMachineObject* sel
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this PLDAMachine with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -449,8 +449,8 @@ static PyObject* PyBobLearnEMPLDAMachine_IsSimilarTo(PyBobLearnEMPLDAMachineObje
         &PyBobLearnEMPLDAMachine_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -473,7 +473,7 @@ static auto get_gamma = bob::extension::FunctionDoc(
 .add_return("output","array_like <float, 2D>","Get the :math:`\\gamma` matrix");
 static PyObject* PyBobLearnEMPLDAMachine_getGamma(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
@@ -497,7 +497,7 @@ static auto has_gamma = bob::extension::FunctionDoc(
 .add_return("output","bool","");
 static PyObject* PyBobLearnEMPLDAMachine_hasGamma(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = has_gamma.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
@@ -506,7 +506,7 @@ static PyObject* PyBobLearnEMPLDAMachine_hasGamma(PyBobLearnEMPLDAMachineObject*
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
- BOB_CATCH_MEMBER("`has_gamma` could not be read", 0)    
+ BOB_CATCH_MEMBER("`has_gamma` could not be read", 0)
 }
 
 
@@ -524,7 +524,7 @@ static auto get_add_gamma = bob::extension::FunctionDoc(
 .add_return("output","array_like <float, 2D>","");
 static PyObject* PyBobLearnEMPLDAMachine_getAddGamma(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_add_gamma.kwlist(0);
 
   int i = 0;
@@ -548,7 +548,7 @@ static auto has_log_like_const_term = bob::extension::FunctionDoc(
 .add_return("output","bool","");
 static PyObject* PyBobLearnEMPLDAMachine_hasLogLikeConstTerm(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = has_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
@@ -557,7 +557,7 @@ static PyObject* PyBobLearnEMPLDAMachine_hasLogLikeConstTerm(PyBobLearnEMPLDAMac
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
- BOB_CATCH_MEMBER("`has_log_like_const_term` could not be read", 0)    
+ BOB_CATCH_MEMBER("`has_log_like_const_term` could not be read", 0)
 }
 
 
@@ -575,14 +575,14 @@ static auto get_add_log_like_const_term = bob::extension::FunctionDoc(
 .add_return("output","double","");
 static PyObject* PyBobLearnEMPLDAMachine_getAddLogLikeConstTerm(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_add_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getAddLogLikeConstTerm(i));
 
-  BOB_CATCH_MEMBER("`get_add_log_like_const_term` could not be read", 0)    
+  BOB_CATCH_MEMBER("`get_add_log_like_const_term` could not be read", 0)
 }
 
 
@@ -599,14 +599,14 @@ static auto get_log_like_const_term = bob::extension::FunctionDoc(
 .add_return("output","double","");
 static PyObject* PyBobLearnEMPLDAMachine_getLogLikeConstTerm(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getLogLikeConstTerm(i));
 
-  BOB_CATCH_MEMBER("`get_log_like_const_term` could not be read", 0)    
+  BOB_CATCH_MEMBER("`get_log_like_const_term` could not be read", 0)
 }
 
 /***** clear_maps *****/
@@ -619,11 +619,11 @@ static auto clear_maps = bob::extension::FunctionDoc(
 .add_prototype("","");
 static PyObject* PyBobLearnEMPLDAMachine_clearMaps(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   self->cxx->clearMaps();
   Py_RETURN_NONE;
 
-  BOB_CATCH_MEMBER("`clear_maps` could not be read", 0)    
+  BOB_CATCH_MEMBER("`clear_maps` could not be read", 0)
 }
 
 
@@ -640,30 +640,30 @@ static auto compute_log_likelihood = bob::extension::FunctionDoc(
 .add_return("output","float","The log-likelihood");
 static PyObject* PyBobLearnEMPLDAMachine_computeLogLikelihood(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = compute_log_likelihood.kwlist(0);
-  
+
   PyBlitzArrayObject* samples;
   PyObject* with_enrolled_samples = Py_True;
-   
+
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&|O!", kwlist, &PyBlitzArray_Converter, &samples,
                                                                   &PyBool_Type, &with_enrolled_samples)) return 0;
   auto samples_ = make_safe(samples);
-  
+
   /*Using the proper method according to the dimension*/
   if (samples->ndim==1)
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(samples), f(with_enrolled_samples)));
   else
     return Py_BuildValue("d",self->cxx->computeLogLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(samples), f(with_enrolled_samples)));
-    
 
-  BOB_CATCH_MEMBER("`compute_log_likelihood` could not be read", 0)    
+
+  BOB_CATCH_MEMBER("`compute_log_likelihood` could not be read", 0)
 }
 
 
-/***** forward *****/
-static auto forward = bob::extension::FunctionDoc(
-  "forward",
+/***** log_likelihood_ratio *****/
+static auto log_likelihood_ratio = bob::extension::FunctionDoc(
+  "log_likelihood_ratio",
   "Computes a log likelihood ratio from a 1D or 2D blitz::Array",
   0,
   true
@@ -671,10 +671,10 @@ static auto forward = bob::extension::FunctionDoc(
 .add_prototype("samples","output")
 .add_parameter("samples", "array_like <float, 1D>,array_like <float, 2D>", "Sample")
 .add_return("output","float","The log-likelihood ratio");
-static PyObject* PyBobLearnEMPLDAMachine_forward(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMPLDAMachine_log_likelihood_ratio(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = forward.kwlist(0);
+
+  char** kwlist = log_likelihood_ratio.kwlist(0);
 
   PyBlitzArrayObject* samples;
 
@@ -688,7 +688,7 @@ static PyObject* PyBobLearnEMPLDAMachine_forward(PyBobLearnEMPLDAMachineObject* 
   else
     return Py_BuildValue("d",self->cxx->forward(*PyBlitzArrayCxx_AsBlitz<double,2>(samples)));
 
-  BOB_CATCH_MEMBER("`forward` could not be read", 0)    
+  BOB_CATCH_MEMBER("log_likelihood_ratio could not be executed", 0)
 }
 
 
@@ -734,7 +734,7 @@ static PyMethodDef PyBobLearnEMPLDAMachine_methods[] = {
     (PyCFunction)PyBobLearnEMPLDAMachine_hasLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     has_log_like_const_term.doc()
-  },  
+  },
   {
     get_add_log_like_const_term.name(),
     (PyCFunction)PyBobLearnEMPLDAMachine_getAddLogLikeConstTerm,
@@ -746,7 +746,7 @@ static PyMethodDef PyBobLearnEMPLDAMachine_methods[] = {
     (PyCFunction)PyBobLearnEMPLDAMachine_getLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     get_log_like_const_term.doc()
-  },  
+  },
   {
     clear_maps.name(),
     (PyCFunction)PyBobLearnEMPLDAMachine_clearMaps,
@@ -758,6 +758,12 @@ static PyMethodDef PyBobLearnEMPLDAMachine_methods[] = {
     (PyCFunction)PyBobLearnEMPLDAMachine_computeLogLikelihood,
     METH_VARARGS|METH_KEYWORDS,
     compute_log_likelihood.doc()
+  },
+  {
+    log_likelihood_ratio.name(),
+    (PyCFunction)PyBobLearnEMPLDAMachine_log_likelihood_ratio,
+    METH_VARARGS|METH_KEYWORDS,
+    log_likelihood_ratio.doc()
   },
   {0} /* Sentinel */
 };
@@ -788,7 +794,7 @@ bool init_BobLearnEMPLDAMachine(PyObject* module)
   PyBobLearnEMPLDAMachine_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnEMPLDAMachine_RichCompare);
   PyBobLearnEMPLDAMachine_Type.tp_methods     = PyBobLearnEMPLDAMachine_methods;
   PyBobLearnEMPLDAMachine_Type.tp_getset      = PyBobLearnEMPLDAMachine_getseters;
-  PyBobLearnEMPLDAMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnEMPLDAMachine_forward);
+  PyBobLearnEMPLDAMachine_Type.tp_call = reinterpret_cast<ternaryfunc>(PyBobLearnEMPLDAMachine_log_likelihood_ratio);
 
 
   // check that everything is fine
@@ -798,4 +804,3 @@ bool init_BobLearnEMPLDAMachine(PyObject* module)
   Py_INCREF(&PyBobLearnEMPLDAMachine_Type);
   return PyModule_AddObject(module, "PLDAMachine", (PyObject*)&PyBobLearnEMPLDAMachine_Type) >= 0;
 }
-

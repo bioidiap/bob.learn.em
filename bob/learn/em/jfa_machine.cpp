@@ -69,15 +69,15 @@ static int PyBobLearnEMJFAMachine_init_hdf5(PyBobLearnEMJFAMachineObject* self, 
 static int PyBobLearnEMJFAMachine_init_jfabase(PyBobLearnEMJFAMachineObject* self, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = JFAMachine_doc.kwlist(0);
-  
+
   PyBobLearnEMJFABaseObject* jfa_base;
 
-  //Here we have to select which keyword argument to read  
+  //Here we have to select which keyword argument to read
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMJFABase_Type, &jfa_base)){
     JFAMachine_doc.print_usage();
     return -1;
   }
-  
+
   self->cxx.reset(new bob::learn::em::JFAMachine(jfa_base->cxx));
   return 0;
 }
@@ -115,7 +115,7 @@ static int PyBobLearnEMJFAMachine_init(PyBobLearnEMJFAMachineObject* self, PyObj
     JFAMachine_doc.print_usage();
     return -1;
   }
-  
+
   BOB_CATCH_MEMBER("cannot create JFAMachine", 0)
   return 0;
 }
@@ -174,7 +174,7 @@ static auto supervector_length = bob::extension::VariableDoc(
 
   "Returns the supervector length."
   "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality",
-  
+
   "@warning An exception is thrown if no Universal Background Model has been set yet."
 );
 PyObject* PyBobLearnEMJFAMachine_getSupervectorLength(PyBobLearnEMJFAMachineObject* self, void*) {
@@ -204,12 +204,12 @@ int PyBobLearnEMJFAMachine_setY(PyBobLearnEMJFAMachineObject* self, PyObject* va
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, Y.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, Y.name());
@@ -220,8 +220,8 @@ int PyBobLearnEMJFAMachine_setY(PyBobLearnEMJFAMachineObject* self, PyObject* va
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getY().extent(0), (Py_ssize_t)input->shape[0], Y.name());
     return -1;
   }
-  
-  
+
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "y");
   if (!b) return -1;
   self->cxx->setY(*b);
@@ -250,23 +250,23 @@ int PyBobLearnEMJFAMachine_setZ(PyBobLearnEMJFAMachineObject* self, PyObject* va
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, Z.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, Z.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getZ().extent(0)) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getZ().extent(0), (Py_ssize_t)input->shape[0], Z.name());
     return -1;
   }
-  
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "z");
   if (!b) return -1;
   self->cxx->setZ(*b);
@@ -323,13 +323,13 @@ int PyBobLearnEMJFAMachine_setJFABase(PyBobLearnEMJFAMachineObject* self, PyObje
   self->cxx->setJFABase(jfa_base_o->cxx);
 
   return 0;
-  BOB_CATCH_MEMBER("jfa_base could not be set", -1)  
+  BOB_CATCH_MEMBER("jfa_base could not be set", -1)
 }
 
 
 
 
-static PyGetSetDef PyBobLearnEMJFAMachine_getseters[] = { 
+static PyGetSetDef PyBobLearnEMJFAMachine_getseters[] = {
   {
    shape.name(),
    (getter)PyBobLearnEMJFAMachine_getShape,
@@ -337,7 +337,7 @@ static PyGetSetDef PyBobLearnEMJFAMachine_getseters[] = {
    shape.doc(),
    0
   },
-  
+
   {
    supervector_length.name(),
    (getter)PyBobLearnEMJFAMachine_getSupervectorLength,
@@ -345,7 +345,7 @@ static PyGetSetDef PyBobLearnEMJFAMachine_getseters[] = {
    supervector_length.doc(),
    0
   },
-  
+
   {
    jfa_base.name(),
    (getter)PyBobLearnEMJFAMachine_getJFABase,
@@ -398,9 +398,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMJFAMachine_Save(PyBobLearnEMJFAMachineObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -420,12 +420,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMJFAMachine_Load(PyBobLearnEMJFAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -436,7 +436,7 @@ static PyObject* PyBobLearnEMJFAMachine_Load(PyBobLearnEMJFAMachineObject* self,
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this JFAMachine with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -461,8 +461,8 @@ static PyObject* PyBobLearnEMJFAMachine_IsSimilarTo(PyBobLearnEMJFAMachineObject
         &PyBobLearnEMJFAMachine_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -476,7 +476,7 @@ static PyObject* PyBobLearnEMJFAMachine_IsSimilarTo(PyBobLearnEMJFAMachineObject
 static auto estimate_x = bob::extension::FunctionDoc(
   "estimate_x",
   "Estimates the session offset x (LPT assumption) given GMM statistics.",
-  "Estimates x from the GMM statistics considering the LPT assumption, that is the latent session variable x is approximated using the UBM", 
+  "Estimates x from the GMM statistics considering the LPT assumption, that is the latent session variable x is approximated using the UBM",
   true
 )
 .add_prototype("stats,input")
@@ -490,29 +490,29 @@ static PyObject* PyBobLearnEMJFAMachine_estimateX(PyBobLearnEMJFAMachineObject* 
   PyBobLearnEMGMMStatsObject* stats = 0;
   PyBlitzArrayObject* input           = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats,
                                                                  &PyBlitzArray_Converter,&input))
     return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, estimate_x.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, estimate_x.name());
     return 0;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), (Py_ssize_t)input->shape[0], estimate_x.name());
     return 0;
   }
-  
+
   self->cxx->estimateX(*stats->cxx, *PyBlitzArrayCxx_AsBlitz<double,1>(input));
 
   BOB_CATCH_MEMBER("cannot estimate X", 0)
@@ -524,7 +524,7 @@ static PyObject* PyBobLearnEMJFAMachine_estimateX(PyBobLearnEMJFAMachineObject* 
 static auto estimate_ux = bob::extension::FunctionDoc(
   "estimate_ux",
   "Estimates Ux (LPT assumption) given GMM statistics.",
-  "Estimates Ux from the GMM statistics considering the LPT assumption, that is the latent session variable x is approximated using the UBM.", 
+  "Estimates Ux from the GMM statistics considering the LPT assumption, that is the latent session variable x is approximated using the UBM.",
   true
 )
 .add_prototype("stats,input")
@@ -538,29 +538,29 @@ static PyObject* PyBobLearnEMJFAMachine_estimateUx(PyBobLearnEMJFAMachineObject*
   PyBobLearnEMGMMStatsObject* stats = 0;
   PyBlitzArrayObject* input           = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats,
                                                                  &PyBlitzArray_Converter,&input))
     return 0;
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, estimate_ux.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, estimate_ux.name());
     return 0;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs()) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs()*(Py_ssize_t)self->cxx->getNGaussians(), (Py_ssize_t)input->shape[0], estimate_ux.name());
     return 0;
   }
-  
+
   self->cxx->estimateUx(*stats->cxx, *PyBlitzArrayCxx_AsBlitz<double,1>(input));
 
   BOB_CATCH_MEMBER("cannot estimate Ux", 0)
@@ -572,7 +572,7 @@ static PyObject* PyBobLearnEMJFAMachine_estimateUx(PyBobLearnEMJFAMachineObject*
 static auto forward_ux = bob::extension::FunctionDoc(
   "forward_ux",
   "Computes a score for the given UBM statistics and given the Ux vector",
-  "", 
+  "",
   true
 )
 .add_prototype("stats,ux")
@@ -586,53 +586,53 @@ static PyObject* PyBobLearnEMJFAMachine_ForwardUx(PyBobLearnEMJFAMachineObject* 
   PyBobLearnEMGMMStatsObject* stats = 0;
   PyBlitzArrayObject* ux_input        = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats, 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMGMMStats_Type, &stats,
                                                                  &PyBlitzArray_Converter,&ux_input))
     return 0;
 
   //protects acquired resources through this scope
   auto ux_input_ = make_safe(ux_input);
 
-  // perform check on the input  
+  // perform check on the input
   if (ux_input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, forward_ux.name());
     return 0;
-  }  
+  }
 
   if (ux_input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, forward_ux.name());
     return 0;
-  }  
+  }
 
   if (ux_input->shape[0] != (Py_ssize_t)self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs()) {
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getNGaussians()*(Py_ssize_t)self->cxx->getNInputs(), (Py_ssize_t)ux_input->shape[0], forward_ux.name());
     return 0;
   }
-  
+
   double score = self->cxx->forward(*stats->cxx, *PyBlitzArrayCxx_AsBlitz<double,1>(ux_input));
-  
+
   return Py_BuildValue("d", score);
   BOB_CATCH_MEMBER("cannot forward_ux", 0)
 
 }
 
 
-/*** forward ***/
-static auto forward = bob::extension::FunctionDoc(
-  "forward",
-  "Execute the machine",
-  "", 
+/*** log_likelihood ***/
+static auto log_likelihood = bob::extension::FunctionDoc(
+  "log_likelihood",
+  "Computes the log-likelihood of the given samples",
+  ".. note:: the :py:meth:`__call__` function is an alias for this function.",
   true
 )
 .add_prototype("stats")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Statistics as input");
-static PyObject* PyBobLearnEMJFAMachine_Forward(PyBobLearnEMJFAMachineObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFAMachine_log_likelihood(PyBobLearnEMJFAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  char** kwlist = forward.kwlist(0);
+  char** kwlist = log_likelihood.kwlist(0);
 
   PyBobLearnEMGMMStatsObject* stats = 0;
-  
+
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
     return 0;
 
@@ -640,7 +640,7 @@ static PyObject* PyBobLearnEMJFAMachine_Forward(PyBobLearnEMJFAMachineObject* se
   double score = self->cxx->forward(*stats->cxx);
 
   return Py_BuildValue("d", score);
-  BOB_CATCH_MEMBER("cannot forward", 0)
+  BOB_CATCH_MEMBER("cannot log_likelihood", 0)
 
 }
 
@@ -664,14 +664,14 @@ static PyMethodDef PyBobLearnEMJFAMachine_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     is_similar_to.doc()
   },
-  
+
   {
     estimate_x.name(),
     (PyCFunction)PyBobLearnEMJFAMachine_estimateX,
     METH_VARARGS|METH_KEYWORDS,
     estimate_x.doc()
   },
-  
+
   {
     estimate_ux.name(),
     (PyCFunction)PyBobLearnEMJFAMachine_estimateUx,
@@ -685,13 +685,12 @@ static PyMethodDef PyBobLearnEMJFAMachine_methods[] = {
     METH_VARARGS|METH_KEYWORDS,
     forward_ux.doc()
   },
-/*
   {
-    forward.name(),
-    (PyCFunction)PyBobLearnEMJFAMachine_Forward,
+    log_likelihood.name(),
+    (PyCFunction)PyBobLearnEMJFAMachine_log_likelihood,
     METH_VARARGS|METH_KEYWORDS,
-    forward.doc()
-  },*/
+    log_likelihood.doc()
+  },
 
 
   {0} /* Sentinel */
@@ -723,7 +722,7 @@ bool init_BobLearnEMJFAMachine(PyObject* module)
   PyBobLearnEMJFAMachine_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnEMJFAMachine_RichCompare);
   PyBobLearnEMJFAMachine_Type.tp_methods     = PyBobLearnEMJFAMachine_methods;
   PyBobLearnEMJFAMachine_Type.tp_getset      = PyBobLearnEMJFAMachine_getseters;
-  PyBobLearnEMJFAMachine_Type.tp_call        = reinterpret_cast<ternaryfunc>(PyBobLearnEMJFAMachine_Forward);
+  PyBobLearnEMJFAMachine_Type.tp_call        = reinterpret_cast<ternaryfunc>(PyBobLearnEMJFAMachine_log_likelihood);
 
 
   // check that everything is fine
@@ -733,4 +732,3 @@ bool init_BobLearnEMJFAMachine(PyObject* module)
   Py_INCREF(&PyBobLearnEMJFAMachine_Type);
   return PyModule_AddObject(module, "JFAMachine", (PyObject*)&PyBobLearnEMJFAMachine_Type) >= 0;
 }
-

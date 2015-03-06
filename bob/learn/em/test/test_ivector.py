@@ -106,7 +106,7 @@ class IVectorMachinePy():
 
     return TtSigmaInvNT
 
-  def forward(self, gmmstats):
+  def project(self, gmmstats):
     if self.m_ubm and self.m_t is not None and self.m_sigma is not None:
       N = gmmstats.n
       F = gmmstats.sum_px
@@ -146,7 +146,7 @@ def test_machine():
   m.set_sigma(sigma)
 
   wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
-  wij = m.forward(gs)
+  wij = m.project(gs)
   assert numpy.allclose(wij_ref, wij, 1e-5)
 
   # IVector (C++)
@@ -155,5 +155,5 @@ def test_machine():
   mc.sigma = sigma
 
   wij_ref = numpy.array([-0.04213415, 0.21463343]) # Reference from original Chris implementation
-  wij = mc(gs)
+  wij = mc.project(gs)
   assert numpy.allclose(wij_ref, wij, 1e-5)

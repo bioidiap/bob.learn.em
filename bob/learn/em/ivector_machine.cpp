@@ -72,23 +72,23 @@ static int PyBobLearnEMIVectorMachine_init_hdf5(PyBobLearnEMIVectorMachineObject
 static int PyBobLearnEMIVectorMachine_init_ubm(PyBobLearnEMIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = IVectorMachine_doc.kwlist(0);
-  
+
   PyBobLearnEMGMMMachineObject* gmm_machine;
   int rt = 1;
   double variance_threshold = 1e-10;
 
-  //Here we have to select which keyword argument to read  
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!i|d", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine, 
+  //Here we have to select which keyword argument to read
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!i|d", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
                                                                   &rt, &variance_threshold)){
     IVectorMachine_doc.print_usage();
     return -1;
   }
-    
+
   if(rt < 1){
     PyErr_Format(PyExc_TypeError, "rt argument must be greater than or equal to one");
     return -1;
   }
-  
+
   if(variance_threshold <= 0){
     PyErr_Format(PyExc_TypeError, "variance_threshold argument must be greater than zero");
     return -1;
@@ -130,7 +130,7 @@ static int PyBobLearnEMIVectorMachine_init(PyBobLearnEMIVectorMachineObject* sel
     IVectorMachine_doc.print_usage();
     return -1;
   }
-  
+
   BOB_CATCH_MEMBER("cannot create IVectorMachine", 0)
   return 0;
 }
@@ -189,7 +189,7 @@ static auto supervector_length = bob::extension::VariableDoc(
 
   "Returns the supervector length."
   "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality",
-  
+
   "@warning An exception is thrown if no Universal Background Model has been set yet."
 );
 PyObject* PyBobLearnEMIVectorMachine_getSupervectorLength(PyBobLearnEMIVectorMachineObject* self, void*) {
@@ -320,11 +320,11 @@ int PyBobLearnEMIVectorMachine_setUBM(PyBobLearnEMIVectorMachineObject* self, Py
   self->cxx->setUbm(ubm_gmmMachine->cxx);
 
   return 0;
-  BOB_CATCH_MEMBER("ubm could not be set", -1)  
+  BOB_CATCH_MEMBER("ubm could not be set", -1)
 }
 
 
-static PyGetSetDef PyBobLearnEMIVectorMachine_getseters[] = { 
+static PyGetSetDef PyBobLearnEMIVectorMachine_getseters[] = {
   {
    shape.name(),
    (getter)PyBobLearnEMIVectorMachine_getShape,
@@ -332,7 +332,7 @@ static PyGetSetDef PyBobLearnEMIVectorMachine_getseters[] = {
    shape.doc(),
    0
   },
-  
+
   {
    supervector_length.name(),
    (getter)PyBobLearnEMIVectorMachine_getSupervectorLength,
@@ -340,7 +340,7 @@ static PyGetSetDef PyBobLearnEMIVectorMachine_getseters[] = {
    supervector_length.doc(),
    0
   },
-  
+
   {
    T.name(),
    (getter)PyBobLearnEMIVectorMachine_getT,
@@ -393,9 +393,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMIVectorMachine_Save(PyBobLearnEMIVectorMachineObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -415,12 +415,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMIVectorMachine_Load(PyBobLearnEMIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -431,7 +431,7 @@ static PyObject* PyBobLearnEMIVectorMachine_Load(PyBobLearnEMIVectorMachineObjec
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this IVectorMachine with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -456,8 +456,8 @@ static PyObject* PyBobLearnEMIVectorMachine_IsSimilarTo(PyBobLearnEMIVectorMachi
         &PyBobLearnEMIVectorMachine_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -468,22 +468,22 @@ static PyObject* PyBobLearnEMIVectorMachine_IsSimilarTo(PyBobLearnEMIVectorMachi
 
 
 
-/*** forward ***/
-static auto forward = bob::extension::FunctionDoc(
-  "forward",
-  "Execute the machine",
-  "", 
+/*** project ***/
+static auto project = bob::extension::FunctionDoc(
+  "project",
+  "Projects the given GMM statistics into the i-vector subspace",
+  ".. note:: The :py:meth:`__call__` function is an alias for this function",
   true
 )
 .add_prototype("stats")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Statistics as input");
-static PyObject* PyBobLearnEMIVectorMachine_Forward(PyBobLearnEMIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMIVectorMachine_project(PyBobLearnEMIVectorMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  char** kwlist = forward.kwlist(0);
+  char** kwlist = project.kwlist(0);
 
   PyBobLearnEMGMMStatsObject* stats = 0;
-  
+
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
     return 0;
 
@@ -491,8 +491,8 @@ static PyObject* PyBobLearnEMIVectorMachine_Forward(PyBobLearnEMIVectorMachineOb
    self->cxx->forward(*stats->cxx, ivector);
 
   return PyBlitzArrayCxx_AsConstNumpy(ivector);
-  
-  BOB_CATCH_MEMBER("cannot forward", 0)
+
+  BOB_CATCH_MEMBER("cannot project", 0)
 
 }
 
@@ -533,7 +533,7 @@ static PyObject* PyBobLearnEMIVectorMachine_resize(PyBobLearnEMIVectorMachineObj
 static auto __compute_Id_TtSigmaInvT__ = bob::extension::FunctionDoc(
   "__compute_Id_TtSigmaInvT__",
   "",
-  "", 
+  "",
   true
 )
 .add_prototype("stats")
@@ -544,7 +544,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_Id_TtSigmaInvT__(PyBobLearnE
   char** kwlist = __compute_Id_TtSigmaInvT__.kwlist(0);
 
   PyBobLearnEMGMMStatsObject* stats = 0;
-  
+
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
     return 0;
 
@@ -552,7 +552,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_Id_TtSigmaInvT__(PyBobLearnE
   blitz::Array<double,2> output(self->cxx->getDimRt(), self->cxx->getDimRt());
   self->cxx->computeIdTtSigmaInvT(*stats->cxx, output);
   return PyBlitzArrayCxx_AsConstNumpy(output);
-  
+
   BOB_CATCH_MEMBER("cannot __compute_Id_TtSigmaInvT__", 0)
 }
 
@@ -562,7 +562,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_Id_TtSigmaInvT__(PyBobLearnE
 static auto __compute_TtSigmaInvFnorm__ = bob::extension::FunctionDoc(
   "__compute_TtSigmaInvFnorm__",
   "",
-  "", 
+  "",
   true
 )
 .add_prototype("stats")
@@ -573,7 +573,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_TtSigmaInvFnorm__(PyBobLearn
   char** kwlist = __compute_TtSigmaInvFnorm__.kwlist(0);
 
   PyBobLearnEMGMMStatsObject* stats = 0;
-  
+
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMGMMStats_Type, &stats))
     return 0;
 
@@ -581,7 +581,7 @@ static PyObject* PyBobLearnEMIVectorMachine_compute_TtSigmaInvFnorm__(PyBobLearn
   blitz::Array<double,1> output(self->cxx->getDimRt());
   self->cxx->computeTtSigmaInvFnorm(*stats->cxx, output);
   return PyBlitzArrayCxx_AsConstNumpy(output);
-  
+
   BOB_CATCH_MEMBER("cannot __compute_TtSigmaInvFnorm__", 0)
 }
 
@@ -612,6 +612,12 @@ static PyMethodDef PyBobLearnEMIVectorMachine_methods[] = {
     (PyCFunction)PyBobLearnEMIVectorMachine_resize,
     METH_VARARGS|METH_KEYWORDS,
     resize.doc()
+  },
+  {
+    project.name(),
+    (PyCFunction)PyBobLearnEMIVectorMachine_project,
+    METH_VARARGS|METH_KEYWORDS,
+    project.doc()
   },
   {
     __compute_Id_TtSigmaInvT__.name(),
@@ -655,7 +661,7 @@ bool init_BobLearnEMIVectorMachine(PyObject* module)
   PyBobLearnEMIVectorMachine_Type.tp_richcompare = reinterpret_cast<richcmpfunc>(PyBobLearnEMIVectorMachine_RichCompare);
   PyBobLearnEMIVectorMachine_Type.tp_methods     = PyBobLearnEMIVectorMachine_methods;
   PyBobLearnEMIVectorMachine_Type.tp_getset      = PyBobLearnEMIVectorMachine_getseters;
-  PyBobLearnEMIVectorMachine_Type.tp_call        = reinterpret_cast<ternaryfunc>(PyBobLearnEMIVectorMachine_Forward);
+  PyBobLearnEMIVectorMachine_Type.tp_call        = reinterpret_cast<ternaryfunc>(PyBobLearnEMIVectorMachine_project);
 
 
   // check that everything is fine
@@ -665,4 +671,3 @@ bool init_BobLearnEMIVectorMachine(PyObject* module)
   Py_INCREF(&PyBobLearnEMIVectorMachine_Type);
   return PyModule_AddObject(module, "IVectorMachine", (PyObject*)&PyBobLearnEMIVectorMachine_Type) >= 0;
 }
-

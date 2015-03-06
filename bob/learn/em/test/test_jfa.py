@@ -64,8 +64,8 @@ def test_JFABase():
   V = numpy.array([[6, 5], [4, 3], [2, 1], [1, 2], [3, 4], [5, 6]], 'float64')
   d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
   m = JFABase(ubm, ru=1, rv=1)
-  
-  _,_,ru,rv = m.shape 
+
+  _,_,ru,rv = m.shape
   assert ru == 1
   assert rv == 1
 
@@ -73,13 +73,13 @@ def test_JFABase():
   m.resize(2,2)
   m.u = U
   m.v = V
-  m.d = d  
+  m.d = d
   n_gaussians,dim,ru,rv = m.shape
   supervector_length    = m.supervector_length
-  
+
   assert (m.u == U).all()
   assert (m.v == V).all()
-  assert (m.d == d).all()  
+  assert (m.d == d).all()
   assert n_gaussians        == 2
   assert dim                == 3
   assert supervector_length == 6
@@ -144,7 +144,7 @@ def test_ISVBase():
   n_gaussians,dim,ru = m.shape
   supervector_length = m.supervector_length
   assert (m.u == U).all()
-  assert (m.d == d).all()  
+  assert (m.d == d).all()
   assert n_gaussians        == 2
   assert dim                == 3
   assert supervector_length == 6
@@ -207,8 +207,8 @@ def test_JFAMachine():
   m.y = y
   m.z = z
   n_gaussians,dim,ru,rv = m.shape
-  supervector_length    = m.supervector_length  
-  
+  supervector_length    = m.supervector_length
+
   assert n_gaussians        == 2
   assert dim                == 3
   assert supervector_length == 6
@@ -261,7 +261,7 @@ def test_JFAMachine():
   eps = 1e-10
   x_ref = numpy.array([0.291042849767692, 0.310273618998444], 'float64')
   score_ref = -2.111577181208289
-  score = m(gs)
+  score = m.log_likelihood(gs)
   assert numpy.allclose(m.x, x_ref, eps)
   assert abs(score_ref-score) < eps
 
@@ -274,7 +274,7 @@ def test_JFAMachine():
 
   ux = numpy.ndarray((6,), numpy.float64)
   m.estimate_ux(gs, ux)
-  n_gaussians, dim,_,_ = m.shape  
+  n_gaussians, dim,_,_ = m.shape
   ux_py = estimate_ux(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(ux, ux_py, eps)
   assert numpy.allclose(m.x, x, eps)
@@ -310,9 +310,9 @@ def test_ISVMachine():
   z = numpy.array([3,4,1,2,0,1], 'float64')
   m = ISVMachine(base)
   m.z = z
-  
+
   n_gaussians,dim,ru    = m.shape
-  supervector_length    = m.supervector_length  
+  supervector_length    = m.supervector_length
   assert n_gaussians          == 2
   assert dim                  == 3
   assert supervector_length   == 6
@@ -339,7 +339,7 @@ def test_ISVMachine():
   m.z = z
 
   n_gaussians,dim,ru    = m.shape
-  supervector_length    = m.supervector_length  
+  supervector_length    = m.supervector_length
   assert n_gaussians        == 2
   assert dim                == 3
   assert supervector_length == 6
@@ -365,7 +365,7 @@ def test_ISVMachine():
   score_ref = -3.280498193082100
 
   score = m(gs)
-  assert numpy.allclose(m.x, x_ref, eps)  
+  assert numpy.allclose(m.x, x_ref, eps)
   assert abs(score_ref-score) < eps
 
   # Check using alternate forward() method
@@ -378,13 +378,13 @@ def test_ISVMachine():
   # x and Ux
   x = numpy.ndarray((2,), numpy.float64)
   m.estimate_x(gs, x)
-  n_gaussians,dim,_    = m.shape  
+  n_gaussians,dim,_    = m.shape
   x_py = estimate_x(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(x, x_py, eps)
 
   ux = numpy.ndarray((6,), numpy.float64)
   m.estimate_ux(gs, ux)
-  n_gaussians,dim,_    = m.shape  
+  n_gaussians,dim,_    = m.shape
   ux_py = estimate_ux(n_gaussians, dim, ubm.mean_supervector, ubm.variance_supervector, U, n, sumpx)
   assert numpy.allclose(ux, ux_py, eps)
   assert numpy.allclose(m.x, x, eps)
