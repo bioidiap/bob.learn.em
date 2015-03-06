@@ -114,8 +114,8 @@ setup(
           "bob/learn/em/kmeans_machine.cpp",
           "bob/learn/em/kmeans_trainer.cpp",
 
-          "bob/learn/em/ML_gmm_trainer.cpp",
-          "bob/learn/em/MAP_gmm_trainer.cpp",
+          "bob/learn/em/ml_gmm_trainer.cpp",
+          "bob/learn/em/map_gmm_trainer.cpp",
 
           "bob/learn/em/jfa_base.cpp",
           "bob/learn/em/jfa_machine.cpp",
@@ -124,10 +124,10 @@ setup(
           "bob/learn/em/isv_base.cpp",
           "bob/learn/em/isv_machine.cpp",
           "bob/learn/em/isv_trainer.cpp",
-          
+
           "bob/learn/em/ivector_machine.cpp",
           "bob/learn/em/ivector_trainer.cpp",
-          
+
           "bob/learn/em/plda_base.cpp",
           "bob/learn/em/plda_machine.cpp",
 

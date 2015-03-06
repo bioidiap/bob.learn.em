@@ -300,26 +300,26 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
 }
 
 
-/*** eStep ***/
-static auto eStep = bob::extension::FunctionDoc(
-  "eStep",
+/*** e_step ***/
+static auto e_step = bob::extension::FunctionDoc(
+  "e_step",
   "Calculates and saves statistics across the dataset,"
   "and saves these as m_ss. ",
 
   "Calculates the average log likelihood of the observations given the GMM,"
   "and returns this in average_log_likelihood."
-  "The statistics, m_ss, will be used in the mStep() that follows.",
+  "The statistics, m_ss, will be used in the m_step() that follows.",
 
   true
 )
 .add_prototype("gmm_machine,data")
 .add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
-static PyObject* PyBobLearnEMMAPGMMTrainer_eStep(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMMAPGMMTrainer_e_step(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = eStep.kwlist(0);
+  char** kwlist = e_step.kwlist(0);
 
   PyBobLearnEMGMMMachineObject* gmm_machine;
   PyBlitzArrayObject* data = 0;
@@ -330,32 +330,32 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_eStep(PyBobLearnEMMAPGMMTrainerObject
 
   // perform check on the input
   if (data->type_num != NPY_FLOAT64){
-    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, e_step.name());
     return 0;
   }
 
   if (data->ndim != 2){
-    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, e_step.name());
     return 0;
   }
 
   if (data->shape[1] != (Py_ssize_t)gmm_machine->cxx->getNInputs() ) {
-    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, gmm_machine->cxx->getNInputs(), data->shape[1], eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, gmm_machine->cxx->getNInputs(), data->shape[1], e_step.name());
     return 0;
   }
 
 
   self->cxx->eStep(*gmm_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
-  BOB_CATCH_MEMBER("cannot perform the eStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** mStep ***/
-static auto mStep = bob::extension::FunctionDoc(
-  "mStep",
+/*** m_step ***/
+static auto m_step = bob::extension::FunctionDoc(
+  "m_step",
 
    "Performs a maximum a posteriori (MAP) update of the GMM:"
    "* parameters using the accumulated statistics in :py:class:`bob.learn.em.GMMBaseTrainer.m_ss` and the"
@@ -366,11 +366,11 @@ static auto mStep = bob::extension::FunctionDoc(
 .add_prototype("gmm_machine,data")
 .add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Ignored.");
-static PyObject* PyBobLearnEMMAPGMMTrainer_mStep(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMMAPGMMTrainer_m_step(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = mStep.kwlist(0);
+  char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMGMMMachineObject* gmm_machine;
   PyBlitzArrayObject* data                  = 0;
@@ -382,7 +382,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_mStep(PyBobLearnEMMAPGMMTrainerObject
 
   self->cxx->mStep(*gmm_machine->cxx);
 
-  BOB_CATCH_MEMBER("cannot perform the mStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 
   Py_RETURN_NONE;
 }
@@ -422,16 +422,16 @@ static PyMethodDef PyBobLearnEMMAPGMMTrainer_methods[] = {
     initialize.doc()
   },
   {
-    eStep.name(),
-    (PyCFunction)PyBobLearnEMMAPGMMTrainer_eStep,
+    e_step.name(),
+    (PyCFunction)PyBobLearnEMMAPGMMTrainer_e_step,
     METH_VARARGS|METH_KEYWORDS,
-    eStep.doc()
+    e_step.doc()
   },
   {
-    mStep.name(),
-    (PyCFunction)PyBobLearnEMMAPGMMTrainer_mStep,
+    m_step.name(),
+    (PyCFunction)PyBobLearnEMMAPGMMTrainer_m_step,
     METH_VARARGS|METH_KEYWORDS,
-    mStep.doc()
+    m_step.doc()
   },
   {
     compute_likelihood.name(),

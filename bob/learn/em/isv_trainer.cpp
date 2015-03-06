@@ -441,7 +441,7 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "eStep",
+  "e_step",
   "Call the e-step procedure (for the U subspace).",
   "",
   true
@@ -473,7 +473,7 @@ static PyObject* PyBobLearnEMISVTrainer_e_step(PyBobLearnEMISVTrainerObject* sel
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "mStep",
+  "m_step",
   "Call the m-step procedure (for the U subspace).",
   "",
   true

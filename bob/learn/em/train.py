@@ -34,19 +34,19 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
     else:
       trainer.initialize(machine, data)
 
-  trainer.eStep(machine, data)  
+  trainer.e_step(machine, data)
   average_output          = 0
   average_output_previous = 0
 
   if convergence_threshold!=None and hasattr(trainer,"compute_likelihood"):
     average_output          = trainer.compute_likelihood(machine)
-  
+
   for i in range(max_iterations):
     average_output_previous = average_output
-    trainer.mStep(machine, data)
-    trainer.eStep(machine, data)
+    trainer.m_step(machine, data)
+    trainer.e_step(machine, data)
 
-    if convergence_threshold!=None and hasattr(trainer,"compute_likelihood"):    
+    if convergence_threshold!=None and hasattr(trainer,"compute_likelihood"):
       average_output = trainer.compute_likelihood(machine)
 
     #Terminates if converged (and likelihood computation is set)
@@ -76,22 +76,21 @@ def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True):
 
   if initialize:
     trainer.initialize(jfa_base, data)
-    
+
   #V Subspace
   for i in range(max_iterations):
-    trainer.e_step1(jfa_base, data)
-    trainer.m_step1(jfa_base, data)
-  trainer.finalize1(jfa_base, data)
+    trainer.e_step_v(jfa_base, data)
+    trainer.m_step_v(jfa_base, data)
+  trainer.finalize_v(jfa_base, data)
 
   #U subspace
   for i in range(max_iterations):
-    trainer.e_step2(jfa_base, data)
-    trainer.m_step2(jfa_base, data)
-  trainer.finalize2(jfa_base, data)
+    trainer.e_step_u(jfa_base, data)
+    trainer.m_step_u(jfa_base, data)
+  trainer.finalize_u(jfa_base, data)
 
   # d subspace
   for i in range(max_iterations):
-    trainer.e_step3(jfa_base, data)
-    trainer.m_step3(jfa_base, data)
-  trainer.finalize3(jfa_base, data)
-
+    trainer.e_step_d(jfa_base, data)
+    trainer.m_step_d(jfa_base, data)
+  trainer.finalize_d(jfa_base, data)

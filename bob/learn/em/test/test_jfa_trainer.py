@@ -89,8 +89,8 @@ def test_JFATrainer_updateYandV():
   t.__X__ = M_x
   t.__Y__ = y
   t.__Z__ = M_z
-  t.e_step1(m, TRAINING_STATS)
-  t.m_step1(m, TRAINING_STATS)
+  t.e_step_v(m, TRAINING_STATS)
+  t.m_step_v(m, TRAINING_STATS)
 
   # Expected results(JFA cookbook, matlab)
   assert equals(t.__Y__[0], y3, 2e-4)
@@ -123,8 +123,8 @@ def test_JFATrainer_updateXandU():
   t.__X__ = x
   t.__Y__ = M_y
   t.__Z__ = M_z
-  t.e_step2(m, TRAINING_STATS)
-  t.m_step2(m, TRAINING_STATS)
+  t.e_step_u(m, TRAINING_STATS)
+  t.m_step_u(m, TRAINING_STATS)
 
   # Expected results(JFA cookbook, matlab)
   assert equals(t.__X__[0], x3, 2e-4)
@@ -156,8 +156,8 @@ def test_JFATrainer_updateZandD():
   t.__X__ = M_x
   t.__Y__ = M_y
   t.__Z__ = z
-  t.e_step3(m, TRAINING_STATS)
-  t.m_step3(m, TRAINING_STATS)
+  t.e_step_d(m, TRAINING_STATS)
+  t.m_step_d(m, TRAINING_STATS)
 
   # Expected results(JFA cookbook, matlab)
   assert equals(t.__Z__[0], z3_ref, 2e-4)
@@ -230,8 +230,8 @@ def test_ISVTrainAndEnrol():
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
   for i in range(10):
-    t.eStep(mb, TRAINING_STATS)
-    t.mStep(mb)
+    t.e_step(mb, TRAINING_STATS)
+    t.m_step(mb)
 
   assert numpy.allclose(mb.d, d_ref, eps)
   assert numpy.allclose(mb.u, u_ref, eps)

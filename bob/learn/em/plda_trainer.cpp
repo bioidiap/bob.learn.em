@@ -460,7 +460,7 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "eStep",
+  "e_step",
   "Expectation step before the EM steps",
   "",
   true
@@ -492,7 +492,7 @@ static PyObject* PyBobLearnEMPLDATrainer_e_step(PyBobLearnEMPLDATrainerObject* s
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "mStep",
+  "m_step",
   "Maximization step ",
   "",
   true

@@ -650,9 +650,9 @@ static PyObject* PyBobLearnEMJFATrainer_initialize(PyBobLearnEMJFATrainerObject*
 }
 
 
-/*** e_step1 ***/
-static auto e_step1 = bob::extension::FunctionDoc(
-  "e_step1",
+/*** e_stepv ***/
+static auto e_step_v = bob::extension::FunctionDoc(
+  "e_step_v",
   "Call the 1st e-step procedure (for the V subspace).",
   "",
   true
@@ -660,11 +660,11 @@ static auto e_step1 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_e_step1(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_e_step_v(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   //Parses input arguments in a single shot
-  char** kwlist = e_step1.kwlist(0);
+  char** kwlist = e_step_v.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -677,15 +677,15 @@ static PyObject* PyBobLearnEMJFATrainer_e_step1(PyBobLearnEMJFATrainerObject* se
     self->cxx->eStep1(*jfa_base->cxx, training_data);
 
 
-  BOB_CATCH_MEMBER("cannot perform the e_step1 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step_v method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** m_step1 ***/
-static auto m_step1 = bob::extension::FunctionDoc(
-  "m_step1",
+/*** m_step_v ***/
+static auto m_step_v = bob::extension::FunctionDoc(
+  "m_step_v",
   "Call the 1st m-step procedure (for the V subspace).",
   "",
   true
@@ -693,11 +693,11 @@ static auto m_step1 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_m_step1(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_m_step_v(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = m_step1.kwlist(0);
+  char** kwlist = m_step_v.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -709,15 +709,15 @@ static PyObject* PyBobLearnEMJFATrainer_m_step1(PyBobLearnEMJFATrainerObject* se
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep1(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the m_step1 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step_v method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** finalize1 ***/
-static auto finalize1 = bob::extension::FunctionDoc(
-  "finalize1",
+/*** finalize_v ***/
+static auto finalize_v = bob::extension::FunctionDoc(
+  "finalize_v",
   "Call the 1st finalize procedure (for the V subspace).",
   "",
   true
@@ -725,11 +725,11 @@ static auto finalize1 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_finalize1(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_finalize_v(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   //Parses input arguments in a single shot
-  char** kwlist = finalize1.kwlist(0);
+  char** kwlist = finalize_v.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -741,15 +741,15 @@ static PyObject* PyBobLearnEMJFATrainer_finalize1(PyBobLearnEMJFATrainerObject* 
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize1(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the finalize1 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the finalize_v method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** e_step2 ***/
-static auto e_step2 = bob::extension::FunctionDoc(
-  "e_step2",
+/*** e_step_u ***/
+static auto e_step_u = bob::extension::FunctionDoc(
+  "e_step_u",
   "Call the 2nd e-step procedure (for the U subspace).",
   "",
   true
@@ -757,11 +757,11 @@ static auto e_step2 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_e_step2(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_e_step_u(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = e_step2.kwlist(0);
+  char** kwlist = e_step_u.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -773,15 +773,15 @@ static PyObject* PyBobLearnEMJFATrainer_e_step2(PyBobLearnEMJFATrainerObject* se
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->eStep2(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the e_step2 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step_u method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** m_step2 ***/
-static auto m_step2 = bob::extension::FunctionDoc(
-  "m_step2",
+/*** m_step_u ***/
+static auto m_step_u = bob::extension::FunctionDoc(
+  "m_step_u",
   "Call the 2nd m-step procedure (for the U subspace).",
   "",
   true
@@ -789,11 +789,11 @@ static auto m_step2 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_m_step2(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_m_step_u(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = m_step2.kwlist(0);
+  char** kwlist = m_step_u.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -805,15 +805,15 @@ static PyObject* PyBobLearnEMJFATrainer_m_step2(PyBobLearnEMJFATrainerObject* se
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep2(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the m_step2 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step_u method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** finalize2 ***/
-static auto finalize2 = bob::extension::FunctionDoc(
-  "finalize2",
+/*** finalize_u ***/
+static auto finalize_u = bob::extension::FunctionDoc(
+  "finalize_u",
   "Call the 2nd finalize procedure (for the U subspace).",
   "",
   true
@@ -821,11 +821,11 @@ static auto finalize2 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_finalize2(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_finalize_u(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = finalize2.kwlist(0);
+  char** kwlist = finalize_u.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -837,15 +837,15 @@ static PyObject* PyBobLearnEMJFATrainer_finalize2(PyBobLearnEMJFATrainerObject* 
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize2(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the finalize2 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the finalize_u method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** e_step3 ***/
-static auto e_step3 = bob::extension::FunctionDoc(
-  "e_step3",
+/*** e_step_d ***/
+static auto e_step_d = bob::extension::FunctionDoc(
+  "e_step_d",
   "Call the 3rd e-step procedure (for the d subspace).",
   "",
   true
@@ -853,11 +853,11 @@ static auto e_step3 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_e_step3(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_e_step_d(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = e_step3.kwlist(0);
+  char** kwlist = e_step_d.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -869,15 +869,15 @@ static PyObject* PyBobLearnEMJFATrainer_e_step3(PyBobLearnEMJFATrainerObject* se
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->eStep3(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the e_step3 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step_d method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** m_step3 ***/
-static auto m_step3 = bob::extension::FunctionDoc(
-  "m_step3",
+/*** m_step_d ***/
+static auto m_step_d = bob::extension::FunctionDoc(
+  "m_step_d",
   "Call the 3rd m-step procedure (for the d subspace).",
   "",
   true
@@ -885,11 +885,11 @@ static auto m_step3 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_m_step3(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_m_step_d(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = m_step3.kwlist(0);
+  char** kwlist = m_step_d.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -901,15 +901,15 @@ static PyObject* PyBobLearnEMJFATrainer_m_step3(PyBobLearnEMJFATrainerObject* se
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep3(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the m_step3 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step_d method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** finalize3 ***/
-static auto finalize3 = bob::extension::FunctionDoc(
-  "finalize3",
+/*** finalize_d ***/
+static auto finalize_d = bob::extension::FunctionDoc(
+  "finalize_d",
   "Call the 3rd finalize procedure (for the d subspace).",
   "",
   true
@@ -917,11 +917,11 @@ static auto finalize3 = bob::extension::FunctionDoc(
 .add_prototype("jfa_base,stats")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
-static PyObject* PyBobLearnEMJFATrainer_finalize3(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMJFATrainer_finalize_d(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   // Parses input arguments in a single shot
-  char** kwlist = finalize3.kwlist(0);
+  char** kwlist = finalize_d.kwlist(0);
 
   PyBobLearnEMJFABaseObject* jfa_base = 0;
   PyObject* stats = 0;
@@ -933,7 +933,7 @@ static PyObject* PyBobLearnEMJFATrainer_finalize3(PyBobLearnEMJFATrainerObject* 
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize3(*jfa_base->cxx, training_data);
 
-  BOB_CATCH_MEMBER("cannot perform the finalize3 method", 0)
+  BOB_CATCH_MEMBER("cannot perform the finalize_d method", 0)
 
   Py_RETURN_NONE;
 }
@@ -983,58 +983,58 @@ static PyMethodDef PyBobLearnEMJFATrainer_methods[] = {
     initialize.doc()
   },
   {
-    e_step1.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_e_step1,
+    e_step_v.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_e_step_v,
     METH_VARARGS|METH_KEYWORDS,
-    e_step1.doc()
+    e_step_v.doc()
   },
   {
-    e_step2.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_e_step2,
+    e_step_u.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_e_step_u,
     METH_VARARGS|METH_KEYWORDS,
-    e_step2.doc()
+    e_step_u.doc()
   },
   {
-    e_step3.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_e_step3,
+    e_step_d.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_e_step_d,
     METH_VARARGS|METH_KEYWORDS,
-    e_step3.doc()
+    e_step_d.doc()
   },
   {
-    m_step1.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_m_step1,
+    m_step_v.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_m_step_v,
     METH_VARARGS|METH_KEYWORDS,
-    m_step1.doc()
+    m_step_v.doc()
   },
   {
-    m_step2.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_m_step2,
+    m_step_u.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_m_step_u,
     METH_VARARGS|METH_KEYWORDS,
-    m_step2.doc()
+    m_step_u.doc()
   },
   {
-    m_step3.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_m_step3,
+    m_step_d.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_m_step_d,
     METH_VARARGS|METH_KEYWORDS,
-    m_step3.doc()
+    m_step_d.doc()
   },
   {
-    finalize1.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_finalize1,
+    finalize_v.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_finalize_v,
     METH_VARARGS|METH_KEYWORDS,
-    finalize1.doc()
+    finalize_v.doc()
   },
   {
-    finalize2.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_finalize2,
+    finalize_u.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_finalize_u,
     METH_VARARGS|METH_KEYWORDS,
-    finalize2.doc()
+    finalize_u.doc()
   },
   {
-    finalize3.name(),
-    (PyCFunction)PyBobLearnEMJFATrainer_finalize3,
+    finalize_d.name(),
+    (PyCFunction)PyBobLearnEMJFATrainer_finalize_d,
     METH_VARARGS|METH_KEYWORDS,
-    finalize3.doc()
+    finalize_d.doc()
   },
   {
     enroll.name(),

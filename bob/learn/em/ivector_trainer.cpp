@@ -20,7 +20,7 @@ static int extract_GMMStats_1d(PyObject *list,
                              std::vector<bob::learn::em::GMMStats>& training_data)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++){
-  
+
     PyBobLearnEMGMMStatsObject* stats;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyBobLearnEMGMMStats_Type, &stats)){
       PyErr_Format(PyExc_RuntimeError, "Expected GMMStats objects");
@@ -76,7 +76,7 @@ static int PyBobLearnEMIVectorTrainer_init_bool(PyBobLearnEMIVectorTrainerObject
   //Parsing the input argments
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBool_Type, &update_sigma))
     return -1;
-  
+
   self->cxx.reset(new bob::learn::em::IVectorTrainer(f(update_sigma)));
   return 0;
 }
@@ -105,11 +105,11 @@ static int PyBobLearnEMIVectorTrainer_init(PyBobLearnEMIVectorTrainerObject* sel
       }
 
       // If the constructor input is IVectorTrainer object
-      if(PyBobLearnEMIVectorTrainer_Check(arg))            
+      if(PyBobLearnEMIVectorTrainer_Check(arg))
         return  PyBobLearnEMIVectorTrainer_init_copy(self, args, kwargs);
       else
-        return PyBobLearnEMIVectorTrainer_init_bool(self, args, kwargs);      
-      
+        return PyBobLearnEMIVectorTrainer_init_bool(self, args, kwargs);
+
     }
     default:{
       PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires only 0 or 1 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
@@ -268,14 +268,14 @@ int PyBobLearnEMIVectorTrainer_set_acc_snormij(PyBobLearnEMIVectorTrainerObject*
 
 
 
-static PyGetSetDef PyBobLearnEMIVectorTrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMIVectorTrainer_getseters[] = {
   {
    acc_nij_wij2.name(),
    (getter)PyBobLearnEMIVectorTrainer_get_acc_nij_wij2,
    (setter)PyBobLearnEMIVectorTrainer_set_acc_nij_wij2,
    acc_nij_wij2.doc(),
    0
-  },  
+  },
   {
    acc_fnormij_wij.name(),
    (getter)PyBobLearnEMIVectorTrainer_get_acc_fnormij_wij,
@@ -338,7 +338,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
 
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
-  "eStep",
+  "e_step",
   "Call the e-step procedure (for the U subspace).",
   "",
   true
@@ -369,7 +369,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_e_step(PyBobLearnEMIVectorTrainerObj
 
 /*** m_step ***/
 static auto m_step = bob::extension::FunctionDoc(
-  "mStep",
+  "m_step",
   "Call the m-step procedure (for the U subspace).",
   "",
   true
@@ -380,7 +380,7 @@ static auto m_step = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
-  // Parses input arguments in a single shot 
+  // Parses input arguments in a single shot
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
@@ -456,4 +456,3 @@ bool init_BobLearnEMIVectorTrainer(PyObject* module)
   Py_INCREF(&PyBobLearnEMIVectorTrainer_Type);
   return PyModule_AddObject(module, "IVectorTrainer", (PyObject*)&PyBobLearnEMIVectorTrainer_Type) >= 0;
 }
-

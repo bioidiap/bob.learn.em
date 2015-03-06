@@ -270,7 +270,7 @@ int PyBobLearnEMKMeansTrainer_setAverageMinDistance(PyBobLearnEMKMeansTrainerObj
 
 
 
-static PyGetSetDef PyBobLearnEMKMeansTrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMKMeansTrainer_getseters[] = {
   {
    initialization_method.name(),
    (getter)PyBobLearnEMKMeansTrainer_getInitializationMethod,
@@ -326,23 +326,23 @@ static PyObject* PyBobLearnEMKMeansTrainer_initialize(PyBobLearnEMKMeansTrainerO
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine = 0;
   PyBlitzArrayObject* data                        = 0;
-  PyBoostMt19937Object* rng = 0;  
+  PyBoostMt19937Object* rng = 0;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&|O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
                                                                  &PyBlitzArray_Converter, &data,
                                                                   &PyBoostMt19937_Type, &rng)) return 0;
   auto data_ = make_safe(data);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (data->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, initialize.name());
     return 0;
-  }  
+  }
 
   if (data->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, initialize.name());
     return 0;
-  }  
+  }
 
   if (data->shape[1] != (Py_ssize_t)kmeans_machine->cxx->getNInputs() ) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], initialize.name());
@@ -362,10 +362,10 @@ static PyObject* PyBobLearnEMKMeansTrainer_initialize(PyBobLearnEMKMeansTrainerO
 }
 
 
-/*** eStep ***/
-static auto eStep = bob::extension::FunctionDoc(
-  "eStep",
-  "Compute the eStep, which is basically the distances ",
+/*** e_step ***/
+static auto e_step = bob::extension::FunctionDoc(
+  "e_step",
+  "Compute the E-step, which is basically the distances ",
   "Accumulate across the dataset:"
   " -zeroeth and first order statistics"
   " -average (Square Euclidean) distance from the closest mean",
@@ -374,11 +374,11 @@ static auto eStep = bob::extension::FunctionDoc(
 .add_prototype("kmeans_machine,data")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
-static PyObject* PyBobLearnEMKMeansTrainer_eStep(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = eStep.kwlist(0);
+  char** kwlist = e_step.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
   PyBlitzArrayObject* data = 0;
@@ -387,32 +387,32 @@ static PyObject* PyBobLearnEMKMeansTrainer_eStep(PyBobLearnEMKMeansTrainerObject
   auto data_ = make_safe(data);
 
   if (data->type_num != NPY_FLOAT64){
-    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, e_step.name());
     return 0;
-  }  
+  }
 
   if (data->ndim != 2){
-    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, e_step.name());
     return 0;
-  }  
+  }
 
   if (data->shape[1] != (Py_ssize_t)kmeans_machine->cxx->getNInputs() ) {
-    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], eStep.name());
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], e_step.name());
     return 0;
   }
 
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
 
-  BOB_CATCH_MEMBER("cannot perform the eStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** mStep ***/
-static auto mStep = bob::extension::FunctionDoc(
-  "mStep",
+/*** m_step ***/
+static auto m_step = bob::extension::FunctionDoc(
+  "m_step",
   "Updates the mean based on the statistics from the E-step",
   0,
   true
@@ -420,11 +420,11 @@ static auto mStep = bob::extension::FunctionDoc(
 .add_prototype("kmeans_machine,data")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Ignored.");
-static PyObject* PyBobLearnEMKMeansTrainer_mStep(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMKMeansTrainer_m_step(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = mStep.kwlist(0);
+  char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
   PyBlitzArrayObject* data = 0;
@@ -435,7 +435,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_mStep(PyBobLearnEMKMeansTrainerObject
 
   self->cxx->mStep(*kmeans_machine->cxx);
 
-  BOB_CATCH_MEMBER("cannot perform the mStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 
   Py_RETURN_NONE;
 }
@@ -499,16 +499,16 @@ static PyMethodDef PyBobLearnEMKMeansTrainer_methods[] = {
     initialize.doc()
   },
   {
-    eStep.name(),
-    (PyCFunction)PyBobLearnEMKMeansTrainer_eStep,
+    e_step.name(),
+    (PyCFunction)PyBobLearnEMKMeansTrainer_e_step,
     METH_VARARGS|METH_KEYWORDS,
-    eStep.doc()
+    e_step.doc()
   },
   {
-    mStep.name(),
-    (PyCFunction)PyBobLearnEMKMeansTrainer_mStep,
+    m_step.name(),
+    (PyCFunction)PyBobLearnEMKMeansTrainer_m_step,
     METH_VARARGS|METH_KEYWORDS,
-    mStep.doc()
+    m_step.doc()
   },
   {
     compute_likelihood.name(),
@@ -561,4 +561,3 @@ bool init_BobLearnEMKMeansTrainer(PyObject* module)
   Py_INCREF(&PyBobLearnEMKMeansTrainer_Type);
   return PyModule_AddObject(module, "KMeansTrainer", (PyObject*)&PyBobLearnEMKMeansTrainer_Type) >= 0;
 }
-

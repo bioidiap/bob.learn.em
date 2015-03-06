@@ -139,7 +139,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_RichCompare(PyBobLearnEMEMPCATrainerOb
 /************ Variables Section ***********************************/
 /******************************************************************/
 
-static PyGetSetDef PyBobLearnEMEMPCATrainer_getseters[] = { 
+static PyGetSetDef PyBobLearnEMEMPCATrainer_getseters[] = {
   {0}  // Sentinel
 };
 
@@ -173,12 +173,12 @@ static PyObject* PyBobLearnEMEMPCATrainer_initialize(PyBobLearnEMEMPCATrainerObj
                                                                  &PyBlitzArray_Converter, &data,
                                                                  &PyBoostMt19937_Type, &rng)) return 0;
   auto data_ = make_safe(data);
-  
+
   if(rng){
     boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
     self->cxx->setRng(rng_cpy);
   }
-  
+
 
   self->cxx->initialize(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
@@ -188,9 +188,9 @@ static PyObject* PyBobLearnEMEMPCATrainer_initialize(PyBobLearnEMEMPCATrainerObj
 }
 
 
-/*** eStep ***/
-static auto eStep = bob::extension::FunctionDoc(
-  "eStep",
+/*** e_step ***/
+static auto e_step = bob::extension::FunctionDoc(
+  "e_step",
   "",
   "",
   true
@@ -198,11 +198,11 @@ static auto eStep = bob::extension::FunctionDoc(
 .add_prototype("linear_machine,data")
 .add_parameter("linear_machine", ":py:class:`bob.learn.linear.Machine`", "LinearMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
-static PyObject* PyBobLearnEMEMPCATrainer_eStep(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMEMPCATrainer_e_step(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = eStep.kwlist(0);
+  char** kwlist = e_step.kwlist(0);
 
   PyBobLearnLinearMachineObject* linear_machine;
   PyBlitzArrayObject* data = 0;
@@ -213,15 +213,15 @@ static PyObject* PyBobLearnEMEMPCATrainer_eStep(PyBobLearnEMEMPCATrainerObject* 
   self->cxx->eStep(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
 
-  BOB_CATCH_MEMBER("cannot perform the eStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
   Py_RETURN_NONE;
 }
 
 
-/*** mStep ***/
-static auto mStep = bob::extension::FunctionDoc(
-  "mStep",
+/*** m_step ***/
+static auto m_step = bob::extension::FunctionDoc(
+  "m_step",
   "",
   0,
   true
@@ -229,11 +229,11 @@ static auto mStep = bob::extension::FunctionDoc(
 .add_prototype("linear_machine,data")
 .add_parameter("linear_machine", ":py:class:`bob.learn.em.LinearMachine`", "LinearMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
-static PyObject* PyBobLearnEMEMPCATrainer_mStep(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
+static PyObject* PyBobLearnEMEMPCATrainer_m_step(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
   /* Parses input arguments in a single shot */
-  char** kwlist = mStep.kwlist(0);
+  char** kwlist = m_step.kwlist(0);
 
   PyBobLearnLinearMachineObject* linear_machine;
   PyBlitzArrayObject* data = 0;
@@ -244,7 +244,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_mStep(PyBobLearnEMEMPCATrainerObject* 
   self->cxx->mStep(*linear_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
 
-  BOB_CATCH_MEMBER("cannot perform the mStep method", 0)
+  BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 
   Py_RETURN_NONE;
 }
@@ -284,16 +284,16 @@ static PyMethodDef PyBobLearnEMEMPCATrainer_methods[] = {
     initialize.doc()
   },
   {
-    eStep.name(),
-    (PyCFunction)PyBobLearnEMEMPCATrainer_eStep,
+    e_step.name(),
+    (PyCFunction)PyBobLearnEMEMPCATrainer_e_step,
     METH_VARARGS|METH_KEYWORDS,
-    eStep.doc()
+    e_step.doc()
   },
   {
-    mStep.name(),
-    (PyCFunction)PyBobLearnEMEMPCATrainer_mStep,
+    m_step.name(),
+    (PyCFunction)PyBobLearnEMEMPCATrainer_m_step,
     METH_VARARGS|METH_KEYWORDS,
-    mStep.doc()
+    m_step.doc()
   },
   {
     compute_likelihood.name(),
@@ -340,4 +340,3 @@ bool init_BobLearnEMEMPCATrainer(PyObject* module)
   Py_INCREF(&PyBobLearnEMEMPCATrainer_Type);
   return PyModule_AddObject(module, "EMPCATrainer", (PyObject*)&PyBobLearnEMEMPCATrainer_Type) >= 0;
 }
-

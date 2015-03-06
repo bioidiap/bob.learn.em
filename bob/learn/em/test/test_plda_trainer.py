@@ -536,7 +536,7 @@ def test_plda_EM_vs_Prince():
   m_py.f = F_init
 
   # E-step 1
-  t.eStep(m,l)
+  t.e_step(m,l)
   t_py.e_step(m_py,l)
   # Compares statistics to Prince matlab reference
   assert numpy.allclose(t.z_first_order[0], z_first_order_a_1, 1e-10)
@@ -548,7 +548,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(t.z_second_order_sum, t_py.m_sum_z_second_order, 1e-10)
 
   # M-step 1
-  t.mStep(m,l)
+  t.m_step(m,l)
   t_py.m_step(m_py,l)
   # Compares F, G and sigma to Prince matlab reference
   assert numpy.allclose(m.f, F_1, 1e-10)
@@ -560,7 +560,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(m.sigma, m_py.sigma, 1e-10)
 
   # E-step 2
-  t.eStep(m,l)
+  t.e_step(m,l)
   t_py.e_step(m_py,l)
   # Compares statistics to Prince matlab reference
   assert numpy.allclose(t.z_first_order[0], z_first_order_a_2, 1e-10)
@@ -572,7 +572,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(t.z_second_order_sum, t_py.m_sum_z_second_order, 1e-10)
 
   # M-step 2
-  t.mStep(m,l)
+  t.m_step(m,l)
   t_py.m_step(m_py,l)
   # Compares F, G and sigma to Prince matlab reference
   assert numpy.allclose(m.f, F_2, 1e-10)
@@ -598,7 +598,7 @@ def test_plda_EM_vs_Prince():
   m_py.f = F_init
 
   # E-step 1
-  t.eStep(m,l)
+  t.e_step(m,l)
   t_py.e_step(m_py,l)
   # Compares statistics to Prince matlab reference
   assert numpy.allclose(t.z_first_order[0], z_first_order_a_1, 1e-10)
@@ -611,7 +611,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(t.z_second_order_sum, t_py.m_sum_z_second_order, 1e-10)
 
   # M-step 1
-  t.mStep(m,l)
+  t.m_step(m,l)
   t_py.m_step(m_py,l)
   # Compares F, G and sigma to the ones of the python implementation
   assert numpy.allclose(m.f, m_py.f, 1e-10)
@@ -619,7 +619,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(m.sigma, m_py.sigma, 1e-10)
 
   # E-step 2
-  t.eStep(m,l)
+  t.e_step(m,l)
   t_py.e_step(m_py,l)
   # Compares statistics to Prince matlab reference
   assert numpy.allclose(t.z_first_order[0], z_first_order_a_2, 1e-10)
@@ -632,7 +632,7 @@ def test_plda_EM_vs_Prince():
   assert numpy.allclose(t.z_second_order_sum, t_py.m_sum_z_second_order, 1e-10)
 
   # M-step 2
-  t.mStep(m,l)
+  t.m_step(m,l)
   t_py.m_step(m_py,l)
   # Compares F, G and sigma to the ones of the python implementation
   assert numpy.allclose(m.f, m_py.f, 1e-10)
@@ -721,23 +721,23 @@ def test_plda_comparisons():
   m = PLDABase(4,1,1,1e-8)
   rng = bob.core.random.mt19937(37)
   t1.initialize(m, training_set,rng)
-  t1.eStep(m, training_set)
-  t1.mStep(m, training_set)
+  t1.e_step(m, training_set)
+  t1.m_step(m, training_set)
   assert (t1 == t2 ) is False
   assert t1 != t2
   assert (t1.is_similar_to(t2) ) is False
   rng = bob.core.random.mt19937(37)
   t2.initialize(m, training_set, rng)
-  t2.eStep(m, training_set)
-  t2.mStep(m, training_set)
+  t2.e_step(m, training_set)
+  t2.m_step(m, training_set)
   assert t1 == t2
   assert (t1 != t2 ) is False
   assert t1.is_similar_to(t2)
 
   rng = bob.core.random.mt19937(77)
   t2.initialize(m, training_set, rng)
-  t2.eStep(m, training_set)
-  t2.mStep(m, training_set)
+  t2.e_step(m, training_set)
+  t2.m_step(m, training_set)
   assert (t1 == t2 ) is False
   assert t1 != t2
   assert (t1.is_similar_to(t2) ) is False

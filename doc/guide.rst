@@ -374,8 +374,8 @@ For example, to train a K-Means with 10 iterations you can use the following ste
    >>> max_iterations = 10
    >>> kmeans_trainer.initialize(kmeans_machine, data) #Initilizing the means with random values
    >>> for i in range(max_iterations):
-   ...   kmeans_trainer.eStep(kmeans_machine, data)
-   ...   kmeans_trainer.mStep(kmeans_machine, data)
+   ...   kmeans_trainer.e_step(kmeans_machine, data)
+   ...   kmeans_trainer.m_step(kmeans_machine, data)
    >>> print(kmeans_machine.means)
    [[  -6.     6.  -100.5]
    [   3.5   -3.5   99. ]]
