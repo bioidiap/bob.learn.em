@@ -161,7 +161,6 @@ static PyObject* build_version_dictionary() {
   if (!dict_steal(retval, "bob.math", bob_math_version())) return 0;
   if (!dict_steal(retval, "bob.learn.activation", bob_learn_activation_version())) return 0;
   if (!dict_steal(retval, "bob.learn.linear", bob_learn_linear_version())) return 0;
-  if (!dict_steal(retval, "Bob", bob_core_version())) return 0;
 
   Py_INCREF(retval);
   return retval;
