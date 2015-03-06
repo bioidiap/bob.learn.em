@@ -57,25 +57,30 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
     trainer.finalize(machine, data)
 
 
-def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True):
+def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True, rng=None):
   """
   Trains a :py:class`bob.learn.em.JFABase` given a :py:class`bob.learn.em.JFATrainer` and the proper data
 
   **Parameters**:
-    trainer
-      A trainer mechanism (:py:class`bob.learn.em.JFATrainer`)
-    machine
-      A container machine (:py:class`bob.learn.em.JFABase`)
-    data
-      The data to be trained list(list(:py:class`bob.learn.em.GMMStats`))
-    max_iterations
+    trainer : :py:class`bob.learn.em.JFATrainer`
+      A JFA trainer mechanism
+    jfa_base : :py:class`bob.learn.em.JFABase`
+      A container machine
+    data : [[:py:class`bob.learn.em.GMMStats`]]
+      The data to be trained
+    max_iterations : int
       The maximum number of iterations to train a machine
-    initialize
+    initialize : bool
       If True, runs the initialization procedure
+    rng :  :py:class:`bob.core.random.mt19937`
+      The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loops
   """
 
   if initialize:
-    trainer.initialize(jfa_base, data)
+    if rng is not None:
+      trainer.initialize(jfa_base, data, rng)
+    else:
+      trainer.initialize(jfa_base, data)
 
   #V Subspace
   for i in range(max_iterations):
