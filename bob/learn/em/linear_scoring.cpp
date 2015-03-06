@@ -15,7 +15,7 @@ static int extract_gmmstats_list(PyObject *list,
                              std::vector<boost::shared_ptr<const bob::learn::em::GMMStats> >& training_data)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++){
-  
+
     PyBobLearnEMGMMStatsObject* stats;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyBobLearnEMGMMStats_Type, &stats)){
       PyErr_Format(PyExc_RuntimeError, "Expected GMMStats objects");
@@ -30,7 +30,7 @@ static int extract_gmmmachine_list(PyObject *list,
                              std::vector<boost::shared_ptr<const bob::learn::em::GMMMachine> >& training_data)
 {
   for (int i=0; i<PyList_GET_SIZE(list); i++){
-  
+
     PyBobLearnEMGMMMachineObject* stats;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyBobLearnEMGMMMachine_Type, &stats)){
       PyErr_Format(PyExc_RuntimeError, "Expected GMMMachine objects");
@@ -53,7 +53,7 @@ int extract_array_list(PyObject* list, std::vector<blitz::Array<double,N> >& vec
 
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
-    PyBlitzArrayObject* blitz_object; 
+    PyBlitzArrayObject* blitz_object;
     if (!PyArg_Parse(PyList_GetItem(list, i), "O&", &PyBlitzArray_Converter, &blitz_object)){
       PyErr_Format(PyExc_RuntimeError, "Expected numpy array object");
       return -1;
@@ -76,10 +76,10 @@ bob::extension::FunctionDoc linear_scoring1 = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("models, ubm, test_stats, test_channelOffset, frame_length_normalisation", "output")
-.add_parameter("models", "list(:py:class:`bob.learn.em.GMMMachine`)", "")
+.add_parameter("models", "[:py:class:`bob.learn.em.GMMMachine`]", "")
 .add_parameter("ubm", ":py:class:`bob.learn.em.GMMMachine`", "")
-.add_parameter("test_stats", "list(:py:class:`bob.learn.em.GMMStats`)", "")
-.add_parameter("test_channelOffset", "list(array_like<float,1>)", "")
+.add_parameter("test_stats", "[:py:class:`bob.learn.em.GMMStats`]", "")
+.add_parameter("test_channelOffset", "[array_like<float,1>]", "")
 .add_parameter("frame_length_normalisation", "bool", "")
 .add_return("output","array_like<float,1>","Score");
 
@@ -117,10 +117,10 @@ bob::extension::FunctionDoc linear_scoring3 = bob::extension::FunctionDoc(
 .add_return("output","array_like<float,1>","Score");
 
 PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwargs) {
-    
+
   //Cheking the number of arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-    
+
   //Reading the first input argument
   PyObject* arg = 0;
   if (PyTuple_Size(args))
@@ -130,10 +130,10 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
     auto tmp_ = make_safe(tmp);
     arg = PyList_GET_ITEM(tmp, 0);
   }
-  
+
   //Checking the signature of the method (list of GMMMachine as input)
   if ((PyList_Check(arg)) && PyBobLearnEMGMMMachine_Check(PyList_GetItem(arg, 0)) && (nargs >= 3) && (nargs<=5) ){
-  
+
     char** kwlist = linear_scoring1.kwlist(0);
 
     PyObject* gmm_list_o                 = 0;
@@ -174,7 +174,7 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
 
   //Checking the signature of the method (list of arrays as input
   else if ((PyList_Check(arg)) && PyArray_Check(PyList_GetItem(arg, 0)) && (nargs >= 4) && (nargs<=6) ){
-  
+
     char** kwlist = linear_scoring2.kwlist(0);
 
     PyObject* model_supervector_list_o        = 0;
@@ -190,13 +190,13 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
                                                                        &PyList_Type, &stats_list_o,
                                                                        &PyList_Type, &channel_offset_list_o,
                                                                        &PyBool_Type, &frame_length_normalisation)){
-      linear_scoring2.print_usage(); 
+      linear_scoring2.print_usage();
       return 0;
     }
-    
+
     //protects acquired resources through this scope
     auto ubm_means_ = make_safe(ubm_means);
-    auto ubm_variances_ = make_safe(ubm_variances);    
+    auto ubm_variances_ = make_safe(ubm_variances);
 
     std::vector<blitz::Array<double,1> > model_supervector_list;
     if(extract_array_list(model_supervector_list_o ,model_supervector_list)!=0)
@@ -217,12 +217,12 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
       bob::learn::em::linearScoring(model_supervector_list, *PyBlitzArrayCxx_AsBlitz<double,1>(ubm_means),*PyBlitzArrayCxx_AsBlitz<double,1>(ubm_variances), stats_list, channel_offset_list, f(frame_length_normalisation),scores);
 
     return PyBlitzArrayCxx_AsConstNumpy(scores);
-  
+
   }
-  
+
   //Checking the signature of the method (list of arrays as input
   else if (PyArray_Check(arg) && (nargs >= 5) && (nargs<=6) ){
-  
+
     char** kwlist = linear_scoring3.kwlist(0);
 
     PyBlitzArrayObject* model                 = 0;
@@ -238,10 +238,10 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
                                                                        &PyBobLearnEMGMMStats_Type, &stats,
                                                                        &PyBlitzArray_Converter, &channel_offset,
                                                                        &PyBool_Type, &frame_length_normalisation)){
-      linear_scoring3.print_usage(); 
+      linear_scoring3.print_usage();
       return 0;
     }
-    
+
     //protects acquired resources through this scope
     auto model_ = make_safe(model);
     auto ubm_means_ = make_safe(ubm_means);
@@ -253,7 +253,7 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
     return Py_BuildValue("d",score);
   }
 
-  
+
   else{
     PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - linear_scoring requires 5 or 6 arguments, but you provided %d (see help)", nargs);
     linear_scoring1.print_usage();
@@ -263,4 +263,3 @@ PyObject* PyBobLearnEM_linear_scoring(PyObject*, PyObject* args, PyObject* kwarg
   }
 
 }
-

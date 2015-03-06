@@ -39,8 +39,8 @@ static auto PLDABase_doc = bob::extension::ClassDoc(
   .add_parameter("dim_d", "int", "Dimensionality of the feature vector.")
   .add_parameter("dim_f", "int", "Size of :math:`F` (between class variantion matrix).")
   .add_parameter("dim_g", "int", "Size of :math:`G` (within class variantion matrix).")
-  .add_parameter("variance_threshold", "double", "The smallest possible value of the variance (Ignored if set to 0.)")
-  
+  .add_parameter("variance_threshold", "float", "The smallest possible value of the variance (Ignored if set to 0.)")
+
   .add_parameter("other", ":py:class:`bob.learn.em.PLDABase`", "A PLDABase object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
 
@@ -80,21 +80,21 @@ static int PyBobLearnEMPLDABase_init_hdf5(PyBobLearnEMPLDABaseObject* self, PyOb
 static int PyBobLearnEMPLDABase_init_dim(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
 
   char** kwlist = PLDABase_doc.kwlist(0);
-  
+
   int dim_D, dim_F, dim_G = 1;
   double variance_threshold = 0.0;
 
-  //Here we have to select which keyword argument to read  
+  //Here we have to select which keyword argument to read
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iii|d", kwlist, &dim_D, &dim_F, &dim_G, &variance_threshold)){
     PLDABase_doc.print_usage();
     return -1;
   }
-  
+
   if(dim_D <= 0){
     PyErr_Format(PyExc_TypeError, "dim_D argument must be greater than or equal to one");
     return -1;
   }
-  
+
   if(dim_F <= 0){
     PyErr_Format(PyExc_TypeError, "dim_F argument must be greater than or equal to one");
     return -1;
@@ -110,7 +110,7 @@ static int PyBobLearnEMPLDABase_init_dim(PyBobLearnEMPLDABaseObject* self, PyObj
     return -1;
   }
 
-  
+
   self->cxx.reset(new bob::learn::em::PLDABase(dim_D, dim_F, dim_G, variance_threshold));
   return 0;
 }
@@ -358,7 +358,7 @@ static PyObject* PyBobLearnEMPLDABase_getGtISigma(PyBobLearnEMPLDABaseObject* se
 /***** __logdet_alpha__ *****/
 static auto __logdet_alpha__ = bob::extension::VariableDoc(
   "__logdet_alpha__",
-  "double",
+  "float",
   "Gets :math:`\\log(\\det(\\alpha))`",
   ""
 );
@@ -371,7 +371,7 @@ static PyObject* PyBobLearnEMPLDABase_getLogDetAlpha(PyBobLearnEMPLDABaseObject*
 /***** __logdet_sigma__ *****/
 static auto __logdet_sigma__ = bob::extension::VariableDoc(
   "__logdet_sigma__",
-  "double",
+  "float",
   "Gets :math:`\\log(\\det(\\Sigma))`",
   ""
 );
@@ -385,7 +385,7 @@ static PyObject* PyBobLearnEMPLDABase_getLogDetSigma(PyBobLearnEMPLDABaseObject*
 /***** variance_threshold *****/
 static auto variance_threshold = bob::extension::VariableDoc(
   "variance_threshold",
-  "double",
+  "float",
   "",
   ""
 );
@@ -438,14 +438,14 @@ int PyBobLearnEMPLDABase_setSigma(PyBobLearnEMPLDABaseObject* self, PyObject* va
 }
 
 
-static PyGetSetDef PyBobLearnEMPLDABase_getseters[] = { 
+static PyGetSetDef PyBobLearnEMPLDABase_getseters[] = {
   {
    shape.name(),
    (getter)PyBobLearnEMPLDABase_getShape,
    0,
    shape.doc(),
    0
-  },  
+  },
   {
    F.name(),
    (getter)PyBobLearnEMPLDABase_getF,
@@ -549,9 +549,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMPLDABase_Save(PyBobLearnEMPLDABaseObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -571,12 +571,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMPLDABase_Load(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -587,7 +587,7 @@ static PyObject* PyBobLearnEMPLDABase_Load(PyBobLearnEMPLDABaseObject* self, PyO
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this PLDABase with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -612,8 +612,8 @@ static PyObject* PyBobLearnEMPLDABase_IsSimilarTo(PyBobLearnEMPLDABaseObject* se
         &PyBobLearnEMPLDABase_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -648,7 +648,7 @@ static PyObject* PyBobLearnEMPLDABase_resize(PyBobLearnEMPLDABaseObject* self, P
     PyErr_Format(PyExc_TypeError, "dim_d argument must be greater than or equal to one");
     Py_RETURN_NONE;
   }
-  
+
   if(dim_F <= 0){
     PyErr_Format(PyExc_TypeError, "dim_f argument must be greater than or equal to one");
     Py_RETURN_NONE;
@@ -680,7 +680,7 @@ static auto get_gamma = bob::extension::FunctionDoc(
 .add_return("output","array_like <float, 2D>","Get the :math:`\\gamma` matrix");
 static PyObject* PyBobLearnEMPLDABase_getGamma(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_gamma.kwlist(0);
 
   int i = 0;
@@ -704,7 +704,7 @@ static auto has_gamma = bob::extension::FunctionDoc(
 .add_return("output","bool","");
 static PyObject* PyBobLearnEMPLDABase_hasGamma(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = has_gamma.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
@@ -713,7 +713,7 @@ static PyObject* PyBobLearnEMPLDABase_hasGamma(PyBobLearnEMPLDABaseObject* self,
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
- BOB_CATCH_MEMBER("`has_gamma` could not be read", 0)    
+ BOB_CATCH_MEMBER("`has_gamma` could not be read", 0)
 }
 
 
@@ -725,22 +725,22 @@ static auto compute_gamma = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("a,res","")
+.add_prototype("a,res")
 .add_parameter("a", "int", "Index")
 .add_parameter("res", "array_like <float, 2D>", "Input data");
 static PyObject* PyBobLearnEMPLDABase_computeGamma(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = compute_gamma.kwlist(0);
   int i = 0;
-  PyBlitzArrayObject* res = 0;  
+  PyBlitzArrayObject* res = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) return 0;
 
-  auto res_ = make_safe(res);  
+  auto res_ = make_safe(res);
 
   self->cxx->computeGamma(i,*PyBlitzArrayCxx_AsBlitz<double,2>(res));
   Py_RETURN_NONE;
-  BOB_CATCH_MEMBER("`compute_gamma` could not be read", 0)    
+  BOB_CATCH_MEMBER("`compute_gamma` could not be read", 0)
 }
 
 /***** get_add_gamma *****/
@@ -757,7 +757,7 @@ static auto get_add_gamma = bob::extension::FunctionDoc(
 .add_return("output","array_like <float, 2D>","");
 static PyObject* PyBobLearnEMPLDABase_getAddGamma(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_add_gamma.kwlist(0);
 
   int i = 0;
@@ -781,7 +781,7 @@ static auto has_log_like_const_term = bob::extension::FunctionDoc(
 .add_return("output","bool","");
 static PyObject* PyBobLearnEMPLDABase_hasLogLikeConstTerm(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = has_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
@@ -790,7 +790,7 @@ static PyObject* PyBobLearnEMPLDABase_hasLogLikeConstTerm(PyBobLearnEMPLDABaseOb
     Py_RETURN_TRUE;
   else
     Py_RETURN_FALSE;
- BOB_CATCH_MEMBER("`has_log_like_const_term` could not be read", 0)    
+ BOB_CATCH_MEMBER("`has_log_like_const_term` could not be read", 0)
 }
 
 
@@ -803,22 +803,22 @@ static auto compute_log_like_const_term = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("a,res","")
+.add_prototype("a,res")
 .add_parameter("a", "int", "Index")
 .add_parameter("res", "array_like <float, 2D>", "Input data");
 static PyObject* PyBobLearnEMPLDABase_computeLogLikeConstTerm(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = compute_log_like_const_term.kwlist(0);
   int i = 0;
-  PyBlitzArrayObject* res = 0;  
+  PyBlitzArrayObject* res = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &res)) return 0;
 
-  auto res_ = make_safe(res);  
+  auto res_ = make_safe(res);
 
   self->cxx->computeLogLikeConstTerm(i,*PyBlitzArrayCxx_AsBlitz<double,2>(res));
   Py_RETURN_NONE;
-  BOB_CATCH_MEMBER("`compute_gamma` could not be read", 0)    
+  BOB_CATCH_MEMBER("`compute_gamma` could not be read", 0)
 }
 
 
@@ -833,17 +833,17 @@ static auto get_add_log_like_const_term = bob::extension::FunctionDoc(
 )
 .add_prototype("a","output")
 .add_parameter("a", "int", "Index")
-.add_return("output","double","");
+.add_return("output","float","");
 static PyObject* PyBobLearnEMPLDABase_getAddLogLikeConstTerm(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_add_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getAddLogLikeConstTerm(i));
 
-  BOB_CATCH_MEMBER("`get_add_log_like_const_term` could not be read", 0)    
+  BOB_CATCH_MEMBER("`get_add_log_like_const_term` could not be read", 0)
 }
 
 
@@ -857,17 +857,17 @@ static auto get_log_like_const_term = bob::extension::FunctionDoc(
 )
 .add_prototype("a","output")
 .add_parameter("a", "int", "Index")
-.add_return("output","double","");
+.add_return("output","float","");
 static PyObject* PyBobLearnEMPLDABase_getLogLikeConstTerm(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_log_like_const_term.kwlist(0);
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
 
   return Py_BuildValue("d",self->cxx->getLogLikeConstTerm(i));
 
-  BOB_CATCH_MEMBER("`get_log_like_const_term` could not be read", 0)    
+  BOB_CATCH_MEMBER("`get_log_like_const_term` could not be read", 0)
 }
 
 /***** clear_maps *****/
@@ -877,14 +877,14 @@ static auto clear_maps = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("","");
+.add_prototype("");
 static PyObject* PyBobLearnEMPLDABase_clearMaps(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   self->cxx->clearMaps();
   Py_RETURN_NONE;
 
-  BOB_CATCH_MEMBER("`clear_maps` could not be read", 0)    
+  BOB_CATCH_MEMBER("`clear_maps` could not be read", 0)
 }
 
 
@@ -902,23 +902,23 @@ static auto compute_log_likelihood_point_estimate = bob::extension::FunctionDoc(
 .add_parameter("xij", "array_like <float, 1D>", "")
 .add_parameter("hi", "array_like <float, 1D>", "")
 .add_parameter("wij", "array_like <float, 1D>", "")
-.add_return("output", "double", "");
+.add_return("output", "float", "");
 static PyObject* PyBobLearnEMPLDABase_computeLogLikelihoodPointEstimate(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = compute_log_likelihood_point_estimate.kwlist(0);
-  PyBlitzArrayObject* xij, *hi, *wij;  
+  PyBlitzArrayObject* xij, *hi, *wij;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&O&", kwlist, &PyBlitzArray_Converter, &xij,
                                                                &PyBlitzArray_Converter, &hi,
                                                                &PyBlitzArray_Converter, &wij)) return 0;
 
   auto xij_ = make_safe(xij);
   auto hi_ = make_safe(hi);
-  auto wij_ = make_safe(wij);  
+  auto wij_ = make_safe(wij);
 
   return Py_BuildValue("d", self->cxx->computeLogLikelihoodPointEstimate(*PyBlitzArrayCxx_AsBlitz<double,1>(xij), *PyBlitzArrayCxx_AsBlitz<double,1>(hi), *PyBlitzArrayCxx_AsBlitz<double,1>(wij)));
-  
-  BOB_CATCH_MEMBER("`compute_log_likelihood_point_estimate` could not be read", 0)    
+
+  BOB_CATCH_MEMBER("`compute_log_likelihood_point_estimate` could not be read", 0)
 }
 
 /***** __precompute__ *****/
@@ -931,11 +931,11 @@ static auto __precompute__ = bob::extension::FunctionDoc(
 );
 static PyObject* PyBobLearnEMPLDABase_precompute(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   self->cxx->precompute();
   Py_RETURN_NONE;
 
-  BOB_CATCH_MEMBER("`precompute` could not be read", 0)    
+  BOB_CATCH_MEMBER("`precompute` could not be read", 0)
 }
 
 
@@ -951,11 +951,11 @@ static auto __precompute_log_like__ = bob::extension::FunctionDoc(
 );
 static PyObject* PyBobLearnEMPLDABase_precomputeLogLike(PyBobLearnEMPLDABaseObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   self->cxx->precomputeLogLike();
   Py_RETURN_NONE;
 
-  BOB_CATCH_MEMBER("`__precompute_log_like__` could not be read", 0)    
+  BOB_CATCH_MEMBER("`__precompute_log_like__` could not be read", 0)
 }
 
 
@@ -1013,25 +1013,25 @@ static PyMethodDef PyBobLearnEMPLDABase_methods[] = {
     (PyCFunction)PyBobLearnEMPLDABase_hasLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     has_log_like_const_term.doc()
-  },  
+  },
   {
     compute_log_like_const_term.name(),
     (PyCFunction)PyBobLearnEMPLDABase_computeLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     compute_log_like_const_term.doc()
-  },  
+  },
   {
     get_add_log_like_const_term.name(),
     (PyCFunction)PyBobLearnEMPLDABase_getAddLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     get_add_log_like_const_term.doc()
-  },  
+  },
   {
     get_log_like_const_term.name(),
     (PyCFunction)PyBobLearnEMPLDABase_getLogLikeConstTerm,
     METH_VARARGS|METH_KEYWORDS,
     get_log_like_const_term.doc()
-  },  
+  },
   {
     clear_maps.name(),
     (PyCFunction)PyBobLearnEMPLDABase_clearMaps,
@@ -1049,13 +1049,13 @@ static PyMethodDef PyBobLearnEMPLDABase_methods[] = {
     (PyCFunction)PyBobLearnEMPLDABase_precompute,
     METH_NOARGS,
     __precompute__.doc()
-  },   
+  },
   {
     __precompute_log_like__.name(),
     (PyCFunction)PyBobLearnEMPLDABase_precomputeLogLike,
     METH_NOARGS,
     __precompute_log_like__.doc()
-  },     
+  },
   {0} /* Sentinel */
 };
 
@@ -1095,4 +1095,3 @@ bool init_BobLearnEMPLDABase(PyObject* module)
   Py_INCREF(&PyBobLearnEMPLDABase_Type);
   return PyModule_AddObject(module, "PLDABase", (PyObject*)&PyBobLearnEMPLDABase_Type) >= 0;
 }
-

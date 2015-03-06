@@ -946,9 +946,9 @@ static auto enroll = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("jfa_machine,features,n_iter","")
+.add_prototype("jfa_machine,features,n_iter")
 .add_parameter("jfa_machine", ":py:class:`bob.learn.em.JFAMachine`", "JFAMachine Object")
-.add_parameter("features", "list(:py:class:`bob.learn.em.GMMStats`)`", "")
+.add_parameter("features", "[:py:class:`bob.learn.em.GMMStats`]", "")
 .add_parameter("n_iter", "int", "Number of iterations");
 static PyObject* PyBobLearnEMJFATrainer_enroll(PyBobLearnEMJFATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY

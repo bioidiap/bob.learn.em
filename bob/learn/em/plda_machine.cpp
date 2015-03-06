@@ -208,7 +208,7 @@ int PyBobLearnEMPLDAMachine_setNSamples(PyBobLearnEMPLDAMachineObject* self, PyO
 /***** w_sum_xit_beta_xi *****/
 static auto w_sum_xit_beta_xi = bob::extension::VariableDoc(
   "w_sum_xit_beta_xi",
-  "double",
+  "float",
   "Gets the :math:`A = -0.5 \\sum_{i} x_{i}^T \\beta x_{i}` value",
   ""
 );
@@ -300,7 +300,7 @@ int PyBobLearnEMPLDAMachine_setWeightedSum(PyBobLearnEMPLDAMachineObject* self, 
 /***** log_likelihood *****/
 static auto log_likelihood = bob::extension::VariableDoc(
   "log_likelihood",
-  "double",
+  "float",
   "",
   ""
 );
@@ -313,7 +313,7 @@ int PyBobLearnEMPLDAMachine_setLogLikelihood(PyBobLearnEMPLDAMachineObject* self
   BOB_TRY
 
   if (!PyBob_NumberCheck(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, log_likelihood.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a float", Py_TYPE(self)->tp_name, log_likelihood.name());
     return -1;
   }
 
@@ -572,7 +572,7 @@ static auto get_add_log_like_const_term = bob::extension::FunctionDoc(
 )
 .add_prototype("a","output")
 .add_parameter("a", "int", "Index")
-.add_return("output","double","");
+.add_return("output","float","");
 static PyObject* PyBobLearnEMPLDAMachine_getAddLogLikeConstTerm(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -596,7 +596,7 @@ static auto get_log_like_const_term = bob::extension::FunctionDoc(
 )
 .add_prototype("a","output")
 .add_parameter("a", "int", "Index")
-.add_return("output","double","");
+.add_return("output","float","");
 static PyObject* PyBobLearnEMPLDAMachine_getLogLikeConstTerm(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -616,7 +616,7 @@ static auto clear_maps = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("","");
+.add_prototype("");
 static PyObject* PyBobLearnEMPLDAMachine_clearMaps(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 

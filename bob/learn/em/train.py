@@ -59,14 +59,14 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
 
 def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True, rng=None):
   """
-  Trains a :py:class`bob.learn.em.JFABase` given a :py:class`bob.learn.em.JFATrainer` and the proper data
+  Trains a :py:class:`bob.learn.em.JFABase` given a :py:class:`bob.learn.em.JFATrainer` and the proper data
 
   **Parameters**:
-    trainer : :py:class`bob.learn.em.JFATrainer`
+    trainer : :py:class:`bob.learn.em.JFATrainer`
       A JFA trainer mechanism
-    jfa_base : :py:class`bob.learn.em.JFABase`
+    jfa_base : :py:class:`bob.learn.em.JFABase`
       A container machine
-    data : [[:py:class`bob.learn.em.GMMStats`]]
+    data : [[:py:class:`bob.learn.em.GMMStats`]]
       The data to be trained
     max_iterations : int
       The maximum number of iterations to train a machine

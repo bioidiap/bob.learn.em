@@ -31,7 +31,7 @@ static auto IVectorMachine_doc = bob::extension::ClassDoc(
 
   .add_parameter("ubm", ":py:class:`bob.learn.em.GMMMachine`", "The Universal Background Model.")
   .add_parameter("rt", "int", "Size of the Total Variability matrix (CD x rt).")
-  .add_parameter("variance_threshold", "double", "Variance flooring threshold for the :math:`\\Sigma` (diagonal) matrix")
+  .add_parameter("variance_threshold", "float", "Variance flooring threshold for the :math:`\\Sigma` (diagonal) matrix")
 
   .add_parameter("other", ":py:class:`bob.learn.em.IVectorMachine`", "A IVectorMachine object to be copied.")
   .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading")
@@ -258,7 +258,7 @@ int PyBobLearnEMIVectorMachine_setSigma(PyBobLearnEMIVectorMachineObject* self, 
 /***** variance_threshold *****/
 static auto variance_threshold = bob::extension::VariableDoc(
   "variance_threshold",
-  "double",
+  "float",
   "Threshold for the variance contained in sigma",
   ""
 );
@@ -271,7 +271,7 @@ int PyBobLearnEMIVectorMachine_setVarianceThreshold(PyBobLearnEMIVectorMachineOb
   BOB_TRY
 
   if (!PyBob_NumberCheck(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects an double", Py_TYPE(self)->tp_name, variance_threshold.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a float", Py_TYPE(self)->tp_name, variance_threshold.name());
     return -1;
   }
 

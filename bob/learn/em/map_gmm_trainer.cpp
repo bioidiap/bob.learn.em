@@ -195,7 +195,7 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_RichCompare(PyBobLearnEMMAPGMMTrainer
 /***** relevance_factor *****/
 static auto relevance_factor = bob::extension::VariableDoc(
   "relevance_factor",
-  "double",
+  "float",
   "If set the reynolds_adaptation parameters, will apply the Reynolds Adaptation Factor. See Eq (14) from [Reynolds2000]_",
   ""
 );
@@ -208,7 +208,7 @@ int PyBobLearnEMMAPGMMTrainer_setRelevanceFactor(PyBobLearnEMMAPGMMTrainerObject
   BOB_TRY
 
   if(!PyBob_NumberCheck(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, relevance_factor.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a float", Py_TYPE(self)->tp_name, relevance_factor.name());
     return -1;
   }
 
@@ -221,7 +221,7 @@ int PyBobLearnEMMAPGMMTrainer_setRelevanceFactor(PyBobLearnEMMAPGMMTrainerObject
 /***** alpha *****/
 static auto alpha = bob::extension::VariableDoc(
   "alpha",
-  "double",
+  "float",
   "Set directly the alpha parameter (Eq (14) from [Reynolds2000]_), ignoring zeroth order statistics as a weighting factor.",
   ""
 );
@@ -234,7 +234,7 @@ int PyBobLearnEMMAPGMMTrainer_setAlpha(PyBobLearnEMMAPGMMTrainerObject* self, Py
   BOB_TRY
 
   if(!PyBob_NumberCheck(value)){
-    PyErr_Format(PyExc_RuntimeError, "%s %s expects a double", Py_TYPE(self)->tp_name, alpha.name());
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a float", Py_TYPE(self)->tp_name, alpha.name());
     return -1;
   }
 
@@ -333,11 +333,11 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
 /*** e_step ***/
 static auto e_step = bob::extension::FunctionDoc(
   "e_step",
-  "Calculates and saves statistics across the dataset and saves these as :py:attr`gmm_statistics`. ",
+  "Calculates and saves statistics across the dataset and saves these as :py:attr:`gmm_statistics`. ",
 
   "Calculates the average log likelihood of the observations given the GMM,"
   "and returns this in average_log_likelihood."
-  "The statistics, :py:attr`gmm_statistics`, will be used in the :py:meth:`m_step` that follows.",
+  "The statistics, :py:attr:`gmm_statistics`, will be used in the :py:meth:`m_step` that follows.",
 
   true
 )

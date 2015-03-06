@@ -98,7 +98,7 @@ static auto ISVTrainer_doc = bob::extension::ClassDoc(
   .add_prototype("other","")
   .add_prototype("","")
   .add_parameter("other", ":py:class:`bob.learn.em.ISVTrainer`", "A ISVTrainer object to be copied.")
-  .add_parameter("relevance_factor", "double", "")
+  .add_parameter("relevance_factor", "float", "")
 );
 
 
@@ -406,7 +406,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base,stats,rng")
+.add_prototype("isv_base, stats, rng")
 .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "ISVBase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -446,7 +446,7 @@ static auto e_step = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base,stats")
+.add_prototype("isv_base, stats")
 .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "ISVBase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object");
 static PyObject* PyBobLearnEMISVTrainer_e_step(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
@@ -509,7 +509,7 @@ static auto enroll = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_machine,features,n_iter","")
+.add_prototype("isv_machine, features, n_iter")
 .add_parameter("isv_machine", ":py:class:`bob.learn.em.ISVMachine`", "ISVMachine Object")
 .add_parameter("features", "list(:py:class:`bob.learn.em.GMMStats`)`", "")
 .add_parameter("n_iter", "int", "Number of iterations");

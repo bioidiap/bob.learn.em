@@ -29,7 +29,7 @@ static auto EMPCATrainer_doc = bob::extension::ClassDoc(
   .add_prototype("","")
 
   .add_parameter("other", ":py:class:`bob.learn.em.EMPCATrainer`", "A EMPCATrainer object to be copied.")
-  .add_parameter("convergence_threshold", "double", "")
+  .add_parameter("convergence_threshold", "float", "")
 
 );
 
@@ -227,7 +227,7 @@ static auto m_step = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("linear_machine,data")
-.add_parameter("linear_machine", ":py:class:`bob.learn.em.LinearMachine`", "LinearMachine Object")
+.add_parameter("linear_machine", ":py:class:`bob.learn.linear.Machine`", "LinearMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
 static PyObject* PyBobLearnEMEMPCATrainer_m_step(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
@@ -258,7 +258,7 @@ static auto compute_likelihood = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("linear_machine,data")
-.add_parameter("linear_machine", ":py:class:`bob.learn.em.LinearMachine`", "LinearMachine Object");
+.add_parameter("linear_machine", ":py:class:`bob.learn.linear.Machine`", "LinearMachine Object");
 static PyObject* PyBobLearnEMEMPCATrainer_compute_likelihood(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 

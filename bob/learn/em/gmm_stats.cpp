@@ -120,7 +120,7 @@ static int PyBobLearnEMGMMStats_init(PyBobLearnEMGMMStatsObject* self, PyObject*
         arg = PyList_GET_ITEM(tmp, 0);
       }
 
-      /**If the constructor input is Gaussian object**/	
+      /**If the constructor input is Gaussian object**/
      if (PyBobLearnEMGMMStats_Check(arg))
        return PyBobLearnEMGMMStats_init_copy(self, args, kwargs);
       /**If the constructor input is a HDF5**/
@@ -193,28 +193,28 @@ int PyBobLearnEMGMMStats_setN(PyBobLearnEMGMMStatsObject* self, PyObject* value,
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, n.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, n.name());
     return -1;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->n.extent(0)){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->n.extent(0), input->shape[0], n.name());
     return -1;
   }
-  
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "n");
   if (!b) return -1;
   self->cxx->n = *b;
   return 0;
-  BOB_CATCH_MEMBER("n could not be set", -1)  
+  BOB_CATCH_MEMBER("n could not be set", -1)
 }
 
 
@@ -237,28 +237,28 @@ int PyBobLearnEMGMMStats_setSum_px(PyBobLearnEMGMMStatsObject* self, PyObject* v
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, sum_px.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, sum_px.name());
     return -1;
-  }  
+  }
 
   if (input->shape[1] != (Py_ssize_t)self->cxx->sumPx.extent(1) && input->shape[0] != (Py_ssize_t)self->cxx->sumPx.extent(0)) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->sumPx.extent(1), (Py_ssize_t)self->cxx->sumPx.extent(0), (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[0], sum_px.name());
     return -1;
   }
-  
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "sum_px");
   if (!b) return -1;
   self->cxx->sumPx = *b;
   return 0;
-  BOB_CATCH_MEMBER("sum_px could not be set", -1)  
+  BOB_CATCH_MEMBER("sum_px could not be set", -1)
 }
 
 
@@ -281,28 +281,28 @@ int PyBobLearnEMGMMStats_setSum_pxx(PyBobLearnEMGMMStatsObject* self, PyObject* 
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, sum_pxx.name());
     return -1;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, sum_pxx.name());
     return -1;
-  }  
+  }
 
   if (input->shape[1] != (Py_ssize_t)self->cxx->sumPxx.extent(1) && input->shape[0] != (Py_ssize_t)self->cxx->sumPxx.extent(0)) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] not [%" PY_FORMAT_SIZE_T "d, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->sumPxx.extent(1), (Py_ssize_t)self->cxx->sumPxx.extent(0), (Py_ssize_t)input->shape[1], (Py_ssize_t)input->shape[0], sum_pxx.name());
     return -1;
   }
-  
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "sum_pxx");
   if (!b) return -1;
   self->cxx->sumPxx = *b;
   return 0;
-  BOB_CATCH_MEMBER("sum_pxx could not be set", -1)  
+  BOB_CATCH_MEMBER("sum_pxx could not be set", -1)
 }
 
 
@@ -339,7 +339,7 @@ int PyBobLearnEMGMMStats_setT(PyBobLearnEMGMMStatsObject* self, PyObject* value,
 /***** log_likelihood *****/
 static auto log_likelihood = bob::extension::VariableDoc(
   "log_likelihood",
-  "double",
+  "float",
   "The accumulated log likelihood of all samples"
 );
 PyObject* PyBobLearnEMGMMStats_getLog_likelihood(PyBobLearnEMGMMStatsObject* self, void*){
@@ -411,7 +411,7 @@ static PyGetSetDef PyBobLearnEMGMMStats_getseters[] = {
     (setter)PyBobLearnEMGMMStats_setLog_likelihood,
     log_likelihood.doc(),
     0
-  },  
+  },
   {
    shape.name(),
    (getter)PyBobLearnEMGMMStats_getShape,
@@ -440,9 +440,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMGMMStats_Save(PyBobLearnEMGMMStatsObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -462,12 +462,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMGMMStats_Load(PyBobLearnEMGMMStatsObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -478,7 +478,7 @@ static PyObject* PyBobLearnEMGMMStats_Load(PyBobLearnEMGMMStatsObject* self, PyO
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this GMMStats with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -503,8 +503,8 @@ static PyObject* PyBobLearnEMGMMStats_IsSimilarTo(PyBobLearnEMGMMStatsObject* se
         &PyBobLearnEMGMMStats_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -671,4 +671,3 @@ bool init_BobLearnEMGMMStats(PyObject* module)
   Py_INCREF(&PyBobLearnEMGMMStats_Type);
   return PyModule_AddObject(module, "GMMStats", (PyObject*)&PyBobLearnEMGMMStats_Type) >= 0;
 }
-

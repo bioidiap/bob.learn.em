@@ -98,7 +98,7 @@ static int PyBobLearnEMKMeansMachine_init(PyBobLearnEMKMeansMachineObject* self,
 
   // get the number of command line arguments
   int nargs = (args?PyTuple_Size(args):0) + (kwargs?PyDict_Size(kwargs):0);
-  
+
   switch (nargs) {
 
     case 0: //default initializer ()
@@ -204,23 +204,23 @@ int PyBobLearnEMKMeansMachine_setMeans(PyBobLearnEMKMeansMachineObject* self, Py
     return -1;
   }
   auto o_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, means.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, means.name());
     return 0;
-  }  
+  }
 
   if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs()) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], means.name());
     return 0;
-  }  
-  
+  }
+
   auto b = PyBlitzArrayCxx_AsBlitz<double,2>(input, "means");
   if (!b) return -1;
   self->cxx->setMeans(*b);
@@ -229,7 +229,7 @@ int PyBobLearnEMKMeansMachine_setMeans(PyBobLearnEMKMeansMachineObject* self, Py
 }
 
 
-static PyGetSetDef PyBobLearnEMKMeansMachine_getseters[] = { 
+static PyGetSetDef PyBobLearnEMKMeansMachine_getseters[] = {
   {
    shape.name(),
    (getter)PyBobLearnEMKMeansMachine_getShape,
@@ -263,9 +263,9 @@ static auto save = bob::extension::FunctionDoc(
 static PyObject* PyBobLearnEMKMeansMachine_Save(PyBobLearnEMKMeansMachineObject* self,  PyObject* args, PyObject* kwargs) {
 
   BOB_TRY
-  
+
   // get list of arguments
-  char** kwlist = save.kwlist(0);  
+  char** kwlist = save.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
 
@@ -285,12 +285,12 @@ static auto load = bob::extension::FunctionDoc(
 .add_parameter("hdf5", ":py:class:`bob.io.base.HDF5File`", "An HDF5 file open for reading");
 static PyObject* PyBobLearnEMKMeansMachine_Load(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
-  char** kwlist = load.kwlist(0);  
+
+  char** kwlist = load.kwlist(0);
   PyBobIoHDF5FileObject* hdf5;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, PyBobIoHDF5File_Converter, &hdf5)) return 0;
-  
-  auto hdf5_ = make_safe(hdf5);  
+
+  auto hdf5_ = make_safe(hdf5);
   self->cxx->load(*hdf5->f);
 
   BOB_CATCH_MEMBER("cannot load the data", 0)
@@ -301,7 +301,7 @@ static PyObject* PyBobLearnEMKMeansMachine_Load(PyBobLearnEMKMeansMachineObject*
 /*** is_similar_to ***/
 static auto is_similar_to = bob::extension::FunctionDoc(
   "is_similar_to",
-  
+
   "Compares this KMeansMachine with the ``other`` one to be approximately the same.",
   "The optional values ``r_epsilon`` and ``a_epsilon`` refer to the "
   "relative and absolute precision for the ``weights``, ``biases`` "
@@ -326,8 +326,8 @@ static PyObject* PyBobLearnEMKMeansMachine_IsSimilarTo(PyBobLearnEMKMeansMachine
         &PyBobLearnEMKMeansMachine_Type, &other,
         &r_epsilon, &a_epsilon)){
 
-        is_similar_to.print_usage(); 
-        return 0;        
+        is_similar_to.print_usage();
+        return 0;
   }
 
   if (self->cxx->is_similar_to(*other->cxx, r_epsilon, a_epsilon))
@@ -380,7 +380,7 @@ static PyObject* PyBobLearnEMKMeansMachine_resize(PyBobLearnEMKMeansMachineObjec
 static auto get_mean = bob::extension::FunctionDoc(
   "get_mean",
   "Get the i'th mean.",
-  ".. note:: An exception is thrown if i is out of range.", 
+  ".. note:: An exception is thrown if i is out of range.",
   true
 )
 .add_prototype("i","mean")
@@ -388,12 +388,12 @@ static auto get_mean = bob::extension::FunctionDoc(
 .add_return("mean","array_like <float, 1D>","Mean array");
 static PyObject* PyBobLearnEMKMeansMachine_get_mean(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_mean.kwlist(0);
 
   int i = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "i", kwlist, &i)) return 0;
- 
+
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getMean(i));
 
   BOB_CATCH_MEMBER("cannot get the mean", 0)
@@ -404,7 +404,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_mean(PyBobLearnEMKMeansMachineObj
 static auto set_mean = bob::extension::FunctionDoc(
   "set_mean",
   "Set the i'th mean.",
-  ".. note:: An exception is thrown if i is out of range.", 
+  ".. note:: An exception is thrown if i is out of range.",
   true
 )
 .add_prototype("i,mean")
@@ -412,37 +412,37 @@ static auto set_mean = bob::extension::FunctionDoc(
 .add_parameter("mean", "array_like <float, 1D>", "Mean array");
 static PyObject* PyBobLearnEMKMeansMachine_set_mean(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = set_mean.kwlist(0);
 
   int i = 0;
   PyBlitzArrayObject* mean = 0;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "iO&", kwlist, &i, &PyBlitzArray_Converter, &mean)) return 0;
-  
+
   //protects acquired resources through this scope
   auto mean_ = make_safe(mean);
 
-  // perform check on the input  
+  // perform check on the input
   if (mean->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, set_mean.name());
     return 0;
-  }  
+  }
 
   if (mean->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, set_mean.name());
     return 0;
-  }  
+  }
 
   if (mean->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), mean->shape[0], set_mean.name());
     return 0;
-  }  
+  }
 
   //setting the mean
   self->cxx->setMean(i, *PyBlitzArrayCxx_AsBlitz<double,1>(mean));
 
   BOB_CATCH_MEMBER("cannot set the mean", 0)
-  
+
   Py_RETURN_NONE;
 }
 
@@ -452,7 +452,7 @@ static PyObject* PyBobLearnEMKMeansMachine_set_mean(PyBobLearnEMKMeansMachineObj
 static auto get_distance_from_mean = bob::extension::FunctionDoc(
   "get_distance_from_mean",
   "Return the power of two of the square Euclidean distance of the sample, x, to the i'th mean.",
-  ".. note:: An exception is thrown if i is out of range.", 
+  ".. note:: An exception is thrown if i is out of range.",
   true
 )
 .add_prototype("input,i","output")
@@ -461,34 +461,34 @@ static auto get_distance_from_mean = bob::extension::FunctionDoc(
 .add_return("output","float","Square Euclidean distance of the sample, x, to the i'th mean");
 static PyObject* PyBobLearnEMKMeansMachine_get_distance_from_mean(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_distance_from_mean.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
   int i = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i", kwlist, &PyBlitzArray_Converter, &input, &i)){ 
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&i", kwlist, &PyBlitzArray_Converter, &input, &i)){
     return 0;
   }
 
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_distance_from_mean.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_distance_from_mean.name());
     return 0;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_distance_from_mean.name());
     return 0;
-  }  
-  
+  }
+
   double output = self->cxx->getDistanceFromMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input),i);
   return Py_BuildValue("d", output);
 
@@ -508,7 +508,7 @@ static auto get_closest_mean = bob::extension::FunctionDoc(
 .add_return("output", "(int, int)", "Tuple containing the closest mean and the minimum distance from the input");
 static PyObject* PyBobLearnEMKMeansMachine_get_closest_mean(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_closest_mean.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
@@ -518,26 +518,26 @@ static PyObject* PyBobLearnEMKMeansMachine_get_closest_mean(PyBobLearnEMKMeansMa
   auto input_ = make_safe(input);
 
   size_t closest_mean = 0;
-  double min_distance = -1;   
-  
-  // perform check on the input  
+  double min_distance = -1;
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_closest_mean.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_closest_mean.name());
     return 0;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_closest_mean.name());
     return 0;
-  }    
-  
+  }
+
   self->cxx->getClosestMean(*PyBlitzArrayCxx_AsBlitz<double,1>(input), closest_mean, min_distance);
-    
+
   return Py_BuildValue("(i,d)", closest_mean, min_distance);
 
   BOB_CATCH_MEMBER("cannot compute the closest mean", 0)
@@ -553,10 +553,10 @@ static auto get_min_distance = bob::extension::FunctionDoc(
 )
 .add_prototype("input","output")
 .add_parameter("input", "array_like <float, 1D>", "The data sample (feature vector)")
-.add_return("output", "double", "The minimum distance");
+.add_return("output", "float", "The minimum distance");
 static PyObject* PyBobLearnEMKMeansMachine_get_min_distance(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist = get_min_distance.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
@@ -565,23 +565,23 @@ static PyObject* PyBobLearnEMKMeansMachine_get_min_distance(PyBobLearnEMKMeansMa
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
   double min_distance = 0;
-  
-  // perform check on the input  
+
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_min_distance.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 1){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_min_distance.name());
     return 0;
-  }  
+  }
 
   if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0], get_min_distance.name());
     return 0;
-  }    
-  
+  }
+
   min_distance = self->cxx->getMinDistance(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
 
   return Py_BuildValue("d", min_distance);
@@ -593,7 +593,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_min_distance(PyBobLearnEMKMeansMa
 static auto get_variances_and_weights_for_each_cluster = bob::extension::FunctionDoc(
   "get_variances_and_weights_for_each_cluster",
   "For each mean, find the subset of the samples that is closest to that mean, and calculate"
-  " 1) the variance of that subset (the cluster variance)" 
+  " 1) the variance of that subset (the cluster variance)"
   " 2) the proportion of the samples represented by that subset (the cluster weight)",
   "",
   true
@@ -603,7 +603,7 @@ static auto get_variances_and_weights_for_each_cluster = bob::extension::Functio
 .add_return("output", "(array_like <float, 2D>, array_like <float, 1D>)", "A tuple with the variances and the weights respectively");
 static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist =  get_variances_and_weights_for_each_cluster.kwlist(0);
 
   PyBlitzArrayObject* input = 0;
@@ -612,16 +612,16 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
   //protects acquired resources through this scope
   auto input_ = make_safe(input);
 
-  // perform check on the input  
+  // perform check on the input
   if (input->type_num != NPY_FLOAT64){
     PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, get_variances_and_weights_for_each_cluster.name());
     return 0;
-  }  
+  }
 
   if (input->ndim != 2){
     PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, get_variances_and_weights_for_each_cluster.name());
     return 0;
-  }  
+  }
 
   if (input->shape[1] != (Py_ssize_t)self->cxx->getNInputs() ) {
     PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[1], get_variances_and_weights_for_each_cluster.name());
@@ -630,7 +630,7 @@ static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cl
 
   blitz::Array<double,2> variances(self->cxx->getNMeans(),self->cxx->getNInputs());
   blitz::Array<double,1> weights(self->cxx->getNMeans());
-  
+
   self->cxx->getVariancesAndWeightsForEachCluster(*PyBlitzArrayCxx_AsBlitz<double,2>(input),variances,weights);
 
   return Py_BuildValue("(N,N)",PyBlitzArrayCxx_AsConstNumpy(variances), PyBlitzArrayCxx_AsConstNumpy(weights));
@@ -655,7 +655,7 @@ static auto __get_variances_and_weights_for_each_cluster_init__ = bob::extension
 .add_parameter("weights", "array_like <float, 1D>", "Weight array");
 static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_init(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist =  __get_variances_and_weights_for_each_cluster_init__.kwlist(0);
 
   PyBlitzArrayObject* variances = 0;
@@ -690,7 +690,7 @@ static auto __get_variances_and_weights_for_each_cluster_acc__ = bob::extension:
 .add_parameter("weights", "array_like <float, 1D>", "Weight array");
 static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_acc(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist =  __get_variances_and_weights_for_each_cluster_acc__.kwlist(0);
 
   PyBlitzArrayObject* data      = 0;
@@ -726,7 +726,7 @@ static auto __get_variances_and_weights_for_each_cluster_fin__ = bob::extension:
 .add_parameter("weights", "array_like <float, 1D>", "Weight array");
 static PyObject* PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_fin(PyBobLearnEMKMeansMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
-  
+
   char** kwlist =  __get_variances_and_weights_for_each_cluster_fin__.kwlist(0);
 
   PyBlitzArrayObject* variances = 0;
@@ -768,61 +768,61 @@ static PyMethodDef PyBobLearnEMKMeansMachine_methods[] = {
     (PyCFunction)PyBobLearnEMKMeansMachine_resize,
     METH_VARARGS|METH_KEYWORDS,
     resize.doc()
-  },  
+  },
   {
     get_mean.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_mean,
     METH_VARARGS|METH_KEYWORDS,
     get_mean.doc()
-  },  
+  },
   {
     set_mean.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_set_mean,
     METH_VARARGS|METH_KEYWORDS,
     set_mean.doc()
-  },  
+  },
   {
     get_distance_from_mean.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_distance_from_mean,
     METH_VARARGS|METH_KEYWORDS,
     get_distance_from_mean.doc()
-  },  
+  },
   {
     get_closest_mean.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_closest_mean,
     METH_VARARGS|METH_KEYWORDS,
     get_closest_mean.doc()
-  },  
+  },
   {
     get_min_distance.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_min_distance,
     METH_VARARGS|METH_KEYWORDS,
     get_min_distance.doc()
-  },  
+  },
   {
     get_variances_and_weights_for_each_cluster.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster,
     METH_VARARGS|METH_KEYWORDS,
     get_variances_and_weights_for_each_cluster.doc()
-  },  
+  },
   {
     __get_variances_and_weights_for_each_cluster_init__.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_init,
     METH_VARARGS|METH_KEYWORDS,
     __get_variances_and_weights_for_each_cluster_init__.doc()
-  },  
+  },
   {
     __get_variances_and_weights_for_each_cluster_acc__.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_acc,
     METH_VARARGS|METH_KEYWORDS,
     __get_variances_and_weights_for_each_cluster_acc__.doc()
-  },  
+  },
   {
     __get_variances_and_weights_for_each_cluster_fin__.name(),
     (PyCFunction)PyBobLearnEMKMeansMachine_get_variances_and_weights_for_each_cluster_fin,
     METH_VARARGS|METH_KEYWORDS,
     __get_variances_and_weights_for_each_cluster_fin__.doc()
-  },  
+  },
 
   {0} /* Sentinel */
 };
@@ -863,4 +863,3 @@ bool init_BobLearnEMKMeansMachine(PyObject* module)
   Py_INCREF(&PyBobLearnEMKMeansMachine_Type);
   return PyModule_AddObject(module, "KMeansMachine", (PyObject*)&PyBobLearnEMKMeansMachine_Type) >= 0;
 }
-
