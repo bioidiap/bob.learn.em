@@ -344,7 +344,7 @@ static auto log_likelihood = bob::extension::VariableDoc(
 );
 PyObject* PyBobLearnEMGMMStats_getLog_likelihood(PyBobLearnEMGMMStatsObject* self, void*){
   BOB_TRY
-  return Py_BuildValue("d","log_likelihood", self->cxx->log_likelihood);
+  return Py_BuildValue("d", self->cxx->log_likelihood);
   BOB_CATCH_MEMBER("log_likelihood could not be read", 0)
 }
 int PyBobLearnEMGMMStats_setLog_likelihood(PyBobLearnEMGMMStatsObject* self, PyObject* value, void*){
