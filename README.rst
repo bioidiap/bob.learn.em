@@ -6,7 +6,7 @@
    :target: http://pythonhosted.org/bob.learn.em/index.html
 .. image:: http://img.shields.io/badge/docs-latest-orange.png
    :target: https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.learn.em/master/index.html
-.. image:: https://travis-ci.org/bioidiap/bob.learn.em.svg?branch=v2.0.0
+.. image:: https://travis-ci.org/bioidiap/bob.learn.em.svg?branch=master
    :target: https://travis-ci.org/bioidiap/bob.learn.em
 .. image:: https://coveralls.io/repos/bioidiap/bob.learn.em/badge.png
    :target: https://coveralls.io/r/bioidiap/bob.learn.em
