@@ -368,6 +368,8 @@ static PyObject* PyBobLearnEMIVectorTrainer_e_step(PyBobLearnEMIVectorTrainerObj
   std::vector<bob::learn::em::GMMStats> training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
     self->cxx->eStep(*ivector_machine->cxx, training_data);
+  else
+    return 0;
 
   Py_RETURN_NONE;
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)

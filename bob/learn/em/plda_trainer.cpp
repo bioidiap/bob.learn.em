@@ -451,6 +451,8 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
 
     self->cxx->initialize(*plda_base->cxx, data_vector);
   }
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 
@@ -483,6 +485,8 @@ static PyObject* PyBobLearnEMPLDATrainer_e_step(PyBobLearnEMPLDATrainerObject* s
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
     self->cxx->eStep(*plda_base->cxx, data_vector);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
@@ -515,6 +519,8 @@ static PyObject* PyBobLearnEMPLDATrainer_m_step(PyBobLearnEMPLDATrainerObject* s
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
     self->cxx->mStep(*plda_base->cxx, data_vector);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 
@@ -547,6 +553,8 @@ static PyObject* PyBobLearnEMPLDATrainer_finalize(PyBobLearnEMPLDATrainerObject*
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0)
     self->cxx->finalize(*plda_base->cxx, data_vector);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the finalize method", 0)
 

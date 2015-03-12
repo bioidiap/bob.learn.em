@@ -35,7 +35,10 @@ static int extract_GMMStats_2d(PyObject *list,
   for (int i=0; i<PyList_GET_SIZE(list); i++)
   {
     PyObject* another_list;
-    PyArg_Parse(PyList_GetItem(list, i), "O!", &PyList_Type, &another_list);
+    if(!PyArg_Parse(PyList_GetItem(list, i), "O!", &PyList_Type, &another_list)){
+      PyErr_Format(PyExc_RuntimeError, "Expected a list of lists of GMMStats objects [[GMMStats,GMMStats],[GMMStats,GMMStats].....[GMMStats,GMMStats]]");
+      return -1;
+    }
 
     std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > another_training_data;
     for (int j=0; j<PyList_GET_SIZE(another_list); j++){
@@ -643,6 +646,8 @@ static PyObject* PyBobLearnEMJFATrainer_initialize(PyBobLearnEMJFATrainerObject*
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->initialize(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
 
@@ -675,6 +680,8 @@ static PyObject* PyBobLearnEMJFATrainer_e_step_v(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->eStep1(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
 
   BOB_CATCH_MEMBER("cannot perform the e_step_v method", 0)
@@ -708,6 +715,8 @@ static PyObject* PyBobLearnEMJFATrainer_m_step_v(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep1(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the m_step_v method", 0)
 
@@ -740,6 +749,8 @@ static PyObject* PyBobLearnEMJFATrainer_finalize_v(PyBobLearnEMJFATrainerObject*
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize1(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the finalize_v method", 0)
 
@@ -772,6 +783,8 @@ static PyObject* PyBobLearnEMJFATrainer_e_step_u(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->eStep2(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the e_step_u method", 0)
 
@@ -804,6 +817,8 @@ static PyObject* PyBobLearnEMJFATrainer_m_step_u(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep2(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the m_step_u method", 0)
 
@@ -836,6 +851,8 @@ static PyObject* PyBobLearnEMJFATrainer_finalize_u(PyBobLearnEMJFATrainerObject*
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize2(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the finalize_u method", 0)
 
@@ -868,6 +885,8 @@ static PyObject* PyBobLearnEMJFATrainer_e_step_d(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->eStep3(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the e_step_d method", 0)
 
@@ -900,6 +919,8 @@ static PyObject* PyBobLearnEMJFATrainer_m_step_d(PyBobLearnEMJFATrainerObject* s
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->mStep3(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the m_step_d method", 0)
 
@@ -932,6 +953,8 @@ static PyObject* PyBobLearnEMJFATrainer_finalize_d(PyBobLearnEMJFATrainerObject*
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;
   if(extract_GMMStats_2d(stats ,training_data)==0)
     self->cxx->finalize3(*jfa_base->cxx, training_data);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the finalize_d method", 0)
 
@@ -967,6 +990,8 @@ static PyObject* PyBobLearnEMJFATrainer_enroll(PyBobLearnEMJFATrainerObject* sel
   std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > training_data;
   if(extract_GMMStats_1d(stats ,training_data)==0)
     self->cxx->enroll(*jfa_machine->cxx, training_data, n_iter);
+  else
+    return 0;
 
   BOB_CATCH_MEMBER("cannot perform the enroll method", 0)
 

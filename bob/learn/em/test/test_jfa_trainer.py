@@ -12,6 +12,7 @@ import numpy
 import numpy.linalg
 
 import bob.core.random
+import nose.tools
 
 from bob.learn.em import GMMStats, GMMMachine, JFABase, JFAMachine, ISVBase, ISVMachine, JFATrainer, ISVTrainer
 
@@ -210,6 +211,27 @@ def test_JFATrainAndEnrol():
   z_ref = numpy.array([8.2228e-20, 3.15216909492e-13, -1.48616735364395e-10, 1.0625905e-17, 3.7150503117895e-11, 1.71104e-19], 'float64')
   assert numpy.allclose(m.y, y_ref, eps)
   assert numpy.allclose(m.z, z_ref, eps)
+  
+  #Testing exceptions
+  nose.tools.assert_raises(RuntimeError, t.initialize, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.initialize, mb, [[1,2,2]])
+  nose.tools.assert_raises(RuntimeError, t.e_step_u, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.e_step_u, mb, [[1,2,2]])
+  nose.tools.assert_raises(RuntimeError, t.m_step_u, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.m_step_u, mb, [[1,2,2]])
+  
+  nose.tools.assert_raises(RuntimeError, t.e_step_v, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.e_step_v, mb, [[1,2,2]])  
+  nose.tools.assert_raises(RuntimeError, t.m_step_v, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.m_step_v, mb, [[1,2,2]])  
+    
+  nose.tools.assert_raises(RuntimeError, t.e_step_d, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.e_step_d, mb, [[1,2,2]])
+  nose.tools.assert_raises(RuntimeError, t.m_step_d, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.m_step_d, mb, [[1,2,2]])
+  
+  nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1,2,2]],5)
+  
 
 
 def test_ISVTrainAndEnrol():
@@ -226,7 +248,6 @@ def test_ISVTrainAndEnrol():
   ubm.variance_supervector = UBM_VAR
   mb = ISVBase(ubm,2)
   t = ISVTrainer(4.)
-  #t.train(mb, TRAINING_STATS)
   t.initialize(mb, TRAINING_STATS)
   mb.u = M_u
   for i in range(10):
@@ -251,6 +272,14 @@ def test_ISVTrainAndEnrol():
   gse = [gse1, gse2]
   t.enroll(m, gse, 5)
   assert numpy.allclose(m.z, z_ref, eps)
+  
+  #Testing exceptions
+  nose.tools.assert_raises(RuntimeError, t.initialize, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.initialize, mb, [[1,2,2]])
+  nose.tools.assert_raises(RuntimeError, t.e_step, mb, [1,2,2])  
+  nose.tools.assert_raises(RuntimeError, t.e_step, mb, [[1,2,2]])
+  nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1,2,2]],5)
+  
 
 
 def test_JFATrainInitialize():
@@ -284,6 +313,7 @@ def test_JFATrainInitialize():
   assert numpy.allclose(u1, u2, eps)
   assert numpy.allclose(v1, v2, eps)
   assert numpy.allclose(d1, d2, eps)
+    
 
 def test_ISVTrainInitialize():
 
