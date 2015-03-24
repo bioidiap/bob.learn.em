@@ -7,9 +7,9 @@
 .. image:: http://img.shields.io/badge/docs-latest-orange.png
    :target: https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.learn.em/master/index.html
 .. image:: https://travis-ci.org/bioidiap/bob.learn.em.svg?branch=master
-   :target: https://travis-ci.org/bioidiap/bob.learn.em
-.. image:: https://coveralls.io/repos/bioidiap/bob.learn.em/badge.png
-   :target: https://coveralls.io/r/bioidiap/bob.learn.em
+   :target: https://travis-ci.org/bioidiap/bob.learn.em?branch=master
+.. image:: https://coveralls.io/repos/bioidiap/bob.learn.em/badge.png?branch=master
+   :target: https://coveralls.io/r/bioidiap/bob.learn.em?branch=master
 .. image:: https://img.shields.io/badge/github-master-0000c0.png
    :target: https://github.com/bioidiap/bob.learn.em/tree/master
 .. image:: http://img.shields.io/pypi/v/bob.learn.em.png
@@ -21,7 +21,7 @@
   Expectation Maximization Machine Learning Tools
 ==================================================
 
-The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step. 
+The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step.
 
 The package includes the machine definition per se and a selection of different trainers for specialized purposes:
  - Maximum Likelihood (ML)
