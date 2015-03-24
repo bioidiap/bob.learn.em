@@ -16,7 +16,7 @@ build_requires = load_requirements()
 version = open("version.txt").read().rstrip()
 
 packages = ['boost']
-boost_modules = ['system', 'python']
+boost_modules = ['system']
 
 setup(
 
