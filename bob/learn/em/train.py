@@ -6,6 +6,8 @@
 # Copyright (C) 2011-2015 Idiap Research Institute, Martigny, Switzerland
 import numpy
 import bob.learn.em
+import logging
+logger = logging.getLogger('bob.learn.em')
 
 def train(trainer, machine, data, max_iterations = 50, convergence_threshold=None, initialize=True, rng=None):
   """
@@ -42,16 +44,21 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
     average_output          = trainer.compute_likelihood(machine)
 
   for i in range(max_iterations):
+    
     average_output_previous = average_output
     trainer.m_step(machine, data)
     trainer.e_step(machine, data)
 
     if convergence_threshold!=None and hasattr(trainer,"compute_likelihood"):
       average_output = trainer.compute_likelihood(machine)
-
+    else:
+      logger.info("Iteration = %d ", i)
     #Terminates if converged (and likelihood computation is set)
-    if convergence_threshold!=None and abs((average_output_previous - average_output)/average_output_previous) <= convergence_threshold:
-      break
+    if convergence_threshold!=None: 
+      convergence_value = abs((average_output_previous - average_output)/average_output_previous)
+      logger.info("Iteration = %d \t convergence value = %f ", i, convergence_value)
+      if convergence_value <= convergence_threshold:
+        break
 
   if hasattr(trainer,"finalize"):
     trainer.finalize(machine, data)

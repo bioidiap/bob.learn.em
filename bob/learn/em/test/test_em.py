@@ -18,6 +18,9 @@ from bob.learn.em import KMeansMachine, GMMMachine, KMeansTrainer, \
 
 import bob.learn.em
 
+import bob.core
+bob.core.log.setup("bob.learn.em")
+
 #, MAP_GMMTrainer
 
 def loadGMM():
