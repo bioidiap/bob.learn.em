@@ -105,7 +105,7 @@ class KMeansTrainer
      * @brief Reset the statistics accumulators
      * to the correct size and a value of zero.
      */
-    bool resetAccumulators(bob::learn::em::KMeansMachine& kMeansMachine);
+    void resetAccumulators(bob::learn::em::KMeansMachine& kMeansMachine);
 
     /**
      * @brief Sets the Random Number Generator
@@ -144,7 +144,7 @@ class KMeansTrainer
 
 
   private:
-  
+
     /**
      * @brief The initialization method
      * Check that there is no duplicated means during the random initialization

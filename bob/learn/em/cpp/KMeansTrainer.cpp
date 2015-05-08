@@ -24,11 +24,11 @@ m_firstOrderStats(0)
 
 
 bob::learn::em::KMeansTrainer::KMeansTrainer(const bob::learn::em::KMeansTrainer& other){
-    
-  m_initialization_method = other.m_initialization_method;  
+
+  m_initialization_method = other.m_initialization_method;
   m_rng                   = other.m_rng;
   m_average_min_distance  = other.m_average_min_distance;
-  m_zeroethOrderStats     = bob::core::array::ccopy(other.m_zeroethOrderStats); 
+  m_zeroethOrderStats     = bob::core::array::ccopy(other.m_zeroethOrderStats);
   m_firstOrderStats       = bob::core::array::ccopy(other.m_firstOrderStats);
 }
 
@@ -160,9 +160,6 @@ void bob::learn::em::KMeansTrainer::initialize(bob::learn::em::KMeansMachine& km
       kmeans.setMean(m, new_mean);
     }
   }
-   // Resize the accumulator
-  m_zeroethOrderStats.resize(kmeans.getNMeans());
-  m_firstOrderStats.resize(kmeans.getNMeans(), kmeans.getNInputs());
 }
 
 void bob::learn::em::KMeansTrainer::eStep(bob::learn::em::KMeansMachine& kmeans,
@@ -206,12 +203,16 @@ double bob::learn::em::KMeansTrainer::computeLikelihood(bob::learn::em::KMeansMa
 }
 
 
-bool bob::learn::em::KMeansTrainer::resetAccumulators(bob::learn::em::KMeansMachine& kmeans)
+void bob::learn::em::KMeansTrainer::resetAccumulators(bob::learn::em::KMeansMachine& kmeans)
 {
+   // Resize the accumulator
+  m_zeroethOrderStats.resize(kmeans.getNMeans());
+  m_firstOrderStats.resize(kmeans.getNMeans(), kmeans.getNInputs());
+
+  // initialize with 0
   m_average_min_distance = 0;
   m_zeroethOrderStats = 0;
   m_firstOrderStats = 0;
-  return true;
 }
 
 void bob::learn::em::KMeansTrainer::setZeroethOrderStats(const blitz::Array<double,1>& zeroethOrderStats)
@@ -225,4 +226,3 @@ void bob::learn::em::KMeansTrainer::setFirstOrderStats(const blitz::Array<double
   bob::core::array::assertSameShape(m_firstOrderStats, firstOrderStats);
   m_firstOrderStats = firstOrderStats;
 }
-
