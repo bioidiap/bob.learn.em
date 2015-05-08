@@ -484,8 +484,8 @@ static PyObject* PyBobLearnEMKMeansTrainer_reset_accumulators(PyBobLearnEMKMeans
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine)) return 0;
 
-  bool value = self->cxx->resetAccumulators(*kmeans_machine->cxx);
-  return Py_BuildValue("b", value);
+  self->cxx->resetAccumulators(*kmeans_machine->cxx);
+  Py_RETURN_NONE;
 
   BOB_CATCH_MEMBER("cannot perform the reset_accumulators method", 0)
 }
