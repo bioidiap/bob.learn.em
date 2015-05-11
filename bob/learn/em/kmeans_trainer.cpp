@@ -417,9 +417,9 @@ static auto m_step = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("kmeans_machine,data")
+.add_prototype("kmeans_machine, [data]")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
-.add_parameter("data", "array_like <float, 2D>", "Ignored.");
+.add_parameter("data", "object", "Ignored.");
 static PyObject* PyBobLearnEMKMeansTrainer_m_step(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -427,12 +427,9 @@ static PyObject* PyBobLearnEMKMeansTrainer_m_step(PyBobLearnEMKMeansTrainerObjec
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  PyBlitzArrayObject* data = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
-                                                                 &PyBlitzArray_Converter, &data)) return 0;
-  if(data!=NULL)
-    auto data_ = make_safe(data);
-
+  PyObject* data = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
+                                                                 &data)) return 0;
   self->cxx->mStep(*kmeans_machine->cxx);
 
   BOB_CATCH_MEMBER("cannot perform the m_step method", 0)

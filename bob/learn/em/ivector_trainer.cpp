@@ -315,7 +315,7 @@ static auto initialize = bob::extension::FunctionDoc(
 )
 .add_prototype("ivector_machine, [stats], [rng]")
 .add_parameter("ivector_machine", ":py:class:`bob.learn.em.IVectorMachine`", "IVectorMachine Object")
-.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Ignored")
+.add_parameter("stats", "object", "Ignored")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
 static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
@@ -324,12 +324,13 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
   char** kwlist = initialize.kwlist(0);
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
-  PyObject* stats = 0;
+  PyObject* stats;
   PyBoostMt19937Object* rng = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
-                                                                    &PyList_Type, &stats,
-                                                                    &PyBoostMt19937_Type, &rng)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|OO!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
+                                                                   &stats,
+                                                                   &PyBoostMt19937_Type, &rng)) return 0;
+
   if(rng){
     boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
     self->cxx->setRng(rng_cpy);
@@ -383,9 +384,9 @@ static auto m_step = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("ivector_machine, stats")
+.add_prototype("ivector_machine, [stats]")
 .add_parameter("ivector_machine", ":py:class:`bob.learn.em.ISVBase`", "IVectorMachine Object")
-.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Ignored");
+.add_parameter("stats", "object", "Ignored");
 static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -393,10 +394,10 @@ static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObj
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMIVectorMachineObject* ivector_machine = 0;
-  PyObject* stats = 0;
+  PyObject* stats;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
-                                                                 &PyList_Type, &stats)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMIVectorMachine_Type, &ivector_machine,
+                                                                 &stats)) return 0;
 
   self->cxx->mStep(*ivector_machine->cxx);
 

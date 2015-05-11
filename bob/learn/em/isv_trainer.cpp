@@ -485,9 +485,9 @@ static auto m_step = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base, stats")
+.add_prototype("isv_base, [stats]")
 .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "ISVBase Object")
-.add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "Ignored");
+.add_parameter("stats", "object", "Ignored.");
 static PyObject* PyBobLearnEMISVTrainer_m_step(PyBobLearnEMISVTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -495,10 +495,10 @@ static PyObject* PyBobLearnEMISVTrainer_m_step(PyBobLearnEMISVTrainerObject* sel
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMISVBaseObject* isv_base = 0;
-  PyObject* stats = 0;
+  PyObject* stats;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O!", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
-                                                                 &PyList_Type, &stats)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMISVBase_Type, &isv_base,
+                                                                 &stats)) return 0;
 
   self->cxx->mStep(*isv_base->cxx);
 
