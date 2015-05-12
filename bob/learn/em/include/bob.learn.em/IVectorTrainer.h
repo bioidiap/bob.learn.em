@@ -52,6 +52,12 @@ class IVectorTrainer
     virtual void initialize(bob::learn::em::IVectorMachine& ivector);
 
     /**
+     * @brief Reset the statistics accumulators
+     * to the correct size and a value of zero.
+     */
+    void resetAccumulators(const bob::learn::em::IVectorMachine& ivector);
+
+    /**
      * @brief Calculates statistics across the dataset,
      * and saves these as:
      * - m_acc_Nij_wij2
