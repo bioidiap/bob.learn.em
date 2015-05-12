@@ -406,6 +406,29 @@ static PyObject* PyBobLearnEMIVectorTrainer_m_step(PyBobLearnEMIVectorTrainerObj
   Py_RETURN_NONE;
 }
 
+/*** reset_accumulators ***/
+static auto reset_accumulators = bob::extension::FunctionDoc(
+  "reset_accumulators",
+  "Reset the statistics accumulators to the correct size and a value of zero.",
+  0,
+  true
+)
+.add_prototype("ivector_machine")
+.add_parameter("ivector_machine", ":py:class:`bob.learn.em.IVectorMachine`", "The IVector machine containing the right dimensions");
+static PyObject* PyBobLearnEMIVectorTrainer_reset_accumulators(PyBobLearnEMIVectorTrainerObject* self, PyObject* args, PyObject* kwargs) {
+  BOB_TRY
+
+  /* Parses input arguments in a single shot */
+  char** kwlist = reset_accumulators.kwlist(0);
+
+  PyBobLearnEMIVectorMachineObject* machine;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!", kwlist, &PyBobLearnEMIVectorMachine_Type, &machine)) return 0;
+
+  self->cxx->resetAccumulators(*machine->cxx);
+  Py_RETURN_NONE;
+
+  BOB_CATCH_MEMBER("cannot perform the reset_accumulators method", 0)
+}
 
 
 static PyMethodDef PyBobLearnEMIVectorTrainer_methods[] = {
@@ -426,6 +449,12 @@ static PyMethodDef PyBobLearnEMIVectorTrainer_methods[] = {
     (PyCFunction)PyBobLearnEMIVectorTrainer_m_step,
     METH_VARARGS|METH_KEYWORDS,
     m_step.doc()
+  },
+  {
+    reset_accumulators.name(),
+    (PyCFunction)PyBobLearnEMIVectorTrainer_reset_accumulators,
+    METH_VARARGS|METH_KEYWORDS,
+    reset_accumulators.doc()
   },
   {0} /* Sentinel */
 };

@@ -244,11 +244,11 @@ def test_trainer_nosigma():
     # M-Step
     trainer.m_step(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
-    
+
 
   #testing exceptions
   nose.tools.assert_raises(RuntimeError, trainer.e_step, m, [1,2,2])
-    
+
 
 def test_trainer_update_sigma():
   # Ubm
