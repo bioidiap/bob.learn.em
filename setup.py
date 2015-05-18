@@ -6,7 +6,7 @@
 bob_packages = ['bob.core', 'bob.io.base', 'bob.sp', 'bob.math', 'bob.learn.activation', 'bob.learn.linear']
 
 from setuptools import setup, find_packages, dist
-dist.Distribution(dict(setup_requires=['bob.extension', 'bob.blitz'] + bob_packages))
+dist.Distribution(dict(setup_requires=['bob.extension>=2.0.7', 'bob.blitz'] + bob_packages))
 from bob.blitz.extension import Extension, Library, build_ext
 
 from bob.extension.utils import load_requirements
@@ -86,25 +86,6 @@ setup(
         boost_modules = boost_modules,
         version = version,
       ),
-
-#      Extension("bob.learn.em._library",
-#        [
-#          "bob/learn/em/old/bic.cc",
-#
-#          # external requirements as boost::python bindings
-#          "bob/learn/em/old/blitz_numpy.cc",
-#          "bob/learn/em/old/ndarray.cc",
-#          "bob/learn/em/old/ndarray_numpy.cc",
-#          "bob/learn/em/old/tinyvector.cc",
-#          "bob/learn/em/old/random.cc",
-#
-#          "bob/learn/em/old/main.cc",
-#        ],
-#        bob_packages = bob_packages,
-#        packages = packages,
-#        boost_modules = boost_modules,
-#        version = version,
-#      ),
 
       Extension("bob.learn.em._library",
         [
