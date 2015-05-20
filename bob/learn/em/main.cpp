@@ -66,13 +66,12 @@ static PyObject* create_module (void) {
   if (!module) return 0;
   auto module_ = make_safe(module); ///< protects against early returns
 
-  if (PyModule_AddStringConstant(module, "__version__", BOB_EXT_MODULE_VERSION) < 0) return 0;
   if (!init_BobLearnEMGaussian(module)) return 0;
   if (!init_BobLearnEMGMMStats(module)) return 0;
   if (!init_BobLearnEMGMMMachine(module)) return 0;
   if (!init_BobLearnEMKMeansMachine(module)) return 0;
   if (!init_BobLearnEMKMeansTrainer(module)) return 0;
-  if (!init_BobLearnEMMLGMMTrainer(module)) return 0;  
+  if (!init_BobLearnEMMLGMMTrainer(module)) return 0;
   if (!init_BobLearnEMMAPGMMTrainer(module)) return 0;
 
   if (!init_BobLearnEMJFABase(module)) return 0;
@@ -85,12 +84,12 @@ static PyObject* create_module (void) {
 
   if (!init_BobLearnEMIVectorMachine(module)) return 0;
   if (!init_BobLearnEMIVectorTrainer(module)) return 0;
-    
+
   if (!init_BobLearnEMPLDABase(module)) return 0;
   if (!init_BobLearnEMPLDAMachine(module)) return 0;
-  if (!init_BobLearnEMPLDATrainer(module)) return 0; 
+  if (!init_BobLearnEMPLDATrainer(module)) return 0;
 
-  if (!init_BobLearnEMEMPCATrainer(module)) return 0;  
+  if (!init_BobLearnEMEMPCATrainer(module)) return 0;
 
 
   static void* PyBobLearnEM_API[PyBobLearnEM_API_pointers];
@@ -128,9 +127,7 @@ static PyObject* create_module (void) {
   if (import_bob_io_base() < 0) return 0;
   if (import_bob_learn_linear() < 0) return 0;
 
-  Py_INCREF(module);
-  return module;
-
+  return Py_BuildValue("O", module);
 }
 
 PyMODINIT_FUNC BOB_EXT_ENTRY_NAME (void) {
