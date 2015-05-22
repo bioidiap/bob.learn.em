@@ -29,6 +29,7 @@ script:
 after_success:
 - cpp-coveralls --build-root=`pwd` --exclude=src --exclude-pattern=".*Compiler.*" --dump=cpp_cov.json
 - coveralls --merge=cpp_cov.json
+- wget https://raw.githubusercontent.com/bioidiap/bob.extension/master/scripts/upload-{sphinx,wheel}.sh
 - chmod a+x upload-sphinx.sh upload-wheel.sh
 - ./upload-sphinx.sh
 - ./upload-wheel.sh
