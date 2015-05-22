@@ -10,9 +10,11 @@
 
 #include <bob.blitz/cppapi.h>
 #include <bob.blitz/cleanup.h>
+#include <bob.core/api.h>
 #include <bob.core/random_api.h>
 #include <bob.io.base/api.h>
-
+#include <bob.sp/api.h>
+#include <bob.learn.activation/api.h>
 #include <bob.learn.linear/api.h>
 
 #include <bob.extension/documentation.h>
@@ -48,37 +50,6 @@
 #include <bob.learn.em/PLDATrainer.h>
 
 #include <bob.learn.em/ZTNorm.h>
-
-
-
-#if PY_VERSION_HEX >= 0x03000000
-#define PyInt_Check PyLong_Check
-#define PyInt_AS_LONG PyLong_AS_LONG
-#define PyString_Check PyUnicode_Check
-#define PyString_AS_STRING(x) PyBytes_AS_STRING(make_safe(PyUnicode_AsUTF8String(x)).get())
-#endif
-
-#define TRY try{
-
-#define CATCH(message,ret) }\
-  catch (std::exception& e) {\
-    PyErr_SetString(PyExc_RuntimeError, e.what());\
-    return ret;\
-  } \
-  catch (...) {\
-    PyErr_Format(PyExc_RuntimeError, "%s " message ": unknown exception caught", Py_TYPE(self)->tp_name);\
-    return ret;\
-  }
-
-#define CATCH_(message, ret) }\
-  catch (std::exception& e) {\
-    PyErr_SetString(PyExc_RuntimeError, e.what());\
-    return ret;\
-  } \
-  catch (...) {\
-    PyErr_Format(PyExc_RuntimeError, message ": unknown exception caught");\
-    return ret;\
-  }
 
 /// inserts the given key, value pair into the given dictionaries
 static inline int insert_item_string(PyObject* dict, PyObject* entries, const char* key, Py_ssize_t value){

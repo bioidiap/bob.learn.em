@@ -120,11 +120,13 @@ static PyObject* create_module (void) {
 
   if (PyModule_AddObject(module, "_C_API", c_api_object) < 0) return 0;
 
-
   /* imports bob.learn.em's C-API dependencies */
   if (import_bob_blitz() < 0) return 0;
+  if (import_bob_core_logging() < 0) return 0;
   if (import_bob_core_random() < 0) return 0;
   if (import_bob_io_base() < 0) return 0;
+  if (import_bob_sp() < 0) return 0;
+  if (import_bob_learn_activation() < 0) return 0;
   if (import_bob_learn_linear() < 0) return 0;
 
   return Py_BuildValue("O", module);
