@@ -80,12 +80,12 @@ def test_ztnorm_big():
   assert (abs(scores - ref_scores) < 1e-7).all()
 
   # T-Norm
-  scores = tnorm(my_A, my_C)
+  scores = bob.learn.em.tnorm(my_A, my_C)
   scores_py = tnorm(my_A, my_C)
   assert (abs(scores - scores_py) < 1e-7).all()
 
   # Z-Norm
-  scores = znorm(my_A, my_B)
+  scores = bob.learn.em.znorm(my_A, my_B)
   scores_py = znorm(my_A, my_B)
   assert (abs(scores - scores_py) < 1e-7).all()
 
@@ -97,7 +97,7 @@ def test_tnorm_simple():
   # 2x5
   my_C = numpy.array([[5, 4, 3, 2, 1],[2, 1, 2, 3, 4]],'float64')
 
-  zC = tnorm(my_A, my_C)
+  zC = bob.learn.em.tnorm(my_A, my_C)
   zC_py = tnorm(my_A, my_C)
   assert (abs(zC - zC_py) < 1e-7).all()
 
@@ -113,7 +113,7 @@ def test_znorm_simple():
   # 3x4
   my_B = numpy.array([[5, 4, 7, 8],[9, 8, 7, 4],[5, 6, 3, 2]], numpy.float64)
 
-  zA = znorm(my_A, my_B)
+  zA = bob.learn.em.znorm(my_A, my_B)
   zA_py = znorm(my_A, my_B)
   assert (abs(zA - zA_py) < 1e-7).all()
 

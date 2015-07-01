@@ -82,13 +82,13 @@ bob::extension::FunctionDoc t_norm = bob::extension::FunctionDoc(
 .add_return("output","array_like <float, 2D>","The scores T Normalized");
 PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = zt_norm.kwlist(0);
+  char** kwlist = t_norm.kwlist(0);
   
   PyBlitzArrayObject *rawscores_probes_vs_models_o, *rawscores_probes_vs_tmodels_o;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
                                                                        &PyBlitzArray_Converter, &rawscores_probes_vs_tmodels_o)){
-    zt_norm.print_usage();
+    t_norm.print_usage();
     return 0;
   }
   
@@ -116,16 +116,16 @@ bob::extension::FunctionDoc z_norm = bob::extension::FunctionDoc(
 .add_prototype("rawscores_probes_vs_models,rawscores_zprobes_vs_models", "output")
 .add_parameter("rawscores_probes_vs_models", "array_like <float, 2D>", "Raw set of scores")
 .add_parameter("rawscores_zprobes_vs_models", "array_like <float, 2D>", "Z-Scores (raw scores of the Z probes against the models)")
-.add_return("output","array_like <float, 2D>","The scores T Normalized");
+.add_return("output","array_like <float, 2D>","The scores Z Normalized");
 PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
-  char** kwlist = zt_norm.kwlist(0);
+  char** kwlist = z_norm.kwlist(0);
   
   PyBlitzArrayObject *rawscores_probes_vs_models_o, *rawscores_zprobes_vs_models_o;
 
   if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O&", kwlist, &PyBlitzArray_Converter, &rawscores_probes_vs_models_o,
                                                                        &PyBlitzArray_Converter, &rawscores_zprobes_vs_models_o)){
-    zt_norm.print_usage();
+    z_norm.print_usage();
     return 0;
   }
   
@@ -134,7 +134,6 @@ PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 
   blitz::Array<double,2> rawscores_probes_vs_models = *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o);
   blitz::Array<double,2> normalized_scores          = blitz::Array<double,2>(rawscores_probes_vs_models.extent(0), rawscores_probes_vs_models.extent(1));
-
 
   bob::learn::em::zNorm(*PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_probes_vs_models_o), 
                            *PyBlitzArrayCxx_AsBlitz<double,2>(rawscores_zprobes_vs_models_o),
