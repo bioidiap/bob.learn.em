@@ -238,3 +238,26 @@ def test_GMMMachine_3():
   # implementation
   matlab_ll_ref = -2.361583051672024e+02
   assert abs(gmm(data) - matlab_ll_ref) < 1e-10
+  
+  
+def test_GMMMachine_4():
+
+  import numpy
+  numpy.random.seed(3) # FIXING A SEED
+
+  data = numpy.random.rand(100,50) #Doesn't matter if it is ramdom. The average of 1D array (in python) MUST output the same result for the 2D array (in C++)
+  
+  gmm = GMMMachine(2, 50)
+  gmm.weights   = bob.io.base.load(datafile('weights.hdf5', __name__, path="../data/"))
+  gmm.means     = bob.io.base.load(datafile('means.hdf5', __name__, path="../data/"))
+  gmm.variances = bob.io.base.load(datafile('variances.hdf5', __name__, path="../data/"))
+
+
+  ll = 0
+  for i in range(data.shape[0]):
+    ll += gmm(data[i,:])
+  ll /= data.shape[0]
+  
+  assert ll==gmm(data)
+  
+  

@@ -231,6 +231,15 @@ class GMMMachine
      */
     double logLikelihood(const blitz::Array<double, 1> &x) const;
 
+
+    /**
+     * Output the averaged log likelihood of a set of samples, x, i.e. log(p(x|GMM))
+     * @param[in]  x The sample
+     * Dimension of the input is checked
+     */
+    double logLikelihood(const blitz::Array<double, 2> &x) const;
+
+
     /**
      * Output the log likelihood of the sample, x, i.e. log(p(x|GMM))
      * @param[in]  x The sample

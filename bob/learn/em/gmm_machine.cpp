@@ -643,7 +643,8 @@ static PyObject* PyBobLearnEMGMMMachine_resize(PyBobLearnEMGMMMachineObject* sel
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
   "Output the log likelihood of the sample, x, i.e. :math:`log(p(x|GMM))`. Inputs are checked.",
-  ".. note:: The :py:meth:`__call__` function is an alias for this.",
+  ".. note:: The :py:meth:`__call__` function is an alias for this. \n "
+  "If `input` is 2D the average along the samples will be computed (:math:`\\frac{log(p(x|GMM))}{N}`) ",
   true
 )
 .add_prototype("input","output")
@@ -667,21 +668,28 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood(PyBobLearnEMGMMMachineObje
     return 0;
   }
 
-  if (input->ndim != 1){
-    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64", Py_TYPE(self)->tp_name);
+  if (input->ndim > 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D or 2D arrays of float64", Py_TYPE(self)->tp_name);
     log_likelihood.print_usage();
     return 0;
   }
-
-  if (input->shape[0] != (Py_ssize_t)self->cxx->getNInputs()){
+  
+  int shape_index = input->ndim - 1; //Getting the index of the dimensionality (0 for 1D arrays, 1 for 2D arrays)
+  
+  if (input->shape[shape_index] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
     log_likelihood.print_usage();
     return 0;
   }
-
-  double value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+  
+  double value = 0;
+  if (input->ndim == 1)
+    value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
+  else
+    value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(input));
+  
+  
   return Py_BuildValue("d", value);
-
   BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
 }
 
