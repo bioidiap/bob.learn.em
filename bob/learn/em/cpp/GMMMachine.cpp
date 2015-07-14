@@ -233,6 +233,7 @@ double bob::learn::em::GMMMachine::logLikelihood(const blitz::Array<double, 1> &
   return logLikelihood_(x,log_weighted_gaussian_likelihoods);
 }
 
+
 double bob::learn::em::GMMMachine::logLikelihood_(const blitz::Array<double, 1> &x,
   blitz::Array<double,1> &log_weighted_gaussian_likelihoods) const
 {
@@ -250,6 +251,22 @@ double bob::learn::em::GMMMachine::logLikelihood_(const blitz::Array<double, 1> 
   return log_likelihood;
 }
 
+
+double bob::learn::em::GMMMachine::logLikelihood(const blitz::Array<double, 2> &x) const {
+  // Check dimension
+  bob::core::array::assertSameDimensionLength(x.extent(1), m_n_inputs);
+  // Call the other logLikelihood_ (overloaded) function
+
+
+  double sum_ll = 0;
+  for (int i=0; i<x.extent(0); i++)
+    sum_ll+= logLikelihood_(x(i,blitz::Range::all()));
+
+  return sum_ll/x.extent(0);  
+}
+
+
+
 double bob::learn::em::GMMMachine::logLikelihood(const blitz::Array<double, 1> &x) const {
   // Check dimension
   bob::core::array::assertSameDimensionLength(x.extent(0), m_n_inputs);
@@ -257,6 +274,8 @@ double bob::learn::em::GMMMachine::logLikelihood(const blitz::Array<double, 1> &
   // (log_weighted_gaussian_likelihoods will be discarded)
   return logLikelihood_(x,m_cache_log_weighted_gaussian_likelihoods);
 }
+
+
 
 double bob::learn::em::GMMMachine::logLikelihood_(const blitz::Array<double, 1> &x) const {
   // Call the other logLikelihood (overloaded) function
