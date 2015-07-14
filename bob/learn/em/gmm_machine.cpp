@@ -130,7 +130,7 @@ static int PyBobLearnEMGMMMachine_init(PyBobLearnEMGMMMachineObject* self, PyObj
       GMMMachine_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create GMMMachine", 0)
+  BOB_CATCH_MEMBER("cannot create GMMMachine", -1)
   return 0;
 }
 

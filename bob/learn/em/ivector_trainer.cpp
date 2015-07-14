@@ -117,7 +117,7 @@ static int PyBobLearnEMIVectorTrainer_init(PyBobLearnEMIVectorTrainerObject* sel
       return -1;
     }
   }
-  BOB_CATCH_MEMBER("cannot create IVectorTrainer", 0)
+  BOB_CATCH_MEMBER("cannot create IVectorTrainer", -1)
   return 0;
 }
 

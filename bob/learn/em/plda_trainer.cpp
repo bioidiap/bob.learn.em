@@ -174,7 +174,7 @@ static int PyBobLearnEMPLDATrainer_init(PyBobLearnEMPLDATrainerObject* self, PyO
     return -1;
   }
 
-  BOB_CATCH_MEMBER("cannot create PLDATrainer", 0)
+  BOB_CATCH_MEMBER("cannot create PLDATrainer", -1)
   return 0;
 }
 
@@ -278,7 +278,7 @@ int PyBobLearnEMPLDATrainer_setFMethod(PyBobLearnEMPLDATrainerObject* self, PyOb
   self->cxx->setInitFMethod(string2FMethod(PyString_AS_STRING(value)));
 
   return 0;
-  BOB_CATCH_MEMBER("init_f_method method could not be set", 0)
+  BOB_CATCH_MEMBER("init_f_method method could not be set", -1)
 }
 
 
@@ -304,7 +304,7 @@ int PyBobLearnEMPLDATrainer_setGMethod(PyBobLearnEMPLDATrainerObject* self, PyOb
   self->cxx->setInitGMethod(string2GMethod(PyString_AS_STRING(value)));
 
   return 0;
-  BOB_CATCH_MEMBER("init_g_method method could not be set", 0)
+  BOB_CATCH_MEMBER("init_g_method method could not be set", -1)
 }
 
 /***** init_sigma_method *****/
@@ -329,7 +329,7 @@ int PyBobLearnEMPLDATrainer_setSigmaMethod(PyBobLearnEMPLDATrainerObject* self, 
   self->cxx->setInitSigmaMethod(string2SigmaMethod(PyString_AS_STRING(value)));
 
   return 0;
-  BOB_CATCH_MEMBER("init_sigma_method method could not be set", 0)
+  BOB_CATCH_MEMBER("init_sigma_method method could not be set", -1)
 }
 
 
@@ -354,7 +354,7 @@ int PyBobLearnEMPLDATrainer_setUseSumSecondOrder(PyBobLearnEMPLDATrainerObject* 
   self->cxx->setUseSumSecondOrder(f(value));
 
   return 0;
-  BOB_CATCH_MEMBER("use_sum_second_order method could not be set", 0)
+  BOB_CATCH_MEMBER("use_sum_second_order method could not be set", -1)
 }
 
 

@@ -138,7 +138,7 @@ static int PyBobLearnEMJFATrainer_init(PyBobLearnEMJFATrainerObject* self, PyObj
       return -1;
     }
   }
-  BOB_CATCH_MEMBER("cannot create JFATrainer", 0)
+  BOB_CATCH_MEMBER("cannot create JFATrainer", -1)
   return 0;
 }
 
@@ -471,7 +471,7 @@ int PyBobLearnEMJFATrainer_set_X(PyBobLearnEMJFATrainerObject* self, PyObject* v
   }
 
   return 0;
-  BOB_CATCH_MEMBER("__X__ could not be written", 0)
+  BOB_CATCH_MEMBER("__X__ could not be written", -1)
 }
 
 
@@ -502,7 +502,7 @@ int PyBobLearnEMJFATrainer_set_Y(PyBobLearnEMJFATrainerObject* self, PyObject* v
   }
 
   return 0;
-  BOB_CATCH_MEMBER("__Y__ could not be written", 0)
+  BOB_CATCH_MEMBER("__Y__ could not be written", -1)
 }
 
 
@@ -533,7 +533,7 @@ int PyBobLearnEMJFATrainer_set_Z(PyBobLearnEMJFATrainerObject* self, PyObject* v
   }
 
   return 0;
-  BOB_CATCH_MEMBER("__Z__ could not be written", 0)
+  BOB_CATCH_MEMBER("__Z__ could not be written", -1)
 }
 
 

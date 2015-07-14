@@ -113,18 +113,6 @@ bool init_BobLearnEMKMeansTrainer(PyObject* module);
 int PyBobLearnEMKMeansTrainer_Check(PyObject* o);
 
 
-// GMMBaseTrainer
-/*
-typedef struct {
-  PyObject_HEAD
-  boost::shared_ptr<bob::learn::em::GMMBaseTrainer> cxx;
-} PyBobLearnEMGMMBaseTrainerObject;
-
-extern PyTypeObject PyBobLearnEMGMMBaseTrainer_Type;
-bool init_BobLearnEMGMMBaseTrainer(PyObject* module);
-int PyBobLearnEMGMMBaseTrainer_Check(PyObject* o);
-*/
-
 // ML_GMMTrainer
 typedef struct {
   PyObject_HEAD

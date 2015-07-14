@@ -116,7 +116,7 @@ static int PyBobLearnEMJFAMachine_init(PyBobLearnEMJFAMachineObject* self, PyObj
     return -1;
   }
 
-  BOB_CATCH_MEMBER("cannot create JFAMachine", 0)
+  BOB_CATCH_MEMBER("cannot create JFAMachine", -1)
   return 0;
 }
 

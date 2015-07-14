@@ -126,7 +126,7 @@ static int PyBobLearnEMISVBase_init(PyBobLearnEMISVBaseObject* self, PyObject* a
       ISVBase_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create ISVBase", 0)
+  BOB_CATCH_MEMBER("cannot create ISVBase", -1)
   return 0;
 }
 

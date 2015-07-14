@@ -120,7 +120,7 @@ static int PyBobLearnEMPLDAMachine_init(PyBobLearnEMPLDAMachineObject* self, PyO
     PLDAMachine_doc.print_usage();
     return -1;
   }
-  BOB_CATCH_MEMBER("cannot create PLDAMachine", 0)
+  BOB_CATCH_MEMBER("cannot create PLDAMachine", -1)
   return 0;
 }
 

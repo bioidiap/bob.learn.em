@@ -103,7 +103,7 @@ static int PyBobLearnEMMLGMMTrainer_init(PyBobLearnEMMLGMMTrainerObject* self, P
     else
       return PyBobLearnEMMLGMMTrainer_init_base_trainer(self, args, kwargs);
   }
-  BOB_CATCH_MEMBER("cannot create GMMBaseTrainer_init_bool", 0)
+  BOB_CATCH_MEMBER("cannot create GMMBaseTrainer_init_bool", -1)
   return 0;
 }
 

@@ -146,7 +146,7 @@ static int PyBobLearnEMPLDABase_init(PyBobLearnEMPLDABaseObject* self, PyObject*
     PLDABase_doc.print_usage();
     return -1;
   }
-  BOB_CATCH_MEMBER("cannot create PLDABase", 0)
+  BOB_CATCH_MEMBER("cannot create PLDABase", -1)
   return 0;
 }
 

@@ -98,7 +98,7 @@ static int PyBobLearnEMEMPCATrainer_init(PyBobLearnEMEMPCATrainerObject* self, P
       return -1;
     }
   }
-  BOB_CATCH_MEMBER("cannot create EMPCATrainer", 0)
+  BOB_CATCH_MEMBER("cannot create EMPCATrainer", -1)
   return 0;
 }
 
