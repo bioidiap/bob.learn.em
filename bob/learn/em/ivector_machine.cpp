@@ -131,7 +131,7 @@ static int PyBobLearnEMIVectorMachine_init(PyBobLearnEMIVectorMachineObject* sel
     return -1;
   }
 
-  BOB_CATCH_MEMBER("cannot create IVectorMachine", 0)
+  BOB_CATCH_MEMBER("cannot create IVectorMachine", -1)
   return 0;
 }
 

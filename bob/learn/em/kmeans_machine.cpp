@@ -130,7 +130,7 @@ static int PyBobLearnEMKMeansMachine_init(PyBobLearnEMKMeansMachineObject* self,
       KMeansMachine_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create KMeansMachine", 0)
+  BOB_CATCH_MEMBER("cannot create KMeansMachine", -1)
   return 0;
 }
 

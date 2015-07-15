@@ -116,7 +116,7 @@ static int PyBobLearnEMISVMachine_init(PyBobLearnEMISVMachineObject* self, PyObj
     return -1;
   }
   
-  BOB_CATCH_MEMBER("cannot create ISVMachine", 0)
+  BOB_CATCH_MEMBER("cannot create ISVMachine", -1)
   return 0;
 }
 

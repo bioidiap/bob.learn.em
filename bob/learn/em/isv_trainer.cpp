@@ -173,7 +173,7 @@ static int PyBobLearnEMISVTrainer_init(PyBobLearnEMISVTrainerObject* self, PyObj
       return -1;
     }
   }
-  BOB_CATCH_MEMBER("cannot create ISVTrainer", 0)
+  BOB_CATCH_MEMBER("cannot create ISVTrainer", -1)
   return 0;
 }
 
@@ -329,7 +329,7 @@ int PyBobLearnEMISVTrainer_set_X(PyBobLearnEMISVTrainerObject* self, PyObject* v
   }
 
   return 0;
-  BOB_CATCH_MEMBER("__X__ could not be written", 0)
+  BOB_CATCH_MEMBER("__X__ could not be written", -1)
 }
 
 
@@ -359,7 +359,7 @@ int PyBobLearnEMISVTrainer_set_Z(PyBobLearnEMISVTrainerObject* self, PyObject* v
   }
 
   return 0;
-  BOB_CATCH_MEMBER("__Z__ could not be written", 0)
+  BOB_CATCH_MEMBER("__Z__ could not be written", -1)
 }
 
 

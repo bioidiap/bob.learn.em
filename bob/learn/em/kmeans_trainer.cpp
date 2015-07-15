@@ -108,7 +108,6 @@ static int PyBobLearnEMKMeansTrainer_init(PyBobLearnEMKMeansTrainerObject* self,
         return PyBobLearnEMKMeansTrainer_init_copy(self, args, kwargs);
       else if(PyString_Check(arg))
         return PyBobLearnEMKMeansTrainer_init_str(self, args, kwargs);
-        //return PyBobLearnEMKMeansTrainer_init_str(self, arg);
     }
     default:{
       PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 0 or 1 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
@@ -116,7 +115,7 @@ static int PyBobLearnEMKMeansTrainer_init(PyBobLearnEMKMeansTrainerObject* self,
       return -1;
     }
   }
-  BOB_CATCH_MEMBER("cannot create KMeansTrainer", 0)
+  BOB_CATCH_MEMBER("cannot create KMeansTrainer", -1)
   return 0;
 }
 
@@ -182,7 +181,7 @@ int PyBobLearnEMKMeansTrainer_setInitializationMethod(PyBobLearnEMKMeansTrainerO
   self->cxx->setInitializationMethod(string2IM(PyString_AS_STRING(value)));
 
   return 0;
-  BOB_CATCH_MEMBER("initialization method could not be set", 0)
+  BOB_CATCH_MEMBER("initialization method could not be set", -1)
 }
 
 
@@ -264,7 +263,7 @@ int PyBobLearnEMKMeansTrainer_setAverageMinDistance(PyBobLearnEMKMeansTrainerObj
   self->cxx->setAverageMinDistance(PyFloat_AS_DOUBLE(value));
 
   return 0;
-  BOB_CATCH_MEMBER("Average Min Distance could not be set", 0)
+  BOB_CATCH_MEMBER("Average Min Distance could not be set", -1)
 }
 
 

@@ -132,7 +132,7 @@ static int PyBobLearnEMJFABase_init(PyBobLearnEMJFABaseObject* self, PyObject* a
       JFABase_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create JFABase", 0)
+  BOB_CATCH_MEMBER("cannot create JFABase", -1)
   return 0;
 }
 

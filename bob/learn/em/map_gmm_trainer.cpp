@@ -151,7 +151,7 @@ static int PyBobLearnEMMAPGMMTrainer_init(PyBobLearnEMMAPGMMTrainerObject* self,
     return PyBobLearnEMMAPGMMTrainer_init_base_trainer(self, args, kwargs);
   }
 
-  BOB_CATCH_MEMBER("cannot create MAP_GMMTrainer", 0)
+  BOB_CATCH_MEMBER("cannot create MAP_GMMTrainer", -1)
   return 0;
 }
 
@@ -214,7 +214,7 @@ int PyBobLearnEMMAPGMMTrainer_setRelevanceFactor(PyBobLearnEMMAPGMMTrainerObject
 
   self->cxx->setRelevanceFactor(PyFloat_AS_DOUBLE(value));
   return 0;
-  BOB_CATCH_MEMBER("relevance_factor could not be set", 0)
+  BOB_CATCH_MEMBER("relevance_factor could not be set", -1)
 }
 
 
@@ -240,7 +240,7 @@ int PyBobLearnEMMAPGMMTrainer_setAlpha(PyBobLearnEMMAPGMMTrainerObject* self, Py
 
   self->cxx->setAlpha(PyFloat_AS_DOUBLE(value));
   return 0;
-  BOB_CATCH_MEMBER("alpha could not be set", 0)
+  BOB_CATCH_MEMBER("alpha could not be set", -1)
 }
 
 

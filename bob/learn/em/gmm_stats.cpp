@@ -134,7 +134,7 @@ static int PyBobLearnEMGMMStats_init(PyBobLearnEMGMMStatsObject* self, PyObject*
       GMMStats_doc.print_usage();
       return -1;
   }
-  BOB_CATCH_MEMBER("cannot create GMMStats", 0)
+  BOB_CATCH_MEMBER("cannot create GMMStats", -1)
   return 0;
 }
 
