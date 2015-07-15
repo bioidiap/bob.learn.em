@@ -15,21 +15,28 @@
 
 static auto EMPCATrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".EMPCATrainer",
-  ""
+   "Trains a :py:class:`bob.learn.linear.Machine` using an Expectation-Maximization algorithm on the given dataset [Bishop1999]_ [Roweis1998]_ \n\n"
+    "Notations used are the ones from [Bishop1999]_\n\n"
+    "The probabilistic model is given by: :math:`t = Wx + \\mu + \\epsilon`\n\n"
+    " - :math:`t` is the observed data (dimension :math:`f`)\n"
+    " - :math:`W` is a  projection matrix (dimension :math:`f \\times d`)\n"
+    " - :math:`x` is the projected data (dimension :math:`d < f`)\n"
+    " - :math:`\\mu` is the mean of the data (dimension :math:`f`)\n"
+    " - :math:`\\epsilon` is the noise of the data (dimension :math:`f`) \n"
+    " - Gaussian with zero-mean and covariance matrix :math:`\\sigma^2 Id`"
 
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
+
     "Creates a EMPCATrainer",
     "",
     true
   )
-  .add_prototype("convergence_threshold","")
   .add_prototype("other","")
   .add_prototype("","")
 
   .add_parameter("other", ":py:class:`bob.learn.em.EMPCATrainer`", "A EMPCATrainer object to be copied.")
-  .add_parameter("convergence_threshold", "float", "")
 
 );
 
@@ -47,22 +54,6 @@ static int PyBobLearnEMEMPCATrainer_init_copy(PyBobLearnEMEMPCATrainerObject* se
   return 0;
 }
 
-static int PyBobLearnEMEMPCATrainer_init_number(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
-
-  char** kwlist = EMPCATrainer_doc.kwlist(0);
-  double convergence_threshold    = 0.0001;
-  //Parsing the input argments
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &convergence_threshold))
-    return -1;
-
-  if(convergence_threshold < 0){
-    PyErr_Format(PyExc_TypeError, "convergence_threshold argument must be greater than to zero");
-    return -1;
-  }
-
-  self->cxx.reset(new bob::learn::em::EMPCATrainer(convergence_threshold));
-  return 0;
-}
 
 static int PyBobLearnEMEMPCATrainer_init(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
@@ -76,21 +67,7 @@ static int PyBobLearnEMEMPCATrainer_init(PyBobLearnEMEMPCATrainerObject* self, P
       return 0;
     }
     case 1:{
-      //Reading the input argument
-      PyObject* arg = 0;
-      if (PyTuple_Size(args))
-        arg = PyTuple_GET_ITEM(args, 0);
-      else {
-        PyObject* tmp = PyDict_Values(kwargs);
-        auto tmp_ = make_safe(tmp);
-        arg = PyList_GET_ITEM(tmp, 0);
-      }
-
-      // If the constructor input is EMPCATrainer object
-      if (PyBobLearnEMEMPCATrainer_Check(arg))
-        return PyBobLearnEMEMPCATrainer_init_copy(self, args, kwargs);
-      else if(PyString_Check(arg))
-        return PyBobLearnEMEMPCATrainer_init_number(self, args, kwargs);
+      return PyBobLearnEMEMPCATrainer_init_copy(self, args, kwargs);
     }
     default:{
       PyErr_Format(PyExc_RuntimeError, "number of arguments mismatch - %s requires 0 or 1 arguments, but you provided %d (see help)", Py_TYPE(self)->tp_name, nargs);
@@ -139,7 +116,41 @@ static PyObject* PyBobLearnEMEMPCATrainer_RichCompare(PyBobLearnEMEMPCATrainerOb
 /************ Variables Section ***********************************/
 /******************************************************************/
 
+
+/***** sigma_2 *****/
+static auto sigma2 = bob::extension::VariableDoc(
+  "sigma2",
+  "float",
+  "The noise sigma2 of the probabilistic model",
+  ""
+);
+PyObject* PyBobLearnEMEMPCATrainer_getSigma2(PyBobLearnEMEMPCATrainerObject* self, void*){
+  BOB_TRY
+  return Py_BuildValue("d",self->cxx->getSigma2());
+  BOB_CATCH_MEMBER("sigma2 could not be read", 0)
+}
+int PyBobLearnEMEMPCATrainer_setSigma2(PyBobLearnEMEMPCATrainerObject* self, PyObject* value, void*){
+  BOB_TRY
+
+  if(!PyBob_NumberCheck(value)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a float", Py_TYPE(self)->tp_name, sigma2.name());
+    return -1;
+  }
+
+  self->cxx->setSigma2(PyFloat_AS_DOUBLE(value));
+  return 0;
+  BOB_CATCH_MEMBER("sigma2 could not be set", -1)
+}
+
+
 static PyGetSetDef PyBobLearnEMEMPCATrainer_getseters[] = {
+  {
+    sigma2.name(),
+    (getter)PyBobLearnEMEMPCATrainer_getSigma2,
+    (setter)PyBobLearnEMEMPCATrainer_setSigma2,
+    sigma2.doc(),
+    0
+  },
   {0}  // Sentinel
 };
 
@@ -257,7 +268,7 @@ static auto compute_likelihood = bob::extension::FunctionDoc(
   0,
   true
 )
-.add_prototype("linear_machine,data")
+.add_prototype("linear_machine")
 .add_parameter("linear_machine", ":py:class:`bob.learn.linear.Machine`", "LinearMachine Object");
 static PyObject* PyBobLearnEMEMPCATrainer_compute_likelihood(PyBobLearnEMEMPCATrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY

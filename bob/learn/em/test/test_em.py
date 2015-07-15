@@ -253,3 +253,46 @@ def test_custom_trainer():
 
   for i in range(0, 2):
     assert (ar[i+1] == machine.means[i, :]).all()
+    
+    
+    
+def test_EMPCA():
+
+  # Tests our Probabilistic PCA trainer for linear machines for a simple
+  # problem:
+  ar=numpy.array([
+    [1, 2, 3],
+    [2, 4, 19],
+    [3, 6, 5],
+    [4, 8, 13],
+    ], dtype='float64')
+
+  # Expected llh 1 and 2 (Reference values)
+  exp_llh1 =  -32.8443
+  exp_llh2 =  -30.8559
+
+  # Do two iterations of EM to check the training procedure
+  T = bob.learn.em.EMPCATrainer()
+  m = bob.learn.linear.Machine(3,2)
+  # Initialization of the trainer
+  T.initialize(m, ar)
+  # Sets ('random') initialization values for test purposes
+  w_init = numpy.array([1.62945, 0.270954, 1.81158, 1.67002, 0.253974,
+    1.93774], 'float64').reshape(3,2)
+  sigma2_init = 1.82675
+  m.weights = w_init
+  T.sigma2 = sigma2_init
+  # Checks that the log likehood matches the reference one
+  # This should be sufficient to check everything as it requires to use
+  # the new value of W and sigma2
+  # This does an E-Step, M-Step, computes the likelihood, and compares it to
+  # the reference value obtained using matlab
+  T.e_step(m, ar)
+  T.m_step(m, ar)
+  llh1 = T.compute_likelihood(m)
+  assert abs(exp_llh1 - llh1) < 2e-4
+  T.e_step(m, ar)
+  T.m_step(m, ar)
+  llh2 = T.compute_likelihood(m)
+  assert abs(exp_llh2 - llh2) < 2e-4    
+    
