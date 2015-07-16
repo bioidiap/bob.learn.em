@@ -16,6 +16,7 @@
 #include <bob.math/linear.h>
 #include <bob.math/det.h>
 #include <bob.math/inv.h>
+#include <bob.math/pinv.h>
 #include <bob.math/stats.h>
 
 bob::learn::em::EMPCATrainer::EMPCATrainer(bool compute_likelihood):
@@ -172,6 +173,7 @@ void bob::learn::em::EMPCATrainer::initMembers(
   m_tmp_dxf.resize(n_outputs, n_features);
   m_tmp_d.resize(n_outputs);
   m_tmp_f.resize(n_features);
+  
   m_tmp_dxd_1.resize(n_outputs, n_outputs);
   m_tmp_dxd_2.resize(n_outputs, n_outputs);
   m_tmp_fxd_1.resize(n_features, n_outputs);
@@ -240,8 +242,8 @@ void bob::learn::em::EMPCATrainer::computeInvM()
 {
   // Compute inverse(M), where M = W^T * W + sigma2 * Id
   bob::math::eye(m_tmp_dxd_1); // m_tmp_dxd_1 = Id
-  m_tmp_dxd_1 *= m_sigma2; // m_tmp_dxd_1 = sigma2 * Id
-  m_tmp_dxd_1 += m_inW; // m_tmp_dxd_1 = M = W^T * W + sigma2 * Id
+  m_tmp_dxd_1 *= m_sigma2; // m_tmp_dxd_1 = sigma2 * Id  
+  m_tmp_dxd_1 += m_inW; // m_tmp_dxd_1 = M = W^T * W + sigma2 * Id  
   bob::math::inv(m_tmp_dxd_1, m_invM); // m_invM = inv(M)
 }
 
