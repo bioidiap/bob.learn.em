@@ -620,7 +620,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("jfa_base,stats,rng")
+.add_prototype("jfa_base, stats, [rng]")
 .add_parameter("jfa_base", ":py:class:`bob.learn.em.JFABase`", "JFABase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -639,8 +639,7 @@ static PyObject* PyBobLearnEMJFATrainer_initialize(PyBobLearnEMJFATrainerObject*
                                                                  &PyBoostMt19937_Type, &rng)) return 0;
 
   if(rng){
-    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-    self->cxx->setRng(rng_cpy);
+    self->cxx->setRng(rng->rng);
   }
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;

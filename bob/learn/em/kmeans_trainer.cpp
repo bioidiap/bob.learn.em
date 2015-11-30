@@ -313,7 +313,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "Data is split into as many chunks as there are means, then each mean is set to a random example within each chunk.",
   true
 )
-.add_prototype("kmeans_machine,data, rng")
+.add_prototype("kmeans_machine, data, [rng]")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -349,8 +349,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_initialize(PyBobLearnEMKMeansTrainerO
   }
 
   if(rng){
-    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-    self->cxx->setRng(rng_cpy);
+    self->cxx->setRng(rng->rng);
   }
 
   self->cxx->initialize(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));

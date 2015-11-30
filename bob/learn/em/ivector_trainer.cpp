@@ -332,8 +332,7 @@ static PyObject* PyBobLearnEMIVectorTrainer_initialize(PyBobLearnEMIVectorTraine
                                                                    &PyBoostMt19937_Type, &rng)) return 0;
 
   if(rng){
-    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-    self->cxx->setRng(rng_cpy);
+    self->cxx->setRng(rng->rng);
   }
 
   self->cxx->initialize(*ivector_machine->cxx);

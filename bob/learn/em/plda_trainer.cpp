@@ -424,7 +424,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("plda_base,data,rng")
+.add_prototype("plda_base, data, [rng]")
 .add_parameter("plda_base", ":py:class:`bob.learn.em.PLDABase`", "PLDAMachine Object")
 .add_parameter("data", "list", "")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -445,8 +445,7 @@ static PyObject* PyBobLearnEMPLDATrainer_initialize(PyBobLearnEMPLDATrainerObjec
   std::vector<blitz::Array<double,2> > data_vector;
   if(list_as_vector(data ,data_vector)==0){
     if(rng){
-      boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-      self->cxx->setRng(rng_cpy);
+      self->cxx->setRng(rng->rng);
     }
 
     self->cxx->initialize(*plda_base->cxx, data_vector);

@@ -166,7 +166,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("linear_machine,data")
+.add_prototype("linear_machine, data, [rng]")
 .add_parameter("linear_machine", ":py:class:`bob.learn.linear.Machine`", "LinearMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -186,8 +186,7 @@ static PyObject* PyBobLearnEMEMPCATrainer_initialize(PyBobLearnEMEMPCATrainerObj
   auto data_ = make_safe(data);
 
   if(rng){
-    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-    self->cxx->setRng(rng_cpy);
+    self->cxx->setRng(rng->rng);
   }
 
 

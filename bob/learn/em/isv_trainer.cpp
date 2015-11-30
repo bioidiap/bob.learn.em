@@ -409,7 +409,7 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("isv_base, stats, rng")
+.add_prototype("isv_base, stats, [rng]")
 .add_parameter("isv_base", ":py:class:`bob.learn.em.ISVBase`", "ISVBase Object")
 .add_parameter("stats", ":py:class:`bob.learn.em.GMMStats`", "GMMStats Object")
 .add_parameter("rng", ":py:class:`bob.core.random.mt19937`", "The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop.");
@@ -428,8 +428,7 @@ static PyObject* PyBobLearnEMISVTrainer_initialize(PyBobLearnEMISVTrainerObject*
                                                                  &PyBoostMt19937_Type, &rng)) return 0;
 
   if(rng){
-    boost::shared_ptr<boost::mt19937> rng_cpy = (boost::shared_ptr<boost::mt19937>)new boost::mt19937(*rng->rng);
-    self->cxx->setRng(rng_cpy);
+    self->cxx->setRng(rng->rng);
   }
 
   std::vector<std::vector<boost::shared_ptr<bob::learn::em::GMMStats> > > training_data;

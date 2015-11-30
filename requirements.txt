@@ -1,7 +1,7 @@
 setuptools
 bob.extension
 bob.blitz
-bob.core
+bob.core>2.0.5
 bob.io.base
 bob.sp
 bob.math
