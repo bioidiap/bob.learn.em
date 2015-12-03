@@ -60,11 +60,13 @@ static PyObject* create_module (void) {
 
 # if PY_VERSION_HEX >= 0x03000000
   PyObject* module = PyModule_Create(&module_definition);
+  auto module_ = make_xsafe(module);
+  const char* ret = "O";
 # else
   PyObject* module = Py_InitModule3(BOB_EXT_MODULE_NAME, module_methods, module_docstr);
+  const char* ret = "N";
 # endif
   if (!module) return 0;
-  auto module_ = make_safe(module); ///< protects against early returns
 
   if (!init_BobLearnEMGaussian(module)) return 0;
   if (!init_BobLearnEMGMMStats(module)) return 0;
@@ -129,7 +131,7 @@ static PyObject* create_module (void) {
   if (import_bob_learn_activation() < 0) return 0;
   if (import_bob_learn_linear() < 0) return 0;
 
-  return Py_BuildValue("O", module);
+  return Py_BuildValue(ret, module);
 }
 
 PyMODINIT_FUNC BOB_EXT_ENTRY_NAME (void) {
