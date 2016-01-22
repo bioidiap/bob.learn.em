@@ -673,22 +673,22 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood(PyBobLearnEMGMMMachineObje
     log_likelihood.print_usage();
     return 0;
   }
-  
+
   int shape_index = input->ndim - 1; //Getting the index of the dimensionality (0 for 1D arrays, 1 for 2D arrays)
-  
+
   if (input->shape[shape_index] != (Py_ssize_t)self->cxx->getNInputs()){
     PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d elements, not %" PY_FORMAT_SIZE_T "d", Py_TYPE(self)->tp_name, self->cxx->getNInputs(), input->shape[0]);
     log_likelihood.print_usage();
     return 0;
   }
-  
+
   double value = 0;
   if (input->ndim == 1)
     value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,1>(input));
   else
     value = self->cxx->logLikelihood(*PyBlitzArrayCxx_AsBlitz<double,2>(input));
-  
-  
+
+
   return Py_BuildValue("d", value);
   BOB_CATCH_MEMBER("cannot compute the likelihood", 0)
 }
@@ -795,8 +795,8 @@ static PyObject* PyBobLearnEMGMMMachine_accStatistics_(PyBobLearnEMGMMMachineObj
   PyBlitzArrayObject* input = 0;
   PyBobLearnEMGMMStatsObject* stats = 0;
 
- if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input,
-                                                                 &PyBobLearnEMGMMStats_Type, &stats))
+  if(!PyArg_ParseTupleAndKeywords(args, kwargs, "O&O!", kwlist, &PyBlitzArray_Converter,&input,
+                                                                &PyBobLearnEMGMMStats_Type, &stats))
     return 0;
 
   //protects acquired resources through this scope
@@ -821,7 +821,7 @@ static auto set_variance_thresholds = bob::extension::FunctionDoc(
   true
 )
 .add_prototype("input")
-.add_parameter("input", "array_like <float, 1D>", "Input vector");
+.add_parameter("input", "float or array_like <float, 1D>", "The new variance threshold, or a vector of thresholds for all Gaussian components");
 static PyObject* PyBobLearnEMGMMMachine_setVarianceThresholds_method(PyBobLearnEMGMMMachineObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -832,7 +832,7 @@ static PyObject* PyBobLearnEMGMMMachine_setVarianceThresholds_method(PyBobLearnE
   if(PyArg_ParseTupleAndKeywords(args, kwargs, "d", kwlist, &input_number)){
     self->cxx->setVarianceThresholds(input_number);
   }
-  else if(PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter,&input_array)) {
+  else if(PyArg_ParseTupleAndKeywords(args, kwargs, "O&", kwlist, &PyBlitzArray_Converter, &input_array)) {
     //protects acquired resources through this scope
     auto input_ = make_safe(input_array);
     self->cxx->setVarianceThresholds(*PyBlitzArrayCxx_AsBlitz<double,1>(input_array));
@@ -840,6 +840,8 @@ static PyObject* PyBobLearnEMGMMMachine_setVarianceThresholds_method(PyBobLearnE
   else
     return 0;
 
+  // clear any error that might have been set in the functions above
+  PyErr_Clear();
 
   BOB_CATCH_MEMBER("cannot accumulate set the variance threshold", 0)
   Py_RETURN_NONE;
