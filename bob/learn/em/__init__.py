@@ -2,6 +2,7 @@
 import bob.io.base
 import bob.math
 import bob.learn.linear
+import bob.sp
 
 # import our own Library
 import bob.extension
