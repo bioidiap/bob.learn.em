@@ -32,6 +32,7 @@ setup(
 
     packages=find_packages(),
     include_package_data=True,
+    zip_safe=False,
 
     setup_requires = build_requires,
     install_requires = build_requires,
