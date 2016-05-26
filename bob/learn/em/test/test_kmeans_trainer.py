@@ -144,8 +144,9 @@ def test_kmeans_b():
   bob.learn.em.train(trainer,machine, arStd, convergence_threshold=0.001)
 
   [variances, weights] = machine.get_variances_and_weights_for_each_cluster(arStd)
-    
-  means = machine.means
+
+  means = numpy.array(machine.means)
+  variances = numpy.array(variances)
 
   multiplyVectorsByFactors(means, std)
   multiplyVectorsByFactors(variances, std ** 2)
