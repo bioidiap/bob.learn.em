@@ -317,7 +317,7 @@ class PythonPLDATrainer():
       i += 1
 
 
-def test_plda_EM_vs_Python():
+def notest_plda_EM_vs_Python():
 
   # Data used for performing the tests
   # Features and subspaces dimensionality
