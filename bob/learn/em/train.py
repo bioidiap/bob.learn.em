@@ -52,7 +52,12 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
     
     if hasattr(trainer,"compute_likelihood"):
       average_output = trainer.compute_likelihood(machine)
-      logger.info("log likelihood = %f", average_output)
+      
+      if type(machine) is bob.learn.em.KMeansMachine:
+        logger.info("average euclidean distance = %f", average_output)
+      else:
+        logger.info("log likelihood = %f", average_output)
+      
       convergence_value = abs((average_output_previous - average_output)/average_output_previous)
       logger.info("convergence value = %f",convergence_value)
     
