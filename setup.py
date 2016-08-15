@@ -22,8 +22,8 @@ setup(
 
     name='bob.learn.em',
     version=version,
-    description='Bindings for emelaneous machines and trainers of Bob',
-    url='http://github.com/bioidiap/bob.learn.em',
+    description='Bindings for EM machines and trainers of Bob',
+    url='http://gitlab.idiap.ch/bob/bob.learn.em',
     license='BSD',
     author='Andre Anjos',
     author_email='andre.anjos@idiap.ch',
