@@ -4,7 +4,7 @@
 .. image:: http://img.shields.io/badge/docs-stable-yellow.png
    :target: http://pythonhosted.org/bob.learn.em/index.html
 .. image:: http://img.shields.io/badge/docs-latest-orange.png
-   :target: https://www.idiap.ch/software/bob/docs/latest/bioidiap/bob.learn.em/master/index.html
+   :target: https://www.idiap.ch/software/bob/docs/latest/bob/bob.learn.em/master/index.html
 .. image:: https://gitlab.idiap.ch/bob/bob.learn.em/badges/master/build.svg
    :target: https://gitlab.idiap.ch/bob/bob.learn.em/commits/master
 .. image:: https://img.shields.io/badge/gitlab-project-0000c0.svg
