@@ -10,7 +10,7 @@
 
 .. _argparse: http://code.google.com/p/argparse/
 .. _blitz++: http://www.oonumerics.org/blitz
-.. _bob's idiap guide: http://github.com/idiap/bob/wiki/Using-Bob-at-Idiap
+.. _bob's idiap guide: https://gitlab.idiap.ch/bob/bob/wikis/Using-Bob-at-Idiap
 .. _bob's website: https://www.idiap.ch/software/bob
 .. _boost: http://www.boost.org
 .. _buildbot: http://trac.buildbot.net
@@ -50,13 +50,13 @@
 .. _python: http://www.python.org
 .. _pypi: http://pypi.python.org
 .. _qt4: http://qt.nokia.com/
-.. _satellite packages: https://github.com/idiap/bob/wiki/Satellite-Packages
+.. _satellite packages: https://gitlab.idiap.ch/bob/bob/wikis/Packages
 .. _scipy: http://www.scipy.org
 .. _setuptools: http://trac.edgewall.org/wiki/setuptools
 .. _sphinx: http://sphinx.pocoo.org
 .. _sqlalchemy: http://www.sqlalchemy.org/
 .. _sqlite: http://www.sqlite.org/
-.. _submit a new bug report: https://github.com/idiap/bob/issues
+.. _submit a new bug report: https://groups.google.com/forum/?fromgroups#!forum/bob-devel
 .. _torch 3 vision: http://torch3vision.idiap.ch
 .. _torch 3: http://www.torch.ch
 .. _torch 5: http://torch5.sourceforge.net
