@@ -212,7 +212,7 @@ Once the :py:class:`bob.learn.em.JFAMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`bob.learn.em.JFAMachine.forward` on the sufficient statistics.
+:py:meth:`bob.learn.em.JFAMachine.log_likelihood` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
@@ -266,7 +266,7 @@ Once the :py:class:`bob.learn.em.ISVMachine` has been configured for a
 specific class, the log-likelihood (score) that an input sample belongs to the
 enrolled class, can be estimated, by first computing the GMM sufficient
 statistics of this input sample, and then calling the
-:py:meth:`bob.learn.em.ISVMachine.forward` on the sufficient statistics.
+``__call__`` on the sufficient statistics.
 
 .. doctest::
   :options: +NORMALIZE_WHITESPACE
@@ -565,7 +565,7 @@ Next, we initialize a trainer, which is an instance of
    >>> jfa_trainer = bob.learn.em.JFATrainer()
 
 The training process is started by calling the
-:py:meth:`bob.learn.em.JFATrainer.train`.
+:py:meth:`bob.learn.em.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -626,7 +626,7 @@ Next, we initialize a trainer, which is an instance of
    >>> isv_trainer = bob.learn.em.ISVTrainer(relevance_factor=4.) # 4 is the relevance factor
 
 The training process is started by calling the
-:py:meth:`bob.learn.em.ISVTrainer.train`.
+:py:meth:`bob.learn.em.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -675,7 +675,7 @@ Next, we initialize a trainer, which is an instance of
    >>> TRAINING_STATS_flatten = [gs11, gs12, gs21, gs22]
 
 The training process is started by calling the
-:py:meth:`bob.learn.em.IVectorTrainer.train`.
+:py:meth:`bob.learn.em.train`.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
@@ -717,7 +717,7 @@ dimensionality 3.
 
 Learning a PLDA model can be performed by instantiating the class
 :py:class:`bob.learn.em.PLDATrainer`, and calling the
-:py:meth:`bob.learn.em.PLDATrainer.train()` method.
+:py:meth:`bob.learn.em.train` method.
 
 .. doctest::
 
@@ -769,8 +769,8 @@ separately for each model.
 In a verification scenario, there are two possible hypotheses: 1.
 :math:`x_{test}` and :math:`x_{enroll}` share the same class.  2.
 :math:`x_{test}` and :math:`x_{enroll}` are from different classes.  Using the
-methods :py:meth:`bob.learn.em.PLDAMachine.forward` or
-:py:meth:`bob.learn.em.PLDAMachine.__call__` function, the corresponding
+methods :py:meth:`bob.learn.em.PLDAMachine.log_likelihood_ratio` or
+its alias ``__call__`` function, the corresponding
 log-likelihood ratio will be computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enroll})) - \ln(P(x_{test})P(x_{enroll}))`
 

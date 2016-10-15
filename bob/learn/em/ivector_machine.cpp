@@ -187,10 +187,10 @@ static auto supervector_length = bob::extension::VariableDoc(
   "supervector_length",
   "int",
 
-  "Returns the supervector length."
-  "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality",
-
+  "Returns the supervector length.",
+  "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality"
   "@warning An exception is thrown if no Universal Background Model has been set yet."
+  ""
 );
 PyObject* PyBobLearnEMIVectorMachine_getSupervectorLength(PyBobLearnEMIVectorMachineObject* self, void*) {
   BOB_TRY
@@ -472,7 +472,7 @@ static PyObject* PyBobLearnEMIVectorMachine_IsSimilarTo(PyBobLearnEMIVectorMachi
 static auto project = bob::extension::FunctionDoc(
   "project",
   "Projects the given GMM statistics into the i-vector subspace",
-  ".. note:: The :py:meth:`__call__` function is an alias for this function",
+  ".. note:: The ``__call__`` function is an alias for this function",
   true
 )
 .add_prototype("stats")

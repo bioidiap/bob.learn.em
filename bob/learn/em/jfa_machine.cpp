@@ -172,10 +172,10 @@ static auto supervector_length = bob::extension::VariableDoc(
   "supervector_length",
   "int",
 
-  "Returns the supervector length."
-  "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality",
-
+  "Returns the supervector length.",
+  "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality"
   "@warning An exception is thrown if no Universal Background Model has been set yet."
+  ""
 );
 PyObject* PyBobLearnEMJFAMachine_getSupervectorLength(PyBobLearnEMJFAMachineObject* self, void*) {
   BOB_TRY
@@ -621,7 +621,7 @@ static PyObject* PyBobLearnEMJFAMachine_ForwardUx(PyBobLearnEMJFAMachineObject* 
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
   "Computes the log-likelihood of the given samples",
-  ".. note:: the :py:meth:`__call__` function is an alias for this function.",
+  ".. note:: the ``__call__`` function is an alias for this function.",
   true
 )
 .add_prototype("stats")

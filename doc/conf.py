@@ -30,8 +30,28 @@ extensions = [
 import sphinx
 if sphinx.__version__ >= "1.4.1":
     extensions.append('sphinx.ext.imgmath')
+    imgmath_image_format = 'svg'
 else:
     extensions.append('sphinx.ext.pngmath')
+
+# Be picky about warnings
+nitpicky = True
+
+# Ignores stuff we can't easily resolve on other project's sphinx manuals
+nitpick_ignore = []
+
+# Allows the user to override warnings from a separate file
+if os.path.exists('nitpick-exceptions.txt'):
+    for line in open('nitpick-exceptions.txt'):
+        if line.strip() == "" or line.startswith("#"):
+            continue
+        dtype, target = line.split(None, 1)
+        target = target.strip()
+        try: # python 2.x
+            target = unicode(target)
+        except NameError:
+            pass
+        nitpick_ignore.append((dtype, target))
 
 # Always includes todos
 todo_include_todos = True
@@ -59,7 +79,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bob.learn.em'
+project = u'bob.core'
 import time
 copyright = u'%s, Idiap Research Institute' % time.strftime('%Y')
 
@@ -111,7 +131,7 @@ pygments_style = 'sphinx'
 
 # Some variables which are useful for generated material
 project_variable = project.replace('.', '_')
-short_description = u'Bindings for EM machines and trainers of Bob'
+short_description = u'Core utilities required on all Bob modules'
 owner = [u'Idiap Research Institute']
 
 
@@ -216,8 +236,14 @@ autodoc_default_flags = [
   ]
 
 # For inter-documentation mapping:
-from bob.extension.utils import link_documentation
-intersphinx_mapping = link_documentation()
+from bob.extension.utils import link_documentation, load_requirements
+sphinx_requirements = "extra-intersphinx.txt"
+if os.path.exists(sphinx_requirements):
+    intersphinx_mapping = link_documentation(
+        additional_packages=['python', 'numpy'] + load_requirements(sphinx_requirements))
+else:
+    intersphinx_mapping = link_documentation()
+
 
 # We want to remove all private (i.e. _. or __.__) members
 # that are not in the list of accepted functions
