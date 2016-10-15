@@ -79,7 +79,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bob.learn.em'
+project = u'bob.core'
 import time
 copyright = u'%s, Idiap Research Institute' % time.strftime('%Y')
 
@@ -131,7 +131,7 @@ pygments_style = 'sphinx'
 
 # Some variables which are useful for generated material
 project_variable = project.replace('.', '_')
-short_description = u'Bindings for EM machines and trainers of Bob'
+short_description = u'Core utilities required on all Bob modules'
 owner = [u'Idiap Research Institute']
 
 
@@ -239,7 +239,8 @@ autodoc_default_flags = [
 from bob.extension.utils import link_documentation, load_requirements
 sphinx_requirements = "extra-intersphinx.txt"
 if os.path.exists(sphinx_requirements):
-    intersphinx_mapping = link_documentation(additional_packages=load_requirements(sphinx_requirements))
+    intersphinx_mapping = link_documentation(
+        additional_packages=['python', 'numpy'] + load_requirements(sphinx_requirements))
 else:
     intersphinx_mapping = link_documentation()
 

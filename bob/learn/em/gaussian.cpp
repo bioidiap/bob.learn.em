@@ -375,7 +375,7 @@ static PyObject* PyBobLearnEMGaussian_resize(PyBobLearnEMGaussianObject* self, P
 static auto log_likelihood = bob::extension::FunctionDoc(
   "log_likelihood",
   "Output the log likelihood of the sample, x. The input size is checked.",
-  ".. note:: The :py:meth:`__call__` function is an alias for this.", 
+  ".. note:: The ``__call__`` function is an alias for this.",
   true
 )
 .add_prototype("input","output")

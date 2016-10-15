@@ -301,7 +301,7 @@ int PyBobLearnEMPLDAMachine_setWeightedSum(PyBobLearnEMPLDAMachineObject* self, 
 static auto log_likelihood = bob::extension::VariableDoc(
   "log_likelihood",
   "float",
-  "",
+  "Get the current log likelihood",
   ""
 );
 static PyObject* PyBobLearnEMPLDAMachine_getLogLikelihood(PyBobLearnEMPLDAMachineObject* self, PyObject* args, PyObject* kwargs) {
