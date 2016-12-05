@@ -79,7 +79,7 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'bob.core'
+project = u'bob.learn.em'
 import time
 copyright = u'%s, Idiap Research Institute' % time.strftime('%Y')
 
