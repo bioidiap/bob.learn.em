@@ -84,7 +84,7 @@ void bob::learn::em::Gaussian::resize(const size_t n_inputs) {
   m_variance.resize(m_n_inputs);
   m_variance = 1;
   m_variance_thresholds.resize(m_n_inputs);
-  m_variance_thresholds = 0;
+  m_variance_thresholds = std::numeric_limits<double>::epsilon();
 
   // Re-compute g_norm, because m_n_inputs and m_variance
   // have changed

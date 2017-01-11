@@ -31,7 +31,6 @@ void bob::learn::em::GMMBaseTrainer::initialize(bob::learn::em::GMMMachine& gmm)
 {
   // Allocate memory for the sufficient statistics and initialise
   m_ss->resize(gmm.getNGaussians(),gmm.getNInputs());
-  gmm.setVarianceThresholds(this->m_mean_var_update_responsibilities_threshold);
 }
 
 void bob::learn::em::GMMBaseTrainer::eStep(bob::learn::em::GMMMachine& gmm,
