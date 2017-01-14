@@ -50,7 +50,7 @@
 .. _python: http://www.python.org
 .. _pypi: http://pypi.python.org
 .. _qt4: http://qt.nokia.com/
-.. _satellite packages: https://gitlab.idiap.ch/bob/bob/wikis/Packages
+.. _satellite packages: https://www.idiap.ch/software/bob/packages
 .. _scipy: http://www.scipy.org
 .. _setuptools: http://trac.edgewall.org/wiki/setuptools
 .. _sphinx: http://sphinx.pocoo.org
