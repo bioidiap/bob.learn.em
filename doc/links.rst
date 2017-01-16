@@ -56,7 +56,7 @@
 .. _sphinx: http://sphinx.pocoo.org
 .. _sqlalchemy: http://www.sqlalchemy.org/
 .. _sqlite: http://www.sqlite.org/
-.. _submit a new bug report: https://groups.google.com/forum/?fromgroups#!forum/bob-devel
+.. _submit a new bug report: https://www.idiap.ch/software/bob/issues
 .. _torch 3 vision: http://torch3vision.idiap.ch
 .. _torch 3: http://www.torch.ch
 .. _torch 5: http://torch5.sourceforge.net
