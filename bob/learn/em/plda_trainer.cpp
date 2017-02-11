@@ -13,13 +13,21 @@
 
 //Defining maps for each initializatio method
 static const std::map<std::string, bob::learn::em::PLDATrainer::InitFMethod> FMethod = boost::assign::map_list_of
-  {{"RANDOM_F",  bob::learn::em::PLDATrainer::RANDOM_F}, {"BETWEEN_SCATTER", bob::learn::em::PLDATrainer::BETWEEN_SCATTER}};
+  ("RANDOM_F",  bob::learn::em::PLDATrainer::RANDOM_F)
+  ("BETWEEN_SCATTER", bob::learn::em::PLDATrainer::BETWEEN_SCATTER)
+  ;
 
-static const std::map<std::string, bob::learn::em::PLDATrainer::InitGMethod> GMethod = {{"RANDOM_G",  bob::learn::em::PLDATrainer::RANDOM_G}, {"WITHIN_SCATTER", bob::learn::em::PLDATrainer::WITHIN_SCATTER}};
+static const std::map<std::string, bob::learn::em::PLDATrainer::InitGMethod> GMethod = boost::assign::map_list_of
+  ("RANDOM_G",  bob::learn::em::PLDATrainer::RANDOM_G)
+  ("WITHIN_SCATTER", bob::learn::em::PLDATrainer::WITHIN_SCATTER)
+  ;
 
-static const std::map<std::string, bob::learn::em::PLDATrainer::InitSigmaMethod> SigmaMethod = {{"RANDOM_SIGMA",  bob::learn::em::PLDATrainer::RANDOM_SIGMA}, {"VARIANCE_G", bob::learn::em::PLDATrainer::VARIANCE_G}, {"CONSTANT", bob::learn::em::PLDATrainer::CONSTANT}, {"VARIANCE_DATA", bob::learn::em::PLDATrainer::VARIANCE_DATA}};
-
-
+static const std::map<std::string, bob::learn::em::PLDATrainer::InitSigmaMethod> SigmaMethod = boost::assign::map_list_of
+  ("RANDOM_SIGMA",  bob::learn::em::PLDATrainer::RANDOM_SIGMA)
+  ("VARIANCE_G", bob::learn::em::PLDATrainer::VARIANCE_G)
+  ("CONSTANT", bob::learn::em::PLDATrainer::CONSTANT)
+  ("VARIANCE_DATA", bob::learn::em::PLDATrainer::VARIANCE_DATA)
+  ;
 
 //String to type
 static inline bob::learn::em::PLDATrainer::InitFMethod string2FMethod(const std::string& o){
