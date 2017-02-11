@@ -8,6 +8,7 @@
  */
 
 #include "main.h"
+#include <boost/assign.hpp>
 
 /******************************************************************/
 /************ Constructor Section *********************************/
@@ -16,9 +17,16 @@
 // InitializationMethod type conversion
 
 #if BOOST_VERSION >= 104700
-  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM},  {"RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}, {"KMEANS_PLUS_PLUS", bob::learn::em::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS}};
+  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = boost::assign::map_list_of
+  ("RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM)
+  ("RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE)
+  ("KMEANS_PLUS_PLUS", bob::learn::em::KMeansTrainer::InitializationMethod::KMEANS_PLUS_PLUS)
+  ;
 #else
-  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = {{"RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM}, {"RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE}};
+  static const std::map<std::string, bob::learn::em::KMeansTrainer::InitializationMethod> IM = boost::assign::map_list_of
+  ("RANDOM",  bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM),
+  ("RANDOM_NO_DUPLICATE", bob::learn::em::KMeansTrainer::InitializationMethod::RANDOM_NO_DUPLICATE)
+  ;
 #endif
 
 static inline bob::learn::em::KMeansTrainer::InitializationMethod string2IM(const std::string& o){            /* converts string to InitializationMethod type */

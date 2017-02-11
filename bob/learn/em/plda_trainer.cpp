@@ -9,9 +9,11 @@
 
 #include "main.h"
 #include <boost/make_shared.hpp>
+#include <boost/assign.hpp>
 
 //Defining maps for each initializatio method
-static const std::map<std::string, bob::learn::em::PLDATrainer::InitFMethod> FMethod = {{"RANDOM_F",  bob::learn::em::PLDATrainer::RANDOM_F}, {"BETWEEN_SCATTER", bob::learn::em::PLDATrainer::BETWEEN_SCATTER}};
+static const std::map<std::string, bob::learn::em::PLDATrainer::InitFMethod> FMethod = boost::assign::map_list_of
+  {{"RANDOM_F",  bob::learn::em::PLDATrainer::RANDOM_F}, {"BETWEEN_SCATTER", bob::learn::em::PLDATrainer::BETWEEN_SCATTER}};
 
 static const std::map<std::string, bob::learn::em::PLDATrainer::InitGMethod> GMethod = {{"RANDOM_G",  bob::learn::em::PLDATrainer::RANDOM_G}, {"WITHIN_SCATTER", bob::learn::em::PLDATrainer::WITHIN_SCATTER}};
 
