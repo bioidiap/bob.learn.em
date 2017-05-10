@@ -17,7 +17,7 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* 
 
 static auto MAP_GMMTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".MAP_GMMTrainer",
-  "This class implements the maximum a posteriori M-step of the expectation-maximization algorithm for a GMM Machine. The prior parameters are encoded in the form of a GMM (e.g. a universal background model). The EM algorithm thus performs GMM adaptation."
+  "This class implements the maximum a posteriori (:ref:`MAP <map>`) M-step of the expectation-maximization algorithm for a GMM Machine. The prior parameters are encoded in the form of a GMM (e.g. a universal background model). The EM algorithm thus performs GMM adaptation."
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",

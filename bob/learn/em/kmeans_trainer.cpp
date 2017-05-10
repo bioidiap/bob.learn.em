@@ -42,8 +42,8 @@ static inline const std::string& IM2string(bob::learn::em::KMeansTrainer::Initia
 
 static auto KMeansTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".KMeansTrainer",
-  "Trains a KMeans machine."
-  "This class implements the expectation-maximization algorithm for a k-means machine."
+  "Trains a KMeans clustering :ref:`k-means <kmeans>.`"
+  "This class implements the expectation-maximization algorithm for a k-means."
   "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006"
   "It uses a random initialization of the means followed by the expectation-maximization algorithm"
 ).add_constructor(

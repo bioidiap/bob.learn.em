@@ -12,7 +12,7 @@
 /*** zt_norm ***/
 bob::extension::FunctionDoc zt_norm = bob::extension::FunctionDoc(
   "ztnorm",
-  "Normalise raw scores with ZT-Norm."
+  "Normalise raw scores with :ref:`ZT-Norm <ztnorm>`."
   "Assume that znorm and tnorm have no common subject id.",
   0,
   true
@@ -72,7 +72,7 @@ PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 /*** t_norm ***/
 bob::extension::FunctionDoc t_norm = bob::extension::FunctionDoc(
   "tnorm",
-  "Normalise raw scores with T-Norm",
+  "Normalise raw scores with :ref:`T-Norm <tnorm>`",
   0,
   true
 )
@@ -109,7 +109,7 @@ PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs) {
 /*** z_norm ***/
 bob::extension::FunctionDoc z_norm = bob::extension::FunctionDoc(
   "znorm",
-  "Normalise raw scores with Z-Norm",
+  "Normalise raw scores with :ref:`Z-Norm <znorm>`",
   0,
   true
 )

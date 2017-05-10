@@ -10,12 +10,16 @@
  Expectation Maximization Machine Learning Tools
 ================================================
 
-The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step [WikiEM]_. 
+The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables.
+The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood
+evaluated using the current estimate for the parameters, and a maximization (M) step,
+which computes parameters maximizing the expected log-likelihood found on the E step.
+These parameter-estimates are then used to determine the distribution of the latent variables in the next E step [WikiEM]_.
 
 The package includes the machine definition per se and a selection of different trainers for specialized purposes:
+ - K-Means
  - Maximum Likelihood (ML)
  - Maximum a Posteriori (MAP)
- - K-Means
  - Inter Session Variability Modelling (ISV)
  - Joint Factor Analysis (JFA)
  - Total Variability Modeling (iVectors)
@@ -47,8 +51,7 @@ References
 ..   [Roweis1998] Roweis, Sam. "EM algorithms for PCA and SPCA." Advances in neural information processing systems (1998): 626-632.
 
 ..   [WikiEM] `Expectation Maximization <http://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm>`_
-
-
+..   [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
 
 Indices and tables
 ------------------

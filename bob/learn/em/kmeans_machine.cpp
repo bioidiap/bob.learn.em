@@ -15,7 +15,7 @@
 
 static auto KMeansMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".KMeansMachine",
-  "This class implements a k-means classifier.\n"
+  "Statistical model for the :ref:`k-means <kmeans>` .\n"
   "See Section 9.1 of Bishop, \"Pattern recognition and machine learning\", 2006"
 ).add_constructor(
   bob::extension::FunctionDoc(

@@ -184,7 +184,7 @@ static auto supervector_length = bob::extension::VariableDoc(
   "int",
   "Returns the supervector length.",
   "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality"
-  "WARNING An exception is thrown if no Universal Background Model has been set yet."
+  "An exception is thrown if no Universal Background Model has been set yet."
   ""
 );
 PyObject* PyBobLearnEMISVBase_getSupervectorLength(PyBobLearnEMISVBaseObject* self, void*) {

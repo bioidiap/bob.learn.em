@@ -15,8 +15,8 @@
 
 static auto JFABase_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".JFABase",
-  "A JFABase instance can be seen as a container for :math:`U`, :math:`V` and :math:`D` when performing Joint Factor Analysis (JFA).\n\n"
-  "References: [Vogt2008]_ [McCool2013]_",
+  "Container for :math:`U`, :math:`V` and :math:`D` when performing Joint Factor Analysis (:ref:`JFA <jfa>`).\n\n"
+  "",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -192,7 +192,7 @@ static auto supervector_length = bob::extension::VariableDoc(
 
   "Returns the supervector length.",
   "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality"
-  "@warning An exception is thrown if no Universal Background Model has been set yet."
+  "An exception is thrown if no Universal Background Model has been set yet."
   ""
 );
 PyObject* PyBobLearnEMJFABase_getSupervectorLength(PyBobLearnEMJFABaseObject* self, void*) {

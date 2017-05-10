@@ -88,7 +88,7 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 static auto ISVTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ISVTrainer",
   "ISVTrainer"
-  "References: [Vogt2008,McCool2013]",
+  "Train Intersession varibility modeling :ref:`ISV <isv>`.",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
