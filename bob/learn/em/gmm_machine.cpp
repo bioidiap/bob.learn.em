@@ -745,7 +745,7 @@ static PyObject* PyBobLearnEMGMMMachine_loglikelihood_(PyBobLearnEMGMMMachineObj
 /*** acc_statistics ***/
 static auto acc_statistics = bob::extension::FunctionDoc(
   "acc_statistics",
-  "Accumulate the GMM statistics (:py:class:`bob.learn.em.GMMStats)` for this sample(s). Inputs are checked.",
+  "Accumulate the GMM statistics (:py:class:`bob.learn.em.GMMStats`) for this sample(s). Inputs are checked.",
   "",
   true
 )
@@ -781,7 +781,7 @@ static PyObject* PyBobLearnEMGMMMachine_accStatistics(PyBobLearnEMGMMMachineObje
 /*** acc_statistics_ ***/
 static auto acc_statistics_ = bob::extension::FunctionDoc(
   "acc_statistics_",
-  "Accumulate the GMM statistics (:py:class:`bob.learn.em.GMMStats)` for this sample(s). Inputs are NOT checked.",
+  "Accumulate the GMM statistics (:py:class:`bob.learn.em.GMMStats`) for this sample(s). Inputs are NOT checked.",
   "",
   true
 )
