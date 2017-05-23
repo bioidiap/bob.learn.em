@@ -171,9 +171,8 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
    >>> # Training
    >>> bob.learn.em.train(gmm_trainer, adapted_gmm, data, max_iterations = max_iterations, convergence_threshold = convergence_threshold) # Train the KMeansMachine
    >>> print(adapted_gmm.means)
-    [[ -4.66666667   3.53333333 -40.5       ]
-     [  2.92857143  -4.07142857  76.14285714]]
-
+    [[ -4.667   3.533 -40.5  ]
+     [  2.929  -4.071  76.143]]
 
 Bellow follow an intuition of the GMM trained with the MAP estimator using the Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
@@ -223,15 +222,14 @@ The snippet bellow shows how to compute accumulated these statistics given a pri
     >>> # All nice and round diagonal covariance
     >>> prior_gmm.variances = numpy.ones((2, 3)) * 0.5
     >>> prior_gmm.weights = numpy.array([0.3, 0.7])
-
     >>> # Creating the container
     >>> gmm_stats_container = bob.learn.em.GMMStats(2, 3)
     >>> for d in data:
-    ... prior_gmm.acc_statistics(d, gmm_stats_container)
+    ...    prior_gmm.acc_statistics(d, gmm_stats_container)
     >>>
     >>> # Printing the responsibilities
     >>> print gmm_stats_container.n/gmm_stats_container.t
-   [ 0.42861627  0.57138373]
+     [ 0.429  0.571]
 
 
 Inter-Session Variability
@@ -283,11 +281,11 @@ The snippet bellow shows how to train a Intersession variability modelling.
     >>> gmm_stats_per_class = []
     >>> for d in data:
     ...   stats = []
-    ...     for i in d:
-    ...       gmm_stats_container = bob.learn.em.GMMStats(2, 3)
-    ...       prior_gmm.acc_statistics(i, gmm_stats_container)
-    ...       stats.append(gmm_stats_container)
-    ...     gmm_stats_per_class.append(stats)
+    ...   for i in d:
+    ...     gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    ...     prior_gmm.acc_statistics(i, gmm_stats_container)
+    ...     stats.append(gmm_stats_container)
+    ...   gmm_stats_per_class.append(stats)
 
     >>> # Finally doing the ISV training
     >>> subspace_dimension_of_u = 2
@@ -297,12 +295,12 @@ The snippet bellow shows how to train a Intersession variability modelling.
     >>> bob.learn.em.train(trainer, isvbase, gmm_stats_per_class, max_iterations=50)
     >>> # Printing the session offset w.r.t each Gaussian component
     >>> print isvbase.u
-   [[-0.01018674 -0.0266506 ]
-    [-0.00160621 -0.00420217]
-    [ 0.02811708  0.07356007]
-    [ 0.01162401  0.0304108 ]
-    [ 0.03261834  0.08533628]
-    [ 0.04602195  0.1204029 ]]
+      [[-0.01  -0.027]
+      [-0.002 -0.004]
+      [ 0.028  0.074]
+      [ 0.012  0.03 ]
+      [ 0.033  0.085]
+      [ 0.046  0.12 ]]
 
 
 Joint Factor Analysis
@@ -349,11 +347,11 @@ The snippet bellow shows how to train a Intersession variability modelling.
     >>> gmm_stats_per_class = []
     >>> for d in data:
     ...   stats = []
-    ...     for i in d:
-    ...       gmm_stats_container = bob.learn.em.GMMStats(2, 3)
-    ...       prior_gmm.acc_statistics(i, gmm_stats_container)
-    ...       stats.append(gmm_stats_container)
-    ...     gmm_stats_per_class.append(stats)
+    ...   for i in d:
+    ...     gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    ...     prior_gmm.acc_statistics(i, gmm_stats_container)
+    ...     stats.append(gmm_stats_container)
+    ...   gmm_stats_per_class.append(stats)
     >>>
     >>> # Finally doing the JFA training
     >>> subspace_dimension_of_u = 2
@@ -365,12 +363,12 @@ The snippet bellow shows how to train a Intersession variability modelling.
 
     >>> # Printing the session offset w.r.t each Gaussian component
     >>> print jfabase.v
-   [[ 0.002881   -0.00584226]
-    [ 0.04143534 -0.084025  ]
-    [-0.26149889  0.53028268]
-    [-0.25156799  0.51014422]
-    [-0.38687714  0.78453199]
-    [-0.36015773  0.73034882]]
+     [[ 0.003 -0.006]
+      [ 0.041 -0.084]
+      [-0.261  0.53 ]
+      [-0.252  0.51 ]
+      [-0.387  0.785]
+      [-0.36   0.73 ]]
 
 Total variability Modelling
 ***************************
@@ -431,13 +429,12 @@ The snippet bellow shows how to train a Total variability modelling.
     >>>
     >>> # Printing the session offset w.r.t each Gaussian component
     >>> print ivector_machine.t
-   [[ 0.1101072  -0.20271139]
-    [-0.12426696  0.01402857]
-    [ 0.29584642  0.67414389]
-    [ 0.44728435  0.1744876 ]
-    [ 0.42547226  0.58287138]
-    [ 0.39369553  0.79358693]]
-
+     [[ 0.11  -0.203]
+      [-0.124  0.014]
+      [ 0.296  0.674]
+      [ 0.447  0.174]
+      [ 0.425  0.583]
+      [ 0.394  0.794]]
 
 Linear Scoring
 **************
@@ -470,26 +467,19 @@ The snippet bellow shows how to compute scores using this approximation.
 
    >>> import bob.learn.em
    >>> import numpy
-
    >>> # Defining a fake prior
    >>> prior_gmm = bob.learn.em.GMMMachine(3, 2)
    >>> prior_gmm.means = numpy.array([[1, 1], [2, 2.1], [3, 3]])
-
    >>> # Defining a fake prior
    >>> adapted_gmm = bob.learn.em.GMMMachine(3,2)
    >>> adapted_gmm.means = numpy.array([[1.5, 1.5], [2.5, 2.5], [2, 2]])
-
    >>> # Defining an input
    >>> input = numpy.array([[1.5, 1.5], [1.6, 1.6]])
-
    >>> #Accumulating statistics of the GMM
    >>> stats = bob.learn.em.GMMStats(3, 2)
    >>> prior_gmm.acc_statistics(input, stats)
-
-   >>> score = bob.learn.em.linear_scoring([adapted_gmm], prior_gmm, [stats], [],
-   >>>         frame_length_normalisation=True)
-   >>> print score
-   [[ 0.25354909]]
+   >>> print bob.learn.em.linear_scoring([adapted_gmm], prior_gmm, [stats], [], frame_length_normalisation=True)
+    [[ 0.254]]
 
 
 Probabilistic Linear Discriminant Analysis (PLDA)
