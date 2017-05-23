@@ -228,7 +228,7 @@ The snippet bellow shows how to compute accumulated these statistics given a pri
     ...    prior_gmm.acc_statistics(d, gmm_stats_container)
     >>>
     >>> # Printing the responsibilities
-    >>> print gmm_stats_container.n/gmm_stats_container.t
+    >>> print(gmm_stats_container.n/gmm_stats_container.t)
      [ 0.429  0.571]
 
 
@@ -294,7 +294,7 @@ The snippet bellow shows how to train a Intersession variability modelling.
     >>> trainer = bob.learn.em.ISVTrainer(relevance_factor)
     >>> bob.learn.em.train(trainer, isvbase, gmm_stats_per_class, max_iterations=50)
     >>> # Printing the session offset w.r.t each Gaussian component
-    >>> print isvbase.u
+    >>> print(isvbase.u)
       [[-0.01  -0.027]
       [-0.002 -0.004]
       [ 0.028  0.074]
@@ -362,7 +362,7 @@ The snippet bellow shows how to train a Intersession variability modelling.
     >>> bob.learn.em.train_jfa(trainer, jfabase, gmm_stats_per_class, max_iterations=50)
 
     >>> # Printing the session offset w.r.t each Gaussian component
-    >>> print jfabase.v
+    >>> print(jfabase.v)
      [[ 0.003 -0.006]
       [ 0.041 -0.084]
       [-0.261  0.53 ]
@@ -428,7 +428,7 @@ The snippet bellow shows how to train a Total variability modelling.
     >>> bob.learn.em.train(ivector_trainer, ivector_machine, gmm_stats_per_class, 500)
     >>>
     >>> # Printing the session offset w.r.t each Gaussian component
-    >>> print ivector_machine.t
+    >>> print(ivector_machine.t)
      [[ 0.11  -0.203]
       [-0.124  0.014]
       [ 0.296  0.674]
@@ -478,7 +478,7 @@ The snippet bellow shows how to compute scores using this approximation.
    >>> #Accumulating statistics of the GMM
    >>> stats = bob.learn.em.GMMStats(3, 2)
    >>> prior_gmm.acc_statistics(input, stats)
-   >>> print bob.learn.em.linear_scoring([adapted_gmm], prior_gmm, [stats], [], frame_length_normalisation=True)
+   >>> print(bob.learn.em.linear_scoring([adapted_gmm], prior_gmm, [stats], [], frame_length_normalisation=True))
     [[ 0.254]]
 
 
