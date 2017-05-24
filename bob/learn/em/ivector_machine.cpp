@@ -15,7 +15,7 @@
 
 static auto IVectorMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".IVectorMachine",
-  "Statistical model for the Total Variability training (see iVectors in the user guide)"
+  "Statistical model for the Total Variability training for more information and explanation see the user guide in documentation (:ref:`iVectors <ivector>`)" // this documentation text is intentionally written to be long!
   "",
   ""
 ).add_constructor(

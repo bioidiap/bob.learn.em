@@ -15,7 +15,7 @@
 
 static auto GMMMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".GMMMachine",
-  "This class implements the statistical model for multivariate diagonal mixture Gaussian distribution (GMM)."
+  "This class implements the statistical model for multivariate diagonal mixture Gaussian distribution (GMM). "
   "A GMM is defined as :math:`\\sum_{c=0}^{C} \\omega_c \\mathcal{N}(x | \\mu_c, \\sigma_c)`, where :math:`C` is the number of Gaussian components :math:`\\mu_c`, :math:`\\sigma_c` and :math:`\\omega_c` are respectively the the mean, variance and the weight of each gaussian component :math:`c`.",
   "See Section 2.3.9 of Bishop, \"Pattern recognition and machine learning\", 2006"
 ).add_constructor(
