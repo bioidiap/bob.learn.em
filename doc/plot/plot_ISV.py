@@ -7,6 +7,15 @@ numpy.random.seed(2)  # FIXING A SEED
 
 
 def train_ubm(features, n_gaussians):
+    """
+    Train UBM
+     
+     **Parameters**
+       features: 2D numpy array with the features
+       
+       n_gaussians: Number of Gaussians
+       
+    """
     input_size = features.shape[1]
 
     kmeans_machine = bob.learn.em.KMeansMachine(int(n_gaussians), input_size)
@@ -38,8 +47,13 @@ def train_ubm(features, n_gaussians):
 
 def isv_train(features, ubm):
     """
-    Features com lista de listas [  [data_point_1_user_1,data_point_2_user_1],
-    [data_point_1_user_2,data_point_2_user_2]  ]
+    Train U matrix
+    
+    **Parameters**
+      features: List of :py:class:`bob.learn.em.GMMStats` organized by class
+   
+      n_gaussians: UBM (:py:class:`bob.learn.em.GMMMachine`)
+     
     """
 
     stats = []

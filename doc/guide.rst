@@ -709,7 +709,7 @@ Z-Norm
 ======
 .. _znorm:
 
-Given a score :math:`s_i`, Z-Norm (zero-normalisation) scales this value by the
+Given a score :math:`s_i`, Z-Norm [Auckenthaler2000]_ and [Mariethoz2005]_ (zero-normalisation) scales this value by the
 mean (:math:`\mu`) and standard deviation (:math:`\sigma`) of an impostor score
 distribution. This score distribution can be computed before hand and it is
 defined as the following.
@@ -734,7 +734,7 @@ T-Norm
 ======
 .. _tnorm:
 
-T-norm (Test-normalization) operates in a probe-centric manner. If in the
+T-norm [Auckenthaler2000]_ and [Mariethoz2005]_ (Test-normalization) operates in a probe-centric manner. If in the
 Z-Norm :math:`\mu` and :math:`\sigma` are estimated using an impostor set of
 models and its scores, the t-norm computes these statistics using the current
 probe sample against at set of models in a co-hort :math:`\Theta_{c}`. A co-
@@ -771,7 +771,7 @@ ZT-Norm
 =======
 .. _ztnorm:
 
-ZT-Norm consists in the application of :ref:`Z-Norm <znorm>` followed by a
+ZT-Norm [Auckenthaler2000]_ and [Mariethoz2005]_ consists in the application of :ref:`Z-Norm <znorm>` followed by a
 :ref:`T-Norm <tnorm>` and it is implemented in :py:func:`bob.learn.em.ztnorm`.
 
 Follow bellow an example of score normalization using

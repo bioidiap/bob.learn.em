@@ -16,22 +16,17 @@ data = numpy.vstack((setosa, versicolor, virginica))
 
 # Two clusters with a feature dimensionality of 3
 mle_machine = bob.learn.em.GMMMachine(3, 2)
-mle_trainer = bob.learn.em.ML_GMMTrainer(True, True, True)
 mle_machine.means = numpy.array([[5, 3], [4, 2], [7, 3.]])
-bob.learn.em.train(mle_trainer, mle_machine, data, max_iterations=200,
-                   convergence_threshold=1e-5)  # Train the KMeansMachine
 
 # Creating some random data centered in
-new_data = numpy.random.normal(2, 0.8, (50, 2))
-# Two clusters with a feature dimensionality of 3
 map_machine = bob.learn.em.GMMMachine(3, 2)
 map_trainer = bob.learn.em.MAP_GMMTrainer(mle_machine, relevance_factor=4)
-bob.learn.em.train(map_trainer, map_machine, new_data, max_iterations=200,
+bob.learn.em.train(map_trainer, map_machine, data, max_iterations=200,
                    convergence_threshold=1e-5)  # Train the KMeansMachine
 
 
 figure, ax = plt.subplots()
-plt.scatter(new_data[:, 0], new_data[:, 1], c="olivedrab", label="new data")
+#plt.scatter(data[:, 0], data[:, 1], c="olivedrab", label="new data")
 plt.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
 plt.scatter(versicolor[:, 0], versicolor[:, 1],
             c="goldenrod", label="versicolor")

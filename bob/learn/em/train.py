@@ -31,10 +31,12 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
         If True, runs the initialization procedure
       rng :  :py:class:`bob.core.random.mt19937`
         The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop
-      check_inputs: Shallow checks in the inputs. Check for inf and NaN  
+      check_inputs: 
+         Shallow checks in the inputs. Check for inf and NaN  
     """
 
-    if check_inputs:
+    if check_inputs and type(data) is numpy.ndarray:
+
         if numpy.isinf(numpy.sum(data)):
             raise ValueError("Please, check your inputs; numpy.inf detected in `data` ")
 
