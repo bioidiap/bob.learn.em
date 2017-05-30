@@ -1,8 +1,4 @@
 .. vim: set fileencoding=utf-8 :
-.. Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
-.. Tue 17 Feb 2015 13:50:06 CET
-..
-.. Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 .. _bob.learn.em:
 
@@ -10,12 +6,12 @@
  Expectation Maximization Machine Learning Tools
 ================================================
 
-The EM algorithm is an iterative method that estimates parameters for statistical models, where the model depends on unobserved latent variables. The EM iteration alternates between performing an expectation (E) step, which creates a function for the expectation of the log-likelihood evaluated using the current estimate for the parameters, and a maximization (M) step, which computes parameters maximizing the expected log-likelihood found on the E step. These parameter-estimates are then used to determine the distribution of the latent variables in the next E step [WikiEM]_. 
+This package is a part of Bob_. It implements a general EM algorithm and
+includes implementations of the following algorithms:
 
-The package includes the machine definition per se and a selection of different trainers for specialized purposes:
+ - K-Means
  - Maximum Likelihood (ML)
  - Maximum a Posteriori (MAP)
- - K-Means
  - Inter Session Variability Modelling (ISV)
  - Joint Factor Analysis (JFA)
  - Total Variability Modeling (iVectors)
@@ -31,7 +27,7 @@ Documentation
 
    guide
    py_api
-   
+
 References
 -----------
 
@@ -47,7 +43,9 @@ References
 ..   [Roweis1998] Roweis, Sam. "EM algorithms for PCA and SPCA." Advances in neural information processing systems (1998): 626-632.
 
 ..   [WikiEM] `Expectation Maximization <http://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm>`_
-
+..   [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
+..   [Auckenthaler2000] Auckenthaler, Roland, Michael Carey, and Harvey Lloyd-Thomas. "Score normalization for text-independent speaker verification systems." Digital Signal Processing 10.1 (2000): 42-54.
+..   [Mariethoz2005] Mariethoz, Johnny, and Samy Bengio. "A unified framework for score normalization techniques applied to text-independent speaker verification." IEEE signal processing letters 12.7 (2005): 532-535.
 
 
 Indices and tables

@@ -40,7 +40,7 @@ class KMeansTrainer
     /**
      * @brief Constructor
      */
-    KMeansTrainer(InitializationMethod=RANDOM);
+    KMeansTrainer(InitializationMethod=RANDOM_NO_DUPLICATE);
 
     /**
      * @brief Virtualize destructor

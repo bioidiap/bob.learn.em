@@ -87,8 +87,8 @@ int list_as_vector(PyObject* list, std::vector<blitz::Array<double,N> >& vec)
 
 static auto JFATrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".JFATrainer",
-  "JFATrainer"
-  "References: [Vogt2008,McCool2013]",
+  "Trains a Joint Factor Analysis (:ref:`JFA <jfa>`) on top of GMMs"
+  "",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(

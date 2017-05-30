@@ -15,8 +15,8 @@
 
 static auto IVectorMachine_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".IVectorMachine",
-  "An IVectorMachine consists of a Total Variability subspace :math:`T` and allows the extraction of IVector"
-  "References: [Dehak2010]_",
+  "Statistical model for the Total Variability training for more information and explanation see the user guide in documentation (:ref:`iVectors <ivector>`)" // this documentation text is intentionally written to be long!
+  "",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
@@ -189,7 +189,7 @@ static auto supervector_length = bob::extension::VariableDoc(
 
   "Returns the supervector length.",
   "NGaussians x NInputs: Number of Gaussian components by the feature dimensionality"
-  "@warning An exception is thrown if no Universal Background Model has been set yet."
+  "An exception is thrown if no Universal Background Model has been set yet."
   ""
 );
 PyObject* PyBobLearnEMIVectorMachine_getSupervectorLength(PyBobLearnEMIVectorMachineObject* self, void*) {

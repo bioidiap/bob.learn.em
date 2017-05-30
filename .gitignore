@@ -15,5 +15,6 @@ dist
 .nfs*
 .gdb_history
 build
+.DS_Store
 *.egg
 src/

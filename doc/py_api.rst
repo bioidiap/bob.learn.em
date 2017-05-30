@@ -17,21 +17,21 @@ Trainers
 ........
 
 .. autosummary::
-  
+
   bob.learn.em.KMeansTrainer
   bob.learn.em.ML_GMMTrainer
   bob.learn.em.MAP_GMMTrainer
   bob.learn.em.ISVTrainer
-  bob.learn.em.JFATrainer  
+  bob.learn.em.JFATrainer
   bob.learn.em.IVectorTrainer
   bob.learn.em.PLDATrainer
   bob.learn.em.EMPCATrainer
-  
+
 Machines
 ........
 
-.. autosummary::  
-  
+.. autosummary::
+
   bob.learn.em.KMeansMachine
   bob.learn.em.Gaussian
   bob.learn.em.GMMStats
@@ -43,7 +43,7 @@ Machines
   bob.learn.em.IVectorMachine
   bob.learn.em.PLDABase
   bob.learn.em.PLDAMachine
-  
+
 Functions
 ---------
 .. autosummary::
