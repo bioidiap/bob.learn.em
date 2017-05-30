@@ -267,6 +267,7 @@ properties in :py:class:`bob.learn.em.GMMStats`:
    - Eq (10) is :py:class:`bob.learn.em.GMMStats.sum_pxx`:
      :math:`E_c(x^2)=\frac{1}{n(c)}\sum\limits_{t=1}^T Pr(c | x_t)x_t^2`
 
+where :math:`T` is the number of samples used to generate the stats.
 
 The snippet bellow shows how to compute accumulated these statistics given a
 prior GMM.
