@@ -15,7 +15,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
           check_inputs=True):
     """
     Trains a machine given a trainer and the proper data
-  
+
     **Parameters**:
       trainer : one of :py:class:`KMeansTrainer`, :py:class:`MAP_GMMTrainer`, :py:class:`ML_GMMTrainer`, :py:class:`ISVTrainer`, :py:class:`IVectorTrainer`, :py:class:`PLDATrainer`, :py:class:`EMPCATrainer`
         A trainer mechanism
@@ -31,8 +31,8 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
         If True, runs the initialization procedure
       rng :  :py:class:`bob.core.random.mt19937`
         The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop
-      check_inputs: 
-         Shallow checks in the inputs. Check for inf and NaN  
+      check_inputs:
+         Shallow checks in the inputs. Check for inf and NaN
     """
 
     if check_inputs and type(data) is numpy.ndarray:
@@ -84,7 +84,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
 def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True, rng=None):
     """
     Trains a :py:class:`bob.learn.em.JFABase` given a :py:class:`bob.learn.em.JFATrainer` and the proper data
-  
+
     **Parameters**:
       trainer : :py:class:`bob.learn.em.JFATrainer`
         A JFA trainer mechanism
