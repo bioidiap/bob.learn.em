@@ -26,7 +26,7 @@ bob.learn.em.train(map_trainer, map_machine, data, max_iterations=200,
 
 
 figure, ax = plt.subplots()
-#plt.scatter(data[:, 0], data[:, 1], c="olivedrab", label="new data")
+# plt.scatter(data[:, 0], data[:, 1], c="olivedrab", label="new data")
 plt.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
 plt.scatter(versicolor[:, 0], versicolor[:, 1],
             c="goldenrod", label="versicolor")
