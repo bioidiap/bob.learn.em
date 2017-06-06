@@ -4,6 +4,6 @@ bob.blitz
 bob.core>2.0.5
 bob.io.base
 bob.sp
-bob.math
+bob.math>2.1.1
 bob.learn.activation
 bob.learn.linear
