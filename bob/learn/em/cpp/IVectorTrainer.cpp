@@ -170,7 +170,7 @@ void bob::learn::em::IVectorTrainer::mStep(
     if (blitz::all(acc_Nij_wij2_c == 0)) // TODO
       Tt_c = 0;
     else
-      bob::math::linsolve(tacc_Nij_wij2_c, Tt_c, tacc_Fnormij_wij_c);
+      bob::math::linsolve(tacc_Nij_wij2_c, tacc_Fnormij_wij_c, Tt_c);
     if (m_update_sigma)
     {
       blitz::Array<double,1> sigma_c = sigma(blitz::Range(c*D,(c+1)*D-1));
