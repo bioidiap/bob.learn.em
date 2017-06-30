@@ -1,8 +1,4 @@
 .. vim: set fileencoding=utf-8 :
-.. Laurent El Shafey <Laurent.El-Shafey@idiap.ch>
-.. Wed Mar 14 12:31:35 2012 +0100
-..
-.. Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 .. testsetup:: *
 
@@ -21,671 +17,570 @@
  User guide
 ============
 
-This section includes the machine/trainer guides for learning techniques
-available in this package.
+The EM algorithm is an iterative method that estimates parameters for
+statistical models, where the model depends on unobserved latent variables. The
+EM iteration alternates between performing an expectation (E) step, which
+creates a function for the expectation of the log-likelihood evaluated using
+the current estimate for the parameters, and a maximization (M) step, which
+computes parameters maximizing the expected log-likelihood found on the E step.
+These parameter-estimates are then used to determine the distribution of the
+latent variables in the next E step [8]_.
 
-Machines
---------
+*Machines* and *trainers* are the core components of Bob's machine learning
+packages. *Machines* represent statistical models or other functions defined by
+parameters that can be learned by *trainers* or manually set. Below you will
+find machine/trainer guides for learning techniques available in this package.
 
-Machines are one of the core components of |project|. They represent
-statistical models or other functions defined by parameters that can be learnt
-or set by using Trainers.
 
-K-means machines
-================
+K-Means
+-------
+.. _kmeans:
 
-`k-means <http://en.wikipedia.org/wiki/K-means_clustering>`_ is a clustering
-method which aims to partition a set of observations into :math:`k` clusters.
-The `training` procedure is described further below. Here, we explain only how
-to use the resulting machine. For the sake of example, we create a new
-:py:class:`bob.learn.em.KMeansMachine` as follows:
+**k-means** [7]_ is a clustering method which aims to partition a set of
+:math:`N` observations into
+:math:`C` clusters with equal variance minimizing the following cost function
+:math:`J = \sum_{i=0}^{N} \min_{\mu_j \in C} ||x_i - \mu_j||`, where
+:math:`\mu` is a given mean (also called centroid) and
+:math:`x_i` is an observation.
+
+This implementation has two stopping criteria. The first one is when the
+maximum number of iterations is reached; the second one is when the difference
+between :math:`Js` of successive iterations are lower than a convergence
+threshold.
+
+In this implementation, the training consists in the definition of the
+statistical model, called machine, (:py:class:`bob.learn.em.KMeansMachine`) and
+this statistical model is learned via a trainer
+(:py:class:`bob.learn.em.KMeansTrainer`).
+
+Follow bellow an snippet on how to train a KMeans using Bob_.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> machine = bob.learn.em.KMeansMachine(2,3) # Two clusters with a feature dimensionality of 3
-   >>> machine.means = numpy.array([[1,0,0],[0,0,1]], 'float64') # Defines the two clusters
-
-Then, given some input data, it is possible to determine to which cluster the
-data is the closest as well as the min distance.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> sample = numpy.array([2,1,-2], 'float64')
-   >>> print(machine.get_closest_mean(sample)) # Returns the index of the closest mean and the distance to it at the power of 2
-   (0, 6.0)
-
-
-Gaussian machines
-=================
-
-The :py:class:`bob.learn.em.Gaussian` represents a `multivariate diagonal
-Gaussian (or normal) distribution
-<http://en.wikipedia.org/wiki/Multivariate_normal_distribution>`_. In this
-context, a *diagonal* Gaussian refers to the covariance matrix of the
-distribution being diagonal. When the covariance matrix is diagonal, each
-variable in the distribution is independent of the others.
-
-Objects of this class are normally used as building blocks for more complex
-:py:class:`bob.learn.em.GMMMachine` or GMM objects, but can also be used
-individually. Here is how to create one multivariate diagonal Gaussian
-distribution:
-
-.. doctest::
-
-  >>> g = bob.learn.em.Gaussian(2) #bi-variate diagonal normal distribution
-  >>> g.mean = numpy.array([0.3, 0.7], 'float64')
-  >>> g.mean
-  array([ 0.3,  0.7])
-  >>> g.variance = numpy.array([0.2, 0.1], 'float64')
-  >>> g.variance
-  array([ 0.2,  0.1])
-
-Once the :py:class:`bob.learn.em.Gaussian` has been set, you can use it to
-estimate the log-likelihood of an input feature vector with a matching number
-of dimensions:
-
-.. doctest::
-
-  >>> log_likelihood = g(numpy.array([0.4, 0.4], 'float64'))
-
-As with other machines you can save and re-load machines of this type using
-:py:meth:`bob.learn.em.Gaussian.save` and the class constructor
-respectively.
-
-Gaussian mixture models
-=======================
-
-The :py:class:`bob.learn.em.GMMMachine` represents a Gaussian `mixture model
-<http://en.wikipedia.org/wiki/Mixture_model>`_ (GMM), which consists of a
-mixture of weighted :py:class:`bob.learn.em.Gaussian`\s.
-
-.. doctest::
-
-  >>> gmm = bob.learn.em.GMMMachine(2,3) # Mixture of two diagonal Gaussian of dimension 3
-
-By default, the diagonal Gaussian distributions of the GMM are initialized with
-zero mean and unit variance, and the weights are identical. This can be updated
-using the :py:attr:`bob.learn.em.GMMMachine.means`,
-:py:attr:`bob.learn.em.GMMMachine.variances` or
-:py:attr:`bob.learn.em.GMMMachine.weights`.
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gmm.weights = numpy.array([0.4, 0.6], 'float64')
-  >>> gmm.means = numpy.array([[1, 6, 2], [4, 3, 2]], 'float64')
-  >>> gmm.variances = numpy.array([[1, 2, 1], [2, 1, 2]], 'float64')
-  >>> gmm.means
-  array([[ 1.,  6.,  2.],
-       [ 4.,  3.,  2.]])
-
-Once the :py:class:`bob.learn.em.GMMMachine` has been set, you can use it to
-estimate the log-likelihood of an input feature vector with a matching number
-of dimensions:
-
-.. doctest::
-
-  >>> log_likelihood = gmm(numpy.array([5.1, 4.7, -4.9], 'float64'))
-
-As with other machines you can save and re-load machines of this type using
-:py:meth:`bob.learn.em.GMMMachine.save` and the class constructor respectively.
-
-Gaussian mixture models Statistics
-==================================
-
-The :py:class:`bob.learn.em.GMMStats` is a container for the sufficient
-statistics of a GMM distribution.
-
-Given a GMM, the sufficient statistics of a sample can be computed as
-follows:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gs = bob.learn.em.GMMStats(2,3)
-  >>> sample = numpy.array([0.5, 4.5, 1.5])
-  >>> gmm.acc_statistics(sample, gs)
-  >>> print(gs) # doctest: +SKIP
-
-Then, the sufficient statistics can be accessed (or set as below), by
-considering the following attributes.
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gs = bob.learn.em.GMMStats(2,3)
-  >>> log_likelihood = -3. # log-likelihood of the accumulated samples
-  >>> T = 1 # Number of samples used to accumulate statistics
-  >>> n = numpy.array([0.4, 0.6], 'float64') # zeroth order stats
-  >>> sumpx = numpy.array([[1., 2., 3.], [4., 5., 6.]], 'float64') # first order stats
-  >>> sumpxx = numpy.array([[10., 20., 30.], [40., 50., 60.]], 'float64') # second order stats
-  >>> gs.log_likelihood = log_likelihood
-  >>> gs.t = T
-  >>> gs.n = n
-  >>> gs.sum_px = sumpx
-  >>> gs.sum_pxx = sumpxx
-
-Joint Factor Analysis
-=====================
-
-Joint Factor Analysis (JFA) [1]_ [2]_ is a session variability modelling
-technique built on top of the Gaussian mixture modelling approach. It utilises
-a within-class subspace :math:`U`, a between-class subspace :math:`V`, and a
-subspace for the residuals :math:`D` to capture and suppress a significant
-portion of between-class variation.
-
-An instance of :py:class:`bob.learn.em.JFABase` carries information about
-the matrices :math:`U`, :math:`V` and :math:`D`, which can be shared between
-several classes.  In contrast, after the enrollment phase, an instance of
-:py:class:`bob.learn.em.JFAMachine` carries class-specific information about
-the latent variables :math:`y` and :math:`z`.
-
-An instance of :py:class:`bob.learn.em.JFABase` can be initialized as
-follows, given an existing GMM:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> jfa_base = bob.learn.em.JFABase(gmm,2,2) # dimensions of U and V are both equal to 2
-  >>> U = numpy.array([[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], 'float64')
-  >>> V = numpy.array([[6, 5], [4, 3], [2, 1], [1, 2], [3, 4], [5, 6]], 'float64')
-  >>> d = numpy.array([0, 1, 0, 1, 0, 1], 'float64')
-  >>> jfa_base.u = U
-  >>> jfa_base.v = V
-  >>> jfa_base.d = d
-
-Next, this :py:class:`bob.learn.em.JFABase` can be shared by several
-instances of :py:class:`bob.learn.em.JFAMachine`, the initialization being
-as follows:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> m = bob.learn.em.JFAMachine(jfa_base)
-  >>> m.y = numpy.array([1,2], 'float64')
-  >>> m.z = numpy.array([3,4,1,2,0,1], 'float64')
-
-
-Once the :py:class:`bob.learn.em.JFAMachine` has been configured for a
-specific class, the log-likelihood (score) that an input sample belongs to the
-enrolled class, can be estimated, by first computing the GMM sufficient
-statistics of this input sample, and then calling the
-:py:meth:`bob.learn.em.JFAMachine.log_likelihood` on the sufficient statistics.
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gs = bob.learn.em.GMMStats(2,3)
-  >>> gmm.acc_statistics(sample, gs)
-  >>> score = m(gs)
-
-As with other machines you can save and re-load machines of this type using
-:py:meth:`bob.learn.em.JFAMachine.save` and the class constructor
-respectively.
-
-
-Inter-Session Variability
-=========================
-
-Similarly to Joint Factor Analysis, Inter-Session Variability (ISV) modelling
-[3]_ [2]_ is another session variability modelling technique built on top of
-the Gaussian mixture modelling approach. It utilises a within-class subspace
-:math:`U` and a subspace for the residuals :math:`D` to capture and suppress a
-significant portion of between-class variation. The main difference compared to
-JFA is the absence of the between-class subspace :math:`V`.
-
-Similarly to JFA, an instance of :py:class:`bob.learn.em.JFABase` carries
-information about the matrices :math:`U` and :math:`D`, which can be shared
-between several classes, whereas an instance of
-:py:class:`bob.learn.em.JFAMachine` carries class-specific information about
-the latent variable :math:`z`.
-
-An instance of :py:class:`bob.learn.em.ISVBase` can be initialized as
-follows, given an existing GMM:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> isv_base = bob.learn.em.ISVBase(gmm,2) # dimension of U is equal to 2
-  >>> isv_base.u = U
-  >>> isv_base.d = d
-
-Next, this :py:class:`bob.learn.em.ISVBase` can be shared by several
-instances of :py:class:`bob.learn.em.ISVMachine`, the initialization being
-as follows:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> m = bob.learn.em.ISVMachine(isv_base)
-  >>> m.z = numpy.array([3,4,1,2,0,1], 'float64')
-
-Once the :py:class:`bob.learn.em.ISVMachine` has been configured for a
-specific class, the log-likelihood (score) that an input sample belongs to the
-enrolled class, can be estimated, by first computing the GMM sufficient
-statistics of this input sample, and then calling the
-``__call__`` on the sufficient statistics.
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gs = bob.learn.em.GMMStats(2,3)
-  >>> gmm.acc_statistics(sample, gs)
-  >>> score = m(gs)
-
-As with other machines you can save and re-load machines of this type using
-:py:meth:`bob.learn.em.ISVMachine.save` and the class constructor
-respectively.
-
-
-Total Variability (i-vectors)
-=============================
-
-Total Variability (TV) modelling [4]_ is a front-end initially introduced for
-speaker recognition, which aims at describing samples by vectors of low
-dimensionality called ``i-vectors``. The model consists of a subspace :math:`T`
-and a residual diagonal covariance matrix :math:`\Sigma`, that are then used to
-extract i-vectors, and is built upon the GMM approach.
-
-An instance of the class :py:class:`bob.learn.em.IVectorMachine` carries
-information about these two matrices. This can be initialized as follows:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> m = bob.learn.em.IVectorMachine(gmm, 2)
-  >>> m.t = numpy.array([[1.,2],[4,1],[0,3],[5,8],[7,10],[11,1]])
-  >>> m.sigma = numpy.array([1.,2.,1.,3.,2.,4.])
-
-
-Once the :py:class:`bob.learn.em.IVectorMachine` has been set, the
-extraction of an i-vector :math:`w_{ij}` can be done in two steps, by first
-extracting the GMM sufficient statistics, and then estimating the i-vector:
-
-.. doctest::
-  :options: +NORMALIZE_WHITESPACE
-
-  >>> gs = bob.learn.em.GMMStats(2,3)
-  >>> gmm.acc_statistics(sample, gs)
-  >>> w_ij = m(gs)
-
-As with other machines you can save and re-load machines of this type using
-:py:meth:`bob.learn.em.IVectorMachine.save` and the class constructor
-respectively.
-
-
-Probabilistic Linear Discriminant Analysis (PLDA)
-=================================================
-
-Probabilistic Linear Discriminant Analysis [5]_ [6]_ is a probabilistic model
-that incorporates components describing both between-class and within-class
-variations. Given a mean :math:`\mu`, between-class and within-class subspaces
-:math:`F` and :math:`G` and residual noise :math:`\epsilon` with zero mean and
-diagonal covariance matrix :math:`\Sigma`, the model assumes that a sample
-:math:`x_{i,j}` is generated by the following process:
-
-.. math::
-
-   x_{i,j} = \mu + F h_{i} + G w_{i,j} + \epsilon_{i,j}
-
-Information about a PLDA model (:math:`\mu`, :math:`F`, :math:`G` and
-:math:`\Sigma`) are carried out by an instance of the class
-:py:class:`bob.learn.em.PLDABase`.
-
-.. doctest::
-
-   >>> ### This creates a PLDABase container for input feature of dimensionality 3,
-   >>> ### and with subspaces F and G of rank 1 and 2 respectively.
-   >>> pldabase = bob.learn.em.PLDABase(3,1,2)
-
-Class-specific information (usually from enrollment samples) are contained in
-an instance of :py:class:`bob.learn.em.PLDAMachine`, that must be attached
-to a given :py:class:`bob.learn.em.PLDABase`. Once done, log-likelihood
-computations can be performed.
-
-.. doctest::
-
-   >>> plda = bob.learn.em.PLDAMachine(pldabase)
-   >>> samples = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
-   >>> loglike = plda.compute_log_likelihood(samples)
-
-
-Trainers
---------
-
-In the previous section, the concept of a `machine` was introduced. A `machine`
-is fed by some input data, processes it and returns an output. Machines can be
-learnt using trainers in |project|.
-
-Expectation Maximization
-========================
-
-Each one of the following trainers has their own `initialize`, `eStep` and `mStep` methods in order to train the respective machines.
-For example, to train a K-Means with 10 iterations you can use the following steps.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> data           = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64') #Data
-   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
-   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine
-   >>> max_iterations = 10
-   >>> kmeans_trainer.initialize(kmeans_machine, data) #Initilizing the means with random values
-   >>> for i in range(max_iterations):
-   ...   kmeans_trainer.e_step(kmeans_machine, data)
-   ...   kmeans_trainer.m_step(kmeans_machine, data)
+   >>> import bob.learn.em
+   >>> import numpy
+   >>> data = numpy.array(
+   ...     [[3,-3,100],
+   ...      [4,-4,98],
+   ...      [3.5,-3.5,99],
+   ...      [-7,7,-100],
+   ...      [-5,5,-101]], dtype='float64')
+   >>> # Create a kmeans m with k=2 clusters with a dimensionality equal to 3
+   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3)
+   >>> kmeans_trainer = bob.learn.em.KMeansTrainer()
+   >>> max_iterations = 200
+   >>> convergence_threshold = 1e-5
+   >>> # Train the KMeansMachine
+   >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data,
+   ...     max_iterations=max_iterations,
+   ...     convergence_threshold=convergence_threshold)
    >>> print(kmeans_machine.means)
-   [[  -6.     6.  -100.5]
-   [   3.5   -3.5   99. ]]
-
-
-With that granularity you can train your K-Means (or any trainer procedure) with your own convergence criteria.
-Furthermore, to make the things even simpler, it is possible to train the K-Means (and have the same example as above) using the wrapper :py:class:`bob.learn.em.train` as in the example below:
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> data           = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64') #Data
-   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
-   >>> kmeans_trainer = bob.learn.em.KMeansTrainer() #Creating the k-means machine
-   >>> max_iterations = 10
-   >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data, max_iterations = 10) #wrapper for the em trainer
-   >>> print(kmeans_machine.means)
-   [[  -6.     6.  -100.5]
-   [   3.5   -3.5   99. ]]
-
-
-
-K-means
-=======
-
-**k-means** [7]_ is a clustering method, which aims to partition a set of
-observations into :math:`k` clusters. This is an `unsupervised` technique. As
-for **PCA** [1]_, which is implemented in the :py:class:`bob.learn.linear.PCATrainer`
-class, the training data is passed in a 2D :py:class:`numpy.ndarray` container.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> data = numpy.array([[3,-3,100], [4,-4,98], [3.5,-3.5,99], [-7,7,-100], [-5,5,-101]], dtype='float64')
-
-The training procedure will learn the `means` for the
-:py:class:`bob.learn.em.KMeansMachine`. The number :math:`k` of `means` is given
-when creating the `machine`, as well as the dimensionality of the features.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> kmeans = bob.learn.em.KMeansMachine(2, 3) # Create a machine with k=2 clusters with a dimensionality equal to 3
-
-Then training procedure for `k-means` is an **Expectation-Maximization**-based
-[8]_ algorithm. There are several options that can be set such as the maximum
-number of iterations and the criterion used to determine if the convergence has
-occurred. After setting all of these options, the training procedure can then
-be called.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> kmeansTrainer = bob.learn.em.KMeansTrainer()
-
-   >>> bob.learn.em.train(kmeansTrainer, kmeans, data, max_iterations = 200, convergence_threshold = 1e-5) # Train the KMeansMachine
-   >>> print(kmeans.means)
    [[ -6.   6.  -100.5]
     [  3.5 -3.5   99. ]]
 
 
-Maximum likelihood for Gaussian mixture model
-=============================================
+Bellow follow an intuition (source code + plot) of a kmeans training using the
+Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-A Gaussian **mixture model** (GMM) [9]_ is a common probabilistic model. In
-order to train the parameters of such a model it is common to use a
-**maximum-likelihood** (ML) approach [10]_. To do this we use an
-**Expectation-Maximization** (EM) algorithm [8]_. Let's first start by creating
-a :py:class:`bob.learn.em.GMMMachine`. By default, all of the Gaussian's have
-zero-mean and unit variance, and all the weights are equal. As a starting
-point, we could set the mean to the one obtained with **k-means** [7]_.
+.. plot:: plot/plot_kmeans.py
+   :include-source: False
 
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
 
-   >>> gmm = bob.learn.em.GMMMachine(2,3) # Create a machine with 2 Gaussian and feature dimensionality 3
-   >>> gmm.means = kmeans.means # Set the means to the one obtained with k-means
 
-The |project| class to learn the parameters of a GMM [9]_ using ML [10]_ is
-:py:class:`bob.learn.em.ML_GMMTrainer`. It uses an **EM**-based [8]_ algorithm
-and requires the user to specify which parameters of the GMM are updated at
-each iteration (means, variances and/or weights). In addition, and as for
-**k-means** [7]_, it has parameters such as the maximum number of iterations
-and the criterion used to determine if the parameters have converged.
+Gaussian mixture models
+-----------------------
+
+
+A Gaussian mixture model (`GMM <http://en.wikipedia.org/wiki/Mixture_model>`_)
+is a probabilistic model for density estimation. It assumes that all the data
+points are generated from a mixture of a finite number of Gaussian
+distributions. More formally, a GMM can be defined as:
+:math:`P(x|\Theta) = \sum_{c=0}^{C} \omega_c \mathcal{N}(x | \mu_c, \sigma_c)`
+, where :math:`\Theta = \{ \omega_c, \mu_c, \sigma_c \}`.
+
+This statistical model is defined in the class
+:py:class:`bob.learn.em.GMMMachine` as bellow.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> trainer = bob.learn.em.ML_GMMTrainer(True, True, True) # update means/variances/weights at each iteration
-   >>> bob.learn.em.train(trainer, gmm, data, max_iterations = 200, convergence_threshold = 1e-5)
-   >>> print(gmm) # doctest: +SKIP
+   >>> import bob.learn.em
+   >>> # Create a GMM with k=2 Gaussians with the dimensionality of 3
+   >>> gmm_machine = bob.learn.em.GMMMachine(2, 3)
 
 
-MAP-adaptation for Gaussian mixture model
-=========================================
+There are plenty of ways to estimate :math:`\Theta`; the next subsections
+explains some that are implemented in Bob.
 
-|project| also supports the training of GMMs [9]_ using a **maximum a
-posteriori** (MAP) approach [11]_. MAP is closely related to the ML [10]_
-technique but it incorporates a prior on the quantity that we want to estimate.
-In our case, this prior is a GMM [9]_. Based on this prior model and some
-training data, a new model, the MAP estimate, will be `adapted`.
 
-Let's consider that the previously trained GMM [9]_ is our prior model.
+Maximum likelihood Estimator (MLE)
+==================================
+.. _mle:
+
+In statistics, maximum likelihood estimation (MLE) is a method of estimating
+the parameters of a statistical model given observations by finding the
+:math:`\Theta` that maximizes :math:`P(x|\Theta)` for all :math:`x` in your
+dataset [10]_. This optimization is done by the **Expectation-Maximization**
+(EM) algorithm [8]_ and it is implemented by
+:py:class:`bob.learn.em.ML_GMMTrainer`.
+
+A very nice explanation of EM algorithm for the maximum likelihood estimation
+can be found in this
+`Mathematical Monk <https://www.youtube.com/watch?v=AnbiNaVp3eQ>`_ YouTube
+video.
+
+Follow bellow an snippet on how to train a GMM using the maximum likelihood
+estimator.
+
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> print(gmm) # doctest: +SKIP
+   >>> import bob.learn.em
+   >>> import numpy
+   >>> data = numpy.array(
+   ...     [[3,-3,100],
+   ...      [4,-4,98],
+   ...      [3.5,-3.5,99],
+   ...      [-7,7,-100],
+   ...      [-5,5,-101]], dtype='float64')
+   >>> # Create a kmeans model (machine) m with k=2 clusters
+   >>> # with a dimensionality equal to 3
+   >>> gmm_machine = bob.learn.em.GMMMachine(2, 3)
+   >>> # Using the MLE trainer to train the GMM:
+   >>> # True, True, True means update means/variances/weights at each
+   >>> # iteration
+   >>> gmm_trainer = bob.learn.em.ML_GMMTrainer(True, True, True)
+   >>> # Setting some means to start the training.
+   >>> # In practice, the output of kmeans is a good start for the MLE training
+   >>> gmm_machine.means = numpy.array(
+   ...     [[ -4.,   2.3,  -10.5],
+   ...      [  2.5, -4.5,   59. ]])
+   >>> max_iterations = 200
+   >>> convergence_threshold = 1e-5
+   >>> # Training
+   >>> bob.learn.em.train(gmm_trainer, gmm_machine, data,
+   ...                    max_iterations=max_iterations,
+   ...                    convergence_threshold=convergence_threshold)
+   >>> print(gmm_machine.means)
+   [[ -6.   6.  -100.5]
+    [  3.5 -3.5   99. ]]
 
-The training data used to compute the MAP estimate [11]_ is again stored in a
-2D :py:class:`numpy.ndarray` container.
+Bellow follow an intuition of the GMM trained the maximum likelihood estimator
+using the Iris flower
+`dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> dataMAP = numpy.array([[7,-7,102], [6,-6,103], [-3.5,3.5,-97]], dtype='float64')
-
-The |project| class used to perform MAP adaptation training [11]_ is
-:py:class:`bob.learn.em.MAP_GMMTrainer`. As with the ML estimate [10]_, it uses
-an **EM**-based [8]_ algorithm and requires the user to specify which parts of
-the GMM are adapted at each iteration (means, variances and/or weights). In
-addition, it also has parameters such as the maximum number of iterations and
-the criterion used to determine if the parameters have converged, in addition
-to this there is also a relevance factor which indicates the importance we give
-to the prior.  Once the trainer has been created, a prior GMM [9]_ needs to be
-set.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> relevance_factor = 4.
-   >>> trainer = bob.learn.em.MAP_GMMTrainer(gmm, relevance_factor=relevance_factor, update_means=True, update_variances=False, update_weights=False) # mean adaptation only
-   >>> gmmAdapted = bob.learn.em.GMMMachine(2,3) # Create a new machine for the MAP estimate
-   >>> bob.learn.em.train(trainer, gmmAdapted, dataMAP, max_iterations = 200, convergence_threshold = 1e-5)
-   >>> print(gmmAdapted) # doctest: +SKIP
+.. plot:: plot/plot_ML.py
+   :include-source: False
 
 
-Joint Factor Analysis
-=====================
+Maximum a posteriori Estimator (MAP)
+====================================
+.. _map:
 
-The training of the subspace :math:`U`, :math:`V` and :math:`D` of a Joint
-Factor Analysis model, is performed in two steps. First, GMM sufficient
-statistics of the training samples should be computed against the UBM GMM. Once
-done, we get a training set of GMM statistics:
+Closely related to the MLE, Maximum a posteriori probability (MAP) is an
+estimate that equals the mode of the posterior distribution by incorporating in
+its loss function a prior distribution [11]_. Commonly this prior distribution
+(the values of :math:`\Theta`) is estimated with MLE. This optimization is done
+by the **Expectation-Maximization** (EM) algorithm [8]_ and it is implemented
+by :py:class:`bob.learn.em.MAP_GMMTrainer`.
 
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
+A compact way to write relevance MAP adaptation is by using GMM supervector
+notation (this will be useful in the next subsections). The GMM supervector
+notation consists of taking the parameters of :math:`\Theta` (weights, means
+and covariance matrices) of a GMM and create a single vector or matrix to
+represent each of them. For each Gaussian component :math:`c`, we can
+represent the MAP adaptation as the following :math:`\mu_i = m + d_i`, where
+:math:`m` is our prior and :math:`d_i` is the class offset.
 
-   >>> F1 = numpy.array( [0.3833, 0.4516, 0.6173, 0.2277, 0.5755, 0.8044, 0.5301, 0.9861, 0.2751, 0.0300, 0.2486, 0.5357]).reshape((6,2))
-   >>> F2 = numpy.array( [0.0871, 0.6838, 0.8021, 0.7837, 0.9891, 0.5341, 0.0669, 0.8854, 0.9394, 0.8990, 0.0182, 0.6259]).reshape((6,2))
-   >>> F=[F1, F2]
+Follow bellow an snippet on how to train a GMM using the MAP estimator.
 
-   >>> N1 = numpy.array([0.1379, 0.1821, 0.2178, 0.0418]).reshape((2,2))
-   >>> N2 = numpy.array([0.1069, 0.9397, 0.6164, 0.3545]).reshape((2,2))
-   >>> N=[N1, N2]
-
-   >>> gs11 = bob.learn.em.GMMStats(2,3)
-   >>> gs11.n = N1[:,0]
-   >>> gs11.sum_px = F1[:,0].reshape(2,3)
-   >>> gs12 = bob.learn.em.GMMStats(2,3)
-   >>> gs12.n = N1[:,1]
-   >>> gs12.sum_px = F1[:,1].reshape(2,3)
-
-   >>> gs21 = bob.learn.em.GMMStats(2,3)
-   >>> gs21.n = N2[:,0]
-   >>> gs21.sum_px = F2[:,0].reshape(2,3)
-   >>> gs22 = bob.learn.em.GMMStats(2,3)
-   >>> gs22.n = N2[:,1]
-   >>> gs22.sum_px = F2[:,1].reshape(2,3)
-
-   >>> TRAINING_STATS = [[gs11, gs12], [gs21, gs22]]
-
-In the following, we will allocate a :py:class:`bob.learn.em.JFABase` machine,
-that will then be trained.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-    >>> jfa_base = bob.learn.em.JFABase(gmm, 2, 2) # the dimensions of U and V are both equal to 2
+   >>> import bob.learn.em
+   >>> import numpy
+   >>> data = numpy.array(
+   ...     [[3,-3,100],
+   ...      [4,-4,98],
+   ...      [3.5,-3.5,99],
+   ...      [-7,7,-100],
+   ...      [-5,5,-101]], dtype='float64')
+   >>> # Creating a fake prior
+   >>> prior_gmm = bob.learn.em.GMMMachine(2, 3)
+   >>> # Set some random means for the example
+   >>> prior_gmm.means = numpy.array(
+   ...     [[ -4.,   2.3,  -10.5],
+   ...      [  2.5, -4.5,   59. ]])
+   >>> # Creating the model for the adapted GMM
+   >>> adapted_gmm = bob.learn.em.GMMMachine(2, 3)
+   >>> # Creating the MAP trainer
+   >>> gmm_trainer = bob.learn.em.MAP_GMMTrainer(prior_gmm, relevance_factor=4)
+   >>>
+   >>> max_iterations = 200
+   >>> convergence_threshold = 1e-5
+   >>> # Training
+   >>> bob.learn.em.train(gmm_trainer, adapted_gmm, data,
+   ...                    max_iterations=max_iterations,
+   ...                    convergence_threshold=convergence_threshold)
+   >>> print(adapted_gmm.means)
+    [[ -4.667   3.533 -40.5  ]
+     [  2.929  -4.071  76.143]]
 
-Next, we initialize a trainer, which is an instance of
-:py:class:`bob.learn.em.JFATrainer`, as follows:
+Bellow follow an intuition of the GMM trained with the MAP estimator using the
+Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
+
+.. plot:: plot/plot_MAP.py
+   :include-source: False
+
+
+Session Variability Modeling with Gaussian Mixture Models
+---------------------------------------------------------
+
+In the aforementioned GMM based algorithms there is no explicit modeling of
+session variability. This section will introduce some session variability
+algorithms built on top of GMMs.
+
+
+GMM statistics
+==============
+
+Before introduce session variability for GMM based algorithms, we must
+introduce a component called :py:class:`bob.learn.em.GMMStats`. This component
+is useful for some computation in the next sections.
+:py:class:`bob.learn.em.GMMStats` is a container that solves the Equations 8, 9
+and 10 in [Reynolds2000]_ (also called, zeroth, first and second order GMM
+statistics).
+
+Given a GMM (:math:`\Theta`) and a set of samples :math:`x_t` this component
+accumulates statistics for each Gaussian component :math:`c`.
+
+Follow bellow a 1-1 relationship between statistics in [Reynolds2000]_ and the
+properties in :py:class:`bob.learn.em.GMMStats`:
+
+   - Eq (8) is :py:class:`bob.learn.em.GMMStats.n`:
+     :math:`n_c=\sum\limits_{t=1}^T Pr(c | x_t)` (also called responsibilities)
+   - Eq (9) is :py:class:`bob.learn.em.GMMStats.sum_px`:
+     :math:`E_c(x)=\frac{1}{n(c)}\sum\limits_{t=1}^T Pr(c | x_t)x_t`
+   - Eq (10) is :py:class:`bob.learn.em.GMMStats.sum_pxx`:
+     :math:`E_c(x^2)=\frac{1}{n(c)}\sum\limits_{t=1}^T Pr(c | x_t)x_t^2`
+
+where :math:`T` is the number of samples used to generate the stats.
+
+The snippet bellow shows how to compute accumulated these statistics given a
+prior GMM.
+
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> jfa_trainer = bob.learn.em.JFATrainer()
-
-The training process is started by calling the
-:py:meth:`bob.learn.em.train`.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> bob.learn.em.train_jfa(jfa_trainer, jfa_base, TRAINING_STATS, max_iterations=10)
-
-Once the training is finished (i.e. the subspaces :math:`U`, :math:`V` and
-:math:`D` are estimated), the JFA model can be shared and used by several
-class-specific models.  As for the training samples, we first need to extract
-GMM statistics from the samples.  These GMM statistics are manually defined in
-the following.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> Ne = numpy.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2,2))
-   >>> Fe = numpy.array([0.1579, 0.1925, 0.3242, 0.1234, 0.2354, 0.2734, 0.2514, 0.5874, 0.3345, 0.2463, 0.4789, 0.5236]).reshape((6,2))
-   >>> gse1 = bob.learn.em.GMMStats(2,3)
-   >>> gse1.n = Ne[:,0]
-   >>> gse1.sum_px = Fe[:,0].reshape(2,3)
-   >>> gse2 = bob.learn.em.GMMStats(2,3)
-   >>> gse2.n = Ne[:,1]
-   >>> gse2.sum_px = Fe[:,1].reshape(2,3)
-   >>> gse = [gse1, gse2]
-
-Class-specific enrollment can then be perfomed as follows. This will estimate
-the class-specific latent variables :math:`y` and :math:`z`:
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> m = bob.learn.em.JFAMachine(jfa_base)
-   >>> jfa_trainer.enroll(m, gse, 5) # where 5 is the number of enrollment iterations
-
-More information about the training process can be found in [12]_ and [13]_.
+    >>> import bob.learn.em
+    >>> import numpy
+    >>> numpy.random.seed(10)
+    >>>
+    >>> data = numpy.array(
+    ...     [[0, 0.3, -0.2],
+    ...      [0.4, 0.1, 0.15],
+    ...      [-0.3, -0.1, 0],
+    ...      [1.2, 1.4, 1],
+    ...      [0.8, 1., 1]], dtype='float64')
+    >>> # Creating a fake prior with 2 Gaussians of dimension 3
+    >>> prior_gmm = bob.learn.em.GMMMachine(2, 3)
+    >>> prior_gmm.means = numpy.vstack((numpy.random.normal(0, 0.5, (1, 3)),
+    ...                                 numpy.random.normal(1, 0.5, (1, 3))))
+    >>> # All nice and round diagonal covariance
+    >>> prior_gmm.variances = numpy.ones((2, 3)) * 0.5
+    >>> prior_gmm.weights = numpy.array([0.3, 0.7])
+    >>> # Creating the container
+    >>> gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    >>> for d in data:
+    ...    prior_gmm.acc_statistics(d, gmm_stats_container)
+    >>>
+    >>> # Printing the responsibilities
+    >>> print(gmm_stats_container.n/gmm_stats_container.t)
+     [ 0.429  0.571]
 
 
 Inter-Session Variability
 =========================
+.. _isv:
 
-The training of the subspace :math:`U` and :math:`D` of an Inter-Session
-Variability model, is performed in two steps. As for JFA, GMM sufficient
-statistics of the training samples should be computed against the UBM GMM. Once
-done, we get a training set of GMM statistics.  Next, we will allocate an
-:py:class:`bob.learn.em.ISVBase` machine, that will then be trained.
+Inter-Session Variability (ISV) modeling [3]_ [2]_ is a session variability
+modeling technique built on top of the Gaussian mixture modeling approach. It
+hypothesizes that within-class variations are embedded in a linear subspace in
+the GMM means subspace and these variations can be suppressed by an offset w.r.t
+each mean during the MAP adaptation.
+
+In this generative model each sample is assumed to have been generated by a GMM
+mean supervector with the following shape:
+:math:`\mu_{i, j} = m + Ux_{i, j} + D_z{i}`, where :math:`m` is our prior,
+:math:`Ux_{i, j}` is the session offset that we want to suppress and
+:math:`D_z{i}` is the class offset (with all session effects suppressed).
+
+All possible sources of session variations is embedded in this matrix
+:math:`U`. Follow bellow an intuition of what is modeled with :math:`U` in the
+Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
+The arrows :math:`U_{1}`, :math:`U_{2}` and :math:`U_{3}` are the directions of
+the within class variations, with respect to each Gaussian component, that will
+be suppressed a posteriori.
+
+.. plot:: plot/plot_ISV.py
+   :include-source: False
+
+
+The ISV statistical model is stored in this container
+:py:class:`bob.learn.em.ISVBase` and the training is performed by
+:py:class:`bob.learn.em.ISVTrainer`. The snippet bellow shows how to train a
+Intersession variability modeling.
+
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-    >>> isv_base = bob.learn.em.ISVBase(gmm, 2) # the dimensions of U is equal to 2
+    >>> import bob.learn.em
+    >>> import numpy
+    >>> numpy.random.seed(10)
+    >>>
+    >>> # Generating some fake data
+    >>> data_class1 = numpy.random.normal(0, 0.5, (10, 3))
+    >>> data_class2 = numpy.random.normal(-0.2, 0.2, (10, 3))
+    >>> data = [data_class1, data_class2]
 
-Next, we initialize a trainer, which is an instance of
-:py:class:`bob.learn.em.ISVTrainer`, as follows:
+    >>> # Creating a fake prior with 2 gaussians of dimension 3
+    >>> prior_gmm = bob.learn.em.GMMMachine(2, 3)
+    >>> prior_gmm.means = numpy.vstack((numpy.random.normal(0, 0.5, (1, 3)),
+    ...                                 numpy.random.normal(1, 0.5, (1, 3))))
+    >>> # All nice and round diagonal covariance
+    >>> prior_gmm.variances = numpy.ones((2, 3)) * 0.5
+    >>> prior_gmm.weights = numpy.array([0.3, 0.7])
+    >>> # The input the the ISV Training is the statistics of the GMM
+    >>> gmm_stats_per_class = []
+    >>> for d in data:
+    ...   stats = []
+    ...   for i in d:
+    ...     gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    ...     prior_gmm.acc_statistics(i, gmm_stats_container)
+    ...     stats.append(gmm_stats_container)
+    ...   gmm_stats_per_class.append(stats)
+
+    >>> # Finally doing the ISV training
+    >>> subspace_dimension_of_u = 2
+    >>> relevance_factor = 4
+    >>> isvbase = bob.learn.em.ISVBase(prior_gmm, subspace_dimension_of_u)
+    >>> trainer = bob.learn.em.ISVTrainer(relevance_factor)
+    >>> bob.learn.em.train(trainer, isvbase, gmm_stats_per_class,
+    ...                    max_iterations=50)
+    >>> # Printing the session offset w.r.t each Gaussian component
+    >>> print(isvbase.u)
+      [[-0.01  -0.027]
+      [-0.002 -0.004]
+      [ 0.028  0.074]
+      [ 0.012  0.03 ]
+      [ 0.033  0.085]
+      [ 0.046  0.12 ]]
+
+
+Joint Factor Analysis
+=====================
+.. _jfa:
+
+Joint Factor Analysis (JFA) [1]_ [2]_ is an extension of ISV. Besides the
+within-class assumption (modeled with :math:`U`), it also hypothesize that
+between class variations are embedded in a low rank rectangular matrix
+:math:`V`. In the supervector notation, this modeling has the following shape:
+:math:`\mu_{i, j} = m + Ux_{i, j}  + Vy_{i} + D_z{i}`.
+
+Follow bellow an intuition of what is modeled with :math:`U` and :math:`V` in
+the Iris flower
+`dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_. The arrows
+:math:`V_{1}`, :math:`V_{2}` and :math:`V_{3}` are the directions of the
+between class variations with respect to each Gaussian component that will be
+added a posteriori.
+
+
+.. plot:: plot/plot_JFA.py
+   :include-source: False
+
+The JFA statistical model is stored in this container
+:py:class:`bob.learn.em.JFABase` and the training is performed by
+:py:class:`bob.learn.em.JFATrainer`. The snippet bellow shows how to train a
+Intersession variability modeling.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> isv_trainer = bob.learn.em.ISVTrainer(relevance_factor=4.) # 4 is the relevance factor
+    >>> import bob.learn.em
+    >>> import numpy
+    >>> numpy.random.seed(10)
+    >>>
+    >>> # Generating some fake data
+    >>> data_class1 = numpy.random.normal(0, 0.5, (10, 3))
+    >>> data_class2 = numpy.random.normal(-0.2, 0.2, (10, 3))
+    >>> data = [data_class1, data_class2]
 
-The training process is started by calling the
-:py:meth:`bob.learn.em.train`.
+    >>> # Creating a fake prior with 2 Gaussians of dimension 3
+    >>> prior_gmm = bob.learn.em.GMMMachine(2, 3)
+    >>> prior_gmm.means = numpy.vstack((numpy.random.normal(0, 0.5, (1, 3)),
+    ...                                 numpy.random.normal(1, 0.5, (1, 3))))
+    >>> # All nice and round diagonal covariance
+    >>> prior_gmm.variances = numpy.ones((2, 3)) * 0.5
+    >>> prior_gmm.weights = numpy.array([0.3, 0.7])
+    >>>
+    >>> # The input the the JFA Training is the statistics of the GMM
+    >>> gmm_stats_per_class = []
+    >>> for d in data:
+    ...   stats = []
+    ...   for i in d:
+    ...     gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    ...     prior_gmm.acc_statistics(i, gmm_stats_container)
+    ...     stats.append(gmm_stats_container)
+    ...   gmm_stats_per_class.append(stats)
+    >>>
+    >>> # Finally doing the JFA training
+    >>> subspace_dimension_of_u = 2
+    >>> subspace_dimension_of_v = 2
+    >>> relevance_factor = 4
+    >>> jfabase = bob.learn.em.JFABase(prior_gmm, subspace_dimension_of_u,
+    ...                                subspace_dimension_of_v)
+    >>> trainer = bob.learn.em.JFATrainer()
+    >>> bob.learn.em.train_jfa(trainer, jfabase, gmm_stats_per_class,
+    ...                        max_iterations=50)
+
+    >>> # Printing the session offset w.r.t each Gaussian component
+    >>> print(jfabase.v)
+     [[ 0.003 -0.006]
+      [ 0.041 -0.084]
+      [-0.261  0.53 ]
+      [-0.252  0.51 ]
+      [-0.387  0.785]
+      [-0.36   0.73 ]]
+
+Total variability Modelling
+===========================
+.. _ivector:
+
+Total Variability (TV) modeling [4]_ is a front-end initially introduced for
+speaker recognition, which aims at describing samples by vectors of low
+dimensionality called ``i-vectors``. The model consists of a subspace :math:`T`
+and a residual diagonal covariance matrix :math:`\Sigma`, that are then used to
+extract i-vectors, and is built upon the GMM approach. In the supervector
+notation this modeling has the following shape: :math:`\mu = m + Tv`.
+
+Follow bellow an intuition of the data from the Iris flower
+`dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_, embedded in
+the iVector space.
+
+.. plot:: plot/plot_iVector.py
+   :include-source: False
+
+
+The iVector statistical model is stored in this container
+:py:class:`bob.learn.em.IVectorMachine` and the training is performed by
+:py:class:`bob.learn.em.IVectorTrainer`. The snippet bellow shows how to train
+a Total variability modeling.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> bob.learn.em.train(isv_trainer, isv_base, TRAINING_STATS, max_iterations=10)
+    >>> import bob.learn.em
+    >>> import numpy
+    >>> numpy.random.seed(10)
+    >>>
+    >>> # Generating some fake data
+    >>> data_class1 = numpy.random.normal(0, 0.5, (10, 3))
+    >>> data_class2 = numpy.random.normal(-0.2, 0.2, (10, 3))
+    >>> data = [data_class1, data_class2]
+    >>>
+    >>> # Creating a fake prior with 2 gaussians of dimension 3
+    >>> prior_gmm = bob.learn.em.GMMMachine(2, 3)
+    >>> prior_gmm.means = numpy.vstack((numpy.random.normal(0, 0.5, (1, 3)),
+    ...                                 numpy.random.normal(1, 0.5, (1, 3))))
+    >>> # All nice and round diagonal covariance
+    >>> prior_gmm.variances = numpy.ones((2, 3)) * 0.5
+    >>> prior_gmm.weights = numpy.array([0.3, 0.7])
+    >>>
+    >>> # The input the the TV Training is the statistics of the GMM
+    >>> gmm_stats_per_class = []
+    >>> for d in data:
+    ...     for i in d:
+    ...       gmm_stats_container = bob.learn.em.GMMStats(2, 3)
+    ...       prior_gmm.acc_statistics(i, gmm_stats_container)
+    ...       gmm_stats_per_class.append(gmm_stats_container)
+    >>>
+    >>> # Finally doing the TV training
+    >>> subspace_dimension_of_t = 2
+    >>>
+    >>> ivector_trainer = bob.learn.em.IVectorTrainer(update_sigma=True)
+    >>> ivector_machine = bob.learn.em.IVectorMachine(
+    ...     prior_gmm, subspace_dimension_of_t, 10e-5)
+    >>> # train IVector model
+    >>> bob.learn.em.train(ivector_trainer, ivector_machine,
+    ...                    gmm_stats_per_class, 500)
+    >>>
+    >>> # Printing the session offset w.r.t each Gaussian component
+    >>> print(ivector_machine.t)
+     [[ 0.11  -0.203]
+      [-0.124  0.014]
+      [ 0.296  0.674]
+      [ 0.447  0.174]
+      [ 0.425  0.583]
+      [ 0.394  0.794]]
 
-Once the training is finished (i.e. the subspaces :math:`V` and :math:`D` are
-estimated), the ISV model can be shared and used by several class-specific
-models.  As for the training samples, we first need to extract GMM statistics
-from the samples.  Class-specific enrollment can then be perfomed, which will
-estimate the class-specific latent variable :math:`z`:
+Linear Scoring
+==============
+.. _linearscoring:
+
+In :ref:`MAP <map>` adaptation, :ref:`ISV <isv>` and :ref:`JFA <jfa>` a
+traditional way to do scoring is via the log-likelihood ratio between the
+adapted model and the prior as the following:
+
+.. math::
+   score = ln(P(x | \Theta)) -  ln(P(x | \Theta_{prior})),
+
+
+(with :math:`\Theta` varying for each approach).
+
+A simplification proposed by [Glembek2009]_, called linear scoring,
+approximate this ratio using a first order Taylor series as the following:
+
+.. math::
+   score = \frac{\mu - \mu_{prior}}{\sigma_{prior}} f * (\mu_{prior} + U_x),
+
+where :math:`\mu` is the the GMM mean supervector (of the prior and the adapted
+model), :math:`\sigma` is the variance, supervector, :math:`f` is the first
+order GMM statistics (:py:class:`bob.learn.em.GMMStats.sum_px`) and
+:math:`U_x`, is possible channel offset (:ref:`ISV <isv>`).
+
+This scoring technique is implemented in :py:func:`bob.learn.em.linear_scoring`.
+The snippet bellow shows how to compute scores using this approximation.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> m = bob.learn.em.ISVMachine(isv_base)
-   >>> isv_trainer.enroll(m, gse, 5) # where 5 is the number of iterations
+   >>> import bob.learn.em
+   >>> import numpy
+   >>> # Defining a fake prior
+   >>> prior_gmm = bob.learn.em.GMMMachine(3, 2)
+   >>> prior_gmm.means = numpy.array([[1, 1], [2, 2.1], [3, 3]])
+   >>> # Defining a fake prior
+   >>> adapted_gmm = bob.learn.em.GMMMachine(3,2)
+   >>> adapted_gmm.means = numpy.array([[1.5, 1.5], [2.5, 2.5], [2, 2]])
+   >>> # Defining an input
+   >>> input = numpy.array([[1.5, 1.5], [1.6, 1.6]])
+   >>> #Accumulating statistics of the GMM
+   >>> stats = bob.learn.em.GMMStats(3, 2)
+   >>> prior_gmm.acc_statistics(input, stats)
+   >>> score = bob.learn.em.linear_scoring(
+   ...     [adapted_gmm], prior_gmm, [stats], [],
+   ...     frame_length_normalisation=True)
+   >>> print(score)
+    [[ 0.254]]
 
-More information about the training process can be found in [14]_ and [13]_.
-
-
-Total Variability (i-vectors)
-=============================
-
-The training of the subspace :math:`T` and :math:`\Sigma` of a Total
-Variability model, is performed in two steps. As for JFA and ISV, GMM
-sufficient statistics of the training samples should be computed against the
-UBM GMM. Once done, we get a training set of GMM statistics.  Next, we will
-allocate an instance of :py:class:`bob.learn.em.IVectorMachine`, that will
-then be trained.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-    >>> m = bob.learn.em.IVectorMachine(gmm, 2)
-    >>> m.variance_threshold = 1e-5
-
-
-Next, we initialize a trainer, which is an instance of
-:py:class:`bob.learn.em.IVectorTrainer`, as follows:
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> ivec_trainer = bob.learn.em.IVectorTrainer(update_sigma=True)
-   >>> TRAINING_STATS_flatten = [gs11, gs12, gs21, gs22]
-
-The training process is started by calling the
-:py:meth:`bob.learn.em.train`.
-
-.. doctest::
-   :options: +NORMALIZE_WHITESPACE
-
-   >>> bob.learn.em.train(ivec_trainer, m, TRAINING_STATS_flatten, max_iterations=10)
-
-More information about the training process can be found in [15]_.
 
 Probabilistic Linear Discriminant Analysis (PLDA)
-=================================================
+-------------------------------------------------
 
 Probabilistic Linear Discriminant Analysis [16]_ is a probabilistic model that
 incorporates components describing both between-class and within-class
@@ -699,7 +594,7 @@ diagonal covariance matrix :math:`\Sigma`, the model assumes that a sample
    x_{i,j} = \mu + F h_{i} + G w_{i,j} + \epsilon_{i,j}
 
 
-An Expectaction-Maximization algorithm can be used to learn the parameters of
+An Expectation-Maximization algorithm can be used to learn the parameters of
 this model :math:`\mu`, :math:`F` :math:`G` and :math:`\Sigma`. As these
 parameters can be shared between classes, there is a specific container class
 for this purpose, which is :py:class:`bob.learn.em.PLDABase`. The process is
@@ -711,8 +606,14 @@ dimensionality 3.
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> data1 = numpy.array([[3,-3,100], [4,-4,50], [40,-40,150]], dtype=numpy.float64)
-   >>> data2 = numpy.array([[3,6,-50], [4,8,-100], [40,79,-800]], dtype=numpy.float64)
+   >>> data1 = numpy.array(
+   ...     [[3,-3,100],
+   ...      [4,-4,50],
+   ...      [40,-40,150]], dtype=numpy.float64)
+   >>> data2 = numpy.array(
+   ...     [[3,6,-50],
+   ...      [4,8,-100],
+   ...      [40,79,-800]], dtype=numpy.float64)
    >>> data = [data1,data2]
 
 Learning a PLDA model can be performed by instantiating the class
@@ -721,8 +622,8 @@ Learning a PLDA model can be performed by instantiating the class
 
 .. doctest::
 
-   >>> ### This creates a PLDABase container for input feature of dimensionality 3,
-   >>> ### and with subspaces F and G of rank 1 and 2 respectively.
+   >>> # This creates a PLDABase container for input feature of dimensionality
+   >>> # 3 and with subspaces F and G of rank 1 and 2, respectively.
    >>> pldabase = bob.learn.em.PLDABase(3,1,2)
 
    >>> trainer = bob.learn.em.PLDATrainer()
@@ -739,21 +640,27 @@ obtained by calling the
 .. doctest::
 
    >>> plda = bob.learn.em.PLDAMachine(pldabase)
-   >>> samples = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
+   >>> samples = numpy.array(
+   ...     [[3.5,-3.4,102],
+   ...      [4.5,-4.3,56]], dtype=numpy.float64)
    >>> loglike = plda.compute_log_likelihood(samples)
 
 If separate models for different classes need to be enrolled, each of them with
-a set of enrolment samples, then, several instances of
+a set of enrollment samples, then, several instances of
 :py:class:`bob.learn.em.PLDAMachine` need to be created and enrolled using
 the :py:meth:`bob.learn.em.PLDATrainer.enroll()` method as follows.
 
 .. doctest::
 
    >>> plda1 = bob.learn.em.PLDAMachine(pldabase)
-   >>> samples1 = numpy.array([[3.5,-3.4,102], [4.5,-4.3,56]], dtype=numpy.float64)
+   >>> samples1 = numpy.array(
+   ...     [[3.5,-3.4,102],
+   ...      [4.5,-4.3,56]], dtype=numpy.float64)
    >>> trainer.enroll(plda1, samples1)
    >>> plda2 = bob.learn.em.PLDAMachine(pldabase)
-   >>> samples2 = numpy.array([[3.5,7,-49], [4.5,8.9,-99]], dtype=numpy.float64)
+   >>> samples2 = numpy.array(
+   ...     [[3.5,7,-49],
+   ...      [4.5,8.9,-99]], dtype=numpy.float64)
    >>> trainer.enroll(plda2, samples2)
 
 Afterwards, the joint log-likelihood of the enrollment samples and of one or
@@ -766,12 +673,14 @@ separately for each model.
    >>> l1 = plda1.compute_log_likelihood(sample)
    >>> l2 = plda2.compute_log_likelihood(sample)
 
-In a verification scenario, there are two possible hypotheses: 1.
-:math:`x_{test}` and :math:`x_{enroll}` share the same class.  2.
-:math:`x_{test}` and :math:`x_{enroll}` are from different classes.  Using the
-methods :py:meth:`bob.learn.em.PLDAMachine.log_likelihood_ratio` or
-its alias ``__call__`` function, the corresponding
-log-likelihood ratio will be computed, which is defined in more formal way by:
+In a verification scenario, there are two possible hypotheses:
+
+#. :math:`x_{test}` and :math:`x_{enroll}` share the same class.
+#. :math:`x_{test}` and :math:`x_{enroll}` are from different classes.
+
+Using the methods :py:meth:`bob.learn.em.PLDAMachine.log_likelihood_ratio` or
+its alias ``__call__`` function, the corresponding log-likelihood ratio will be
+computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enroll})) - \ln(P(x_{test})P(x_{enroll}))`
 
 .. doctest::
@@ -784,6 +693,99 @@ log-likelihood ratio will be computed, which is defined in more formal way by:
   import shutil
   os.chdir(current_directory)
   shutil.rmtree(temp_dir)
+
+
+Score Normalization
+-------------------
+
+Score normalization aims to compensate statistical variations in output scores
+due to changes in the conditions across different enrollment and probe samples.
+This is achieved by scaling distributions of system output scores to better
+facilitate the application of a single, global threshold for authentication.
+
+Bob has implemented 3 different strategies to normalize scores and these
+strategies are presented in the next subsections.
+
+Z-Norm
+======
+.. _znorm:
+
+Given a score :math:`s_i`, Z-Norm [Auckenthaler2000]_ and [Mariethoz2005]_
+(zero-normalization) scales this value by the mean (:math:`\mu`) and standard
+deviation (:math:`\sigma`) of an impostor score distribution. This score
+distribution can be computed before hand and it is defined as the following.
+
+.. math::
+
+   zs_i = \frac{s_i - \mu}{\sigma}
+
+
+This scoring technique is implemented in :py:func:`bob.learn.em.znorm`. Follow
+bellow an example of score normalization using :py:func:`bob.learn.em.znorm`.
+
+.. plot:: plot/plot_Znorm.py
+   :include-source: True
+
+.. note::
+
+   Observe how the scores were scaled in the plot above.
+
+
+T-Norm
+======
+.. _tnorm:
+
+T-norm [Auckenthaler2000]_ and [Mariethoz2005]_ (Test-normalization) operates
+in a probe-centric manner. If in the Z-Norm :math:`\mu` and :math:`\sigma` are
+estimated using an impostor set of models and its scores, the t-norm computes
+these statistics using the current probe sample against at set of models in a
+co-hort :math:`\Theta_{c}`. A co-hort can be any semantic organization that is
+sensible to your recognition task, such as sex (male and females), ethnicity,
+age, etc and is defined as the following.
+
+.. math::
+
+   zs_i = \frac{s_i - \mu}{\sigma}
+
+where, :math:`s_i` is :math:`P(x_i | \Theta)` (the score given the claimed
+model), :math:`\mu = \frac{ \sum\limits_{i=0}^{N} P(x_i | \Theta_{c}) }{N}`
+(:math:`\Theta_{c}` are the models of one co-hort) and :math:`\sigma` is the
+standard deviation computed using the same criteria used to compute
+:math:`\mu`.
+
+
+This scoring technique is implemented in :py:func:`bob.learn.em.tnorm`. Follow
+bellow an example of score normalization using :py:func:`bob.learn.em.tnorm`.
+
+.. plot:: plot/plot_Tnorm.py
+   :include-source: True
+
+
+.. note::
+
+   T-norm introduces extra computation during scoring, as the probe samples
+   need to be compared to each cohort model in order to have :math:`\mu` and
+   :math:`\sigma`.
+
+
+ZT-Norm
+=======
+.. _ztnorm:
+
+ZT-Norm [Auckenthaler2000]_ and [Mariethoz2005]_ consists in the application of
+:ref:`Z-Norm <znorm>` followed by a :ref:`T-Norm <tnorm>` and it is implemented
+in :py:func:`bob.learn.em.ztnorm`.
+
+Follow bellow an example of score normalization using
+:py:func:`bob.learn.em.ztnorm`.
+
+.. plot:: plot/plot_ZTnorm.py
+   :include-source: True
+
+.. note::
+
+   Observe how the scores were scaled in the plot above.
+
 
 .. Place here your external references
 .. include:: links.rst

@@ -25,6 +25,7 @@ extensions = [
     'sphinx.ext.intersphinx',
     'sphinx.ext.napoleon',
     'sphinx.ext.viewcode',
+    'matplotlib.sphinxext.plot_directive'
     ]
 
 import sphinx
@@ -231,7 +232,6 @@ autodoc_member_order = 'bysource'
 autodoc_default_flags = [
   'members',
   'undoc-members',
-  'inherited-members',
   'show-inheritance',
   ]
 

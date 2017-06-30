@@ -36,9 +36,9 @@ static int extract_GMMStats_1d(PyObject *list,
 static auto IVectorTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".IVectorTrainer",
   "IVectorTrainer"
-  "An IVectorTrainer to learn a Total Variability subspace :math:`$T$`"
-  " (and eventually a covariance matrix :math:`$\\Sigma$`).",
-  " References: [Dehak2010]"
+  "Trains the Total Variability subspace :math:`$T$` to generate :ref:`iVectors <ivector>`."
+  "",
+  ""
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",

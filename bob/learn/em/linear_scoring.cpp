@@ -71,6 +71,7 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}
 /*** linear_scoring ***/
 bob::extension::FunctionDoc linear_scoring1 = bob::extension::FunctionDoc(
   "linear_scoring",
+  "The :ref:`Linear scoring <linearscoring>` is an approximation to the log-likelihood ratio that was shown to be as accurate and up to two orders of magnitude more efficient to compute [Glembek2009]_."
   "",
   0,
   true

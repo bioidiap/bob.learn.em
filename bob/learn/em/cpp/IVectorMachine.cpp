@@ -206,7 +206,7 @@ void bob::learn::em::IVectorMachine::resizeTmp()
 void bob::learn::em::IVectorMachine::forward(const bob::learn::em::GMMStats& gs,
   blitz::Array<double,1>& ivector) const
 {
-  bob::core::array::assertSameDimensionLength(ivector.extent(0), (int)m_rt);  
+  bob::core::array::assertSameDimensionLength(ivector.extent(0), (int)m_rt);
   forward_(gs, ivector);
 }
 
@@ -246,6 +246,5 @@ void bob::learn::em::IVectorMachine::forward_(const bob::learn::em::GMMStats& gs
   computeTtSigmaInvFnorm(gs, m_tmp_t1);
 
   // Solves m_tmp_tt.ivector = m_tmp_t1
-  bob::math::linsolve(m_tmp_tt, ivector, m_tmp_t1);
+  bob::math::linsolve(m_tmp_tt, m_tmp_t1, ivector);
 }
-

@@ -17,7 +17,7 @@ static inline bool f(PyObject* o){return o != 0 && PyObject_IsTrue(o) > 0;}  /* 
 
 static auto ML_GMMTrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".ML_GMMTrainer",
-  "This class implements the maximum likelihood M-step of the expectation-maximisation algorithm for a GMM Machine."
+  "This class implements the maximum likelihood M-step (:ref:`MLE <mle>`) of the expectation-maximisation algorithm for a GMM Machine."
 ).add_constructor(
   bob::extension::FunctionDoc(
     "__init__",
