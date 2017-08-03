@@ -11,6 +11,7 @@
 
 #include <boost/random.hpp>
 #include <bob.core/random.h>
+#include <bob.core/logging.h>
 #include <set>
 
 
@@ -223,6 +224,7 @@ void bob::learn::em::KMeansTrainer::mStep(bob::learn::em::KMeansMachine& kmeans,
       means(i,blitz::Range::all()) = ar(index, blitz::Range::all());
       // and remember that we already chose this mean
       random_samples.insert(index);
+      bob::core::warn << "Replacing empty mean with random sample " << index << " from data";
     }
   }
 }
