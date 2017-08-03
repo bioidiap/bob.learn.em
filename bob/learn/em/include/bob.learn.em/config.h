@@ -9,7 +9,7 @@
 #define BOB_LEARN_EM_CONFIG_H
 
 /* Macros that define versions and important names */
-#define BOB_LEARN_EM_API_VERSION 0x0200
+#define BOB_LEARN_EM_API_VERSION 0x0201
 
 #ifdef BOB_IMPORT_VERSION
 

@@ -381,7 +381,7 @@ static auto e_step = bob::extension::FunctionDoc(
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
 .add_parameter("data", "array_like <float, 2D>", "Input data");
 static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
-  BOB_TRY
+BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = e_step.kwlist(0);
@@ -410,9 +410,9 @@ static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObjec
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
 
-  BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
   Py_RETURN_NONE;
+BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 }
 
 
@@ -420,27 +420,43 @@ static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObjec
 static auto m_step = bob::extension::FunctionDoc(
   "m_step",
   "Updates the mean based on the statistics from the E-step",
-  0,
+  "If there exists a cluster with no assigned input data, a new random cluster center is taken from the input data",
   true
 )
-.add_prototype("kmeans_machine, [data]")
+.add_prototype("kmeans_machine, data")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object")
-.add_parameter("data", "object", "Ignored.");
+.add_parameter("data",  "array_like <float, 2D>", "Input data");
 static PyObject* PyBobLearnEMKMeansTrainer_m_step(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
-  BOB_TRY
+BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = m_step.kwlist(0);
 
   PyBobLearnEMKMeansMachineObject* kmeans_machine;
-  PyObject* data = 0;
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
-                                                                 &data)) return 0;
-  self->cxx->mStep(*kmeans_machine->cxx);
+  PyBlitzArrayObject* data = 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!O&", kwlist, &PyBobLearnEMKMeansMachine_Type, &kmeans_machine,
+                                                                 &PyBlitzArray_Converter, &data)) return 0;
+  auto data_ = make_safe(data);
 
-  BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
+  if (data->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, e_step.name());
+    return 0;
+  }
+
+  if (data->ndim != 2){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 2D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, e_step.name());
+    return 0;
+  }
+
+  if (data->shape[1] != (Py_ssize_t)kmeans_machine->cxx->getNInputs() ) {
+    PyErr_Format(PyExc_TypeError, "`%s' 2D `input` array should have the shape [N, %" PY_FORMAT_SIZE_T "d] not [N, %" PY_FORMAT_SIZE_T "d] for `%s`", Py_TYPE(self)->tp_name, kmeans_machine->cxx->getNInputs(), data->shape[1], e_step.name());
+    return 0;
+  }
+
+  self->cxx->mStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
 
   Py_RETURN_NONE;
+BOB_CATCH_MEMBER("cannot perform the m_step method", 0)
 }
 
 
@@ -454,7 +470,7 @@ static auto compute_likelihood = bob::extension::FunctionDoc(
 .add_prototype("kmeans_machine")
 .add_parameter("kmeans_machine", ":py:class:`bob.learn.em.KMeansMachine`", "KMeansMachine Object");
 static PyObject* PyBobLearnEMKMeansTrainer_compute_likelihood(PyBobLearnEMKMeansTrainerObject* self, PyObject* args, PyObject* kwargs) {
-  BOB_TRY
+BOB_TRY
 
   /* Parses input arguments in a single shot */
   char** kwlist = compute_likelihood.kwlist(0);
@@ -465,7 +481,7 @@ static PyObject* PyBobLearnEMKMeansTrainer_compute_likelihood(PyBobLearnEMKMeans
   double value = self->cxx->computeLikelihood(*kmeans_machine->cxx);
   return Py_BuildValue("d", value);
 
-  BOB_CATCH_MEMBER("cannot perform the computeLikelihood method", 0)
+BOB_CATCH_MEMBER("cannot perform the computeLikelihood method", 0)
 }
 
 

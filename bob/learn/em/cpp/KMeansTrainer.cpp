@@ -11,6 +11,7 @@
 
 #include <boost/random.hpp>
 #include <bob.core/random.h>
+#include <set>
 
 
 bob::learn::em::KMeansTrainer::KMeansTrainer(InitializationMethod i_m):
@@ -187,13 +188,42 @@ void bob::learn::em::KMeansTrainer::eStep(bob::learn::em::KMeansMachine& kmeans,
   m_average_min_distance /= static_cast<double>(ar.extent(0));
 }
 
-void bob::learn::em::KMeansTrainer::mStep(bob::learn::em::KMeansMachine& kmeans)
+void bob::learn::em::KMeansTrainer::mStep(bob::learn::em::KMeansMachine& kmeans,
+  const blitz::Array<double,2>& ar)
 {
   blitz::Array<double,2>& means = kmeans.updateMeans();
+
+  // assign random samples, if any new mean is empty
+  std::set<unsigned> random_samples;
+  size_t n_data = ar.extent(0);
+  boost::uniform_int<> die(0, n_data-1);
+  size_t n_chunk = n_data / kmeans.getNMeans();
+  size_t n_max_trials = (size_t)n_chunk * 5;
+
+  // assign new means for all means
   for(size_t i=0; i<kmeans.getNMeans(); ++i)
   {
-    means(i,blitz::Range::all()) =
-      m_firstOrderStats(i,blitz::Range::all()) / m_zeroethOrderStats(i);
+    if (m_zeroethOrderStats(i)){
+      // compute new mean
+      means(i,blitz::Range::all()) =
+        m_firstOrderStats(i,blitz::Range::all()) / m_zeroethOrderStats(i);
+    } else {
+      // pick random feature as new mean
+      unsigned index = die(*m_rng);
+      size_t trials = 0;
+      while (random_samples.find(index) != random_samples.end()){
+        ++trials;
+        // Random selection fails
+        if(trials >= n_max_trials) {
+          throw std::runtime_error((boost::format("random selection failure: surpassed the maximum number of trials (%u)")%n_max_trials).str());
+        }
+        index = die(*m_rng);
+      }
+      // assign this mean
+      means(i,blitz::Range::all()) = ar(index, blitz::Range::all());
+      // and remember that we already chose this mean
+      random_samples.insert(index);
+    }
   }
 }
 
