@@ -76,7 +76,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
 
             # Terminates if converged (and likelihood computation is set)
             if convergence_threshold != None and convergence_value <= convergence_threshold:
-                logger.info("EM training converged after %d iterations with convergence value %f", convergence_value)
+                logger.info("EM training converged after %d iterations with convergence value %f", i, convergence_value)
                 break
     if hasattr(trainer, "finalize"):
         trainer.finalize(machine, data)
