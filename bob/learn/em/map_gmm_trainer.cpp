@@ -306,9 +306,10 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("gmm_machine, [data]")
+.add_prototype("gmm_machine, [data], [rng]")
 .add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
-.add_parameter("data", "object", "Ignored.");
+.add_parameter("data", "object", "Ignored.")
+.add_parameter("rng", "object", "Ignored.");
 static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -317,9 +318,10 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
 
   PyBobLearnEMGMMMachineObject* gmm_machine = 0;
   PyObject* data;
+  PyBoostMt19937Object* rng = 0;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                 &data)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|OO!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+                                                                 &data, &PyBoostMt19937_Type, &rng)) return 0;
 
   self->cxx->initialize(*gmm_machine->cxx);
 

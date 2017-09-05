@@ -45,9 +45,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
 
     # Initialization
     if initialize:
-        if rng is not None and \
-           (not isinstance(trainer, (bob.learn.em.ML_GMMTrainer,
-                                     bob.learn.em.MAP_GMMTrainer))):
+        if rng is not None:
             trainer.initialize(machine, data, rng)
         else:
             trainer.initialize(machine, data)
