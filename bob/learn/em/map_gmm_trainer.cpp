@@ -318,10 +318,10 @@ static PyObject* PyBobLearnEMMAPGMMTrainer_initialize(PyBobLearnEMMAPGMMTrainerO
 
   PyBobLearnEMGMMMachineObject* gmm_machine = 0;
   PyObject* data;
-  PyBoostMt19937Object* rng = 0;
+  PyObject* rng;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|OO!", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                 &data, &PyBoostMt19937_Type, &rng)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|OO", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+                                                                 &data, &rng)) return 0;
 
   self->cxx->initialize(*gmm_machine->cxx);
 
