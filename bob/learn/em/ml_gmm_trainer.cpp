@@ -192,9 +192,10 @@ static auto initialize = bob::extension::FunctionDoc(
   "",
   true
 )
-.add_prototype("gmm_machine, [data]")
+.add_prototype("gmm_machine, [data], [rng]")
 .add_parameter("gmm_machine", ":py:class:`bob.learn.em.GMMMachine`", "GMMMachine Object")
-.add_parameter("data", "object", "Ignored.");
+.add_parameter("data", "object", "Ignored.")
+.add_parameter("rng", "object", "Ignored.");
 static PyObject* PyBobLearnEMMLGMMTrainer_initialize(PyBobLearnEMMLGMMTrainerObject* self, PyObject* args, PyObject* kwargs) {
   BOB_TRY
 
@@ -202,9 +203,10 @@ static PyObject* PyBobLearnEMMLGMMTrainer_initialize(PyBobLearnEMMLGMMTrainerObj
   char** kwlist = initialize.kwlist(0);
   PyBobLearnEMGMMMachineObject* gmm_machine = 0;
   PyObject* data;
+  PyObject* rng;
 
-  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|O", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
-                                                                  &data)) return 0;
+  if (!PyArg_ParseTupleAndKeywords(args, kwargs, "O!|OO", kwlist, &PyBobLearnEMGMMMachine_Type, &gmm_machine,
+                                                                  &data, &rng)) return 0;
 
   self->cxx->initialize(*gmm_machine->cxx);
   BOB_CATCH_MEMBER("cannot perform the initialize method", 0)
