@@ -57,6 +57,8 @@ test:
     - coverage
     - sphinx
     - sphinx_rtd_theme
+    - matplotlib
+    - bob.db.iris
 
 about:
   home: https://www.idiap.ch/software/bob/
