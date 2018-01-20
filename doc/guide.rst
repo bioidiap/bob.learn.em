@@ -793,7 +793,6 @@ Follow bellow an example of score normalization using
 .. [2] http://publications.idiap.ch/index.php/publications/show/2606
 .. [3] http://dx.doi.org/10.1016/j.csl.2007.05.003
 .. [4] http://dx.doi.org/10.1109/TASL.2010.2064307
-.. [5] http://dx.doi.org/10.1109/ICCV.2007.4409052
 .. [6] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
 
 .. [7] http://en.wikipedia.org/wiki/K-means_clustering
