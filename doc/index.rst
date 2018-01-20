@@ -34,15 +34,6 @@ References
 .. [Reynolds2000] *Reynolds, Douglas A., Thomas F. Quatieri, and Robert B. Dunn*. **Speaker Verification Using Adapted Gaussian Mixture Models**, Digital signal processing 10.1 (2000): 19-41.
 ..   [Vogt2008]   *R. Vogt, S. Sridharan*. **'Explicit Modelling of Session Variability for Speaker Verification'**, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38
 ..   [McCool2013] *C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel*. **'Session Variability Modelling for Face Authentication'**, IET Biometrics, 2013
-..   [Dehak2010] *N. Dehak, P. Kenny, R. Dehak, P. Dumouchel, P. Ouellet*, **'Front End Factor Analysis for Speaker Verification'**, IEEE Transactions on Audio, Speech and Language Processing, 2010, vol. 19, issue 4, pp. 788-798
-..   [ElShafey2014] *Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel*. **'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition'**, TPAMI'2014
-..   [PrinceElder2007] *Prince and Elder*. **'Probabilistic Linear Discriminant Analysis for Inference About Identity'**, ICCV'2007
-..   [LiFu2012] *Li, Fu, Mohammed, Elder and Prince*. **'Probabilistic Models for Inference about Identity'**,  TPAMI'2012
-
-..   [Bishop1999] Tipping, Michael E., and Christopher M. Bishop. "Probabilistic principal component analysis." Journal of the Royal Statistical Society: Series B (Statistical Methodology) 61.3 (1999): 611-622.
-..   [Roweis1998] Roweis, Sam. "EM algorithms for PCA and SPCA." Advances in neural information processing systems (1998): 626-632.
-
-..   [WikiEM] `Expectation Maximization <http://en.wikipedia.org/wiki/Expectation%E2%80%93maximization_algorithm>`_
 ..   [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
 ..   [Auckenthaler2000] Auckenthaler, Roland, Michael Carey, and Harvey Lloyd-Thomas. "Score normalization for text-independent speaker verification systems." Digital Signal Processing 10.1 (2000): 42-54.
 ..   [Mariethoz2005] Mariethoz, Johnny, and Samy Bengio. "A unified framework for score normalization techniques applied to text-independent speaker verification." IEEE signal processing letters 12.7 (2005): 532-535.
