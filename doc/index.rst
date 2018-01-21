@@ -37,6 +37,8 @@ References
 ..   [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
 ..   [Auckenthaler2000] Auckenthaler, Roland, Michael Carey, and Harvey Lloyd-Thomas. "Score normalization for text-independent speaker verification systems." Digital Signal Processing 10.1 (2000): 42-54.
 ..   [Mariethoz2005] Mariethoz, Johnny, and Samy Bengio. "A unified framework for score normalization techniques applied to text-independent speaker verification." IEEE signal processing letters 12.7 (2005): 532-535.
+..   [Bishop1999]  **Tipping, Michael E., and Christopher M. Bishop.** "Probabilistic principal component analysis." Journal of the Royal Statistical Society: Series B (Statistical Methodology) 61.3 (1999): 611-622.
+..   [Roweis1998]  **Roweis, Sam T.** "EM algorithms for PCA and SPCA." Advances in neural information processing systems. 1998.
 
 
 Indices and tables
