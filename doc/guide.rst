@@ -793,17 +793,9 @@ Follow bellow an example of score normalization using
 .. [2] http://publications.idiap.ch/index.php/publications/show/2606
 .. [3] http://dx.doi.org/10.1016/j.csl.2007.05.003
 .. [4] http://dx.doi.org/10.1109/TASL.2010.2064307
-.. [5] http://dx.doi.org/10.1109/ICCV.2007.4409052
-.. [6] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
-
 .. [7] http://en.wikipedia.org/wiki/K-means_clustering
 .. [8] http://en.wikipedia.org/wiki/Expectation-maximization_algorithm
-.. [9] http://en.wikipedia.org/wiki/Mixture_model
 .. [10] http://en.wikipedia.org/wiki/Maximum_likelihood
 .. [11] http://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation
-.. [12] http://dx.doi.org/10.1109/TASL.2006.881693
-.. [13] http://publications.idiap.ch/index.php/publications/show/2606
-.. [14] http://dx.doi.org/10.1016/j.csl.2007.05.003
-.. [15] http://dx.doi.org/10.1109/TASL.2010.2064307
 .. [16] http://dx.doi.org/10.1109/ICCV.2007.4409052
 .. [17] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
