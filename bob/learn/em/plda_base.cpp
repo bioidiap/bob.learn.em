@@ -19,7 +19,7 @@ static auto PLDABase_doc = bob::extension::ClassDoc(
   "This class is a container for the :math:`F` (between class variantion matrix), :math:`G` (within class variantion matrix) and :math:`\\Sigma` "
   "matrices and the mean vector :math:`\\mu` of a PLDA model. This also"
   "precomputes useful matrices to make the model scalable."
-  "References: [ElShafey2014,PrinceElder2007,LiFu2012]",
+  "References: [ElShafey2014]_ [PrinceElder2007]_ [LiFu2012]_ ",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(

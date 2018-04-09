@@ -20,7 +20,7 @@ static auto PLDAMachine_doc = bob::extension::ClassDoc(
 
   "This class is a container for an enrolled identity/class. It contains information extracted from the enrollment samples. "
   "It should be used in combination with a PLDABase instance.\n\n"
-  "References: [ElShafey2014]_, [PrinceElder2007]_, [LiFu2012]_",
+  "References: [ElShafey2014]_ [PrinceElder2007]_ [LiFu2012]_ ",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(

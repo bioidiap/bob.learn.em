@@ -121,7 +121,7 @@ Maximum likelihood Estimator (MLE)
 In statistics, maximum likelihood estimation (MLE) is a method of estimating
 the parameters of a statistical model given observations by finding the
 :math:`\Theta` that maximizes :math:`P(x|\Theta)` for all :math:`x` in your
-dataset [10]_. This optimization is done by the **Expectation-Maximization**
+dataset [9]_. This optimization is done by the **Expectation-Maximization**
 (EM) algorithm [8]_ and it is implemented by
 :py:class:`bob.learn.em.ML_GMMTrainer`.
 
@@ -181,7 +181,7 @@ Maximum a posteriori Estimator (MAP)
 
 Closely related to the MLE, Maximum a posteriori probability (MAP) is an
 estimate that equals the mode of the posterior distribution by incorporating in
-its loss function a prior distribution [11]_. Commonly this prior distribution
+its loss function a prior distribution [10]_. Commonly this prior distribution
 (the values of :math:`\Theta`) is estimated with MLE. This optimization is done
 by the **Expectation-Maximization** (EM) algorithm [8]_ and it is implemented
 by :py:class:`bob.learn.em.MAP_GMMTrainer`.
@@ -582,7 +582,7 @@ The snippet bellow shows how to compute scores using this approximation.
 Probabilistic Linear Discriminant Analysis (PLDA)
 -------------------------------------------------
 
-Probabilistic Linear Discriminant Analysis [16]_ is a probabilistic model that
+Probabilistic Linear Discriminant Analysis [5]_ is a probabilistic model that
 incorporates components describing both between-class and within-class
 variations. Given a mean :math:`\mu`, between-class and within-class subspaces
 :math:`F` and :math:`G` and residual noise :math:`\epsilon` with zero mean and
@@ -598,7 +598,7 @@ An Expectation-Maximization algorithm can be used to learn the parameters of
 this model :math:`\mu`, :math:`F` :math:`G` and :math:`\Sigma`. As these
 parameters can be shared between classes, there is a specific container class
 for this purpose, which is :py:class:`bob.learn.em.PLDABase`. The process is
-described in detail in [17]_.
+described in detail in [6]_.
 
 Let us consider a training set of two classes, each with 3 samples of
 dimensionality 3.
@@ -793,9 +793,11 @@ Follow bellow an example of score normalization using
 .. [2] http://publications.idiap.ch/index.php/publications/show/2606
 .. [3] http://dx.doi.org/10.1016/j.csl.2007.05.003
 .. [4] http://dx.doi.org/10.1109/TASL.2010.2064307
+.. [5] http://dx.doi.org/10.1109/ICCV.2007.4409052
+.. [6] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
 .. [7] http://en.wikipedia.org/wiki/K-means_clustering
 .. [8] http://en.wikipedia.org/wiki/Expectation-maximization_algorithm
-.. [10] http://en.wikipedia.org/wiki/Maximum_likelihood
-.. [11] http://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation
-.. [16] http://dx.doi.org/10.1109/ICCV.2007.4409052
-.. [17] http://doi.ieeecomputersociety.org/10.1109/TPAMI.2013.38
+.. [9] http://en.wikipedia.org/wiki/Maximum_likelihood
+.. [10] http://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation
+
+
