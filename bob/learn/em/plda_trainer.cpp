@@ -106,7 +106,7 @@ static auto PLDATrainer_doc = bob::extension::ClassDoc(
   BOB_EXT_MODULE_PREFIX ".PLDATrainer",
   "This class can be used to train the :math:`F`, :math:`G` and "
   " :math:`\\Sigma` matrices and the mean vector :math:`\\mu` of a PLDA model."
-  "References: [ElShafey2014]_,[PrinceElder2007]_,[LiFu2012]_",
+  "References: [ElShafey2014]_ [PrinceElder2007]_ [LiFu2012]_ ",
   ""
 ).add_constructor(
   bob::extension::FunctionDoc(
