@@ -300,7 +300,7 @@ prior GMM.
     >>>
     >>> # Printing the responsibilities
     >>> print(gmm_stats_container.n/gmm_stats_container.t)
-     [ 0.429  0.571]
+     [0.429  0.571]
 
 
 Inter-Session Variability
@@ -576,7 +576,7 @@ The snippet bellow shows how to compute scores using this approximation.
    ...     [adapted_gmm], prior_gmm, [stats], [],
    ...     frame_length_normalisation=True)
    >>> print(score)
-    [[ 0.254]]
+    [[0.254]]
 
 
 Probabilistic Linear Discriminant Analysis (PLDA)
