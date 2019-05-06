@@ -137,7 +137,7 @@ def test_gmm_ML_parallel():
   # Run ML
   import multiprocessing.pool
   pool = multiprocessing.pool.ThreadPool(3)
-  #pool = multiprocessing.Pool(3)
+#  pool = multiprocessing.Pool(1)
   bob.learn.em.train(ml_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy, pool=pool)
 
   # Test results
@@ -146,7 +146,6 @@ def test_gmm_ML_parallel():
   variancesML_ref = bob.io.base.load(datafile('variancesAfterML.hdf5', __name__, path="../data/"))
   weightsML_ref = bob.io.base.load(datafile('weightsAfterML.hdf5', __name__, path="../data/"))
 
-  
   # Compare to current results
   assert equals(gmm.means, meansML_ref, 3e-3)
   assert equals(gmm.variances, variancesML_ref, 3e-3)

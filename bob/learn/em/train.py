@@ -96,6 +96,7 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
       # use only one core
       trainer.e_step(machine, data)
     else:
+
       # use the given process pool    
       processes = pool._processes
       
