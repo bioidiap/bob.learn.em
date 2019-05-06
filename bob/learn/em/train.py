@@ -35,8 +35,8 @@ def _set_average(trainer, trainers, data):
 
   if isinstance(trainer, KMeansTrainer):
     # K-Means statistics
-    trainer.zeroeth_order_statistics = numpy.zeros(0., trainer.zeroeth_order_statistics.shape)
-    trainer.first_order_statistics = numpy.zeros(0., trainer.first_order_statistics.shape)
+    trainer.zeroeth_order_statistics = numpy.zeros(trainer.zeroeth_order_statistics.shape)
+    trainer.first_order_statistics = numpy.zeros(trainer.first_order_statistics.shape)
     trainer.average_min_distance = 0.
 
     for t in trainer:
