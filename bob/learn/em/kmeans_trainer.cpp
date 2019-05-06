@@ -407,8 +407,9 @@ static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObjec
     return 0;
   }
 
+  auto gstate = PyGILState_Ensure();
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
-
+  PyGILState_Release(gstate);
 
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
