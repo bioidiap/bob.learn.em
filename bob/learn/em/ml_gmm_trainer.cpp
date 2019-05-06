@@ -258,9 +258,9 @@ static PyObject* PyBobLearnEMMLGMMTrainer_e_step(PyBobLearnEMMLGMMTrainerObject*
     return 0;
   }
 
-  auto gstate = PyGILState_Ensure();
+  auto state = PyEval_SaveThread();
   self->cxx->eStep(*gmm_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
-  PyGILState_Release(gstate);
+  PyEval_RestoreThread(state);
 
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 

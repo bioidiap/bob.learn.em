@@ -124,7 +124,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
       # create trainers for each process
       trainers = [trainer.__class__(trainer) for p in range(n_processes)]
       # no need to copy the machines
-      machines = [machine for p in range(n_processes)]
+      machines = [machine.__class__(machine) for p in range(n_processes)]
       # call the parallel processes
       pool.map(_parallel_e_step, zip(trainers, machines, split_data))
       # update the trainer with the data of the other trainers
