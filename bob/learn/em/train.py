@@ -7,6 +7,8 @@
 import numpy
 from ._library import *
 import logging
+import bob.learn.em
+
 
 logger = logging.getLogger('bob.learn.em')
 
@@ -46,9 +48,9 @@ def _set_average(trainer, trainers, data):
 
   elif isinstance(trainer, ML_GMMTrainer):
     # GMM statistics
-    trainer.gmm_stats = trainers[0].gmm_stats
+    trainer.gmm_statistics = trainers[0].gmm_statistics
     for t in trainers[1:]:
-      trainer.gmm_stats += t.gmm_stats
+      trainer.gmm_statistics += t.gmm_statistics
 
   else:
     raise NotImplementedError("Implement Me!")
@@ -88,22 +90,35 @@ def train(trainer, machine, data, max_iterations = 50, convergence_threshold=Non
   """
 
   def _e_step(trainer, machine, data):
+
     # performs the e-step, possibly in parallel
     if pool is None:
       # use only one core
       trainer.e_step(machine, data)
     else:
-      # use the given process pool
+      # use the given process pool    
       processes = pool._processes
-      # split data -- TODO: improve this to use sub-arrays w/o copying instead
-      data = [numpy.array([data[i] for i in range(data.shape[0]) if i % processes == p]) for p in range(processes)]
+      
+      # Mapping references of the data
+      split_data = []
+      offset = 0
+      step = data.shape[0]//processes
+      for p in range(processes):
+        if p == processes-1:
+          split_data.append(data[offset:])
+        else:
+          split_data.append(data[offset:offset+step])
+        
+        offset += step
+  
       # create trainers for each process
       trainers = [trainer.__class__(trainer) for p in range(processes)]
-      machines = [machine for p in range(processes)]
+      machines = [machine.__class__(machine) for p in range(processes)]
       # call the parallel processes
-      pool.map(_parallel_e_step, zip(trainers, machines, data))
+      pool.map(_parallel_e_step, zip(trainers, machines, split_data))
       # update the trainer with the data of the other trainers
       _set_average(trainer, trainers, data)
+
 
   #Initialization
   if initialize:
@@ -191,4 +206,4 @@ def train_jfa(trainer, jfa_base, data, max_iterations=10, initialize=True, rng=N
     trainer.e_step_d(jfa_base, data)
     trainer.m_step_d(jfa_base, data)
   trainer.finalize_d(jfa_base, data)
->>>>>>> Trial to implement EM with multiprocessing
+
