@@ -184,11 +184,10 @@ def test_trainer_execption():
     machine = KMeansMachine(2, 2)
     data = numpy.array([[1.0, 2.0], [2, 3.], [1, 1.], [2, 5.], [numpy.inf, 1.0]])
     trainer = KMeansTrainer()
-    bob.learn.em.train(trainer, machine, data, 10)
-    #assert_raises(ValueError, bob.learn.em.train, trainer, machine, data, 10)
+    assert_raises(ValueError, bob.learn.em.train, trainer, machine, data, 10)
 
     # Testing Nan
     machine = KMeansMachine(2, 2)
     data = numpy.array([[1.0, 2.0], [2, 3.], [1, numpy.nan], [2, 5.], [2.0, 1.0]])
     trainer = KMeansTrainer()
-    #assert_raises(ValueError, bob.learn.em.train, trainer, machine, data, 10)
+    assert_raises(ValueError, bob.learn.em.train, trainer, machine, data, 10)
