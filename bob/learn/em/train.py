@@ -11,7 +11,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def _set_average(trainer, trainers, data):
+def _set_average(trainer, trainers, machine, data):
   """_set_average(trainer, data) -> None
 
   This function computes the average of the given data and sets it to the given machine.
@@ -35,15 +35,14 @@ def _set_average(trainer, trainers, data):
 
   if isinstance(trainer, KMeansTrainer):
     # K-Means statistics
-    trainer.zeroeth_order_statistics = numpy.zeros(trainer.zeroeth_order_statistics.shape)
-    trainer.first_order_statistics = numpy.zeros(trainer.first_order_statistics.shape)
-    trainer.average_min_distance = 0.
+    trainer.reset_accumulators(machine)
+    for t in trainers:
+      trainer.zeroeth_order_statistics = trainer.zeroeth_order_statistics + t.zeroeth_order_statistics
+      trainer.first_order_statistics = trainer.first_order_statistics + t.first_order_statistics
+      trainer.average_min_distance = trainer.average_min_distance + t.average_min_distance
 
-    for t in trainer:
-      trainer.zeroeth_order_statistics += t.zeroeth_order_statistics
-      trainer.first_order_statistics += t.first_order_statistics
-      trainer.average_min_distance += trainer.average_min_distance
-    trainer.average_min_distance /= sum(d.shape[0] for d in data)
+    #trainer.average_min_distance /= sum(d.shape[0] for d in data)
+    trainer.average_min_distance /= data.shape[0]
 
   elif isinstance(trainer, (ML_GMMTrainer, MAP_GMMTrainer)):
     # GMM statistics
@@ -128,7 +127,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
       # call the parallel processes
       pool.map(_parallel_e_step, zip(trainers, machines, split_data))
       # update the trainer with the data of the other trainers
-      _set_average(trainer, trainers, data)
+      _set_average(trainer, trainers, machine, data)
 
   # Initialization
   if initialize:
