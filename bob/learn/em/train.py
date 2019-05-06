@@ -88,8 +88,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
     pool : :py:class:`multiprocessing.Pool` or ``None``
       If given, the provided process pool will be used to parallelize the M-step of the EM algorithm
   """
-  data = numpy.asarray(data)
-  if check_inputs:
+  if check_inputs and isinstance(data, numpy.ndarray):
     sum_data = numpy.sum(data)
 
     if numpy.isinf(sum_data):
