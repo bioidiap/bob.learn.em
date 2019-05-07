@@ -30,7 +30,7 @@ extensions = [
     ]
 
 # Be picky about warnings
-nitpicky = False
+nitpicky = True
 
 # Ignores stuff we can't easily resolve on other project's sphinx manuals
 nitpick_ignore = []

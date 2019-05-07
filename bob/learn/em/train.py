@@ -84,7 +84,7 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
       The Mersenne Twister mt19937 random generator used for the initialization of subspaces/arrays before the EM loop
     check_inputs:
       Shallow checks in the inputs. Check for inf and NaN
-    pool : ``int`` or :py:class:`multiprocessing.Pool` or ``None``
+    pool : ``int`` or ``multiprocessing.ThreadPool`` or ``None``
       If given, the provided process pool will be used to parallelize the M-step of the
       EM algorithm. You should provide a ThreadPool not a multi process Pool. If pool is
       an integer, it will be used to create a ThreadPool with that many processes.
