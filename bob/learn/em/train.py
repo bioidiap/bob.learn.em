@@ -50,6 +50,21 @@ def _set_average(trainer, trainers, machine, data, trainer_type):
     for t in trainers[1:]:
       trainer.gmm_statistics += t.gmm_statistics
 
+  elif trainer_type == "IVectorTrainer":
+    # GMM statistics
+    trainer.reset_accumulators(machine)
+    trainer.acc_fnormij_wij = trainers[0].acc_fnormij_wij
+    trainer.acc_nij_wij2 = trainers[0].acc_nij_wij2
+    trainer.acc_nij = trainers[0].acc_nij
+    trainer.acc_snormij = trainers[0].acc_snormij
+    
+    for t in trainers[1:]:
+      trainer.acc_fnormij_wij = trainer.acc_fnormij_wij + t.acc_fnormij_wij
+      trainer.acc_nij_wij2    = trainer.acc_nij_wij2 + t.acc_nij_wij2
+      trainer.acc_nij         = trainer.acc_nij + t.acc_nij
+      trainer.acc_snormij     = trainer.acc_snormij + t.acc_snormij
+
+
   else:
     raise NotImplementedError("Implement Me!")
 
@@ -123,7 +138,9 @@ def train(trainer, machine, data, max_iterations=50, convergence_threshold=None,
       # Mapping references of the data
       split_data = []
       offset = 0
-      step = int(data.shape[0] // n_processes)
+      
+      step = int(len(data) // n_processes)
+   
       for p in range(n_processes):
         if p == n_processes - 1:
           # take all the data in the last chunk
