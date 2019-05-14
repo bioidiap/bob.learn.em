@@ -19,7 +19,7 @@ from bob.learn.em import KMeansMachine, GMMMachine, KMeansTrainer, \
 import bob.learn.em
 
 import bob.core
-bob.core.log.setup("bob.learn.em")
+logger = bob.core.log.setup("bob.learn.em")
 
 #, MAP_GMMTrainer
 
@@ -106,6 +106,45 @@ def test_gmm_ML_2():
   variancesML_ref = bob.io.base.load(datafile('variancesAfterML.hdf5', __name__, path="../data/"))
   weightsML_ref = bob.io.base.load(datafile('weightsAfterML.hdf5', __name__, path="../data/"))
 
+
+  # Compare to current results
+  assert equals(gmm.means, meansML_ref, 3e-3)
+  assert equals(gmm.variances, variancesML_ref, 3e-3)
+  assert equals(gmm.weights, weightsML_ref, 1e-4)
+
+
+def test_gmm_ML_parallel():
+
+  # Trains a GMMMachine with ML_GMMTrainer; compares to an old reference
+
+  ar = bob.io.base.load(datafile('dataNormalized.hdf5', __name__, path="../data/"))
+
+  # Initialize GMMMachine
+  gmm = GMMMachine(5, 45)
+  gmm.means = bob.io.base.load(datafile('meansAfterKMeans.hdf5', __name__, path="../data/")).astype('float64')
+  gmm.variances = bob.io.base.load(datafile('variancesAfterKMeans.hdf5', __name__, path="../data/")).astype('float64')
+  gmm.weights = numpy.exp(bob.io.base.load(datafile('weightsAfterKMeans.hdf5', __name__, path="../data/")).astype('float64'))
+
+  threshold = 0.001
+  gmm.set_variance_thresholds(threshold)
+
+  # Initialize ML Trainer
+  prior = 0.001
+  max_iter_gmm = 25
+  accuracy = 0.00001
+  ml_gmmtrainer = ML_GMMTrainer(True, True, True, prior)
+
+  # Run ML
+  import multiprocessing.pool
+  pool = multiprocessing.pool.ThreadPool(3)
+#  pool = multiprocessing.Pool(1)
+  bob.learn.em.train(ml_gmmtrainer, gmm, ar, max_iterations = max_iter_gmm, convergence_threshold=accuracy, pool=pool)
+
+  # Test results
+  # Load torch3vision reference
+  meansML_ref = bob.io.base.load(datafile('meansAfterML.hdf5', __name__, path="../data/"))
+  variancesML_ref = bob.io.base.load(datafile('variancesAfterML.hdf5', __name__, path="../data/"))
+  weightsML_ref = bob.io.base.load(datafile('weightsAfterML.hdf5', __name__, path="../data/"))
 
   # Compare to current results
   assert equals(gmm.means, meansML_ref, 3e-3)

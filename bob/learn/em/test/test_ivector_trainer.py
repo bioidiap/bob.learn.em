@@ -13,6 +13,7 @@ import numpy.random
 import nose.tools
 
 from bob.learn.em import GMMMachine, GMMStats, IVectorMachine, IVectorTrainer
+import bob.learn.em
 
 ### Test class inspired by an implementation of Chris McCool
 ### Chris McCool (chris.mccool@nicta.com.au)
@@ -366,3 +367,102 @@ def test_trainer_update_sigma():
     trainer.m_step(m)
     assert numpy.allclose(t_ref[it], m.t, 1e-5)
     assert numpy.allclose(sigma_ref[it], m.sigma, 1e-5)
+    
+
+def test_trainer_update_sigma_parallel():
+  # Ubm
+  dim_c = 2
+  dim_d = 3
+  ubm = GMMMachine(dim_c,dim_d)
+  ubm.weights = numpy.array([0.4,0.6])
+  ubm.means = numpy.array([[1.,7,4],[4,5,3]])
+  ubm.variances = numpy.array([[0.5,1.,1.5],[1.,1.5,2.]])
+
+  # Defines GMMStats
+  gs1 = GMMStats(dim_c,dim_d)
+  log_likelihood1 = -3.
+  T1 = 1
+  n1 = numpy.array([0.4, 0.6], numpy.float64)
+  sumpx1 = numpy.array([[1., 2., 3.], [2., 4., 3.]], numpy.float64)
+  sumpxx1 = numpy.array([[10., 20., 30.], [40., 50., 60.]], numpy.float64)
+  gs1.log_likelihood = log_likelihood1
+  gs1.t = T1
+  gs1.n = n1
+  gs1.sum_px = sumpx1
+  gs1.sum_pxx = sumpxx1
+
+  gs2 = GMMStats(dim_c,dim_d)
+  log_likelihood2 = -4.
+  T2 = 1
+  n2 = numpy.array([0.2, 0.8], numpy.float64)
+  sumpx2 = numpy.array([[2., 1., 3.], [3., 4.1, 3.2]], numpy.float64)
+  sumpxx2 = numpy.array([[12., 15., 25.], [39., 51., 62.]], numpy.float64)
+  gs2.log_likelihood = log_likelihood2
+  gs2.t = T2
+  gs2.n = n2
+  gs2.sum_px = sumpx2
+  gs2.sum_pxx = sumpxx2
+
+  data = [gs1, gs2]
+
+  # Reference values
+  acc_Nij_Sigma_wij2_ref1  = {0: numpy.array([[ 0.03202305, -0.02947769], [-0.02947769,  0.0561132 ]]),
+                              1: numpy.array([[ 0.07953279, -0.07829414], [-0.07829414,  0.13814242]])}
+  acc_Fnorm_Sigma_wij_ref1 = {0: numpy.array([[-0.29622691,  0.61411796], [ 0.09391764, -0.27955961], [-0.39014455,  0.89367757]]),
+                              1: numpy.array([[ 0.04695882, -0.13977981], [-0.05718673,  0.24159665], [-0.17098161,  0.47326585]])}
+  acc_Snorm_ref1           = numpy.array([16.6, 22.4, 16.6, 61.4, 55., 97.4])
+  N_ref1                   = numpy.array([0.6, 1.4])
+  t_ref1                   = numpy.array([[  1.59543739, 11.78239235], [ -3.20130371, -6.66379081], [  4.79674111, 18.44618316],
+                                          [ -0.91765407, -1.5319461 ], [  2.26805901,  3.03434944], [  2.76600031,  4.9935962 ]])
+  sigma_ref1               = numpy.array([ 16.39472121, 34.72955353,  3.3108037, 43.73496916, 38.85472445, 68.22116903])
+
+  acc_Nij_Sigma_wij2_ref2  = {0: numpy.array([[ 0.50807426, -0.11907756], [-0.11907756,  0.12336544]]),
+                              1: numpy.array([[ 1.18602399, -0.2835859 ], [-0.2835859 ,  0.39440498]])}
+  acc_Fnorm_Sigma_wij_ref2 = {0: numpy.array([[ 0.07221453,  1.1189786 ], [-0.08681275, -0.35396112], [ 0.15902728,  1.47293972]]),
+                              1: numpy.array([[-0.04340637, -0.17698056], [ 0.10662127,  0.21484933],[ 0.13116645,  0.64474271]])}
+  acc_Snorm_ref2           = numpy.array([16.6, 22.4, 16.6, 61.4, 55., 97.4])
+  N_ref2                   = numpy.array([0.6, 1.4])
+  t_ref2                   = numpy.array([[  2.93105054, 11.89961223], [ -1.08988119, -3.92120757], [  4.02093173, 15.82081981],
+                                          [ -0.17376634, -0.57366984], [  0.26585634,  0.73589952], [  0.60557877,   2.07014704]])
+  sigma_ref2               = numpy.array([5.12154025e+00, 3.48623823e+01, 1.00000000e-05, 4.37792350e+01, 3.91525332e+01, 6.85613258e+01])
+
+  acc_Nij_Sigma_wij2_ref = [acc_Nij_Sigma_wij2_ref1, acc_Nij_Sigma_wij2_ref2]
+  acc_Fnorm_Sigma_wij_ref = [acc_Fnorm_Sigma_wij_ref1, acc_Fnorm_Sigma_wij_ref2]
+  acc_Snorm_ref = [acc_Snorm_ref1, acc_Snorm_ref2]
+  N_ref = [N_ref1, N_ref2]
+  t_ref = [t_ref1, t_ref2]
+  sigma_ref = [sigma_ref1, sigma_ref2]
+
+
+  # Machine
+  t = numpy.array([[1.,2],[4,1],[0,3],[5,8],[7,10],[11,1]])
+  sigma = numpy.array([1.,2.,1.,3.,2.,4.])
+
+
+  # C++ implementation
+  # Machine
+  serial_m = IVectorMachine(ubm, 2)
+  serial_m.variance_threshold = 1e-5
+
+  # SERIAL TRAINER
+  serial_trainer = IVectorTrainer(update_sigma=True)
+  serial_m.t = t
+  serial_m.sigma = sigma
+  
+  bob.learn.em.train(serial_trainer, serial_m, data, max_iterations=5, initialize=True)
+  
+  # PARALLEL TRAINER
+  parallel_m = IVectorMachine(ubm, 2)
+  parallel_m.variance_threshold = 1e-5
+  
+  parallel_trainer = IVectorTrainer(update_sigma=True)
+  parallel_m.t = t
+  parallel_m.sigma = sigma
+  
+  bob.learn.em.train(parallel_trainer, parallel_m, data, max_iterations=5, initialize=True, pool=2)
+
+  assert numpy.allclose(serial_trainer.acc_nij_wij2, parallel_trainer.acc_nij_wij2, 1e-5)
+  assert numpy.allclose(serial_trainer.acc_fnormij_wij, parallel_trainer.acc_fnormij_wij, 1e-5)
+  assert numpy.allclose(serial_trainer.acc_snormij, parallel_trainer.acc_snormij, 1e-5)
+  assert numpy.allclose(serial_trainer.acc_nij, parallel_trainer.acc_nij, 1e-5)
+

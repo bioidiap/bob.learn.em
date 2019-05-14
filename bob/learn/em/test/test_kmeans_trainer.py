@@ -177,6 +177,41 @@ def test_kmeans_b():
     assert (numpy.isnan(machine.means).any()) == False
 
 
+def test_kmeans_parallel():
+    # Trains a KMeansMachine
+    (arStd, std) = NormalizeStdArray(datafile("faithful.torch3.hdf5", __name__, path="../data/"))
+
+    machine = KMeansMachine(2, 2)
+
+    trainer = KMeansTrainer()
+    # trainer.seed = 1337
+    
+    import multiprocessing.pool
+    pool = multiprocessing.pool.ThreadPool(3)
+    bob.learn.em.train(trainer, machine, arStd, convergence_threshold=0.001, pool = pool)
+
+    [variances, weights] = machine.get_variances_and_weights_for_each_cluster(arStd)
+
+    means = numpy.array(machine.means)
+    variances = numpy.array(variances)
+
+    multiplyVectorsByFactors(means, std)
+    multiplyVectorsByFactors(variances, std ** 2)
+
+    gmmWeights = bob.io.base.load(datafile('gmm.init_weights.hdf5', __name__, path="../data/"))
+    gmmMeans = bob.io.base.load(datafile('gmm.init_means.hdf5', __name__, path="../data/"))
+    gmmVariances = bob.io.base.load(datafile('gmm.init_variances.hdf5', __name__, path="../data/"))
+
+    if (means[0, 0] < means[1, 0]):
+        means = flipRows(means)
+        variances = flipRows(variances)
+        weights = flipRows(weights)
+
+    assert equals(means, gmmMeans, 1e-3)
+    assert equals(weights, gmmWeights, 1e-3)
+    assert equals(variances, gmmVariances, 1e-3)
+
+
 def test_trainer_execption():
     from nose.tools import assert_raises
 

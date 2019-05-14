@@ -19,7 +19,7 @@ bob::learn::em::GMMBaseTrainer::GMMBaseTrainer(const bool update_means,
 {}
 
 bob::learn::em::GMMBaseTrainer::GMMBaseTrainer(const bob::learn::em::GMMBaseTrainer& b):
-  m_ss(new bob::learn::em::GMMStats()),
+  m_ss(new bob::learn::em::GMMStats(  *b.getGMMStats()  )),
   m_update_means(b.m_update_means), m_update_variances(b.m_update_variances),
   m_mean_var_update_responsibilities_threshold(b.m_mean_var_update_responsibilities_threshold)
 {}

@@ -407,8 +407,9 @@ static PyObject* PyBobLearnEMKMeansTrainer_e_step(PyBobLearnEMKMeansTrainerObjec
     return 0;
   }
 
+  auto state = PyEval_SaveThread();
   self->cxx->eStep(*kmeans_machine->cxx, *PyBlitzArrayCxx_AsBlitz<double,2>(data));
-
+  PyEval_RestoreThread(state);
 
   BOB_CATCH_MEMBER("cannot perform the e_step method", 0)
 
