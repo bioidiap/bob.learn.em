@@ -37,7 +37,18 @@ setup(
     setup_requires = build_requires,
     install_requires = build_requires,
 
+    entry_points = {
 
+      # main entry for bob bio cli
+      'bob.cli': [
+        'em             = bob.learn.em.script.em:em',
+      ],
+
+      # bob bio scripts
+      'bob.em.cli': [
+        'train          = bob.learn.em.script.train:train',
+      ],
+    },
 
     ext_modules = [
       Extension("bob.learn.em.version",
