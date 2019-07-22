@@ -14,7 +14,7 @@ from bob.extension.scripts.click_helper import (
     ResourceOption,
     log_parameters,
 )
-from bob.extension.processors import vstack_features
+from bob.io.base import vstack_features
 from gridtk.tools import get_array_job_slice
 import bob.learn.em
 from glob import glob
