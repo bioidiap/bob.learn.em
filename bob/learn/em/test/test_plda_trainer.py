@@ -57,9 +57,9 @@ class PythonPLDATrainer():
     n_features = data[0].shape[1]
     self.m_z_first_order = []
     df_dg = self.m_dim_f+self.m_dim_g
-    self.m_sum_z_second_order.resize(df_dg, df_dg)
-    self.m_n_samples_per_id.resize(len(data))
-    self.m_B.resize(n_features, df_dg)
+    self.m_sum_z_second_order = numpy.resize(self.m_sum_z_second_order, (df_dg, df_dg))
+    self.m_n_samples_per_id = numpy.resize(self.m_n_samples_per_id, (len(data)))
+    self.m_B = numpy.resize(self.m_B, (n_features, df_dg))
     for i in range(len(data)):
       ns_i = data[i].shape[0]
       self.m_n_samples_per_id[i] = ns_i
