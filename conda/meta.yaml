@@ -33,7 +33,6 @@ requirements:
     - bob.math
     - bob.learn.activation
     - bob.learn.linear
-    - bob.db.iris
     - libblitz {{ libblitz }}
     - boost {{ boost }}
     - numpy {{ numpy }}
@@ -59,7 +58,6 @@ test:
     - sphinx
     - sphinx_rtd_theme
     - matplotlib
-    - bob.db.iris
 
 about:
   home: https://www.idiap.ch/software/bob/
