@@ -141,7 +141,7 @@ def train(
     """Trains Bob machines using bob.learn.em.
 
     To debug the E Step, run the script like this:
-    SGE_TASK_ID=1 SGE_TASK_FIRST=1 SGE_TASK_STEPSIZE=1 SGE_TASK_LAST=1 bin/python -m IPython --pdb -- bin/bob em train -vvv config.py --step e
+    SGE_TASK_ID=1 SGE_TASK_FIRST=1 SGE_TASK_STEPSIZE=1 SGE_TASK_LAST=1 bin/python -m IPython --pdb -- bin/bob em train -vvv --step e ...
     """
     log_parameters(logger, ignore=("samples",))
     logger.debug("len(samples): %d", len(samples))
@@ -394,28 +394,43 @@ def e_step(samples, reader, output_dir, trainer, machine):
     if len(samples) == 0:
         print("This worker did not get any samples.")
         return
+    print("here 1")
     logger.info("Loading %d samples", len(samples))
     data = read_samples(reader, samples)
     logger.info("Loaded all samples")
+    print("here 2")
     sge_task_id = os.environ["SGE_TASK_ID"]
+    print("here 3")
     while not finished(output_dir):
+        print("here 4")
         # check which machines we have evaluated
         evaluated = read_evaluated(output_dir, sge_task_id)
+        print("here 5")
         # check if new machines exist
         step, _ = return_new_machine(output_dir, evaluated, machine)
+        print("here 6")
         if step is None:
+            print("here ")
             logger.debug("Waiting for another machine to appear.")
             time.sleep(SLEEP)
             continue
+        print("here 7")
         step, machine = return_new_machine(output_dir, evaluated, machine)
+        print("here 8")
         assert step is not None
         # run E step
+        print("here 9")
         bob.learn.em.train(trainer, machine, data, max_iterations=0, initialize=False)
+        print("here 10")
         # save accumulated statistics
+        print("here 11")
         save_statistics(trainer, data, step, output_dir, sge_task_id)
+        print("here 12")
         # update evaluated
         evaluated.append(step)
+        print("here 13")
         save_evaluated(output_dir, sge_task_id, evaluated)
+        print("here 14")
 
 
 def read_samples(reader, samples):
