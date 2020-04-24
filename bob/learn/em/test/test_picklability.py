@@ -1,9 +1,9 @@
 #!/usr/bin/env python
 # vim: set fileencoding=utf-8 :
-# Tiago de Freitas Pereira <tiago.pereira@idiap.ch>import numpy
+# Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
 
 from bob.pipelines.utils import assert_picklable
-from bob.learn.em import GMMMachine
+from bob.learn.em import GMMMachine, ISVBase
 from .test_em import equals
 import numpy
 import pickle
@@ -17,3 +17,16 @@ def test_gmm_machine():
     assert equals(gmm_machine_after_pickle.means, gmm_machine_after_pickle.means, 10e-3)
     assert equals(gmm_machine_after_pickle.variances, gmm_machine_after_pickle.variances, 10e-3)
     assert equals(gmm_machine_after_pickle.weights, gmm_machine_after_pickle.weights, 10e-3)
+
+
+def test_isv():
+    ubm = GMMMachine(3,3) 
+    ubm.means = numpy.arange(9).reshape(3,3).astype("float")
+    isv_base = ISVBase(ubm, 2)
+    isv_base.u = numpy.arange(18).reshape(9,2).astype("float")
+    isv_base.d = numpy.arange(9).astype("float")
+
+    isv_base_after_pickle = pickle.loads(pickle.dumps(isv_base))
+
+    assert equals(isv_base.u, isv_base_after_pickle.u, 10e-3)
+    assert equals(isv_base.d, isv_base_after_pickle.d, 10e-3)
