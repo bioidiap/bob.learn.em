@@ -966,7 +966,7 @@ bool init_BobLearnEMGMMMachine(PyObject* module)
   // initialize the type struct
   PyBobLearnEMGMMMachine_Type.tp_name = GMMMachine_doc.name();
   PyBobLearnEMGMMMachine_Type.tp_basicsize = sizeof(PyBobLearnEMGMMMachineObject);
-  PyBobLearnEMGMMMachine_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMGMMMachine_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMGMMMachine_Type.tp_doc = GMMMachine_doc.doc();
 
   // set the functions

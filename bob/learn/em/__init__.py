@@ -9,6 +9,8 @@ import bob.extension
 bob.extension.load_bob_library('bob.learn.em', __file__)
 
 from ._library import *
+from ._library import GMMMachine as _GMMMachine_C
+
 from . import version
 from .version import module as __version__
 from .version import api as __api_version__
@@ -38,3 +40,22 @@ def get_config():
 
 # gets sphinx autodoc done right - don't remove it
 __all__ = [_ for _ in dir() if not _.startswith('_')]
+
+
+class GMMMachine(_GMMMachine_C):
+    __doc__ = _GMMMachine_C.__doc__
+
+    def __getstate__(self):        
+        d = dict(self.__dict__)
+        d["means"] = self.means
+        d["variances"] = self.variances
+        d["weights"] = self.weights
+        return d
+
+    def __setstate__(self, d):
+        means = d["means"]
+        self.__init__(means.shape[0], means.shape[1])
+        self.means = means
+        self.variances = d["variances"]
+        self.means = d["means"]
+        self.__dict__ = d
