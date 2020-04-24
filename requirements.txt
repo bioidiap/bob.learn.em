@@ -7,3 +7,4 @@ bob.sp
 bob.math > 2
 bob.learn.activation
 bob.learn.linear
+bob.pipelines
