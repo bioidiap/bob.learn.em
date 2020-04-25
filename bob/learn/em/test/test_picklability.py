@@ -2,7 +2,6 @@
 # vim: set fileencoding=utf-8 :
 # Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
 
-from bob.pipelines.utils import assert_picklable
 from bob.learn.em import GMMMachine, ISVBase
 import numpy
 import pickle

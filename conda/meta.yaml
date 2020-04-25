@@ -33,7 +33,6 @@ requirements:
     - bob.math
     - bob.learn.activation
     - bob.learn.linear
-    - bob.pipelines
     - libblitz {{ libblitz }}
     - boost {{ boost }}
     - numpy {{ numpy }}
