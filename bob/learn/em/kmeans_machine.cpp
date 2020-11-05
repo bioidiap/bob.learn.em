@@ -843,7 +843,7 @@ bool init_BobLearnEMKMeansMachine(PyObject* module)
   // initialize the type struct
   PyBobLearnEMKMeansMachine_Type.tp_name = KMeansMachine_doc.name();
   PyBobLearnEMKMeansMachine_Type.tp_basicsize = sizeof(PyBobLearnEMKMeansMachineObject);
-  PyBobLearnEMKMeansMachine_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMKMeansMachine_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMKMeansMachine_Type.tp_doc = KMeansMachine_doc.doc();
 
   // set the functions
