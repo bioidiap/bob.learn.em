@@ -240,6 +240,37 @@ PyObject* PyBobLearnEMISVMachine_getX(PyBobLearnEMISVMachineObject* self, void*)
   return PyBlitzArrayCxx_AsConstNumpy(self->cxx->getX());
   BOB_CATCH_MEMBER("`x` could not be read", 0)
 }
+int PyBobLearnEMISVMachine_setX(PyBobLearnEMISVMachineObject* self, PyObject* value, void*){
+  BOB_TRY
+  PyBlitzArrayObject* input;
+  if (!PyBlitzArray_Converter(value, &input)){
+    PyErr_Format(PyExc_RuntimeError, "%s %s expects a 1D array of floats", Py_TYPE(self)->tp_name, X.name());
+    return -1;
+  }
+  auto o_ = make_safe(input);
+
+  // perform check on the input
+  if (input->type_num != NPY_FLOAT64){
+    PyErr_Format(PyExc_TypeError, "`%s' only supports 64-bit float arrays for input array `%s`", Py_TYPE(self)->tp_name, X.name());
+    return -1;
+  }
+
+  if (input->ndim != 1){
+    PyErr_Format(PyExc_TypeError, "`%s' only processes 1D arrays of float64 for `%s`", Py_TYPE(self)->tp_name, X.name());
+    return -1;
+  }
+
+  if (input->shape[0] != (Py_ssize_t)self->cxx->getX().extent(0)) {
+    PyErr_Format(PyExc_TypeError, "`%s' 1D `input` array should have %" PY_FORMAT_SIZE_T "d, elements, not %" PY_FORMAT_SIZE_T "d for `%s`", Py_TYPE(self)->tp_name, (Py_ssize_t)self->cxx->getX().extent(0), (Py_ssize_t)input->shape[0], X.name());
+    return -1;
+  }
+
+  auto b = PyBlitzArrayCxx_AsBlitz<double,1>(input, "x");
+  if (!b) return -1;
+  self->cxx->setX(*b);
+  return 0;
+  BOB_CATCH_MEMBER("`x` vector could not be set", -1)
+}
 
 
 /***** isv_base *****/
@@ -318,7 +349,7 @@ static PyGetSetDef PyBobLearnEMISVMachine_getseters[] = {
   {
    X.name(),
    (getter)PyBobLearnEMISVMachine_getX,
-   0,
+   (setter)PyBobLearnEMISVMachine_setX,
    X.doc(),
    0
   },
@@ -648,7 +679,7 @@ bool init_BobLearnEMISVMachine(PyObject* module)
   // initialize the type struct
   PyBobLearnEMISVMachine_Type.tp_name      = ISVMachine_doc.name();
   PyBobLearnEMISVMachine_Type.tp_basicsize = sizeof(PyBobLearnEMISVMachineObject);
-  PyBobLearnEMISVMachine_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMISVMachine_Type.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMISVMachine_Type.tp_doc       = ISVMachine_doc.doc();
 
   // set the functions

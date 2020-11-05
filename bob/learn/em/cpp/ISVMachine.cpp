@@ -108,6 +108,19 @@ void bob::learn::em::ISVMachine::setZ(const blitz::Array<double,1>& z)
   updateCache();
 }
 
+
+void bob::learn::em::ISVMachine::setX(const blitz::Array<double,1>& x)
+{
+  if(x.extent(0) != m_cache_x.extent(0)) { //checks dimension
+    boost::format m("size of input vector `x' (%d) does not match the expected size (%d)");
+    m % x.extent(0) % m_cache_x.extent(0);
+    throw std::runtime_error(m.str());
+  }
+  m_cache_x.reference(bob::core::array::ccopy(x));
+  // update cache
+  updateCache();
+}
+
 void bob::learn::em::ISVMachine::setISVBase(const boost::shared_ptr<bob::learn::em::ISVBase> isv_base)
 {
   if (!isv_base->getUbm())

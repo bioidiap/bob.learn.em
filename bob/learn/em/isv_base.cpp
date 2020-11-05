@@ -539,7 +539,7 @@ bool init_BobLearnEMISVBase(PyObject* module)
   // initialize the type struct
   PyBobLearnEMISVBase_Type.tp_name      = ISVBase_doc.name();
   PyBobLearnEMISVBase_Type.tp_basicsize = sizeof(PyBobLearnEMISVBaseObject);
-  PyBobLearnEMISVBase_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMISVBase_Type.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMISVBase_Type.tp_doc       = ISVBase_doc.doc();
 
   // set the functions

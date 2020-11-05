@@ -147,6 +147,13 @@ class ISVMachine
      */
     void setZ(const blitz::Array<double,1>& z);
 
+
+    /**
+     * @brief Sets the session variable
+     */
+    void setX(const blitz::Array<double,1>& x);
+
+
     /**
      * @brief Returns the ISVBase
      */
