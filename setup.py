@@ -59,7 +59,6 @@ setup(
           "bob/learn/em/cpp/KMeansMachine.cpp",
           "bob/learn/em/cpp/LinearScoring.cpp",
           "bob/learn/em/cpp/PLDAMachine.cpp",
-          "bob/learn/em/cpp/ZTNorm.cpp",
 
           "bob/learn/em/cpp/FABase.cpp",
           "bob/learn/em/cpp/JFABase.cpp",
@@ -113,8 +112,6 @@ setup(
           "bob/learn/em/empca_trainer.cpp",
 
           "bob/learn/em/plda_trainer.cpp",
-
-          "bob/learn/em/ztnorm.cpp",
 
           "bob/learn/em/linear_scoring.cpp",
 

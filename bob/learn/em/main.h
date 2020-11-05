@@ -49,7 +49,6 @@
 #include <bob.learn.em/PLDAMachine.h>
 #include <bob.learn.em/PLDATrainer.h>
 
-#include <bob.learn.em/ZTNorm.h>
 
 /// inserts the given key, value pair into the given dictionaries
 static inline int insert_item_string(PyObject* dict, PyObject* entries, const char* key, Py_ssize_t value){
@@ -264,16 +263,6 @@ extern PyTypeObject PyBobLearnEMEMPCATrainer_Type;
 bool init_BobLearnEMEMPCATrainer(PyObject* module);
 int PyBobLearnEMEMPCATrainer_Check(PyObject* o);
 
-
-//ZT Normalization
-PyObject* PyBobLearnEM_ztNorm(PyObject*, PyObject* args, PyObject* kwargs);
-extern bob::extension::FunctionDoc zt_norm;
-
-PyObject* PyBobLearnEM_tNorm(PyObject*, PyObject* args, PyObject* kwargs);
-extern bob::extension::FunctionDoc t_norm;
-
-PyObject* PyBobLearnEM_zNorm(PyObject*, PyObject* args, PyObject* kwargs);
-extern bob::extension::FunctionDoc z_norm;
 
 
 //Linear scoring

@@ -12,24 +12,6 @@
 
 static PyMethodDef module_methods[] = {
   {
-    zt_norm.name(),
-    (PyCFunction)PyBobLearnEM_ztNorm,
-    METH_VARARGS|METH_KEYWORDS,
-    zt_norm.doc()
-  },
-  {
-    t_norm.name(),
-    (PyCFunction)PyBobLearnEM_tNorm,
-    METH_VARARGS|METH_KEYWORDS,
-    t_norm.doc()
-  },
-  {
-    z_norm.name(),
-    (PyCFunction)PyBobLearnEM_zNorm,
-    METH_VARARGS|METH_KEYWORDS,
-    z_norm.doc()
-  },
-  {
     linear_scoring1.name(),
     (PyCFunction)PyBobLearnEM_linear_scoring,
     METH_VARARGS|METH_KEYWORDS,
