@@ -12,6 +12,7 @@ bob.extension.load_bob_library("bob.learn.em", __file__)
 from ._library import *
 from ._library import GMMMachine as _GMMMachine_C
 from ._library import ISVBase as _ISVBase_C
+from ._library import ISVMachine as _ISVMachine_C
 
 from . import version
 from .version import module as __version__
@@ -90,7 +91,7 @@ class ISVBase(_ISVBase_C):
     @staticmethod
     def to_dict(isv_base):
         isv_data = dict()
-        isv_data["gmm"] = GMMMachine.to_dict(isv_base.ubm)        
+        isv_data["gmm"] = GMMMachine.to_dict(isv_base.ubm)
         isv_data["u"] = isv_base.u
         isv_data["d"] = isv_base.d
 
@@ -103,12 +104,48 @@ class ISVBase(_ISVBase_C):
         self.u = u
         self.d = d["d"]
 
+    @classmethod
+    def create_from_dict(cls, d):
+        ubm = GMMMachine.create_from_dict(d["gmm"])
+        ru = d["u"].shape[1]
+        isv_base = ISVBase(ubm, ru)
+        isv_base.u = d["u"]
+        isv_base.d = d["d"]
+        return isv_base
+
     def __getstate__(self):
         d = dict(self.__dict__)
         d.update(self.__class__.to_dict(self))
         return d
 
-    def __setstate__(self, d):        
+    def __setstate__(self, d):
         self.__dict__ = d
         self.update_dict(d)
 
+
+class ISVMachine(_ISVMachine_C):
+    __doc__ = _ISVMachine_C.__doc__
+
+    @staticmethod
+    def to_dict(isv_machine):
+        isv_data = dict()
+        isv_data["x"] = isv_machine.x
+        isv_data["z"] = isv_machine.z
+        isv_data["isv_base"] = ISVBase.to_dict(isv_machine.isv_base)
+
+        return isv_data
+
+    def update_dict(self, d):
+        isv_base = ISVBase.create_from_dict(d["isv_base"])
+        self.__init__(isv_base)
+        self.x = d["x"]
+        self.z = d["z"]
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.update_dict(d)
