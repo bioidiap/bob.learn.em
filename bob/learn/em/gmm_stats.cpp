@@ -648,7 +648,7 @@ bool init_BobLearnEMGMMStats(PyObject* module)
   // initialize the type struct
   PyBobLearnEMGMMStats_Type.tp_name = GMMStats_doc.name();
   PyBobLearnEMGMMStats_Type.tp_basicsize = sizeof(PyBobLearnEMGMMStatsObject);
-  PyBobLearnEMGMMStats_Type.tp_flags = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMGMMStats_Type.tp_flags = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMGMMStats_Type.tp_doc = GMMStats_doc.doc();
 
   // set the functions

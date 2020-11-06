@@ -49,12 +49,8 @@ Functions
 .. autosummary::
 
   bob.learn.em.linear_scoring
-  bob.learn.em.tnorm
   bob.learn.em.train
   bob.learn.em.train_jfa
-  bob.learn.em.znorm
-  bob.learn.em.ztnorm
-  bob.learn.em.ztnorm_same_value
 
 Detailed Information
 --------------------

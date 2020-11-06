@@ -651,7 +651,7 @@ bool init_BobLearnEMIVectorMachine(PyObject* module)
   // initialize the type struct
   PyBobLearnEMIVectorMachine_Type.tp_name      = IVectorMachine_doc.name();
   PyBobLearnEMIVectorMachine_Type.tp_basicsize = sizeof(PyBobLearnEMIVectorMachineObject);
-  PyBobLearnEMIVectorMachine_Type.tp_flags     = Py_TPFLAGS_DEFAULT;
+  PyBobLearnEMIVectorMachine_Type.tp_flags     = Py_TPFLAGS_DEFAULT | Py_TPFLAGS_BASETYPE;
   PyBobLearnEMIVectorMachine_Type.tp_doc       = IVectorMachine_doc.doc();
 
   // set the functions

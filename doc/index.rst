@@ -49,10 +49,6 @@ References
 
 .. [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
 
-.. [Auckenthaler2000] Auckenthaler, Roland, Michael Carey, and Harvey Lloyd-Thomas. "Score normalization for text-independent speaker verification systems." Digital Signal Processing 10.1 (2000): 42-54.
-
-.. [Mariethoz2005] Mariethoz, Johnny, and Samy Bengio. "A unified framework for score normalization techniques applied to text-independent speaker verification." IEEE signal processing letters 12.7 (2005): 532-535.
-
 
 Indices and tables
 ------------------

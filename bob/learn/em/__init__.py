@@ -13,27 +13,14 @@ from ._library import *
 from ._library import GMMMachine as _GMMMachine_C
 from ._library import ISVBase as _ISVBase_C
 from ._library import ISVMachine as _ISVMachine_C
+from ._library import KMeansMachine as _KMeansMachine_C
+from ._library import GMMStats as _GMMStats_C
+from ._library import IVectorMachine as _IVectorMachine_C
 
 from . import version
 from .version import module as __version__
 from .version import api as __api_version__
 from .train import *
-
-
-def ztnorm_same_value(vect_a, vect_b):
-    """Computes the matrix of boolean D for the ZT-norm, which indicates where
-     the client ids of the T-Norm models and Z-Norm samples match.
-
-     vect_a An (ordered) list of client_id corresponding to the T-Norm models
-     vect_b An (ordered) list of client_id corresponding to the Z-Norm impostor samples
-     """
-    import numpy
-
-    sameMatrix = numpy.ndarray((len(vect_a), len(vect_b)), "bool")
-    for j in range(len(vect_a)):
-        for i in range(len(vect_b)):
-            sameMatrix[j, i] = vect_a[j] == vect_b[i]
-    return sameMatrix
 
 
 def get_config():
@@ -52,7 +39,7 @@ class GMMMachine(_GMMMachine_C):
     def update_dict(self, d):
         self.means = d["means"]
         self.variances = d["variances"]
-        self.means = d["means"]
+        self.weights = d["weights"]
 
     @staticmethod
     def gmm_shape_from_dict(d):
@@ -140,6 +127,83 @@ class ISVMachine(_ISVMachine_C):
         self.__init__(isv_base)
         self.x = d["x"]
         self.z = d["z"]
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.update_dict(d)
+
+
+class KMeansMachine(_KMeansMachine_C):
+    __doc__ = _KMeansMachine_C.__doc__
+
+    @staticmethod
+    def to_dict(kmeans_machine):
+        kmeans_data = dict()
+        kmeans_data["means"] = kmeans_machine.means
+        return kmeans_data
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        means = d["means"]
+        self.__init__(means.shape[0], means.shape[1])
+        self.means = means
+
+
+class GMMStats(_GMMStats_C):
+    __doc__ = _GMMStats_C.__doc__
+
+    @staticmethod
+    def to_dict(gmm_stats):
+        gmm_stats_data = dict()
+        gmm_stats_data["log_likelihood"] = gmm_stats.log_likelihood
+        gmm_stats_data["t"] = gmm_stats.t
+        gmm_stats_data["n"] = gmm_stats.n
+        gmm_stats_data["sum_px"] = gmm_stats.sum_px
+        gmm_stats_data["sum_pxx"] = gmm_stats.sum_pxx
+        return gmm_stats_data
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        shape = d["sum_pxx"].shape
+        self.__init__(shape[0], shape[1])
+        self.t = d["t"]
+        self.n = d["n"]
+        self.log_likelihood = d["log_likelihood"]
+        self.sum_px = d["sum_px"]
+        self.sum_pxx = d["sum_pxx"]
+
+
+class IVectorMachine(_IVectorMachine_C):
+    __doc__ = _IVectorMachine_C.__doc__
+
+    @staticmethod
+    def to_dict(ivector_machine):
+        ivector_data = dict()
+        ivector_data["gmm"] = GMMMachine.to_dict(ivector_machine.ubm)
+        ivector_data["sigma"] = ivector_machine.sigma
+        ivector_data["t"] = ivector_machine.t
+
+        return ivector_data
+
+    def update_dict(self, d):
+        ubm = GMMMachine.create_from_dict(d["gmm"])
+        t = d["t"]
+        self.__init__(ubm, t.shape[1])
+        self.sigma = d["sigma"]
+        self.t = t
 
     def __getstate__(self):
         d = dict(self.__dict__)
