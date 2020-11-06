@@ -15,11 +15,13 @@ from ._library import ISVBase as _ISVBase_C
 from ._library import ISVMachine as _ISVMachine_C
 from ._library import KMeansMachine as _KMeansMachine_C
 from ._library import GMMStats as _GMMStats_C
+from ._library import IVectorMachine as _IVectorMachine_C
 
 from . import version
 from .version import module as __version__
 from .version import api as __api_version__
 from .train import *
+
 
 def get_config():
     """Returns a string containing the configuration information.
@@ -37,7 +39,7 @@ class GMMMachine(_GMMMachine_C):
     def update_dict(self, d):
         self.means = d["means"]
         self.variances = d["variances"]
-        self.means = d["means"]
+        self.weights = d["weights"]
 
     @staticmethod
     def gmm_shape_from_dict(d):
@@ -182,3 +184,32 @@ class GMMStats(_GMMStats_C):
         self.log_likelihood = d["log_likelihood"]
         self.sum_px = d["sum_px"]
         self.sum_pxx = d["sum_pxx"]
+
+
+class IVectorMachine(_IVectorMachine_C):
+    __doc__ = _IVectorMachine_C.__doc__
+
+    @staticmethod
+    def to_dict(ivector_machine):
+        ivector_data = dict()
+        ivector_data["gmm"] = GMMMachine.to_dict(ivector_machine.ubm)
+        ivector_data["sigma"] = ivector_machine.sigma
+        ivector_data["t"] = ivector_machine.t
+
+        return ivector_data
+
+    def update_dict(self, d):
+        ubm = GMMMachine.create_from_dict(d["gmm"])
+        t = d["t"]
+        self.__init__(ubm, t.shape[1])
+        self.sigma = d["sigma"]
+        self.t = t
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        self.__dict__ = d
+        self.update_dict(d)
