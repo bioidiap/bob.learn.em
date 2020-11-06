@@ -1,0 +1,3 @@
+py:class bob.learn.em.GMMStats.n
+py:class bob.learn.em.GMMStats.sum_px
+py:class bob.learn.em.GMMStats.sum_pxx
