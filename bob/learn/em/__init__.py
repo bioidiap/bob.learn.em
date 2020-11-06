@@ -14,6 +14,7 @@ from ._library import GMMMachine as _GMMMachine_C
 from ._library import ISVBase as _ISVBase_C
 from ._library import ISVMachine as _ISVMachine_C
 from ._library import KMeansMachine as _KMeansMachine_C
+from ._library import GMMStats as _GMMStats_C
 
 from . import version
 from .version import module as __version__
@@ -153,3 +154,31 @@ class KMeansMachine(_KMeansMachine_C):
         means = d["means"]
         self.__init__(means.shape[0], means.shape[1])
         self.means = means
+
+
+class GMMStats(_GMMStats_C):
+    __doc__ = _GMMStats_C.__doc__
+
+    @staticmethod
+    def to_dict(gmm_stats):
+        gmm_stats_data = dict()
+        gmm_stats_data["log_likelihood"] = gmm_stats.log_likelihood
+        gmm_stats_data["t"] = gmm_stats.t
+        gmm_stats_data["n"] = gmm_stats.n
+        gmm_stats_data["sum_px"] = gmm_stats.sum_px
+        gmm_stats_data["sum_pxx"] = gmm_stats.sum_pxx
+        return gmm_stats_data
+
+    def __getstate__(self):
+        d = dict(self.__dict__)
+        d.update(self.__class__.to_dict(self))
+        return d
+
+    def __setstate__(self, d):
+        shape = d["sum_pxx"].shape
+        self.__init__(shape[0], shape[1])
+        self.t = d["t"]
+        self.n = d["n"]
+        self.log_likelihood = d["log_likelihood"]
+        self.sum_px = d["sum_px"]
+        self.sum_pxx = d["sum_pxx"]

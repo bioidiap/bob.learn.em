@@ -2,7 +2,7 @@
 # vim: set fileencoding=utf-8 :
 # Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
 
-from bob.learn.em import GMMMachine, ISVBase, ISVMachine, KMeansMachine
+from bob.learn.em import GMMMachine, ISVBase, ISVMachine, KMeansMachine, GMMStats
 import numpy
 import pickle
 
@@ -75,3 +75,21 @@ def test_kmeans_machine():
 
     kmeans_machine_after_pickle = pickle.loads(pickle.dumps(kmeans_machine))
     assert numpy.allclose(kmeans_machine_after_pickle.means, kmeans_machine.means, 10e-3)
+
+
+def test_gmmstats():
+
+    gs = GMMStats(2,3)
+    log_likelihood = -3.
+    T = 1
+    n = numpy.array([0.4, 0.6], numpy.float64)
+    sumpx = numpy.array([[1., 2., 3.], [2., 4., 3.]], numpy.float64)
+    sumpxx = numpy.array([[10., 20., 30.], [40., 50., 60.]], numpy.float64)
+    gs.log_likelihood = log_likelihood
+    gs.t = T
+    gs.n = n
+    gs.sum_px = sumpx
+    gs.sum_pxx = sumpxx
+    
+    gs_after_pickle = pickle.loads(pickle.dumps(gs))
+    assert gs == gs_after_pickle
