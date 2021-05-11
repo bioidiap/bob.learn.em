@@ -35,7 +35,6 @@
 .. _libjpeg: http://libjpeg.sourceforge.net/
 .. _libnetpbm: http://netpbm.sourceforge.net/doc/libnetpbm.html
 .. _libpng: http://libpng.org/pub/png/libpng.html
-.. _libsvm: http://www.csie.ntu.edu.tw/~cjlin/libsvm/
 .. _libtiff: http://www.remotesensing.org/libtiff/
 .. _giflib: http://giflib.sourceforge.net/
 .. _macports installation instructions: http://www.macports.org/install.php
