@@ -2,13 +2,12 @@
 # @author: Yannick Dayer <yannick.dayer@idiap.ch>
 # @date: Tue 27 Jul 2021 11:04:10 UTC+02
 
+import logging
+
 import dask.array as da
 import numpy as np
 from dask_ml.cluster.k_means import k_init
-
 from sklearn.base import BaseEstimator
-
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -82,7 +81,7 @@ class KMeansMachine:
         return self.means[mean_index]
 
     def set_mean(self, mean_index, mean):
-        self.means[mean_index,:] = mean
+        self.means[mean_index, :] = mean
 
     def copy(self):
         new_machine = KMeansMachine(n_means=self.n_means, n_dims=self.n_dims)
@@ -123,11 +122,11 @@ class KMeansMachine:
 
         # Accumulate
         means_sum = da.array(
-            [data[closest_means_indices == i,:].sum(axis=0) for i in range(n_cluster)]
+            [data[closest_means_indices == i, :].sum(axis=0) for i in range(n_cluster)]
         )
         variances_sum = da.array(
             [
-                (data[closest_means_indices == i,:] ** 2).sum(axis=0)
+                (data[closest_means_indices == i, :] ** 2).sum(axis=0)
                 for i in range(n_cluster)
             ]
         )
@@ -145,7 +144,9 @@ class KMeansTrainer:
         self.zeroeth_order_statistics = None
         self.first_order_statistics = None
 
-    def initialize(self, machine, data, random_state=0, means_init="k-means||", max_iter=None):
+    def initialize(
+        self, machine, data, random_state=0, means_init="k-means||", max_iter=None
+    ):
         """Assigns the means to an initial value."""
         machine.set_means(
             k_init(
@@ -161,7 +162,9 @@ class KMeansTrainer:
         n_cluster = machine.n_means
         closest_mean_indices = machine.get_closest_mean_index(data)
         # number of data point in each cluster
-        self.zeroeth_order_statistics = da.bincount(closest_mean_indices, minlength=n_cluster)
+        self.zeroeth_order_statistics = da.bincount(
+            closest_mean_indices, minlength=n_cluster
+        )
         # sum of data points coordinates in each cluster
         self.first_order_statistics = da.array(
             [data[closest_mean_indices == i].sum(axis=0) for i in range(n_cluster)]
@@ -169,7 +172,9 @@ class KMeansTrainer:
         self.average_min_distance = machine.get_min_distance(data).mean()
 
     def m_step(self, machine: KMeansMachine, data: da.Array):
-        machine.set_means(self.first_order_statistics / self.zeroeth_order_statistics[:, None])
+        machine.set_means(
+            self.first_order_statistics / self.zeroeth_order_statistics[:, None]
+        )
 
     def compute_likelihood(self, machine: KMeansMachine):
         if self.average_min_distance is None:
@@ -188,6 +193,7 @@ class KMeansTrainer:
         self.average_min_distance = 0
         self.zeroeth_order_statistics = da.zeros((machine.n_means,))
         self.first_order_statistics = da.zeros((machine.n_means, machine.n_dims))
+
 
 class KMeans(BaseEstimator):
     """Transformer clustering data using k-means.
@@ -213,7 +219,18 @@ class KMeans(BaseEstimator):
     dask_client: dask.distributed.client
         TODO
     """
-    def __init__(self, n_means, n_dims, means_init="k-means||", max_iter=20, convergence_threshold=1e-5, init_max_iter=20, random_state=0, dask_client=None):
+
+    def __init__(
+        self,
+        n_means,
+        n_dims,
+        means_init="k-means||",
+        max_iter=20,
+        convergence_threshold=1e-5,
+        init_max_iter=20,
+        random_state=0,
+        dask_client=None,
+    ):
         self.n_means = n_means
         self.n_dims = n_dims
         self.means_init = means_init
@@ -230,7 +247,13 @@ class KMeans(BaseEstimator):
             logger.info("Creating k-Means machine.")
             self.machine = KMeansMachine(n_means=self.n_means, n_dims=self.n_dims)
             logger.debug("Initializing means.")
-            self.trainer.initialize(machine=self.machine, data=data, means_init=self.means_init, random_state=self.random_state, max_iter=self.init_max_iter)
+            self.trainer.initialize(
+                machine=self.machine,
+                data=data,
+                means_init=self.means_init,
+                random_state=self.random_state,
+                max_iter=self.init_max_iter,
+            )
 
         logger.info("Training k-Means...")
         self.trainer.e_step(self.machine, data)
@@ -245,11 +268,16 @@ class KMeans(BaseEstimator):
 
             logger.info(f"Average squared Euclidean distance = {average_output}")
 
-            convergence_value = abs((average_output_previous - average_output)/average_output_previous)
+            convergence_value = abs(
+                (average_output_previous - average_output) / average_output_previous
+            )
             logger.info(f"convergence value = {convergence_value}")
 
-            #Terminates if converged (and likelihood computation is set)
-            if self.convergence_threshold is not None and convergence_value <= self.convergence_threshold:
+            # Terminates if converged (and likelihood computation is set)
+            if (
+                self.convergence_threshold is not None
+                and convergence_value <= self.convergence_threshold
+            ):
                 break
         return self
 
