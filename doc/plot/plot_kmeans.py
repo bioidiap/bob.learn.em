@@ -1,4 +1,6 @@
-import bob.learn.em
+from bob.learn.em.clustering.kmeans import KMeansMachine
+from bob.learn.em.clustering.kmeans import KMeansTrainer
+from bob.learn.em import train
 import bob.db.iris
 import numpy
 import matplotlib.pyplot as plt
@@ -14,11 +16,10 @@ virginica = numpy.column_stack(
 data = numpy.vstack((setosa, versicolor, virginica))
 
 # Training KMeans
-# Two clusters with a feature dimensionality of 3
-machine = bob.learn.em.KMeansMachine(3, 2)
-trainer = bob.learn.em.KMeansTrainer()
-bob.learn.em.train(trainer, machine, data, max_iterations=200,
-                   convergence_threshold=1e-5)  # Train the KMeansMachine
+# 3 clusters with a feature dimensionality of 2
+machine = KMeansMachine(3, 2)
+trainer = KMeansTrainer(init_method="k-means++")
+train(trainer, machine, data, max_iterations=200, convergence_threshold=1e-5)
 
 # Plotting
 figure, ax = plt.subplots()
@@ -37,3 +38,4 @@ plt.yticks([], [])
 ax.set_xlabel("Sepal length")
 ax.set_ylabel("Petal width")
 plt.tight_layout()
+plt.savefig("iris_kmeans.png")

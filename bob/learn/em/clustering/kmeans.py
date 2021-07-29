@@ -3,9 +3,9 @@
 # @date: Tue 27 Jul 2021 11:04:10 UTC+02
 
 import logging
+from typing import Union
 
 import dask.array as da
-import numpy as np
 from dask_ml.cluster.k_means import k_init
 from sklearn.base import BaseEstimator
 
@@ -23,7 +23,7 @@ class KMeansMachine:
         The number of dimensions in the data
     """
 
-    def __init__(self, n_means, n_dims):
+    def __init__(self, n_means: int, n_dims: int):
         if n_means < 1:
             raise ValueError("The Number of cluster should be greater thant 1.")
         if n_dims < 1:
@@ -33,39 +33,39 @@ class KMeansMachine:
         self.means = da.zeros((self.n_means, self.n_dims), dtype="float64")
         self.shape = self.means.shape
 
-    def get_means_distance(self, x):
+    def get_means_distance(self, x: da.Array):
         """Returns the distance values between that point and each mean.
 
         The returned values are squared Euclidean distances.
         """
         return da.sum((self.means[:, None] - x[None, :]) ** 2, axis=-1)
 
-    def get_distance_from_mean(self, x, i):
+    def get_distance_from_mean(self, x: da.Array, i: int):
         """Returns the distance between one mean and that point.
 
         The returned value is a squared Euclidean distance.
         """
         return self.get_means_distance(x)[i]
 
-    def get_closest_mean(self, x):
+    def get_closest_mean(self, x: da.Array):
         """Returns the closest mean's index to that point."""
         dists = self.get_means_distance(x)
         min_id = da.argmin(dists, axis=0)
         min_dist = dists[min_id]
         return min_id, min_dist
 
-    def get_closest_mean_index(self, x):
+    def get_closest_mean_index(self, x: da.Array):
         """Returns the closest mean's index to that point."""
         return da.argmin(self.get_means_distance(x), axis=0)
 
-    def get_min_distance(self, x):
+    def get_min_distance(self, x: da.Array):
         """Returns the smallest distance value between that point and each mean.
 
         The returned value is a squared Euclidean distance.
         """
         return da.min(self.get_means_distance(x), axis=0)
 
-    def set_means(self, new_means):
+    def set_means(self, new_means: da.Array):
         if not hasattr(new_means, "shape"):
             raise TypeError(
                 f"new_means '{new_means}' of type {type(new_means)} is not valid."
@@ -77,10 +77,10 @@ class KMeansMachine:
             )
         self.means = new_means
 
-    def get_mean(self, mean_index):
+    def get_mean(self, mean_index: int):
         return self.means[mean_index]
 
-    def set_mean(self, mean_index, mean):
+    def set_mean(self, mean_index: int, mean: da.Array):
         self.means[mean_index, :] = mean
 
     def copy(self):
@@ -94,7 +94,7 @@ class KMeansMachine:
     def is_similar_to(self, obj, r_epsilon=1e-05, a_epsilon=1e-08):
         return da.allclose(self.means, obj.means, rtol=r_epsilon, atol=a_epsilon)
 
-    def get_variances_and_weights_for_each_cluster(self, data):
+    def get_variances_and_weights_for_each_cluster(self, data: da.Array):
         """Returns the clusters variance and weight for data clustered by the machine.
 
         For each mean, finds the subset of the samples that is closest to that mean,
@@ -116,19 +116,17 @@ class KMeansMachine:
                 Weight (proportion of quantity of data point) of each cluster.
         """
         n_cluster = self.n_means
-        closest_means_indices = self.get_closest_mean_index(data)
-        weights_count = da.bincount(closest_means_indices, minlength=n_cluster)
+        closest_mean_indices = self.get_closest_mean_index(data)
+        weights_count = da.bincount(closest_mean_indices, minlength=n_cluster)
         weights = weights_count / weights_count.sum()
 
         # Accumulate
-        means_sum = da.array(
-            [data[closest_means_indices == i, :].sum(axis=0) for i in range(n_cluster)]
+        means_sum = da.sum(
+            da.eye(n_cluster)[closest_mean_indices][:, :, None] * data[:, None], axis=0
         )
-        variances_sum = da.array(
-            [
-                (data[closest_means_indices == i, :] ** 2).sum(axis=0)
-                for i in range(n_cluster)
-            ]
+        variances_sum = da.sum(
+            da.eye(n_cluster)[closest_mean_indices][:, :, None] * (data[:, None] ** 2),
+            axis=0,
         )
 
         # Reduce
@@ -139,35 +137,46 @@ class KMeansMachine:
 
 
 class KMeansTrainer:
-    def __init__(self):
+    """E-M Trainer that applies k-means on a KMeansMachine."""
+
+    def __init__(self, init_method: Union[str, da.Array] = "k-means||"):
+        self.init_method = init_method
         self.average_min_distance = None
         self.zeroeth_order_statistics = None
         self.first_order_statistics = None
 
     def initialize(
-        self, machine, data, random_state=0, means_init="k-means||", max_iter=None
+        self,
+        machine: KMeansMachine,
+        data: da.Array,
+        random_state: Union[int, da.random.RandomState] = 0,
+        max_iter: Union[int, None] = None,
     ):
         """Assigns the means to an initial value."""
+        logger.debug(f"Initializing k-means with '{self.init_method}'")
+        data = da.array(data)
         machine.set_means(
             k_init(
                 X=data,
                 n_clusters=machine.n_means,
-                init=means_init,
+                init=self.init_method,
                 random_state=random_state,
                 max_iter=max_iter,
             )
         )
 
     def e_step(self, machine: KMeansMachine, data: da.Array):
+        data = da.array(data)
         n_cluster = machine.n_means
         closest_mean_indices = machine.get_closest_mean_index(data)
-        # number of data point in each cluster
+        # Number of data points in each cluster
         self.zeroeth_order_statistics = da.bincount(
             closest_mean_indices, minlength=n_cluster
         )
-        # sum of data points coordinates in each cluster
-        self.first_order_statistics = da.array(
-            [data[closest_mean_indices == i].sum(axis=0) for i in range(n_cluster)]
+        # Sum of data points coordinates in each cluster
+        self.first_order_statistics = da.sum(
+            da.eye(machine.n_means)[closest_mean_indices][:, :, None] * data[:, None],
+            axis=0,
         )
         self.average_min_distance = machine.get_min_distance(data).mean()
 
@@ -191,8 +200,10 @@ class KMeansTrainer:
 
     def reset_accumulators(self, machine: KMeansMachine):
         self.average_min_distance = 0
-        self.zeroeth_order_statistics = da.zeros((machine.n_means,))
-        self.first_order_statistics = da.zeros((machine.n_means, machine.n_dims))
+        self.zeroeth_order_statistics = da.zeros((machine.n_means,), dtype="float64")
+        self.first_order_statistics = da.zeros(
+            (machine.n_means, machine.n_dims), dtype="float64"
+        )
 
 
 class KMeans(BaseEstimator):
@@ -216,8 +227,6 @@ class KMeans(BaseEstimator):
         maximum iterations of `k-means||` or `k-means++` initialization methods.
     random_state: int or dask.array.random.RandomState or numpy.random.RandomState
         The seed for the random generator.
-    dask_client: dask.distributed.client
-        TODO
     """
 
     def __init__(
@@ -229,7 +238,6 @@ class KMeans(BaseEstimator):
         convergence_threshold=1e-5,
         init_max_iter=20,
         random_state=0,
-        dask_client=None,
     ):
         self.n_means = n_means
         self.n_dims = n_dims
@@ -238,9 +246,8 @@ class KMeans(BaseEstimator):
         self.convergence_threshold = convergence_threshold
         self.init_max_iter = init_max_iter
         self.random_state = random_state
-        self.dask_client = dask_client
         self.machine = None
-        self.trainer = KMeansTrainer()
+        self.trainer = KMeansTrainer(self.means_init)
 
     def fit(self, data):
         if self.machine is None:
@@ -250,7 +257,6 @@ class KMeans(BaseEstimator):
             self.trainer.initialize(
                 machine=self.machine,
                 data=data,
-                means_init=self.means_init,
                 random_state=self.random_state,
                 max_iter=self.init_max_iter,
             )
