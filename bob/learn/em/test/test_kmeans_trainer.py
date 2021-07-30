@@ -16,7 +16,7 @@ from bob.io.base.test_utils import datafile
 import dask.array as da
 from dask_ml.cluster.k_means import k_init
 
-from bob.learn.em.clustering.kmeans import KMeansMachine, KMeansTrainer
+from bob.learn.em.cluster import KMeansMachine, KMeansTrainer
 
 
 def equals(x, y, epsilon):

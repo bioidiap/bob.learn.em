@@ -1,5 +1,5 @@
-from bob.learn.em.clustering.kmeans import KMeansMachine
-from bob.learn.em.clustering.kmeans import KMeansTrainer
+from bob.learn.em.cluster import KMeansMachine
+from bob.learn.em.cluster import KMeansTrainer
 from bob.learn.em import train
 import bob.db.iris
 import numpy
