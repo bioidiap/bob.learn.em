@@ -50,7 +50,7 @@ class GMMMachine:
         def logaddexp_reduce(a, axis, keepdims):
             return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-math.inf)
 
-        ll_reduced = da.reduction(x=weighted_l, chunk=logaddexp_reduce, aggregate=logaddexp_reduce, axis=1, dtype=np.float, keepdims=False)
+        ll_reduced = da.reduction(x=weighted_l, chunk=logaddexp_reduce, aggregate=logaddexp_reduce, axis=0, dtype=np.float, keepdims=False)
 
         ll = da.mean(ll_reduced)
         return ll
