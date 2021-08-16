@@ -8,6 +8,8 @@ from abc import abstractmethod
 
 import math
 
+import numpy as np
+
 import dask.array as da
 from sklearn.base import BaseEstimator
 
@@ -31,37 +33,28 @@ class GMMMachine:
         self.gaussians_mean = da.zeros((n_gaussians, n_dims))
         self.gaussians_variance = da.zeros((n_gaussians, n_dims))
         self.gaussians_variance_threshold = da.zeros((n_gaussians, n_dims))
-        self.logweights = da.log(da.full((n_gaussians,), fill_value=1 / n_gaussians))
+        self.log_weights = da.log(da.full((n_gaussians,), fill_value=1 / n_gaussians))
         # Precomputed constants:
         self.N_LOG_2PI = self.n_dims * math.log(2*math.pi)
 
     def log_likelihood(self, x: da.Array):
 
-#   C++: x is one sample, then output is averaged when x is 2D
+        # One ll for each gaussian
+        n_log2pi = self.n_dims * da.log(2*math.pi)
+        g_norm = n_log2pi + da.sum(da.log(self.gaussians_variance))
 
-#   // Initialize variables
-#   double log_likelihood = bob::math::Log::LogZero;
+        z = da.sum(da.power(x[None,:,:]-self.gaussians_mean[:,None,:], 2) / self.gaussians_variance[:,None,:], axis=2)
+        l = -0.5 * (g_norm + z)  # Likelihood for all gaussians for all points
+        weighted_l = self.log_weights[:,None] + l
 
-#   // Accumulate the weighted log likelihoods from each Gaussian
-#   for(size_t i=0; i<m_n_gaussians; ++i) {
-#     double l = m_cache_log_weights(i) + m_gaussians[i]->logLikelihood_(x);
-#     log_weighted_gaussian_likelihoods(i) = l;
-#     log_likelihood = bob::math::Log::logAdd(log_likelihood, l);
-#   }
+        def logaddexp_reduce(a, axis, keepdims):
+            return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-math.inf)
 
-#   // Return log(p(x|GMMMachine))
-#   return log_likelihood;
-        log_likelihood = -math.inf
+        ll_reduced = da.reduction(x=weighted_l, chunk=logaddexp_reduce, aggregate=logaddexp_reduce, axis=1, dtype=np.float, keepdims=False)
 
-        # for each mean: compute the loglikelihood of x, add the log_weight
-# logLikelihood_(x):
-#   double z = blitz::sum(blitz::pow2(x - m_mean) / m_variance);
-#   // Log Likelihood
-#   return (-0.5 * (m_g_norm + z));
-# m_variance: The diagonal of the covariance matrix (assumed to be diagonal)
-# Pre-computed on variance change: m_g_norm = m_n_log2pi + blitz::sum(blitz::log(m_variance));
-# Pre-computed at start: m_n_log2pi = m_n_inputs * bob::math::Log::Log2Pi; --> n_dims * ln(2*PI)
-        raise NotImplementedError
+        ll = da.mean(ll_reduced)
+        return ll
+
 
     def acc_statistics(self, x, stats):
         raise NotImplementedError
