@@ -6,11 +6,8 @@ import logging
 from abc import ABC
 from abc import abstractmethod
 
-import math
-
-import numpy as np
-
 import dask.array as da
+import numpy as np
 from sklearn.base import BaseEstimator
 
 logger = logging.getLogger(__name__)
@@ -35,26 +32,43 @@ class GMMMachine:
         self.gaussians_variance_threshold = da.zeros((n_gaussians, n_dims))
         self.log_weights = da.log(da.full((n_gaussians,), fill_value=1 / n_gaussians))
         # Precomputed constants:
-        self.N_LOG_2PI = self.n_dims * math.log(2*math.pi)
+        self.N_LOG_2PI = self.n_dims * np.log(2 * np.pi)
 
     def log_likelihood(self, x: da.Array):
+        """Returns the current log likelihood for a set of data in this Machine.
 
-        # One ll for each gaussian
-        n_log2pi = self.n_dims * da.log(2*math.pi)
-        g_norm = n_log2pi + da.sum(da.log(self.gaussians_variance))
+        Parameters
+        ----------
+        x: 2D array
+            Data to compute the log likelihood on.
+        """
+        # Possibility to pre-compute g_norm (would need update on variance change)
+        g_norm = self.N_LOG_2PI + np.sum(np.log(self.gaussians_variance))
 
-        z = da.sum(da.power(x[None,:,:]-self.gaussians_mean[:,None,:], 2) / self.gaussians_variance[:,None,:], axis=2)
-        l = -0.5 * (g_norm + z)  # Likelihood for all gaussians for all points
-        weighted_l = self.log_weights[:,None] + l
+        # Compute the likelihood for each data point on each gaussian
+        z = da.sum(
+            da.power(x[None, :, :] - self.gaussians_mean[:, None, :], 2)
+            / self.gaussians_variance[:, None, :],
+            axis=2,
+        )
+        l = -0.5 * (g_norm + z)
+        weighted_l = self.log_weights[:, None] + l
 
         def logaddexp_reduce(a, axis, keepdims):
-            return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-math.inf)
+            return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-np.inf)
 
-        ll_reduced = da.reduction(x=weighted_l, chunk=logaddexp_reduce, aggregate=logaddexp_reduce, axis=0, dtype=np.float, keepdims=False)
+        # Sum along gaussians axis (using logAddExp to prevent underflow)
+        ll_reduced = da.reduction(
+            x=weighted_l,
+            chunk=logaddexp_reduce,
+            aggregate=logaddexp_reduce,
+            axis=0,
+            dtype=np.float,
+            keepdims=False,
+        )
 
-        ll = da.mean(ll_reduced)
-        return ll
-
+        # Mean along data axis
+        return da.mean(ll_reduced)
 
     def acc_statistics(self, x, stats):
         raise NotImplementedError
@@ -75,14 +89,16 @@ class BaseGMMTrainer(ABC):
         pass
 
     def e_step(self, machine: GMMMachine, data: da.Array):
-        pass
+        # The e-step is the same for each GMM Trainer
+        raise NotImplementedError
 
     @abstractmethod
     def m_step(self, machine: GMMMachine, data: da.Array):
+        # The m-step must be implemented by the specialized GMM Trainers
         pass
 
     def compute_likelihood(self, machine: GMMMachine):
-        raise self.stat_log_likelihood / self.stat_T
+        return self.stat_log_likelihood / self.stat_T
 
 
 class MLGMMTrainer(BaseGMMTrainer):
@@ -97,42 +113,42 @@ class MLGMMTrainer(BaseGMMTrainer):
         raise NotImplementedError
 
     def m_step(self, machine: GMMMachine, data: da.Array):
-#   // - Update weights if requested
-#   //   Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006
-#   if (m_gmm_base_trainer.getUpdateWeights()) {
-#     blitz::Array<double,1>& weights = gmm.updateWeights();
-#     weights = m_gmm_base_trainer.getGMMStats()->n / static_cast<double>(m_gmm_base_trainer.getGMMStats()->T); //cast req. for linux/32-bits & osx
-#     // Recompute the log weights in the cache of the GMMMachine
-#     gmm.recomputeLogWeights();
-#   }
+        #   // - Update weights if requested
+        #   //   Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006
+        #   if (m_gmm_base_trainer.getUpdateWeights()) {
+        #     blitz::Array<double,1>& weights = gmm.updateWeights();
+        #     weights = m_gmm_base_trainer.getGMMStats()->n / static_cast<double>(m_gmm_base_trainer.getGMMStats()->T); //cast req. for linux/32-bits & osx
+        #     // Recompute the log weights in the cache of the GMMMachine
+        #     gmm.recomputeLogWeights();
+        #   }
 
-#   // Generate a thresholded version of m_ss.n
-#   for(size_t i=0; i<n_gaussians; ++i)
-#     m_cache_ss_n_thresholded(i) = std::max(m_gmm_base_trainer.getGMMStats()->n(i), m_gmm_base_trainer.getMeanVarUpdateResponsibilitiesThreshold());
+        #   // Generate a thresholded version of m_ss.n
+        #   for(size_t i=0; i<n_gaussians; ++i)
+        #     m_cache_ss_n_thresholded(i) = std::max(m_gmm_base_trainer.getGMMStats()->n(i), m_gmm_base_trainer.getMeanVarUpdateResponsibilitiesThreshold());
 
-#   // Update GMM parameters using the sufficient statistics (m_ss)
-#   // - Update means if requested
-#   //   Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006
-#   if (m_gmm_base_trainer.getUpdateMeans()) {
-#     for(size_t i=0; i<n_gaussians; ++i) {
-#       blitz::Array<double,1>& means = gmm.getGaussian(i)->updateMean();
-#       means = m_gmm_base_trainer.getGMMStats()->sumPx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i);
-#     }
-#   }
+        #   // Update GMM parameters using the sufficient statistics (m_ss)
+        #   // - Update means if requested
+        #   //   Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006
+        #   if (m_gmm_base_trainer.getUpdateMeans()) {
+        #     for(size_t i=0; i<n_gaussians; ++i) {
+        #       blitz::Array<double,1>& means = gmm.getGaussian(i)->updateMean();
+        #       means = m_gmm_base_trainer.getGMMStats()->sumPx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i);
+        #     }
+        #   }
 
-#   // - Update variance if requested
-#   //   See Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006
-#   //   ...but we use the "computational formula for the variance", i.e.
-#   //   var = 1/n * sum (P(x-mean)(x-mean))
-#   //       = 1/n * sum (Pxx) - mean^2
-#   if (m_gmm_base_trainer.getUpdateVariances()) {
-#     for(size_t i=0; i<n_gaussians; ++i) {
-#       const blitz::Array<double,1>& means = gmm.getGaussian(i)->getMean();
-#       blitz::Array<double,1>& variances = gmm.getGaussian(i)->updateVariance();
-#       variances = m_gmm_base_trainer.getGMMStats()->sumPxx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i) - blitz::pow2(means);
-#       gmm.getGaussian(i)->applyVarianceThresholds();
-#     }
-#   }
+        #   // - Update variance if requested
+        #   //   See Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006
+        #   //   ...but we use the "computational formula for the variance", i.e.
+        #   //   var = 1/n * sum (P(x-mean)(x-mean))
+        #   //       = 1/n * sum (Pxx) - mean^2
+        #   if (m_gmm_base_trainer.getUpdateVariances()) {
+        #     for(size_t i=0; i<n_gaussians; ++i) {
+        #       const blitz::Array<double,1>& means = gmm.getGaussian(i)->getMean();
+        #       blitz::Array<double,1>& variances = gmm.getGaussian(i)->updateVariance();
+        #       variances = m_gmm_base_trainer.getGMMStats()->sumPxx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i) - blitz::pow2(means);
+        #       gmm.getGaussian(i)->applyVarianceThresholds();
+        #     }
+        #   }
         raise NotImplementedError
 
 
