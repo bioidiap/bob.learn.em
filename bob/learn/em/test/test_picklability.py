@@ -3,13 +3,13 @@
 # Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
 
 from bob.learn.em import (
-    GMMMachine,
     ISVBase,
     ISVMachine,
-    KMeansMachine,
     GMMStats,
     IVectorMachine,
 )
+from bob.learn.em.cluster import KMeansMachine
+from bob.learn.em.mixture import GMMMachine
 import numpy
 import pickle
 
@@ -20,13 +20,13 @@ def test_gmm_machine():
     gmm_machine_after_pickle = pickle.loads(pickle.dumps(gmm_machine))
 
     assert numpy.allclose(
-        gmm_machine_after_pickle.means, gmm_machine_after_pickle.means, 10e-3
+        gmm_machine_after_pickle.means, gmm_machine.means, 10e-3
     )
     assert numpy.allclose(
-        gmm_machine_after_pickle.variances, gmm_machine_after_pickle.variances, 10e-3
+        gmm_machine_after_pickle.variances, gmm_machine.variances, 10e-3
     )
     assert numpy.allclose(
-        gmm_machine_after_pickle.weights, gmm_machine_after_pickle.weights, 10e-3
+        gmm_machine_after_pickle.weights, gmm_machine.weights, 10e-3
     )
 
 
