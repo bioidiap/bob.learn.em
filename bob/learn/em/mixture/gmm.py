@@ -10,27 +10,29 @@ import dask.array as da
 import numpy as np
 from sklearn.base import BaseEstimator
 
+from bob.learn.em.cluster import KMeansMachine
+
 logger = logging.getLogger(__name__)
 
 
-class GMMMachine:
+class Gaussian:
+    mean = None
+    variance = None
+    variance_threshold = None
+
+class GMMMachine(BaseEstimator):
     """Stores a GMM mixtures parameters (Gaussians means and variances)
 
     Parameters
     ----------
     n_gaussians: int
         The number of gaussians to be represented by the machine.
-    n_dims: int
-        The dimensionality of the data.
     """
 
-    def __init__(self, n_gaussians: int, n_dims: int):
+    def __init__(self, n_gaussians: int, convergence_threshold=1e-5):
         self.n_gaussians = n_gaussians
-        self.n_dims = n_dims
-        self.gaussians_mean = da.zeros((n_gaussians, n_dims))
-        self.gaussians_variance = da.zeros((n_gaussians, n_dims))
-        self.gaussians_variance_threshold = da.zeros((n_gaussians, n_dims))
         self.log_weights = da.log(da.full((n_gaussians,), fill_value=1 / n_gaussians))
+        self.convergence_threshold = convergence_threshold
         # Precomputed constants:
         self.N_LOG_2PI = self.n_dims * np.log(2 * np.pi)
 
@@ -73,11 +75,48 @@ class GMMMachine:
     def acc_statistics(self, x, stats):
         raise NotImplementedError
 
+    def fit(self, X, y=None, trainer=None, **kwargs):
+        if trainer is None:
+            logger.info("Creating the default GMM trainer.")
+            # TODO
+
+        for step in range(self.max_steps):
+            logger.info(f"Iteration = {step:3d}/{self.max_steps}")
+            average_output_previous = average_output
+            trainer.e_step(self, X)
+            trainer.m_step(self, X)
+
+            average_output = trainer.compute_likelihood(self.machine)
+            logger.info(f"Likelihood = {average_output}")
+
+            if step > 0:
+                convergence_value = abs(
+                    (average_output_previous - average_output) / average_output_previous
+                )
+                logger.info(f"convergence value = {convergence_value.compute()}")
+
+                # Terminates if converged (and likelihood computation is set)
+                if (
+                    self.convergence_threshold is not None
+                    and convergence_value <= self.convergence_threshold
+                ):
+                    return self
+        return self
+
+    def transform(self, X, **kwargs):
+        raise NotImplementedError # what to return?
+        return X
+
 
 class BaseGMMTrainer(ABC):
-    """Base class for the different GMM Trainer implementations."""
+    """Base class for the different GMM Trainer implementations.
 
-    def __init__(self):
+    Parameters
+    ----------
+    init_method: str or KMeansMachine
+    """
+
+    def __init__(self, init_method="k-means"):
         self.stat_log_likelihood = 0.0  # The accumulated log likelihood of all samples
         self.stat_T = 0  # The accumulated number of samples
         self.stat_n = None  # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)
@@ -165,56 +204,3 @@ class MAPGMMTrainer(BaseGMMTrainer):
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         raise NotImplementedError
-
-
-class GMM(BaseEstimator):
-    def __init__(
-        self,
-        n_gaussians: int,
-        n_dims: int,
-        max_steps: int = 200,
-        convergence_threshold=1e-5,
-        ml_trainer: bool = True,
-    ):
-        self.n_gaussians = n_gaussians
-        self.n_dims = n_dims
-        self.max_steps = max_steps
-        self.convergence_threshold = convergence_threshold
-        self.machine = None
-        self.trainer = MLGMMTrainer() if ml_trainer else MAPGMMTrainer()
-
-    def fit(self, X, y=None, **kwargs):
-        if self.machine is None:
-            logger.info("Creating the GMM machine.")
-            self.machine = GMMMachine(n_gaussians=self.n_gaussians, n_dims=self.n_dims)
-            logger.debug("Initializing Trainer.")
-            self.trainer.initialize(
-                machine=self.machine,
-                data=X,
-            )
-
-        self.trainer.e_step(self.machine, X)
-        for step in range(self.max_steps):
-            logger.info(f"Iteration = {step:3d}/{self.max_steps}")
-            average_output_previous = average_output
-            self.trainer.m_step(self.machine, X)
-            self.trainer.e_step(self.machine, X)
-
-            average_output = self.trainer.compute_likelihood(self.machine)
-            logger.info(f"Likelihood = {average_output}")
-
-            convergence_value = abs(
-                (average_output_previous - average_output) / average_output_previous
-            )
-            logger.info(f"convergence value = {convergence_value}")
-
-            # Terminates if converged (and likelihood computation is set)
-            if (
-                self.convergence_threshold is not None
-                and convergence_value <= self.convergence_threshold
-            ):
-                break
-        return self
-
-    def transform(self, X, **kwargs):
-        pass
