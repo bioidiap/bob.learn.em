@@ -46,6 +46,7 @@ class Gaussian(np.recarray):
     variance_threshold: array of shape (n_features,)
         Threshold values. Defaults to 1e-5.
     """
+
     def __new__(cls, mean, variance=None, variance_threshold=None):
         n_features = len(mean)
         if variance is None:
@@ -54,7 +55,7 @@ class Gaussian(np.recarray):
             variance_threshold = np.full_like(mean, fill_value=1e-5, dtype=float)
         rec = np.recarray(
             shape=(n_features,),
-            dtype=[("m",float), ("variance",float), ("variance_threshold",float)],
+            dtype=[("m", float), ("variance", float), ("variance_threshold", float)],
         )
         rec.m = mean
         rec.variance = variance
@@ -175,7 +176,9 @@ class GMMMachine(BaseEstimator):
     def fit(self, X, y=None, trainer=None, **kwargs):
         if trainer is None:
             logger.info("Creating a default GMM trainer (ML GMM).")
-            trainer = MLGMMTrainer(init_method="k-means", random_state=self.random_state)
+            trainer = MLGMMTrainer(
+                init_method="k-means", random_state=self.random_state
+            )
 
         trainer.initialize(self, X)
         average_output = 0
@@ -208,11 +211,24 @@ class GMMMachine(BaseEstimator):
 
 
 class Statistics:
-    log_likelihood = 0.0  # The accumulated log likelihood of all samples
-    T = 0  # The accumulated number of samples
-    n = None  # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)
-    sumPx = None  # For each Gaussian, the accumulated sum of responsibility times the sample
-    sumPxx = None  # For each Gaussian, the accumulated sum of responsibility times the sample squared
+    def __init__(self, n_gaussians: int, n_features: int) -> None:
+        # The accumulated log likelihood of all samples
+        self.log_likelihood = 0.0
+        # The accumulated number of samples
+        self.T = 0
+        # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)
+        self.n = np.zeros(shape=(n_gaussians,), dtype=float)
+        # For each Gaussian, the accumulated sum of responsibility times the sample
+        self.sumPx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
+        # For each Gaussian, the accumulated sum of responsibility times the sample squared
+        self.sumPxx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
+
+    def reset(self):
+        self.log_likelihood = 0.0
+        self.T = 0
+        self.n[:] = 0.0
+        self.sumPx[:] = 0.0
+        self.sumPxx[:] = 0.0
 
 
 class BaseGMMTrainer(ABC):
@@ -220,11 +236,20 @@ class BaseGMMTrainer(ABC):
 
     Parameters
     ----------
-    init_method: str or KMeansMachine
+    init_method:
+        How to initialize the GMM machine.
+    random_state:
+        Sets a seed or RandomState for reproducibility
     """
 
-    def __init__(self, init_method="k-means"):
-        self.stats = Statistics()
+    def __init__(
+        self,
+        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
+        random_state: Union[int, da.random.RandomState] = 0,
+    ):
+        self.init_method = init_method
+        self.random_state = random_state
+        self.last_step_stats = None
 
     @abstractmethod
     def initialize(self, machine: GMMMachine, data: da.Array):
@@ -232,6 +257,51 @@ class BaseGMMTrainer(ABC):
 
     def e_step(self, machine: GMMMachine, data: da.Array):
         # The e-step is the same for each GMM Trainer
+        self.last_step_stats = Statistics(
+            n_gaussians=machine.n_gaussians, n_features=data.shape[-1]
+        )
+        if len(data.shape) == 1:
+            data = data.reshape(shape=(1,-1))
+
+        log_likelihood = machine.log_likelihood(data)
+        responsibility = da.exp(m_cache_log_weighted_gaussian_likelihoods - log_likelihood)
+
+        # Accumulate
+
+        # Total likelihood (1,)
+        self.last_step_stats.log_likelihood = sum(log_likelihood)
+        # Count the samples (1,)
+        self.last_step_stats.T = data.shape[0]
+        # Responsibilities (n_features,)
+        self.last_step_stats.n = sum(responsibility, axis=0)
+        # First order stats (n_gaussians,n_features)
+        self.last_step_stats.sumPx = todo
+
+        # // for each sample point x in X:
+        #   // Calculate Gaussian and GMM likelihoods
+        #   // - m_cache_log_weighted_gaussian_likelihoods(i) = log(weight_i*p(x|gaussian_i))
+        #   // - log_likelihood = log(sum_i(weight_i*p(x|gaussian_i)))
+
+        #   double log_likelihood = logLikelihood_(x, m_cache_log_weighted_gaussian_likelihoods); (n_samples,1)
+
+        #   // Calculate responsibilities for this x
+        #   m_cache_P = blitz::exp(m_cache_log_weighted_gaussian_likelihoods - log_likelihood); (n_samples??,n_features)
+
+
+        #   // - responsibilities
+        #   stats.n += m_cache_P;
+
+        #   // - first order stats
+        #   blitz::firstIndex i;
+        #   blitz::secondIndex j;
+
+        #   m_cache_Px = m_cache_P(i) * x(j);
+
+        #   stats.sumPx += m_cache_Px;
+
+        #   // - second order stats
+        #   stats.sumPxx += (m_cache_Px(i,j) * x(j));
+        #   }
         raise NotImplementedError
 
     @abstractmethod
@@ -248,21 +318,17 @@ class MLGMMTrainer(BaseGMMTrainer):
 
     def __init__(
         self,
-        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
-        init_max_iter: Union[int, None] = None,
-        random_state: Union[int, da.random.RandomState] = 0,
-        max_iter: int = 20,
+        **kwargs,
     ):
-        self.init_method = init_method
-        self.average_min_distance = None
-        self.zeroeth_order_statistics = None
-        self.first_order_statistics = None
-        self.max_iter = max_iter
-        self.init_max_iter = init_max_iter
-        self.random_state = random_state
-        self.stats = Statistics()
+        super().__init__(**kwargs)
 
-    def initialize(self, machine: GMMMachine, data: da.Array, threshold=1.e-5, k_means_trainer=None):
+    def initialize(
+        self,
+        machine: GMMMachine,
+        data: da.Array,
+        threshold=1.0e-5,
+        k_means_trainer=None,
+    ):
         """Sets the initial values of the machine, and sets up the Trainer.
 
         The default initialization of the Maximum Likelihood GMM parameters uses
@@ -283,9 +349,10 @@ class MLGMMTrainer(BaseGMMTrainer):
             kmeans_machine = KMeansMachine(machine.n_gaussians).fit(
                 data, trainer=self.init_method
             )
-            variances, weights = kmeans_machine.get_variances_and_weights_for_each_cluster(
-                data
-            )
+            (
+                variances,
+                weights,
+            ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
             # Set the GMM machine gaussians with the results of k-means
             machine.gaussians_ = da.array(
                 [
@@ -296,7 +363,6 @@ class MLGMMTrainer(BaseGMMTrainer):
             machine.weights_ = weights
         else:
             machine.gaussians_ = self.init_method
-
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         #   // - Update weights if requested
