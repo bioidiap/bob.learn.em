@@ -120,7 +120,7 @@ class GMMMachine(BaseEstimator):
         n_gaussians: int,
         convergence_threshold=1e-5,
         random_state: Union[int, da.random.RandomState] = 0,
-        weights: Union[da.array, None] = None,
+        weights: Union[da.Array, None] = None,
         max_steps: int = 200,
     ):
         self.n_gaussians = n_gaussians
@@ -132,13 +132,18 @@ class GMMMachine(BaseEstimator):
         self.weights = weights
         self.max_steps = max_steps
 
-    def log_likelihood(self, x: da.Array):
-        """Returns the current log likelihood for a set of data in this Machine.
+    def log_weighted_likelihood(self, x: da.Array):
+        """Returns the weighted log likelihood for each Gaussian for a set of data.
 
         Parameters
         ----------
-        x: 2D array
+        x: array of shape (n_samples, n_features)
             Data to compute the log likelihood on.
+
+        Returns
+        -------
+        array of shape (n_gaussians, n_samples)
+            The weighted log likelihood of each sample of each Gaussian.
         """
         # Precomputable constants if n_dims is known:
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
@@ -152,14 +157,30 @@ class GMMMachine(BaseEstimator):
             axis=2,
         )
         l = -0.5 * (g_norm + z)
-        weighted_l = self.log_weights[:, None] + l
+        log_weighted_likelihood = self.log_weights[:, None] + l
+        return log_weighted_likelihood
+
+    def log_likelihood(self, x: da.Array):
+        """Returns the current log likelihood for a set of data in this Machine.
+
+        Parameters
+        ----------
+        x: array of shape (n_samples, n_features)
+            Data to compute the log likelihood on.
+
+        Returns
+        -------
+        array of shape (n_samples)
+            The log likelihood of each sample.
+        """
+        log_weighted_likelihood = self.log_weighted_likelihood(x)
 
         def logaddexp_reduce(a, axis, keepdims):
             return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-np.inf)
 
         # Sum along gaussians axis (using logAddExp to prevent underflow)
         ll_reduced = da.reduction(
-            x=weighted_l,
+            x=log_weighted_likelihood,
             chunk=logaddexp_reduce,
             aggregate=logaddexp_reduce,
             axis=0,
@@ -167,11 +188,7 @@ class GMMMachine(BaseEstimator):
             keepdims=False,
         )
 
-        # Mean along data axis
-        return da.mean(ll_reduced)
-
-    def acc_statistics(self, x, stats):
-        raise NotImplementedError
+        return ll_reduced
 
     def fit(self, X, y=None, trainer=None, **kwargs):
         if trainer is None:
@@ -261,22 +278,34 @@ class BaseGMMTrainer(ABC):
             n_gaussians=machine.n_gaussians, n_features=data.shape[-1]
         )
         if len(data.shape) == 1:
-            data = data.reshape(shape=(1,-1))
+            data = data.reshape(shape=(1, -1))
 
+        # Log weighted Gaussian likelihoods [array of shape (n_gaussians,n_samples)]
+        log_weighted_likelihoods = machine.log_weighted_likelihood(data)
+        # Log likelihood [array of shape (n_samples,)]
         log_likelihood = machine.log_likelihood(data)
-        responsibility = da.exp(m_cache_log_weighted_gaussian_likelihoods - log_likelihood)
+        # Responsibility P [array of shape (n_gaussians, n_samples)]
+        responsibility = da.exp(log_weighted_likelihoods - log_likelihood)
 
         # Accumulate
 
-        # Total likelihood (1,)
-        self.last_step_stats.log_likelihood = sum(log_likelihood)
-        # Count the samples (1,)
+        # Total likelihood [float]
+        self.last_step_stats.log_likelihood = da.sum(log_likelihood)
+        # Count of samples [int]
         self.last_step_stats.T = data.shape[0]
-        # Responsibilities (n_features,)
-        self.last_step_stats.n = sum(responsibility, axis=0)
-        # First order stats (n_gaussians,n_features)
-        self.last_step_stats.sumPx = todo
+        # Responsibilities [array of shape (n_gaussians,)]
+        self.last_step_stats.n = da.sum(responsibility, axis=-1)
+        # p * x [array of shape (n_gaussians, n_samples, n_features)]
+        px = responsibility[:,None,:] @ data[None,:,:] # TODO
+        print("should be", (machine.n_gaussians,data.shape[0],data.shape[-1]))
+        assert px.shape == (machine.n_gaussians,data.shape[0],data.shape[-1]), px.shape
+        # First order stats [array of shape (n_gaussians, n_features)]
+        self.last_step_stats.sumPx = da.sum(px, axis=1)
+        # Second order stats [array of shape (n_gaussians, n_features)]
+        self.last_step_stats.sumPxx = da.sum(px[:,:,:] @ data[None,:,:], axis=1)
 
+
+        # C++
         # // for each sample point x in X:
         #   // Calculate Gaussian and GMM likelihoods
         #   // - m_cache_log_weighted_gaussian_likelihoods(i) = log(weight_i*p(x|gaussian_i))
@@ -286,7 +315,6 @@ class BaseGMMTrainer(ABC):
 
         #   // Calculate responsibilities for this x
         #   m_cache_P = blitz::exp(m_cache_log_weighted_gaussian_likelihoods - log_likelihood); (n_samples??,n_features)
-
 
         #   // - responsibilities
         #   stats.n += m_cache_P;
@@ -302,7 +330,7 @@ class BaseGMMTrainer(ABC):
         #   // - second order stats
         #   stats.sumPxx += (m_cache_Px(i,j) * x(j));
         #   }
-        raise NotImplementedError
+        # raise NotImplementedError
 
     @abstractmethod
     def m_step(self, machine: GMMMachine, data: da.Array):
