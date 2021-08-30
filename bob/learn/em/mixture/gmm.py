@@ -18,22 +18,18 @@ from bob.learn.em.cluster import KMeansTrainer
 logger = logging.getLogger(__name__)
 
 
-class Gaussian(np.recarray):
+class Gaussian(np.ndarray):
     """Represents a multi-dimensional Gaussian.
 
     This is basically three 1D-arrays: for the mean, the (diagonal) variance, and the
     variance threshold values.
 
-    Each array can be accessed with the `[]` operator (`my_gaussian["variance"]`) or
-    with the attribute of the same name (`my_gaussian.variance`).
-
-    As `mean` is a "reserved" attribute name in Numpy, the name to access the mean of
-    our Gaussian is `m` (`my_gaussian.m`).
+    Each array can be accessed with the `[]` operator (`my_gaussian["variance"]`).
 
     When using multiple Gaussian in an array, the attributes can be accessed in the
     same way:
     >>> multi_gaussian = np.array([Gaussian([0,0]),Gaussian([1,1])])
-    >>> print(multi_gaussian["m"])
+    >>> print(multi_gaussian["mean"])
     ... [[0. 0.]
     ...  [1. 1.]]
 
@@ -53,22 +49,14 @@ class Gaussian(np.recarray):
             variance = np.ones_like(mean, dtype=float)
         if variance_threshold is None:
             variance_threshold = np.full_like(mean, fill_value=1e-5, dtype=float)
-        rec = np.recarray(
+        rec = np.ndarray(
             shape=(n_features,),
-            dtype=[("m", float), ("variance", float), ("variance_threshold", float)],
+            dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
         )
-        rec.m = mean
-        rec.variance = variance
-        rec.variance_threshold = variance_threshold
+        rec["mean"] = mean
+        rec["variance"] = variance
+        rec["variance_threshold"] = variance_threshold
         return rec.view(cls)
-
-    def __str__(self) -> str:
-        return (
-            f"Gaussian:\n"
-            f"\tmean: {self.m}\n"
-            f"\tvar:  {self.variance}\n"
-            f"\tvar_threshold: {self.variance_threshold}"
-        )
 
     def log_likelihood(self, x):
         """Returns the log-likelihood for x on this gaussian.
@@ -87,10 +75,10 @@ class Gaussian(np.recarray):
         # Precomputable constants if n_dims is known:
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
         # Possibility to pre-compute g_norm (would need update on variance change)
-        g_norm = N_LOG_2PI + np.sum(np.log(self.variance))
+        g_norm = N_LOG_2PI + np.sum(np.log(self["variance"]))
 
         # Compute the likelihood for each data point this Gaussian
-        z = da.sum(da.power(x - self.m, 2) / self.variance, axis=-1)
+        z = da.sum(da.power(x - self["mean"], 2) / self["variance"], axis=-1)
         return -0.5 * (g_norm + z)
 
 
@@ -284,6 +272,8 @@ class BaseGMMTrainer(ABC):
         log_weighted_likelihoods = machine.log_weighted_likelihood(data)
         # Log likelihood [array of shape (n_samples,)]
         log_likelihood = machine.log_likelihood(data)
+        print("log_likelihood:", log_likelihood.shape)
+        print(log_likelihood.compute())
         # Responsibility P [array of shape (n_gaussians, n_samples)]
         responsibility = da.exp(log_weighted_likelihoods - log_likelihood[None,:])
 

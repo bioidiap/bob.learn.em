@@ -18,13 +18,11 @@ def equals(x, y, epsilon):
 def test_gaussian():
     gaussian = Gaussian(mean=[1,2], variance=[1,1], variance_threshold=[1e-5, 1e-5])
 
-    assert numpy.array_equal(gaussian["m"], numpy.array([1,2])), gaussian["m"]
-    assert numpy.array_equal(gaussian.m, numpy.array([1,2])), gaussian.m
+    assert numpy.array_equal(gaussian["mean"], numpy.array([1,2])), gaussian["mean"]
 
-    gaussian["m"] = numpy.array([0,0])
+    gaussian["mean"] = numpy.array([0,0])
 
-    assert numpy.array_equal(gaussian["m"], numpy.array([0,0])), gaussian["m"]
-    assert numpy.array_equal(gaussian.m, numpy.array([0,0])), gaussian.m
+    assert numpy.array_equal(gaussian["mean"], numpy.array([0,0])), gaussian["mean"]
 
     # Test the likelihood computation of a simple normal Gaussian
     log_likelihood = gaussian.log_likelihood(numpy.array([0.4, 0.2], 'float64')).compute()
@@ -36,8 +34,8 @@ def test_gaussian():
     assert numpy.allclose(multi_log_likelihood, expected, atol=1e-10)
 
     gaussian_def = Gaussian(mean=[1,2,3])
-    assert numpy.array_equal(gaussian_def.variance, numpy.array([1.,1.,1.])), gaussian_def.variance
-    assert numpy.array_equal(gaussian_def.variance_threshold, numpy.array([1.e-5,1.e-5,1.e-5])), gaussian_def.variance_threshold
+    assert numpy.array_equal(gaussian_def["variance"], numpy.array([1.,1.,1.])), gaussian_def["variance"]
+    assert numpy.array_equal(gaussian_def["variance_threshold"], numpy.array([1.e-5,1.e-5,1.e-5])), gaussian_def["variance_threshold"]
 
 
 def test_multi_gaussian():
@@ -48,9 +46,4 @@ def test_multi_gaussian():
         ]
     )
     expected = numpy.array([[0.,0.],[1.,1.]])
-    assert numpy.array_equal(gaussians["m"], expected), gaussians["m"]
-
-
-def test_gaussian_str():
-    gaussian = Gaussian(mean=[0,0], variance=[1,1], variance_threshold=[1e-5, 1e-5])
-    assert str(gaussian) == "Gaussian:\n\tmean: [0. 0.]\n\tvar:  [1. 1.]\n\tvar_threshold: [1.e-05 1.e-05]", str(gaussian)
+    assert numpy.array_equal(gaussians["mean"], expected), gaussians["mean"]
