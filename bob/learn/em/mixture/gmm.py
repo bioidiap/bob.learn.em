@@ -124,13 +124,13 @@ class GMMMachine(BaseEstimator):
         max_steps: int = 200,
     ):
         self.n_gaussians = n_gaussians
-        self.log_weights = da.log(da.full((n_gaussians,), fill_value=1 / n_gaussians))
         self.convergence_threshold = convergence_threshold
         self.random_state = random_state
         if weights is None:
             weights = da.ones(shape=(self.n_gaussians,))
         self.weights = weights
-        self.max_steps = max_steps
+        self.log_weights = da.log(da.full(shape=(n_gaussians,), fill_value=(1 / n_gaussians)))
+        self.max_steps = max_steps # TODO parameter in fit
 
     def log_weighted_likelihood(self, x: da.Array):
         """Returns the weighted log likelihood for each Gaussian for a set of data.
@@ -152,7 +152,7 @@ class GMMMachine(BaseEstimator):
 
         # Compute the likelihood for each data point on each gaussian
         z = da.sum(
-            da.power(x[None, :, :] - self.gaussians_["m"][:, None, :], 2)
+            da.power(x[None, ...] - self.gaussians_["m"][:, None, :], 2)
             / self.gaussians_["variance"][:, None, :],
             axis=2,
         )
@@ -285,7 +285,7 @@ class BaseGMMTrainer(ABC):
         # Log likelihood [array of shape (n_samples,)]
         log_likelihood = machine.log_likelihood(data)
         # Responsibility P [array of shape (n_gaussians, n_samples)]
-        responsibility = da.exp(log_weighted_likelihoods - log_likelihood)
+        responsibility = da.exp(log_weighted_likelihoods - log_likelihood[None,:])
 
         # Accumulate
 
@@ -296,13 +296,12 @@ class BaseGMMTrainer(ABC):
         # Responsibilities [array of shape (n_gaussians,)]
         self.last_step_stats.n = da.sum(responsibility, axis=-1)
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
-        px = responsibility[:,None,:] @ data[None,:,:] # TODO
-        print("should be", (machine.n_gaussians,data.shape[0],data.shape[-1]))
-        assert px.shape == (machine.n_gaussians,data.shape[0],data.shape[-1]), px.shape
+        px = da.multiply(responsibility[:,:,None], data[None,:,:])
         # First order stats [array of shape (n_gaussians, n_features)]
         self.last_step_stats.sumPx = da.sum(px, axis=1)
         # Second order stats [array of shape (n_gaussians, n_features)]
-        self.last_step_stats.sumPxx = da.sum(px[:,:,:] @ data[None,:,:], axis=1)
+        pxx = da.multiply(px[:,:,:], data[None,:,:])
+        self.last_step_stats.sumPxx = da.sum(pxx, axis=1)
 
 
         # C++
@@ -363,11 +362,11 @@ class MLGMMTrainer(BaseGMMTrainer):
         k-means on the data to find centroids and variances.
         """
         n_features = data.shape[-1]
-        self.stats.log_likelihood = 0.0
-        self.stats.T = 0
-        self.stats.n = da.zeros((machine.n_gaussians,))
-        self.stats.sumPx = da.zeros((machine.n_gaussians, n_features))
-        self.stats.sumPxx = da.zeros((machine.n_gaussians, n_features))
+        self.last_step_stats.log_likelihood = 0.0
+        self.last_step_stats.T = 0
+        self.last_step_stats.n = da.zeros((machine.n_gaussians,))
+        self.last_step_stats.sumPx = da.zeros((machine.n_gaussians, n_features))
+        self.last_step_stats.sumPxx = da.zeros((machine.n_gaussians, n_features))
         if self.init_method == "k-means":
             if k_means_trainer is None:
                 k_means_trainer = KMeansTrainer()

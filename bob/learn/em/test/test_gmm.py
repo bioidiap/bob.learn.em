@@ -42,9 +42,9 @@ def test_GMMStats():
     assert stats.sumPx.shape == (n_gaussians,n_features), stats.sumPx.shape
     assert stats.sumPxx.shape == (n_gaussians,n_features), stats.sumPxx.shape
 
-    expected_n = numpy.array([1,2])
-    expected_sumPx = numpy.array([[1,2,3],[11,13,15]])
-    expected_sumPxx = numpy.array([[30,36,42],[168,207,246]])
+    expected_n = numpy.array([1,3])
+    expected_sumPx = numpy.array([[1,2,3],[18,21,24]])
+    expected_sumPxx = numpy.array([[1,4,9],[114,153,198]])
 
     assert stats.T == data.shape[0], stats.T
     assert numpy.allclose(stats.n, expected_n), stats.n.compute()
