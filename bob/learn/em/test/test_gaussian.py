@@ -36,6 +36,8 @@ def test_gaussian():
     gaussian_def = Gaussian(mean=[1,2,3])
     assert numpy.array_equal(gaussian_def["variance"], numpy.array([1.,1.,1.])), gaussian_def["variance"]
     assert numpy.array_equal(gaussian_def["variance_threshold"], numpy.array([1.e-5,1.e-5,1.e-5])), gaussian_def["variance_threshold"]
+    assert hasattr(gaussian, "log_likelihood")
+    gaussian.log_likelihood(numpy.array([1.,2.]))
 
 
 def test_multi_gaussian():
@@ -47,3 +49,5 @@ def test_multi_gaussian():
     )
     expected = numpy.array([[0.,0.],[1.,1.]])
     assert numpy.array_equal(gaussians["mean"], expected), gaussians["mean"]
+    assert hasattr(gaussians[0].view(Gaussian), "log_likelihood")
+    gaussians[0].view(Gaussian).log_likelihood(numpy.array([1.,2.]))

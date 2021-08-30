@@ -26,12 +26,12 @@ def test_GMMStats():
     # Initializes a GMMStats
     n_gaussians = 2
     n_features = 3
-    data = numpy.array([[1, 2, 3],[4,5,6],[7,8,9],[7,8,9]])
+    data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
 
     machine = GMMMachine(n_gaussians)
     trainer = MLGMMTrainer()
 
-    machine.gaussians_ = numpy.array([Gaussian([0,0,0]),Gaussian([8,8,8])])
+    machine.gaussians_ = numpy.array([Gaussian([0, 0, 0]), Gaussian([8, 8, 8])])
 
     trainer.e_step(machine, data)
 
@@ -39,17 +39,19 @@ def test_GMMStats():
 
     # shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
-    assert stats.sumPx.shape == (n_gaussians,n_features), stats.sumPx.shape
-    assert stats.sumPxx.shape == (n_gaussians,n_features), stats.sumPxx.shape
+    assert stats.sumPx.shape == (n_gaussians, n_features), stats.sumPx.shape
+    assert stats.sumPxx.shape == (n_gaussians, n_features), stats.sumPxx.shape
 
-    expected_n = numpy.array([1,3])
-    expected_sumPx = numpy.array([[1,2,3],[18,21,24]])
-    expected_sumPxx = numpy.array([[1,4,9],[114,153,198]])
+    expected_ll = -37.2998511206581
+    expected_n = numpy.array([1, 3])
+    expected_sumPx = numpy.array([[1, 2, 3], [18, 21, 24]])
+    expected_sumPxx = numpy.array([[1, 4, 9], [114, 153, 198]])
 
+    assert numpy.isclose(stats.log_likelihood, expected_ll)
     assert stats.T == data.shape[0], stats.T
-    assert numpy.allclose(stats.n, expected_n), stats.n.compute()
-    assert numpy.allclose(stats.sumPx, expected_sumPx), stats.sumPx.compute()
-    assert numpy.allclose(stats.sumPxx, expected_sumPxx), stats.sumPxx.compute()
+    assert numpy.allclose(stats.n, expected_n)
+    assert numpy.allclose(stats.sumPx, expected_sumPx)
+    assert numpy.allclose(stats.sumPxx, expected_sumPxx)
 
 
 def test_GMMMachine_1():
