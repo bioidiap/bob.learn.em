@@ -22,27 +22,27 @@ from bob.learn.em.mixture import Gaussian
 
 
 def test_GMMStats():
-    # Test a GMMStats
-    # Initializes a GMMStats
-    n_gaussians = 2
-    n_features = 3
+    """Test a GMMStats."""
+    # Initializing a GMMStats
     data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
-
+    n_gaussians = 2
+    n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
     trainer = MLGMMTrainer()
 
     machine.gaussians_ = numpy.array([Gaussian([0, 0, 0]), Gaussian([8, 8, 8])])
 
+    # Populate the Statistics
     trainer.e_step(machine, data)
 
     stats = trainer.last_step_stats
 
-    # Shapes
+    # Check shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
     assert stats.sumPx.shape == (n_gaussians, n_features), stats.sumPx.shape
     assert stats.sumPxx.shape == (n_gaussians, n_features), stats.sumPxx.shape
 
-    # Values
+    # Check values
     expected_ll = -37.2998511206581
     expected_n = numpy.array([1, 3])
     expected_sumPx = numpy.array([[1, 2, 3], [18, 21, 24]])
@@ -54,7 +54,7 @@ def test_GMMStats():
     assert numpy.allclose(stats.sumPx, expected_sumPx)
     assert numpy.allclose(stats.sumPxx, expected_sumPxx)
 
-    # Adding
+    # Adding Statistics
     new_stats = stats + stats
 
     new_expected_ll = expected_ll * 2
@@ -72,7 +72,7 @@ def test_GMMStats():
     assert numpy.allclose(new_stats.sumPx, new_expected_sumPx)
     assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
 
-    # In-place adding
+    # In-place adding of Statistics
     new_stats += stats
 
     new_expected_ll += expected_ll
@@ -91,7 +91,40 @@ def test_GMMStats():
     assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
 
 
-def test_GMMMachine_1():
+def test_GMMMachine_object():
+    n_gaussians = 5
+    machine = GMMMachine(n_gaussians)
+
+    default_weights = numpy.full(shape=(n_gaussians,), fill_value=1.0/n_gaussians)
+    default_log_weights = numpy.full(shape=(n_gaussians,), fill_value=numpy.log(1.0/n_gaussians))
+
+    # Test weights getting and setting
+    assert numpy.allclose(machine.weights, default_weights)
+    assert numpy.allclose(machine.log_weights, default_log_weights)
+
+    modified_weights = default_weights
+    modified_weights[:n_gaussians//2] = (1/n_gaussians)/2
+    modified_weights[n_gaussians//2+n_gaussians%2:] = (1/n_gaussians)*1.5
+
+    # Ensure setter works (log_weights is updated correctly)
+    machine.weights = modified_weights
+    assert numpy.allclose(machine.weights, modified_weights)
+    assert numpy.allclose(machine.log_weights, numpy.log(modified_weights))
+
+
+def test_MLTrainer():
+    data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
+    n_gaussians = 2
+    n_features = data.shape[-1]
+    machine = GMMMachine(n_gaussians)
+    trainer = MLGMMTrainer()
+    trainer.initialize(machine, data)
+
+    trainer.e_step(machine, data)
+    trainer.m_step(machine, data)
+
+
+def OLD_test_GMMMachine_1():
     # Test a GMMMachine basic features
 
     weights = numpy.array([0.5, 0.5], "float64")

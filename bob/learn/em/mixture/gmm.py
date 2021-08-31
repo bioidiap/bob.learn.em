@@ -308,6 +308,7 @@ class BaseGMMTrainer(ABC):
         self.update_means = update_means
         self.update_variances = update_variances
         self.update_weights = update_weights
+        self.mean_var_update_responsibilities_threshold = mean_var_update_responsibilities_threshold
 
     @abstractmethod
     def initialize(self, machine: GMMMachine, data: da.Array):
@@ -315,9 +316,7 @@ class BaseGMMTrainer(ABC):
 
     def e_step(self, machine: GMMMachine, data: da.Array):
         # The e-step is the same for each GMM Trainer
-        self.last_step_stats = Statistics(
-            n_gaussians=machine.n_gaussians, n_features=data.shape[-1]
-        )
+        self.last_step_stats.reset()
         if len(data.shape) == 1:
             data = data.reshape(shape=(1, -1))
 
@@ -375,19 +374,13 @@ class MLGMMTrainer(BaseGMMTrainer):
         k-means on the data to find centroids and variances.
         """
         n_features = data.shape[-1]
-        self.last_step_stats.log_likelihood = 0.0
-        self.last_step_stats.T = 0
-        self.last_step_stats.n = da.zeros((machine.n_gaussians,))
-        self.last_step_stats.sumPx = da.zeros((machine.n_gaussians, n_features))
-        self.last_step_stats.sumPxx = da.zeros((machine.n_gaussians, n_features))
+        self.last_step_stats = Statistics(machine.n_gaussians, n_features)
         if self.init_method == "k-means":
             if k_means_trainer is None:
                 k_means_trainer = KMeansTrainer()
-            self.init_method = k_means_trainer
-        if isinstance(self.init_method, KMeansTrainer):
             logger.info("Initializing GMM with k-means.")
             kmeans_machine = KMeansMachine(machine.n_gaussians).fit(
-                data, trainer=self.init_method
+                data, trainer=k_means_trainer
             )
             (
                 variances,
@@ -407,7 +400,7 @@ class MLGMMTrainer(BaseGMMTrainer):
     def m_step(self, machine: GMMMachine, data: da.Array):
         """Updates a gmm machine parameter according to the e-step statistics."""
         if self.last_step_stats is None:
-            raise RuntimeError("e_step must be called before m_step.")
+            raise RuntimeError("Initialize and e_step must be called before m_step.")
 
         # Update weights if requested
         # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
@@ -418,7 +411,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         # Threshold the low n to prevent divide by zero
         self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
 
-        # Update GMM parameters using the sufficient statistics (m_ss)
+        # Update GMM parameters using the sufficient statistics (m_ss):
 
         # Update means if requested
         # (Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006)
@@ -426,7 +419,7 @@ class MLGMMTrainer(BaseGMMTrainer):
             # Using n with the applied threshold
             machine.gaussians_["mean"] = self.last_step_stats.sumPx / self.last_step_stats.n[:,None]
 
-        # Update variance if requested
+        # Update variances if requested
         # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
         # ...but we use the "computational formula for the variance", i.e.
         #  var = 1/n * sum (P(x-mean)(x-mean))
