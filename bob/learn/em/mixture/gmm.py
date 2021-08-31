@@ -387,7 +387,8 @@ class MLGMMTrainer(BaseGMMTrainer):
                 weights,
             ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
             # Set the GMM machine gaussians with the results of k-means
-            machine.gaussians_ = da.array(
+            # FIX: Needs to be a Numpy array; Dask arrays Item assignment with str not supported
+            machine.gaussians_ = np.array(
                 [
                     Gaussian(mean=m, variance=var, variance_threshold=threshold)
                     for m, var in zip(kmeans_machine.centroids_, variances)
