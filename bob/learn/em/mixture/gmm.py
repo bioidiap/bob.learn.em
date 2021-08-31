@@ -70,7 +70,6 @@ class Gaussian(np.ndarray):
         -------
         float or array of shape (n_samples,)
             The log likelihood of each points in x.
-
         """
         # Precomputable constants if n_dims is known:
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
@@ -101,6 +100,9 @@ class GMMMachine(BaseEstimator):
         stopping the training iterations.
     random_state
         Specifies a RandomState or a seed for reproducibility.
+    weights
+        The weight of each Gaussian.
+
     """
 
     def __init__(
@@ -115,7 +117,20 @@ class GMMMachine(BaseEstimator):
         self.random_state = random_state
         if weights is None:
             weights = da.full(shape=(n_gaussians,), fill_value=(1.0 / n_gaussians))
-        self.log_weights = da.log(weights)
+        self.weights = weights
+
+    @property
+    def weights(self):
+        return self.__weights
+
+    @weights.setter
+    def weights(self, w: da.Array):
+        self.__weights = w
+        self.__log_weights = da.log(self.__weights)
+
+    @property
+    def log_weights(self):
+        return self.__log_weights
 
     def log_weighted_likelihood(self, x: da.Array):
         """Returns the weighted log likelihood for each Gaussian for a set of data.
@@ -261,17 +276,17 @@ class BaseGMMTrainer(ABC):
 
     Parameters
     ----------
-    init_method:
+    init_method
         How to initialize the GMM machine.
-    random_state:
+    random_state
         Sets a seed or RandomState for reproducibility
-    update_means:
-        Update means on each iteration.
-    update_variances:
-        Update variances on each iteration.
-    update_weights:
-        Update weights on each iteration.
-    mean_var_update_responsibilities_threshold:
+    update_means
+        Update means on each iteration (m-step).
+    update_variances
+        Update variances on each iteration (m-step).
+    update_weights
+        Update weights on each iteration (m-step).
+    mean_var_update_responsibilities_threshold
         Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of
         Bishop, `Pattern recognition and machine learning`, 2006 require a division by
         the responsibilities, which might be equal to zero because of numerical issue.
@@ -285,7 +300,7 @@ class BaseGMMTrainer(ABC):
         update_means: bool = True,
         update_variances: bool = False,
         update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps # TODO
     ):
         self.init_method = init_method
         self.random_state = random_state
@@ -385,48 +400,40 @@ class MLGMMTrainer(BaseGMMTrainer):
                     for m, var in zip(kmeans_machine.centroids_, variances)
                 ]
             )
-            machine.weights_ = weights
+            machine.weights = weights
         else:
             machine.gaussians_ = self.init_method
 
     def m_step(self, machine: GMMMachine, data: da.Array):
-        #   // - Update weights if requested
-        #   //   Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006
-        #   if (m_gmm_base_trainer.getUpdateWeights()) {
-        #     blitz::Array<double,1>& weights = gmm.updateWeights();
-        #     weights = m_gmm_base_trainer.getGMMStats()->n / static_cast<double>(m_gmm_base_trainer.getGMMStats()->T); //cast req. for linux/32-bits & osx
-        #     // Recompute the log weights in the cache of the GMMMachine
-        #     gmm.recomputeLogWeights();
-        #   }
+        """Updates a gmm machine parameter according to the e-step statistics."""
+        if self.last_step_stats is None:
+            raise RuntimeError("e_step must be called before m_step.")
 
-        #   // Generate a thresholded version of m_ss.n
-        #   for(size_t i=0; i<n_gaussians; ++i)
-        #     m_cache_ss_n_thresholded(i) = std::max(m_gmm_base_trainer.getGMMStats()->n(i), m_gmm_base_trainer.getMeanVarUpdateResponsibilitiesThreshold());
+        # Update weights if requested
+        # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
+        if self.update_weights:
+            machine.weights = self.last_step_stats.n / self.last_step_stats.T
 
-        #   // Update GMM parameters using the sufficient statistics (m_ss)
-        #   // - Update means if requested
-        #   //   Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006
-        #   if (m_gmm_base_trainer.getUpdateMeans()) {
-        #     for(size_t i=0; i<n_gaussians; ++i) {
-        #       blitz::Array<double,1>& means = gmm.getGaussian(i)->updateMean();
-        #       means = m_gmm_base_trainer.getGMMStats()->sumPx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i);
-        #     }
-        #   }
+        # thresholded_n = da.where(self.last_step_stats.n<self.mean_var_update_responsibilities_threshold, self.mean_var_update_responsibilities_threshold, self.last_step_stats.n)
+        # Threshold the low n to prevent divide by zero
+        self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
 
-        #   // - Update variance if requested
-        #   //   See Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006
-        #   //   ...but we use the "computational formula for the variance", i.e.
-        #   //   var = 1/n * sum (P(x-mean)(x-mean))
-        #   //       = 1/n * sum (Pxx) - mean^2
-        #   if (m_gmm_base_trainer.getUpdateVariances()) {
-        #     for(size_t i=0; i<n_gaussians; ++i) {
-        #       const blitz::Array<double,1>& means = gmm.getGaussian(i)->getMean();
-        #       blitz::Array<double,1>& variances = gmm.getGaussian(i)->updateVariance();
-        #       variances = m_gmm_base_trainer.getGMMStats()->sumPxx(i, blitz::Range::all()) / m_cache_ss_n_thresholded(i) - blitz::pow2(means);
-        #       gmm.getGaussian(i)->applyVarianceThresholds();
-        #     }
-        #   }
-        raise NotImplementedError
+        # Update GMM parameters using the sufficient statistics (m_ss)
+
+        # Update means if requested
+        # (Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006)
+        if self.update_means:
+            # Using n with the applied threshold
+            machine.gaussians_["mean"] = self.last_step_stats.sumPx / self.last_step_stats.n[:,None]
+
+        # Update variance if requested
+        # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
+        # ...but we use the "computational formula for the variance", i.e.
+        #  var = 1/n * sum (P(x-mean)(x-mean))
+        #      = 1/n * sum (Pxx) - mean^2
+        if self.update_variances:
+            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / self.last_step_stats.n[:,None] - da.pow(machine.gaussians_["mean"], 2)
+            # TODO apply variance thresholds after changes to variance!!
 
 
 class MAPGMMTrainer(BaseGMMTrainer):
