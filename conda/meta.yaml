@@ -37,11 +37,15 @@ requirements:
     - libblitz {{ libblitz }}
     - boost {{ boost }}
     - numpy {{ numpy }}
+    - dask {{ dask }}
+    - dask-ml {{ dask_ml }}
   run:
     - python
     - setuptools
     - boost
     - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('dask') }}
+    - {{ pin_compatible('dask-ml') }}
 
 test:
   imports:
