@@ -245,9 +245,9 @@ class Statistics:
     def reset(self):
         self.log_likelihood = 0.0
         self.T = 0
-        self.n[:] = 0.0
-        self.sumPx[:] = 0.0
-        self.sumPxx[:] = 0.0
+        self.n = da.zeros_like(self.n)
+        self.sumPx = da.zeros_like(self.sumPx)
+        self.sumPxx = da.zeros_like(self.sumPxx)
 
     def __add__(self, other):
         if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
@@ -426,7 +426,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         #  var = 1/n * sum (P(x-mean)(x-mean))
         #      = 1/n * sum (Pxx) - mean^2
         if self.update_variances:
-            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / self.last_step_stats.n[:,None] - da.pow(machine.gaussians_["mean"], 2)
+            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / self.last_step_stats.n[:,None] - da.power(machine.gaussians_["mean"], 2)
             # TODO apply variance thresholds after changes to variance!!
 
 
