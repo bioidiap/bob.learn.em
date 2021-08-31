@@ -66,7 +66,8 @@ def test_kmeans_fit():
     expected = da.array(
         [[-0.99262315, -1.05226141, -1.00525245], [1.00426431, 1.00359693, 1.05996704]]
     )
-    assert da.isclose(machine.centroids_, expected).all(), machine.centroids_.compute()
+    centroids = machine.centroids_.compute()
+    numpy.testing.assert_array_almost_equal(centroids, expected)
 
 
 def test_kmeans_fit_init_pp():
