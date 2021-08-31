@@ -97,8 +97,8 @@ class GMMMachine(BaseEstimator):
     n_gaussians
         The number of gaussians to be represented by the machine.
     convergence_threshold
-        The threshold value of likelihood difference between e-m steps used for stopping
-        the training iterations.
+        The threshold value of likelihood difference between e-m steps used for
+        stopping the training iterations.
     random_state
         Specifies a RandomState or a seed for reproducibility.
     """
@@ -109,7 +109,6 @@ class GMMMachine(BaseEstimator):
         convergence_threshold=1e-5,
         random_state: Union[int, da.random.RandomState] = 0,
         weights: Union[da.Array, None] = None,
-        max_steps: int = 200,
     ):
         self.n_gaussians = n_gaussians
         self.convergence_threshold = convergence_threshold
@@ -117,7 +116,6 @@ class GMMMachine(BaseEstimator):
         if weights is None:
             weights = da.full(shape=(n_gaussians,), fill_value=(1.0 / n_gaussians))
         self.log_weights = da.log(weights)
-        self.max_steps = max_steps  # TODO parameter in fit instead
 
     def log_weighted_likelihood(self, x: da.Array):
         """Returns the weighted log likelihood for each Gaussian for a set of data.
@@ -177,7 +175,7 @@ class GMMMachine(BaseEstimator):
 
         return ll_reduced
 
-    def fit(self, X, y=None, trainer=None, **kwargs):
+    def fit(self, X, y=None, trainer=None, max_steps: int = 200, **kwargs):
         if trainer is None:
             logger.info("Creating a default GMM trainer (ML GMM).")
             trainer = MLGMMTrainer(
@@ -186,8 +184,8 @@ class GMMMachine(BaseEstimator):
 
         trainer.initialize(self, X)
         average_output = 0
-        for step in range(self.max_steps):
-            logger.info(f"Iteration = {step:3d}/{self.max_steps}")
+        for step in range(max_steps):
+            logger.info(f"Iteration = {step:3d}/{max_steps}")
             average_output_previous = average_output
             trainer.e_step(self, X)
             trainer.m_step(self, X)
@@ -216,6 +214,8 @@ class GMMMachine(BaseEstimator):
 
 class Statistics:
     def __init__(self, n_gaussians: int, n_features: int) -> None:
+        self.n_gaussians = n_gaussians
+        self.n_features = n_features
         # The accumulated log likelihood of all samples
         self.log_likelihood = 0.0
         # The accumulated number of samples
@@ -234,6 +234,27 @@ class Statistics:
         self.sumPx[:] = 0.0
         self.sumPxx[:] = 0.0
 
+    def __add__(self, other):
+        if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
+            raise ValueError("Statistics could not be added together (shape mismatch)")
+        new_stats = Statistics(self.n_gaussians, self.n_features)
+        new_stats.log_likelihood = self.log_likelihood + other.log_likelihood
+        new_stats.T = self.T + other.T
+        new_stats.n = self.n + other.n
+        new_stats.sumPx = self.sumPx + other.sumPx
+        new_stats.sumPxx = self.sumPxx + other.sumPxx
+        return new_stats
+
+    def __iadd__(self, other):
+        if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
+            raise ValueError("Statistics could not be added together (shape mismatch)")
+        self.log_likelihood += other.log_likelihood
+        self.T += other.T
+        self.n += other.n
+        self.sumPx += other.sumPx
+        self.sumPxx += other.sumPxx
+        return self
+
 
 class BaseGMMTrainer(ABC):
     """Base class for the different GMM Trainer implementations.
@@ -244,16 +265,34 @@ class BaseGMMTrainer(ABC):
         How to initialize the GMM machine.
     random_state:
         Sets a seed or RandomState for reproducibility
+    update_means:
+        Update means on each iteration.
+    update_variances:
+        Update variances on each iteration.
+    update_weights:
+        Update weights on each iteration.
+    mean_var_update_responsibilities_threshold:
+        Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of
+        Bishop, `Pattern recognition and machine learning`, 2006 require a division by
+        the responsibilities, which might be equal to zero because of numerical issue.
+        This threshold is used to avoid such divisions.
     """
 
     def __init__(
         self,
         init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
         random_state: Union[int, da.random.RandomState] = 0,
+        update_means: bool = True,
+        update_variances: bool = False,
+        update_weights: bool = False,
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps
     ):
         self.init_method = init_method
         self.random_state = random_state
         self.last_step_stats = None
+        self.update_means = update_means
+        self.update_variances = update_variances
+        self.update_weights = update_weights
 
     @abstractmethod
     def initialize(self, machine: GMMMachine, data: da.Array):
@@ -296,7 +335,7 @@ class BaseGMMTrainer(ABC):
         pass
 
     def compute_likelihood(self, machine: GMMMachine):
-        return self.stats.log_likelihood / self.stats.T
+        return self.last_step_stats.log_likelihood / self.last_step_stats.T
 
 
 class MLGMMTrainer(BaseGMMTrainer):

@@ -37,21 +37,58 @@ def test_GMMStats():
 
     stats = trainer.last_step_stats
 
-    # shapes
+    # Shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
     assert stats.sumPx.shape == (n_gaussians, n_features), stats.sumPx.shape
     assert stats.sumPxx.shape == (n_gaussians, n_features), stats.sumPxx.shape
 
+    # Values
     expected_ll = -37.2998511206581
     expected_n = numpy.array([1, 3])
     expected_sumPx = numpy.array([[1, 2, 3], [18, 21, 24]])
     expected_sumPxx = numpy.array([[1, 4, 9], [114, 153, 198]])
 
     assert numpy.isclose(stats.log_likelihood, expected_ll)
-    assert stats.T == data.shape[0], stats.T
+    assert stats.T == data.shape[0]
     assert numpy.allclose(stats.n, expected_n)
     assert numpy.allclose(stats.sumPx, expected_sumPx)
     assert numpy.allclose(stats.sumPxx, expected_sumPxx)
+
+    # Adding
+    new_stats = stats + stats
+
+    new_expected_ll = expected_ll * 2
+    new_expected_n = expected_n * 2
+    new_expected_sumPx = expected_sumPx * 2
+    new_expected_sumPxx = expected_sumPxx * 2
+
+    assert new_stats.n.shape == (n_gaussians,), new_stats.n.shape
+    assert new_stats.sumPx.shape == (n_gaussians, n_features), new_stats.sumPx.shape
+    assert new_stats.sumPxx.shape == (n_gaussians, n_features), new_stats.sumPxx.shape
+
+    assert numpy.isclose(new_stats.log_likelihood, new_expected_ll)
+    assert new_stats.T == data.shape[0] * 2
+    assert numpy.allclose(new_stats.n, new_expected_n)
+    assert numpy.allclose(new_stats.sumPx, new_expected_sumPx)
+    assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
+
+    # In-place adding
+    new_stats += stats
+
+    new_expected_ll += expected_ll
+    new_expected_n += expected_n
+    new_expected_sumPx += expected_sumPx
+    new_expected_sumPxx += expected_sumPxx
+
+    assert new_stats.n.shape == (n_gaussians,), new_stats.n.shape
+    assert new_stats.sumPx.shape == (n_gaussians, n_features), new_stats.sumPx.shape
+    assert new_stats.sumPxx.shape == (n_gaussians, n_features), new_stats.sumPxx.shape
+
+    assert numpy.isclose(new_stats.log_likelihood, new_expected_ll)
+    assert new_stats.T == data.shape[0] * 3
+    assert numpy.allclose(new_stats.n, new_expected_n)
+    assert numpy.allclose(new_stats.sumPx, new_expected_sumPx)
+    assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
 
 
 def test_GMMMachine_1():
