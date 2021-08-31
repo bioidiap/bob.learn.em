@@ -152,7 +152,7 @@ class KMeansMachine(BaseEstimator):
         """
         if trainer is None:
             logger.info("Using default k-means trainer.")
-            trainer = KMeansTrainer(init_method="k-means||")
+            trainer = KMeansTrainer(init_method="k-means||", random_state=self.random_state)
 
         logger.debug(f"Initializing trainer.")
         trainer.initialize(
