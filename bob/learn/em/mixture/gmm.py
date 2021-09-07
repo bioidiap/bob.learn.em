@@ -17,7 +17,6 @@ from bob.learn.em.cluster import KMeansTrainer
 
 logger = logging.getLogger(__name__)
 
-
 class Gaussian(np.ndarray):
     """Represents a multi-dimensional Gaussian.
 
@@ -80,6 +79,8 @@ class Gaussian(np.ndarray):
         z = da.sum(da.power(x - self["mean"], 2) / self["variance"], axis=-1)
         return -0.5 * (g_norm + z)
 
+    def apply_variance_threshold(self):
+        self["variance"] = np.where(self["variance"] < self["variance_threshold"], self["variance_threshold"], self["variance"])
 
 class GMMMachine(BaseEstimator):
     """Stores a GMM parameters.
@@ -199,6 +200,7 @@ class GMMMachine(BaseEstimator):
 
         trainer.initialize(self, X)
         average_output = 0
+        logger.info("Training GMM...")
         for step in range(max_steps):
             logger.info(f"Iteration = {step:3d}/{max_steps}")
             average_output_previous = average_output
@@ -206,20 +208,28 @@ class GMMMachine(BaseEstimator):
             trainer.m_step(self, X)
 
             average_output = trainer.compute_likelihood(self)
-            logger.info(f"Likelihood = {average_output}")
 
             if step > 0:
                 convergence_value = abs(
                     (average_output_previous - average_output) / average_output_previous
                 )
-                logger.info(f"convergence value = {convergence_value.compute()}")
 
                 # Terminates if converged (and likelihood computation is set)
                 if (
                     self.convergence_threshold is not None
                     and convergence_value <= self.convergence_threshold
                 ):
+                    logger.info("Reached convergence threshold. Training stopped.")
                     return self
+        logger.info("Reached maximum step. Training stopped without convergence.")
+        return self
+
+    def fit_partial(self, X, y=None, trainer=None, **kwargs):
+        if trainer is None:
+            raise ValueError("Please provide a GMM trainer for fit_partial.")
+
+        trainer.e_step(self, X)
+        trainer.m_step(self, X)
         return self
 
     def transform(self, X, **kwargs):
@@ -245,9 +255,9 @@ class Statistics:
     def reset(self):
         self.log_likelihood = 0.0
         self.T = 0
-        self.n = da.zeros_like(self.n)
-        self.sumPx = da.zeros_like(self.sumPx)
-        self.sumPxx = da.zeros_like(self.sumPxx)
+        self.n = np.zeros_like(self.n)
+        self.sumPx = np.zeros_like(self.sumPx)
+        self.sumPxx = np.zeros_like(self.sumPxx)
 
     def __add__(self, other):
         if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
@@ -300,7 +310,7 @@ class BaseGMMTrainer(ABC):
         update_means: bool = True,
         update_variances: bool = False,
         update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps # TODO
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps
     ):
         self.init_method = init_method
         self.random_state = random_state
@@ -316,8 +326,14 @@ class BaseGMMTrainer(ABC):
 
     def e_step(self, machine: GMMMachine, data: da.Array):
         # The e-step is the same for each GMM Trainer
-        self.last_step_stats.reset()
-        if len(data.shape) == 1:
+        logger.debug(f"GMM Trainer e-step")
+
+        if self.last_step_stats is None:
+            self.last_step_stats = Statistics(machine.n_gaussians, data.shape[-1])
+        else:
+            self.last_step_stats.reset()
+
+        if data.ndim == 1:
             data = data.reshape(shape=(1, -1))
 
         # Log weighted Gaussian likelihoods [array of shape (n_gaussians,n_samples)]
@@ -349,6 +365,7 @@ class BaseGMMTrainer(ABC):
         pass
 
     def compute_likelihood(self, machine: GMMMachine):
+        """Returns the likelihood computed at the last e-step."""
         return self.last_step_stats.log_likelihood / self.last_step_stats.T
 
 
@@ -375,7 +392,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         """
         n_features = data.shape[-1]
         self.last_step_stats = Statistics(machine.n_gaussians, n_features)
-        if self.init_method == "k-means":
+        if type(self.init_method) is str and self.init_method == "k-means":
             if k_means_trainer is None:
                 k_means_trainer = KMeansTrainer()
             logger.info("Initializing GMM with k-means.")
@@ -394,31 +411,35 @@ class MLGMMTrainer(BaseGMMTrainer):
                     for m, var in zip(kmeans_machine.centroids_, variances)
                 ]
             )
+            machine.gaussians_.view(Gaussian).apply_variance_threshold()
             machine.weights = weights
         else:
             machine.gaussians_ = self.init_method
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         """Updates a gmm machine parameter according to the e-step statistics."""
+        logger.debug(f"ML GMM Trainer m-step")
         if self.last_step_stats is None:
             raise RuntimeError("Initialize and e_step must be called before m_step.")
 
         # Update weights if requested
         # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
         if self.update_weights:
+            logger.debug("Update weights.")
             machine.weights = self.last_step_stats.n / self.last_step_stats.T
 
-        # thresholded_n = da.where(self.last_step_stats.n<self.mean_var_update_responsibilities_threshold, self.mean_var_update_responsibilities_threshold, self.last_step_stats.n)
         # Threshold the low n to prevent divide by zero
-        self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
+        thresholded_n = da.where(self.last_step_stats.n<self.mean_var_update_responsibilities_threshold, self.mean_var_update_responsibilities_threshold, self.last_step_stats.n)
+        # self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
 
         # Update GMM parameters using the sufficient statistics (m_ss):
 
         # Update means if requested
         # (Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006)
         if self.update_means:
+            logger.debug("Update means.")
             # Using n with the applied threshold
-            machine.gaussians_["mean"] = self.last_step_stats.sumPx / self.last_step_stats.n[:,None]
+            machine.gaussians_["mean"] = self.last_step_stats.sumPx / thresholded_n[:,None]
 
         # Update variances if requested
         # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
@@ -426,8 +447,9 @@ class MLGMMTrainer(BaseGMMTrainer):
         #  var = 1/n * sum (P(x-mean)(x-mean))
         #      = 1/n * sum (Pxx) - mean^2
         if self.update_variances:
-            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / self.last_step_stats.n[:,None] - da.power(machine.gaussians_["mean"], 2)
-            # TODO apply variance thresholds after changes to variance!!
+            logger.debug("Update variances.")
+            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / thresholded_n[:,None] - da.power(machine.gaussians_["mean"], 2)
+            machine.gaussians_.view(Gaussian).apply_variance_threshold()
 
 
 class MAPGMMTrainer(BaseGMMTrainer):

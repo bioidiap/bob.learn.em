@@ -37,17 +37,23 @@ def test_gaussian():
     assert numpy.array_equal(gaussian_def["variance"], numpy.array([1.,1.,1.])), gaussian_def["variance"]
     assert numpy.array_equal(gaussian_def["variance_threshold"], numpy.array([1.e-5,1.e-5,1.e-5])), gaussian_def["variance_threshold"]
     assert hasattr(gaussian, "log_likelihood")
-    gaussian.log_likelihood(numpy.array([1.,2.]))
-
+    log_likelihood = gaussian.log_likelihood(numpy.array([1.,2.]))
+    assert equals(log_likelihood, -4.33787706641, 1e-10)
 
 def test_multi_gaussian():
     gaussians = numpy.array(
         [
             Gaussian([0,0]),
-            Gaussian([1,1]),
+            Gaussian([3,3]),
         ]
     )
-    expected = numpy.array([[0.,0.],[1.,1.]])
-    assert numpy.array_equal(gaussians["mean"], expected), gaussians["mean"]
+    expected_means = numpy.array([[0.,0.],[3.,3.]])
+    expected_variances = numpy.array([[1.,1.],[1.,1.]])
+    expected_variance_thresholds = numpy.array([[1e-5,1e-5],[1e-5,1e-5]])
+    assert numpy.array_equal(gaussians["mean"], expected_means), gaussians["mean"]
+    assert numpy.array_equal(gaussians["variance"], expected_variances), gaussians["variance"]
+    assert numpy.array_equal(gaussians["variance_threshold"], expected_variance_thresholds), gaussians["variance_threshold"]
     assert hasattr(gaussians[0].view(Gaussian), "log_likelihood")
     gaussians[0].view(Gaussian).log_likelihood(numpy.array([1.,2.]))
+
+    gaussians.view(Gaussian).apply_variance_threshold()
