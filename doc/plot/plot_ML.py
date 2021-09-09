@@ -34,43 +34,38 @@ trainer = MLGMMTrainer(
 )
 
 trainer.initialize(machine, data)
-repeat = 8
-for step in range(10):
-    print(f"Step {step*repeat} through {step*repeat+repeat} out of {10*repeat}.")
-    for r in range(repeat):
-        print(f"Step {step*repeat+r}")
-        machine = machine.fit_partial(data, trainer=trainer)
+machine = machine.fit(data, trainer=trainer)
 
-    figure, ax = plt.subplots()
-    ax.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
-    ax.scatter(versicolor[:, 0], versicolor[:, 1],
-                c="goldenrod", label="versicolor")
-    ax.scatter(virginica[:, 0], virginica[:, 1],
-                c="dimgrey", label="virginica")
-    ax.scatter(
-        machine.gaussians_["mean"][:, 0],
-        machine.gaussians_["mean"][:, 1],
-        c="blue", marker="x", label="centroids", s=60
+figure, ax = plt.subplots()
+ax.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
+ax.scatter(versicolor[:, 0], versicolor[:, 1],
+            c="goldenrod", label="versicolor")
+ax.scatter(virginica[:, 0], virginica[:, 1],
+            c="dimgrey", label="virginica")
+ax.scatter(
+    machine.gaussians_["mean"][:, 0],
+    machine.gaussians_["mean"][:, 1],
+    c="blue", marker="x", label="centroids", s=60
+)
+
+for g in machine.gaussians_:
+    covariance = numpy.diag(g["variance"])
+    radius = numpy.sqrt(5.991)
+    eigvals, eigvecs = numpy.linalg.eig(covariance)
+    axis = numpy.sqrt(eigvals) * radius
+    slope = eigvecs[1][0] / eigvecs[1][1]
+    angle = 180.0 * numpy.arctan(slope) / numpy.pi
+
+    e1 = Ellipse(
+        g["mean"], axis[0], axis[1],
+        angle=angle, linewidth=1, fill=False, zorder=2
     )
+    ax.add_patch(e1)
 
-    for g in machine.gaussians_:
-        covariance = numpy.diag(g["variance"])
-        radius = numpy.sqrt(5.991)
-        eigvals, eigvecs = numpy.linalg.eig(covariance)
-        axis = numpy.sqrt(eigvals) * radius
-        slope = eigvecs[1][0] / eigvecs[1][1]
-        angle = 180.0 * numpy.arctan(slope) / numpy.pi
-
-        e1 = Ellipse(
-            g["mean"], axis[0], axis[1],
-            angle=angle, linewidth=1, fill=False, zorder=2
-        )
-        ax.add_patch(e1)
-
-    plt.legend()
-    plt.xticks([], [])
-    plt.yticks([], [])
-    ax.set_xlabel("Sepal length")
-    ax.set_ylabel("Petal width")
-    plt.tight_layout()
-    plt.show()
+plt.legend()
+plt.xticks([], [])
+plt.yticks([], [])
+ax.set_xlabel("Sepal length")
+ax.set_ylabel("Petal width")
+plt.tight_layout()
+plt.show()
