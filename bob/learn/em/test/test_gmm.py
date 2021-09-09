@@ -91,6 +91,56 @@ def test_GMMStats():
     assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
 
 
+def test_likelihood():
+    data = numpy.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
+    n_gaussians = 3
+    machine = GMMMachine(n_gaussians)
+    machine.gaussians_ = numpy.array(
+        [
+            Gaussian((0, 0, 0)),
+            Gaussian((1, 1, 1)),
+            Gaussian((-1, -1, -1)),
+        ]
+    )
+    log_likelihood = machine.log_likelihood(data)
+    expected_ll = numpy.array([-3.6519900964986527, -3.83151883210222, -3.83151883210222, -5.344374066745753])
+    assert numpy.allclose(log_likelihood, expected_ll, atol=1e-15), log_likelihood.compute()
+
+
+def test_likelihood_variance():
+    data = numpy.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
+    n_gaussians = 3
+    machine = GMMMachine(n_gaussians)
+    machine.gaussians_ = numpy.array(
+        [
+            Gaussian((0, 0, 0), (1.1, 1.2, 0.8)),
+            Gaussian((1, 1, 1), (0.2, 0.4, 0.5)),
+            Gaussian((-1, -1, -1), (1, 1, 1)),
+        ]
+    )
+    machine.gaussians_.view(Gaussian).apply_variance_threshold()
+    log_likelihood = machine.log_likelihood(data)
+    expected_ll = numpy.array([-2.202846959440514, -3.8699524542323793, -4.229029034375473, -6.940892214952679])
+    assert numpy.allclose(log_likelihood, expected_ll, atol=1e-15), log_likelihood.compute()
+
+
+def test_likelihood_weight():
+    data = numpy.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
+    n_gaussians = 3
+    machine = GMMMachine(n_gaussians)
+    machine.gaussians_ = numpy.array(
+        [
+            Gaussian((0, 0, 0)),
+            Gaussian((1, 1, 1)),
+            Gaussian((-1, -1, -1)),
+        ]
+    )
+    machine.weights = [0.6,0.1,0.3]
+    log_likelihood = machine.log_likelihood(data)
+    expected_ll = numpy.array([-4.206596356117164, -3.492325679996329, -3.634745457950943, -6.49485678536014])
+    assert numpy.allclose(log_likelihood, expected_ll, atol=1e-15), log_likelihood.compute()
+
+
 def test_GMMMachine_object():
     n_gaussians = 5
     machine = GMMMachine(n_gaussians)

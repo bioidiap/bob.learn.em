@@ -149,15 +149,17 @@ class GMMMachine(BaseEstimator):
         # Precomputable constants if n_dims is known:
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
         # Possibility to pre-compute g_norm (would need update on variance change)
-        g_norm = N_LOG_2PI + np.sum(np.log(self.gaussians_["variance"]))
+        # [array of shape (n_gaussians,)]
+        g_norms = N_LOG_2PI + np.sum(np.log(self.gaussians_["variance"]), axis=-1)
 
         # Compute the likelihood for each data point on this Gaussian
         z = da.sum(
-            da.power(x[None, ...] - self.gaussians_["mean"][:, None, :], 2)
+            da.power(x[None, :, :] - self.gaussians_["mean"][:, None, :], 2)
             / self.gaussians_["variance"][:, None, :],
             axis=-1,
         )
-        l = -0.5 * (g_norm + z)
+        # Unweighted log likelihoods [array of shape (n_gaussians, n_samples)]
+        l = -0.5 * (g_norms[:, None] + z)
         log_weighted_likelihood = self.log_weights[:, None] + l
         return log_weighted_likelihood
 
@@ -174,6 +176,10 @@ class GMMMachine(BaseEstimator):
         array of shape (n_samples)
             The log likelihood of each sample.
         """
+        if x.ndim == 1:
+            x = x.reshape((1, -1))
+
+        # All likelihoods [array of shape (n_gaussians, n_samples)]
         log_weighted_likelihood = self.log_weighted_likelihood(x)
 
         def logaddexp_reduce(a, axis, keepdims):
