@@ -130,6 +130,23 @@ class GMMMachine(BaseEstimator):
         self.__log_weights = da.log(self.__weights)
 
     @property
+    def means(self):
+        return self.gaussians_["mean"]
+
+    @means.setter
+    def means(self, m: da.Array):
+        self.gaussians_["mean"] = m
+
+    @property
+    def variances(self):
+        return self.gaussians_["variance"]
+
+    @variances.setter
+    def variances(self, v: da.Array):
+        self.gaussians_["variance"] = v
+        self.gaussians_.view(Gaussian).apply_variance_threshold()
+
+    @property
     def log_weights(self):
         return self.__log_weights
 

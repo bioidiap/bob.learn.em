@@ -91,6 +91,35 @@ def test_GMMStats():
     assert numpy.allclose(new_stats.sumPxx, new_expected_sumPxx)
 
 
+def test_machine_parameters():
+    n_gaussians = 3
+    n_features = 2
+    machine = GMMMachine(n_gaussians)
+    machine.gaussians_ = numpy.array(
+        [
+            Gaussian((0,)*n_features),
+            Gaussian((1,)*n_features),
+            Gaussian((-1,)*n_features),
+        ]
+    )
+    assert machine.means.shape == (n_gaussians, n_features)
+    assert numpy.allclose(machine.means, numpy.repeat([[0],[1],[-1]],n_features,1))
+    assert machine.variances.shape == (n_gaussians, n_features)
+    assert numpy.allclose(machine.variances, 1)
+
+    # Setters
+
+    new_means = numpy.repeat([[1],[2],[3]], n_features, axis=1)
+    machine.means = new_means
+    assert numpy.allclose(machine.gaussians_["mean"], new_means)
+    assert machine.means.shape == (n_gaussians, n_features)
+    assert numpy.allclose(machine.means, new_means)
+    new_variances = numpy.repeat([[0.2],[1.1],[1]], n_features, axis=1)
+    machine.variances = new_variances
+    assert numpy.allclose(machine.gaussians_["variance"], new_variances)
+    assert machine.variances.shape == (n_gaussians, n_features)
+    assert numpy.allclose(machine.variances, new_variances)
+
 def test_likelihood():
     data = numpy.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
@@ -167,7 +196,7 @@ def test_MLTrainer():
     n_gaussians = 2
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
-    trainer = MLGMMTrainer()
+    trainer = MLGMMTrainer(init_method=numpy.array([Gaussian([m]*n_features) for m in range(n_gaussians)]))
     trainer.initialize(machine, data)
 
     trainer.e_step(machine, data)
