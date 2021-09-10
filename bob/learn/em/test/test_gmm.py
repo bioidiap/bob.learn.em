@@ -17,6 +17,7 @@ from bob.io.base.test_utils import datafile
 
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import MLGMMTrainer
+from bob.learn.em.mixture import MAPGMMTrainer
 from bob.learn.em.mixture import Statistics
 from bob.learn.em.mixture import Gaussian
 
@@ -192,17 +193,33 @@ def test_GMMMachine_object():
 
 
 def test_MLTrainer():
-    data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
+    data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [8, 8, 9]])
     n_gaussians = 2
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
-    trainer = MLGMMTrainer(init_method=numpy.array([Gaussian([m]*n_features) for m in range(n_gaussians)]))
+    gaussians_init = numpy.array([Gaussian([m]*n_features) for m in range(n_gaussians)])
+    trainer = MLGMMTrainer(init_method=gaussians_init)
     trainer.initialize(machine, data)
 
     trainer.e_step(machine, data)
     trainer.m_step(machine, data)
     # TODO
 
+
+def test_MAPTrainer():
+    data = numpy.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [8, 8, 9]])
+    posteriori_data = numpy.array([[1, 2, 2], [5, 4, 6], [7, 8, 9], [7, 7, 8]])
+    n_gaussians = 2
+    n_features = data.shape[-1]
+    machine = GMMMachine(n_gaussians)
+    prior_machine = GMMMachine(n_gaussians).fit(data)
+    gaussians_init = numpy.array([Gaussian([m]*n_features) for m in range(n_gaussians)])
+    trainer = MAPGMMTrainer(init_method=gaussians_init, prior_gmm=prior_machine)
+    trainer.initialize(machine, posteriori_data)
+
+    trainer.e_step(machine, posteriori_data)
+    trainer.m_step(machine, posteriori_data)
+    # TODO
 
 def OLD_test_GMMMachine_1():  # TODO
     # Test a GMMMachine basic features

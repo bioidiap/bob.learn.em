@@ -17,6 +17,7 @@ from bob.learn.em.cluster import KMeansTrainer
 
 logger = logging.getLogger(__name__)
 
+
 class Gaussian(np.ndarray):
     """Represents a multi-dimensional Gaussian.
 
@@ -80,7 +81,12 @@ class Gaussian(np.ndarray):
         return -0.5 * (g_norm + z)
 
     def apply_variance_threshold(self):
-        self["variance"] = np.where(self["variance"] < self["variance_threshold"], self["variance_threshold"], self["variance"])
+        self["variance"] = np.where(
+            self["variance"] < self["variance_threshold"],
+            self["variance_threshold"],
+            self["variance"],
+        )
+
 
 class GMMMachine(BaseEstimator):
     """Stores a GMM parameters.
@@ -333,7 +339,7 @@ class BaseGMMTrainer(ABC):
         update_means: bool = True,
         update_variances: bool = False,
         update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
     ):
         self.init_method = init_method
         self.random_state = random_state
@@ -341,7 +347,9 @@ class BaseGMMTrainer(ABC):
         self.update_means = update_means
         self.update_variances = update_variances
         self.update_weights = update_weights
-        self.mean_var_update_responsibilities_threshold = mean_var_update_responsibilities_threshold
+        self.mean_var_update_responsibilities_threshold = (
+            mean_var_update_responsibilities_threshold
+        )
 
     @abstractmethod
     def initialize(self, machine: GMMMachine, data: da.Array):
@@ -397,9 +405,23 @@ class MLGMMTrainer(BaseGMMTrainer):
 
     def __init__(
         self,
+        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
+        random_state: Union[int, da.random.RandomState] = 0,
+        update_means: bool = True,
+        update_variances: bool = False,
+        update_weights: bool = False,
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
         **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(
+            init_method,
+            random_state,
+            update_means,
+            update_variances,
+            update_weights,
+            mean_var_update_responsibilities_threshold,
+            **kwargs,
+        )
 
     def initialize(
         self,
@@ -452,7 +474,11 @@ class MLGMMTrainer(BaseGMMTrainer):
             machine.weights = self.last_step_stats.n / self.last_step_stats.T
 
         # Threshold the low n to prevent divide by zero
-        thresholded_n = da.where(self.last_step_stats.n<self.mean_var_update_responsibilities_threshold, self.mean_var_update_responsibilities_threshold, self.last_step_stats.n)
+        thresholded_n = da.where(
+            self.last_step_stats.n < self.mean_var_update_responsibilities_threshold,
+            self.mean_var_update_responsibilities_threshold,
+            self.last_step_stats.n,
+        )
         # self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
 
         # Update GMM parameters using the sufficient statistics (m_ss):
@@ -462,7 +488,9 @@ class MLGMMTrainer(BaseGMMTrainer):
         if self.update_means:
             logger.debug("Update means.")
             # Using n with the applied threshold
-            machine.gaussians_["mean"] = self.last_step_stats.sumPx / thresholded_n[:,None]
+            machine.gaussians_["mean"] = (
+                self.last_step_stats.sumPx / thresholded_n[:, None]
+            )
 
         # Update variances if requested
         # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
@@ -471,20 +499,118 @@ class MLGMMTrainer(BaseGMMTrainer):
         #      = 1/n * sum (Pxx) - mean^2
         if self.update_variances:
             logger.debug("Update variances.")
-            machine.gaussians_["variance"] = self.last_step_stats.sumPxx / thresholded_n[:,None] - da.power(machine.gaussians_["mean"], 2)
+            machine.gaussians_[
+                "variance"
+            ] = self.last_step_stats.sumPxx / thresholded_n[:, None] - da.power(
+                machine.gaussians_["mean"], 2
+            )
             machine.gaussians_.view(Gaussian).apply_variance_threshold()
 
 
 class MAPGMMTrainer(BaseGMMTrainer):
-    """Maximum A Posteriori trainer for GMM"""
+    """Maximum A Posteriori trainer for GMM.
+
+    This class implements the maximum a posteriori (:ref:`MAP <map>`) M-step of the
+    expectation-maximization algorithm for a GMM Machine.
+    The prior parameters are encoded in the form of a GMM (e.g. a universal background
+    model). The EM algorithm thus performs GMM adaptation.
+    """
+
+    def __init__(
+        self,
+        prior_gmm: GMMMachine,
+        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
+        random_state: Union[int, da.random.RandomState] = 0,
+        update_means: bool = True,
+        update_variances: bool = False,
+        update_weights: bool = False,
+        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
+        reynolds_adaptation: bool = False,
+        relevance_factor: float = 4,
+        alpha: float = 0.5,
+        **kwargs,
+    ):
+        super().__init__(
+            init_method,
+            random_state,
+            update_means,
+            update_variances,
+            update_weights,
+            mean_var_update_responsibilities_threshold,
+            **kwargs,
+        )
+        self.reynolds_adaptation = reynolds_adaptation
+        self.relevance_factor = relevance_factor
+        self.alpha = alpha
+        self.prior_gmm = prior_gmm
 
     def initialize(self, machine: GMMMachine, data: da.Array):
-        self.stat_log_likelihood = 0.0
-        self.stat_T = 0
-        self.stat_n = da.zeros((machine.n_gaussians,))
-        self.stat_sumPx = da.zeros((machine.n_gaussians, machine.n_dims))
-        self.stat_sumPxx = da.zeros((machine.n_gaussians, machine.n_dims))
-        raise NotImplementedError
+        if machine.n_gaussians != self.prior_gmm.n_gaussians:
+            raise ValueError(
+                f"Prior GMM machine (n_gaussians={self.prior_gmm.n_gaussians}) not"
+                f"compatible with current machine (n_gaussians={machine.n_gaussians})."
+            )
+        self.last_step_stats = Statistics(machine.n_gaussians, data.shape[-1])
+        machine.weights = self.prior_gmm.weights # TODO Check it's a copy!
+        machine.gaussians_ = self.prior_gmm.gaussians_ # TODO Check it's a copy!
 
     def m_step(self, machine: GMMMachine, data: da.Array):
-        raise NotImplementedError
+        # Calculate the "data-dependent adaptation coefficient", alpha_i
+        # [array of shape (n_gaussians, )]
+        if self.reynolds_adaptation:
+            alpha = self.last_step_stats.n / (
+                self.last_step_stats.n + self.relevance_factor
+            )
+        else:
+            alpha = self.alpha
+
+        # - Update weights if requested
+        #   Equation 11 of Reynolds et al., "Speaker Verification Using Adapted
+        #   Gaussian Mixture Models", Digital Signal Processing, 2000
+        if self.update_weights:
+            # Calculate the maximum likelihood weights [array of shape (n_gaussians,)]
+            ml_weights = self.last_step_stats.n / self.last_step_stats.T
+
+            # Calculate the new weights
+            machine.weights = alpha * ml_weights + (1 - alpha) * self.prior_gmm.weights
+
+            # Apply the scale factor, gamma, to ensure the new weights sum to unity
+            gamma = machine.weights.sum()
+            machine.weights /= gamma
+
+        # Update GMM parameters
+        # - Update means if requested
+        #   Equation 12 of Reynolds et al., "Speaker Verification Using Adapted
+        #   Gaussian Mixture Models", Digital Signal Processing, 2000
+        if self.update_means:
+            new_means = (
+                alpha * (self.last_step_stats.sumPx / self.last_step_stats.n[:, None])
+                + (1 - alpha) * self.prior_gmm.means
+            )
+            machine.means = da.where(
+                self.last_step_stats.n[:, None]
+                < self.mean_var_update_responsibilities_threshold,
+                self.prior_gmm.means,
+                new_means,
+            )
+
+        # - Update variance if requested
+        #   Equation 13 of Reynolds et al., "Speaker Verification Using Adapted
+        #   Gaussian Mixture Models", Digital Signal Processing, 2000
+        if self.update_variances:
+            # Calculate new variances (equation 13)
+            prior_norm_variances = (
+                self.prior_gmm.variances + self.prior_gmm.means
+            ) - da.pow(machine.means, 2)
+            new_variances = (
+                alpha * self.last_step_stats.sumPxx / self.last_step_stats.n[:, None]
+                + (1 - alpha) * (self.prior_gmm.variances + self.prior_gmm.means)
+                - da.pow(machine.means, 2)
+            )
+            machine.means = da.where(
+                self.last_step_stats.n
+                < self.mean_var_update_responsibilities_threshold,
+                prior_norm_variances,
+                new_variances,
+            )
+            machine.gaussians_.view(Gaussian).apply_variance_threshold
