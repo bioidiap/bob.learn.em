@@ -5,7 +5,7 @@
 import logging
 from abc import ABC
 from abc import abstractmethod
-from typing import Union
+from typing import Union, Any
 
 
 import dask.array as da
@@ -26,12 +26,8 @@ class Gaussian(np.ndarray):
 
     Each array can be accessed with the `[]` operator (`my_gaussian["variance"]`).
 
-    When using multiple Gaussian in an array, the attributes can be accessed in the
-    same way:
-    >>> multi_gaussian = np.array([Gaussian([0,0]),Gaussian([1,1])])
-    >>> print(multi_gaussian["mean"])
-    ... [[0. 0.]
-    ...  [1. 1.]]
+    Variance thresholds are automatically applied when setting the variance (and when
+    setting the threshold values).
 
     Parameters
     ----------
@@ -80,12 +76,55 @@ class Gaussian(np.ndarray):
         z = da.sum(da.power(x - self["mean"], 2) / self["variance"], axis=-1)
         return -0.5 * (g_norm + z)
 
-    def apply_variance_threshold(self):
-        self["variance"] = np.where(
-            self["variance"] < self["variance_threshold"],
-            self["variance_threshold"],
-            self["variance"],
+    def __setitem__(self, key, value) -> None:
+        """Set values of items (operator `[]`) of this numpy array.
+
+        Applies the threshold on the variance when setting `variance` or
+        `variance_threshold`.
+        """
+        if key == "variance":
+            value = np.maximum(self["variance_threshold"], value)
+        elif key == "variance_threshold":
+            super().__setitem__("variance", np.maximum(value, self["variance"]))
+        return super().__setitem__(key, value)
+
+    def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
+        return (
+            np.allclose(self["mean"], other["mean"], rtol=rtol, atol=atol)
+            and np.allclose(self["variance"], other["variance"], rtol=rtol, atol=atol)
+            and np.allclose(self["variance_threshold"], other["variance_threshold"], rtol=rtol, atol=atol)
         )
+
+
+class MultiGaussian(Gaussian):
+    """Container for multiple Gaussian objects.
+
+    Ensures that the attributes and method are accessed correctly when using multiple
+    Gaussian in one array.
+
+    Usage (creates two Gaussians centered in (0,0) and (1,1), with variances of 1):
+    >>> gaussians = MultiGaussian(means=np.array([[0,0],[1,1]]))
+    >>> print(gaussians["means"])
+    ... [[0. 0.]
+    ...  [1. 1.]]
+    """
+    def __new__(cls, means, variances=None, variance_thresholds=None):
+        if means.ndim < 2:
+            raise ValueError(f"means should be 2D but has ndim={means.ndim}.")
+        n_features = means.shape[-1]
+        n_gaussians = means.shape[0]
+        if variances is None:
+            variances = np.ones_like(means, dtype=float)
+        if variance_thresholds is None:
+            variance_thresholds = np.full_like(means, fill_value=1e-5, dtype=float)
+        rec = np.ndarray(
+            shape=(n_gaussians, n_features),
+            dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
+        )
+        rec["mean"] = means
+        rec["variance"] = variances
+        rec["variance_threshold"] = variance_thresholds
+        return rec.view(cls)
 
 
 class GMMMachine(BaseEstimator):
@@ -131,30 +170,72 @@ class GMMMachine(BaseEstimator):
         return self.__weights
 
     @weights.setter
-    def weights(self, w: da.Array):
+    def weights(self, w: np.ndarray):
         self.__weights = w
-        self.__log_weights = da.log(self.__weights)
+        self.__log_weights = np.log(self.__weights)
 
     @property
     def means(self):
         return self.gaussians_["mean"]
 
     @means.setter
-    def means(self, m: da.Array):
-        self.gaussians_["mean"] = m
+    def means(self, m: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["mean"] = m
+        else:
+            self.gaussians_ = MultiGaussian(means=m)
 
     @property
     def variances(self):
         return self.gaussians_["variance"]
 
     @variances.setter
-    def variances(self, v: da.Array):
-        self.gaussians_["variance"] = v
-        self.gaussians_.view(Gaussian).apply_variance_threshold()
+    def variances(self, v: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["variance"] = v
+        else:
+            zeros = np.zeros_like(v)
+            self.gaussians_ = MultiGaussian(means=zeros, variances=v)
+
+    @property
+    def variance_thresholds(self):
+        return self.gaussians_["variance_threshold"]
+
+    @variance_thresholds.setter
+    def variance_thresholds(self, t: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["variance_threshold"] = t
+        else:
+            zeros = np.zeros_like(t)
+            self.gaussians_ = MultiGaussian(means=zeros, variance_thresholds=t)
 
     @property
     def log_weights(self):
         return self.__log_weights
+
+    @property
+    def shape(self):
+        return self.gaussians_.shape
+
+    def __eq__(self, other):
+        return np.array_equal(self.gaussians_, other.gaussians_)
+
+    def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
+        return (
+            self.gaussians_.is_similar_to(other.gaussians_, rtol=rtol, atol=atol)
+            and np.allclose(self.weights, other.weights, rtol=rtol, atol=atol)
+        )
+
+    def copy(self):
+        copy_machine = GMMMachine(
+            self.n_gaussians,
+            convergence_threshold=self.convergence_threshold,
+            random_state=self.random_state,
+            weights=self.weights,
+        )
+        if hasattr(self, "gaussians_"):
+            copy_machine.gaussians_ = self.gaussians_ # TODO check thats a copy.
+        return copy_machine
 
     def log_weighted_likelihood(self, x: da.Array):
         """Returns the weighted log likelihood for each Gaussian for a set of data.
@@ -273,7 +354,7 @@ class Statistics:
         # The accumulated log likelihood of all samples
         self.log_likelihood = 0.0
         # The accumulated number of samples
-        self.T = 0
+        self.t = 0
         # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)
         self.n = np.zeros(shape=(n_gaussians,), dtype=float)
         # For each Gaussian, the accumulated sum of responsibility times the sample
@@ -281,9 +362,18 @@ class Statistics:
         # For each Gaussian, the accumulated sum of responsibility times the sample squared
         self.sumPxx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
 
+    def from_file(self, file):
+        print(dir(file))
+        print(file.keys())
+        self.log_likelihood = file["log_liklihood"] # TODO? Fix this typo (requires files edit)
+        self.t = file["T"]
+        self.n = file["n"]
+        self.sumPx = file["sumPx"]
+        self.sumPxx = file["sumPxx"]
+
     def reset(self):
         self.log_likelihood = 0.0
-        self.T = 0
+        self.t = 0
         self.n = np.zeros_like(self.n)
         self.sumPx = np.zeros_like(self.sumPx)
         self.sumPxx = np.zeros_like(self.sumPxx)
@@ -293,7 +383,7 @@ class Statistics:
             raise ValueError("Statistics could not be added together (shape mismatch)")
         new_stats = Statistics(self.n_gaussians, self.n_features)
         new_stats.log_likelihood = self.log_likelihood + other.log_likelihood
-        new_stats.T = self.T + other.T
+        new_stats.t = self.t + other.t
         new_stats.n = self.n + other.n
         new_stats.sumPx = self.sumPx + other.sumPx
         new_stats.sumPxx = self.sumPxx + other.sumPxx
@@ -303,7 +393,7 @@ class Statistics:
         if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
             raise ValueError("Statistics could not be added together (shape mismatch)")
         self.log_likelihood += other.log_likelihood
-        self.T += other.T
+        self.t += other.t
         self.n += other.n
         self.sumPx += other.sumPx
         self.sumPxx += other.sumPxx
@@ -379,7 +469,7 @@ class BaseGMMTrainer(ABC):
         # Total likelihood [float]
         self.last_step_stats.log_likelihood = da.sum(log_likelihood)
         # Count of samples [int]
-        self.last_step_stats.T = data.shape[0]
+        self.last_step_stats.t = data.shape[0]
         # Responsibilities [array of shape (n_gaussians,)]
         self.last_step_stats.n = da.sum(responsibility, axis=-1)
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
@@ -397,7 +487,7 @@ class BaseGMMTrainer(ABC):
 
     def compute_likelihood(self, machine: GMMMachine):
         """Returns the likelihood computed at the last e-step."""
-        return self.last_step_stats.log_likelihood / self.last_step_stats.T
+        return self.last_step_stats.log_likelihood / self.last_step_stats.t
 
 
 class MLGMMTrainer(BaseGMMTrainer):
@@ -449,17 +539,13 @@ class MLGMMTrainer(BaseGMMTrainer):
                 weights,
             ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
             # Set the GMM machine gaussians with the results of k-means
-            # FIX: Needs to be a Numpy array; Dask arrays Item assignment with str not supported
-            machine.gaussians_ = np.array(
-                [
-                    Gaussian(mean=m, variance=var, variance_threshold=threshold)
-                    for m, var in zip(kmeans_machine.centroids_, variances)
-                ]
+            machine.gaussians_ = MultiGaussian(
+                means=kmeans_machine.centroids_,
+                variances=variances,
             )
-            machine.gaussians_.view(Gaussian).apply_variance_threshold()
             machine.weights = weights
         else:
-            machine.gaussians_ = self.init_method
+            machine.gaussians_ = self.init_method # TODO other name for this param...
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         """Updates a gmm machine parameter according to the e-step statistics."""
@@ -471,7 +557,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
         if self.update_weights:
             logger.debug("Update weights.")
-            machine.weights = self.last_step_stats.n / self.last_step_stats.T
+            machine.weights = self.last_step_stats.n / self.last_step_stats.t
 
         # Threshold the low n to prevent divide by zero
         thresholded_n = da.where(
@@ -504,7 +590,6 @@ class MLGMMTrainer(BaseGMMTrainer):
             ] = self.last_step_stats.sumPxx / thresholded_n[:, None] - da.power(
                 machine.gaussians_["mean"], 2
             )
-            machine.gaussians_.view(Gaussian).apply_variance_threshold()
 
 
 class MAPGMMTrainer(BaseGMMTrainer):
@@ -569,7 +654,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
         #   Gaussian Mixture Models", Digital Signal Processing, 2000
         if self.update_weights:
             # Calculate the maximum likelihood weights [array of shape (n_gaussians,)]
-            ml_weights = self.last_step_stats.n / self.last_step_stats.T
+            ml_weights = self.last_step_stats.n / self.last_step_stats.t
 
             # Calculate the new weights
             machine.weights = alpha * ml_weights + (1 - alpha) * self.prior_gmm.weights
@@ -601,16 +686,15 @@ class MAPGMMTrainer(BaseGMMTrainer):
             # Calculate new variances (equation 13)
             prior_norm_variances = (
                 self.prior_gmm.variances + self.prior_gmm.means
-            ) - da.pow(machine.means, 2)
+            ) - da.power(machine.means, 2)
             new_variances = (
                 alpha * self.last_step_stats.sumPxx / self.last_step_stats.n[:, None]
                 + (1 - alpha) * (self.prior_gmm.variances + self.prior_gmm.means)
-                - da.pow(machine.means, 2)
+                - da.power(machine.means, 2)
             )
             machine.means = da.where(
-                self.last_step_stats.n
+                self.last_step_stats.n[:, None]
                 < self.mean_var_update_responsibilities_threshold,
                 prior_norm_variances,
                 new_variances,
             )
-            machine.gaussians_.view(Gaussian).apply_variance_threshold
