@@ -18,6 +18,9 @@ from bob.learn.em.cluster import KMeansTrainer
 logger = logging.getLogger(__name__)
 
 
+EPSILON = np.finfo(float).eps
+
+
 class Gaussian(np.ndarray):
     """Represents a multi-dimensional Gaussian.
 
@@ -57,7 +60,7 @@ class Gaussian(np.ndarray):
         if variance is None:
             variance = np.ones_like(mean, dtype=float)
         if variance_threshold is None:
-            variance_threshold = np.full_like(mean, fill_value=1e-5, dtype=float)
+            variance_threshold = np.full_like(mean, fill_value=EPSILON, dtype=float)
         rec = np.ndarray(
             shape=(n_features,),
             dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
@@ -109,7 +112,12 @@ class Gaussian(np.ndarray):
         return (
             np.allclose(self["mean"], other["mean"], rtol=rtol, atol=atol)
             and np.allclose(self["variance"], other["variance"], rtol=rtol, atol=atol)
-            and np.allclose(self["variance_threshold"], other["variance_threshold"], rtol=rtol, atol=atol)
+            and np.allclose(
+                self["variance_threshold"],
+                other["variance_threshold"],
+                rtol=rtol,
+                atol=atol,
+            )
         )
 
 
@@ -125,6 +133,7 @@ class MultiGaussian(Gaussian):
     ... [[0. 0.]
     ...  [1. 1.]]
     """
+
     def __new__(cls, means, variances=None, variance_thresholds=None):
         if means.ndim < 2:
             raise ValueError(f"means should be 2D but has ndim={means.ndim}.")
@@ -133,7 +142,7 @@ class MultiGaussian(Gaussian):
         if variances is None:
             variances = np.ones_like(means, dtype=float)
         if variance_thresholds is None:
-            variance_thresholds = np.full_like(means, fill_value=1e-5, dtype=float)
+            variance_thresholds = np.full_like(means, fill_value=EPSILON, dtype=float)
         rec = np.ndarray(
             shape=(n_gaussians, n_features),
             dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
@@ -142,6 +151,7 @@ class MultiGaussian(Gaussian):
         rec["variance_threshold"] = variance_thresholds
         rec["variance"] = np.maximum(variance_thresholds, variances)
         return rec.view(cls)
+
 
 class GMMMachine(BaseEstimator):
     """Stores a GMM parameters.
@@ -175,6 +185,7 @@ class GMMMachine(BaseEstimator):
         Gaussians weights.
 
     """
+
     def __init__(
         self,
         n_gaussians: int,
@@ -229,7 +240,9 @@ class GMMMachine(BaseEstimator):
         if hasattr(self, "gaussians_"):
             self.gaussians_["variance_threshold"] = t
         else:
-            self.gaussians_ = MultiGaussian(means=np.zeros_like(t), variance_thresholds=t)
+            self.gaussians_ = MultiGaussian(
+                means=np.zeros_like(t), variance_thresholds=t
+            )
 
     @property
     def log_weights(self):
@@ -243,10 +256,9 @@ class GMMMachine(BaseEstimator):
         return np.array_equal(self.gaussians_, other.gaussians_)
 
     def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
-        return (
-            self.gaussians_.is_similar_to(other.gaussians_, rtol=rtol, atol=atol)
-            and np.allclose(self.weights, other.weights, rtol=rtol, atol=atol)
-        )
+        return self.gaussians_.is_similar_to(
+            other.gaussians_, rtol=rtol, atol=atol
+        ) and np.allclose(self.weights, other.weights, rtol=rtol, atol=atol)
 
     def copy(self):
         copy_machine = GMMMachine(
@@ -387,7 +399,9 @@ class Statistics:
     def from_file(self, file):
         print(dir(file))
         print(file.keys())
-        self.log_likelihood = file["log_liklihood"] # TODO? Fix this typo (requires files edit)
+        self.log_likelihood = file[
+            "log_liklihood"
+        ]  # TODO? Fix this typo (requires files edit)
         self.t = file["T"]
         self.n = file["n"]
         self.sumPx = file["sumPx"]
@@ -567,7 +581,7 @@ class MLGMMTrainer(BaseGMMTrainer):
             )
             machine.weights = weights
         else:
-            machine.gaussians_ = self.init_method # TODO other name for this param...
+            machine.gaussians_ = self.init_method  # TODO other name for this param...
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         """Updates a gmm machine parameter according to the e-step statistics."""
