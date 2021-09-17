@@ -42,34 +42,30 @@ def test_GMMMachine_1():
   gmm.variances = variances
   gmm.variance_thresholds = varianceThresholds
   assert gmm.shape == (2,3)
-  assert (gmm.weights == weights).all()
-  assert (gmm.means == means).all()
-  assert (gmm.variances == variances).all()
-  assert (gmm.variance_thresholds == varianceThresholds).all()
+  np.testing.assert_equal(gmm.weights, weights)
+  np.testing.assert_equal(gmm.means, means)
+  np.testing.assert_equal(gmm.variances, variances)
+  np.testing.assert_equal(gmm.variance_thresholds, varianceThresholds)
 
-  # Checks supervector-like accesses
-  assert (gmm.means == means).all()
-  assert (gmm.variances == variances).all()
   newMeans = np.array([[3, 70, 2], [4, 72, 2]], 'float64')
   newVariances = np.array([[1, 1, 1], [2, 2, 2]], 'float64')
-
 
   # Checks particular varianceThresholds-related methods
   varianceThresholds1D = np.array([0.3, 1, 0.5], 'float64')
   gmm.variance_thresholds = varianceThresholds1D
-  assert (gmm.variance_thresholds[0,:] == varianceThresholds1D).all()
-  assert (gmm.variance_thresholds[1,:] == varianceThresholds1D).all()
+  np.testing.assert_equal(gmm.variance_thresholds[0,:], varianceThresholds1D)
+  np.testing.assert_equal(gmm.variance_thresholds[1,:], varianceThresholds1D)
 
   gmm.variance_thresholds = 0.005
-  assert (gmm.variance_thresholds == 0.005).all()
+  np.testing.assert_equal(gmm.variance_thresholds, np.full((2,3), 0.005))
 
   # Checks Gaussians access
   gmm.means     = newMeans
   gmm.variances = newVariances
-  assert (gmm.gaussians_[0]["mean"] == newMeans[0,:]).all()
-  assert (gmm.gaussians_[1]["mean"] == newMeans[1,:]).all()
-  assert (gmm.gaussians_[0]["variance"] == newVariances[0,:]).all()
-  assert (gmm.gaussians_[1]["variance"] == newVariances[1,:]).all()
+  np.testing.assert_equal(gmm.gaussians_[0]["mean"], newMeans[0,:])
+  np.testing.assert_equal(gmm.gaussians_[1]["mean"], newMeans[1,:])
+  np.testing.assert_equal(gmm.gaussians_[0]["variance"], newVariances[0,:])
+  np.testing.assert_equal(gmm.gaussians_[1]["variance"], newVariances[1,:])
 
   # Checks comparison
   gmm2 = gmm.copy()
@@ -248,12 +244,10 @@ def test_machine_parameters():
     machine.gaussians_ = MultiGaussian(
         means=np.repeat([[0], [1], [-1]], n_features, 1)
     )
-    assert machine.means.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(
         machine.means, np.repeat([[0], [1], [-1]], n_features, 1)
     )
-    assert machine.variances.shape == (n_gaussians, n_features)
-    np.testing.assert_almost_equal(machine.variances, 1)
+    np.testing.assert_almost_equal(machine.variances, np.ones((n_gaussians, n_features)))
 
     # Setters
 
@@ -346,18 +340,25 @@ def test_GMMMachine_object():
 
 
 def test_MLTrainer():
-    data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8]])
+    # Simple GMM test
+    data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
     n_gaussians = 2
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
-    gaussians_init = np.array([Gaussian([m] * n_features) for m in range(n_gaussians)])
-    trainer = MLGMMTrainer(init_method=gaussians_init)
+    gaussians_init = MultiGaussian(means=np.repeat([[2], [8]], n_features, 1))
+    trainer = MLGMMTrainer(init_method=gaussians_init, update_means=True, update_variances=True, update_weights=True)
     trainer.initialize(machine, data)
 
     trainer.e_step(machine, data)
     trainer.m_step(machine, data)
-    # TODO
-    raise NotImplementedError("TODO")
+
+    expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
+    np.testing.assert_almost_equal(machine.means, expected_means)
+    expected_weights = np.array([2/5, 3/5])
+    np.testing.assert_almost_equal(machine.weights, expected_weights)
+    eps = np.finfo(float).eps
+    expected_variances = np.array([[1/4, 1/4, eps], [eps, 2/3, 2/3]])
+    np.testing.assert_almost_equal(machine.variances, expected_variances)
 
 
 def test_MAPTrainer():
@@ -365,18 +366,28 @@ def test_MAPTrainer():
     machine = GMMMachine(n_gaussians)
     prior_machine = GMMMachine(n_gaussians)
     prior_machine.gaussians_ = MultiGaussian(
-        means=np.repeat([[2], [8]], 3, 1)
+        means=np.array([[2, 2, 2], [8, 8, 8]])
     )
     prior_machine.weights = np.array([0.5, 0.5])
 
-    post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 9]])
-    trainer = MAPGMMTrainer(prior_gmm=prior_machine, update_means=True, update_variances=True, update_weights=True, relevance_factor=4,alpha=0.5)
+    post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
+    trainer = MAPGMMTrainer(prior_gmm=prior_machine, update_means=True, update_variances=True, update_weights=True, relevance_factor=4, alpha=0.5)
     trainer.initialize(machine, post_data)
+
+    # Equal to priors before fitting
+    np.testing.assert_equal(machine.means, np.array([[2, 2, 2], [8, 8, 8]]))
+    np.testing.assert_equal(machine.variances, np.ones((2,3)))
+
     trainer.e_step(machine, post_data)
     trainer.m_step(machine, post_data)
-    expected_means = np.array([[1.83333333, 1.83333333, 2.],[7.66666667, 7.83333333, 8.33333333]])
+
+    expected_means = np.array([
+        [1.83333333, 1.83333333, 2.],
+        [7.57142857, 8, 8]
+    ])
     np.testing.assert_almost_equal(machine.means, expected_means)
-    expected_vars = np.array([[1, 1, 1], [7, 8, 9]])  # TODO take the values from C++
-    np.testing.assert_almost_equal(
-        machine.gaussians_["variances"], expected_vars, err_msg="TODO"  # TODO
-    )
+    eps = np.finfo(float).eps
+    expected_vars = np.array([[eps, eps, eps], [eps, eps, eps]])
+    np.testing.assert_almost_equal(machine.variances, expected_vars)
+    expected_weights = np.array([0.46226415, 0.53773585])
+    np.testing.assert_almost_equal(machine.weights, expected_weights)
