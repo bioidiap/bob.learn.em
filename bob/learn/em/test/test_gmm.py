@@ -371,10 +371,17 @@ def test_MAPTrainer():
     prior_machine.weights = np.array([0.5, 0.5])
 
     post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
-    trainer = MAPGMMTrainer(prior_gmm=prior_machine, update_means=True, update_variances=True, update_weights=True, relevance_factor=4, alpha=0.5)
+    trainer = MAPGMMTrainer(
+        prior_gmm=prior_machine,
+        update_means=True,
+        update_variances=True,
+        update_weights=True,
+        relevance_factor=4,
+        alpha=0.5
+    )
     trainer.initialize(machine, post_data)
 
-    # Equal to priors before fitting
+    # Machine equals to priors before fitting
     np.testing.assert_equal(machine.means, np.array([[2, 2, 2], [8, 8, 8]]))
     np.testing.assert_equal(machine.variances, np.ones((2,3)))
 

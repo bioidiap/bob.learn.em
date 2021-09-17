@@ -635,6 +635,12 @@ class MAPGMMTrainer(BaseGMMTrainer):
     expectation-maximization algorithm for a GMM Machine.
     The prior parameters are encoded in the form of a GMM (e.g. a universal background
     model). The EM algorithm thus performs GMM adaptation.
+
+
+    Parameters
+    ----------
+    relevance_factor:
+        If set, the Reynolds adaptation will be applied with this factor.
     """
 
     def __init__(
@@ -646,8 +652,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
         update_variances: bool = False,
         update_weights: bool = False,
         mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
-        reynolds_adaptation: bool = False,
-        relevance_factor: float = 4,
+        relevance_factor: Union[float, None] = 4,
         alpha: float = 0.5,
         **kwargs,
     ):
@@ -660,7 +665,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
             mean_var_update_responsibilities_threshold,
             **kwargs,
         )
-        self.reynolds_adaptation = reynolds_adaptation
+        self.reynolds_adaptation = not relevance_factor is None
         self.relevance_factor = relevance_factor
         self.alpha = alpha
         self.prior_gmm = prior_gmm
@@ -683,6 +688,8 @@ class MAPGMMTrainer(BaseGMMTrainer):
                 self.last_step_stats.n + self.relevance_factor
             )
         else:
+            if not hasattr(self.alpha, "ndim"):
+                self.alpha = np.full((machine.n_gaussians,), self.alpha)
             alpha = self.alpha
 
         # - Update weights if requested
@@ -705,8 +712,8 @@ class MAPGMMTrainer(BaseGMMTrainer):
         #   Gaussian Mixture Models", Digital Signal Processing, 2000
         if self.update_means:
             new_means = (
-                alpha * (self.last_step_stats.sumPx / self.last_step_stats.n[:, None])
-                + (1 - alpha) * self.prior_gmm.means
+                da.multiply(alpha[:, None], (self.last_step_stats.sumPx / self.last_step_stats.n[:, None]))
+                + da.multiply((1 - alpha[:, None]), self.prior_gmm.means)
             )
             machine.means = da.where(
                 self.last_step_stats.n[:, None]
@@ -724,11 +731,11 @@ class MAPGMMTrainer(BaseGMMTrainer):
                 self.prior_gmm.variances + self.prior_gmm.means
             ) - da.power(machine.means, 2)
             new_variances = (
-                alpha * self.last_step_stats.sumPxx / self.last_step_stats.n[:, None]
-                + (1 - alpha) * (self.prior_gmm.variances + self.prior_gmm.means)
+                alpha[:, None] * self.last_step_stats.sumPxx / self.last_step_stats.n[:, None]
+                + (1 - alpha[:, None]) * (self.prior_gmm.variances + self.prior_gmm.means)
                 - da.power(machine.means, 2)
             )
-            machine.means = da.where(
+            machine.variances = da.where(
                 self.last_step_stats.n[:, None]
                 < self.mean_var_update_responsibilities_threshold,
                 prior_norm_variances,
