@@ -29,6 +29,19 @@ class Gaussian(np.ndarray):
     Variance thresholds are automatically applied when setting the variance (and when
     setting the threshold values).
 
+    Usage:
+    >>> my_gaussian = Gaussian(mean=np.array([0,1,2]))
+    >>> print(my_gaussian["mean"])
+    ... [0. 1. 2.]
+    >>> print(my_gaussian["variance"])
+    ... [1. 1. 1.]
+
+    A numpy array of multiple Gaussian objects can be accessed in the same way:
+    >>> my_gaussians = np.array(Gaussian(np.array([0,0])), Gaussian(np.array([1,1])))
+    >>> print(my_gaussians["mean"])
+    ... [[0. 0.]
+    ...  [1. 1.]]
+
     Parameters
     ----------
     mean: array of shape (n_features,)
@@ -50,8 +63,8 @@ class Gaussian(np.ndarray):
             dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
         )
         rec["mean"] = mean
-        rec["variance"] = variance
         rec["variance_threshold"] = variance_threshold
+        rec["variance"] = np.maximum(variance_threshold, variance)
         return rec.view(cls)
 
     def log_likelihood(self, x):
@@ -67,9 +80,7 @@ class Gaussian(np.ndarray):
         float or array of shape (n_samples,)
             The log likelihood of each points in x.
         """
-        # Precomputable constants if n_dims is known:
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
-        # Possibility to pre-compute g_norm (would need update on variance change)
         g_norm = N_LOG_2PI + np.sum(np.log(self["variance"]))
 
         # Compute the likelihood for each data point this Gaussian
@@ -88,6 +99,12 @@ class Gaussian(np.ndarray):
             super().__setitem__("variance", np.maximum(value, self["variance"]))
         return super().__setitem__(key, value)
 
+    def __eq__(self, other):
+        return np.array_equal(self, other)
+
+    def __ne__(self, other):
+        return not np.array_equal(self, other)
+
     def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
         return (
             np.allclose(self["mean"], other["mean"], rtol=rtol, atol=atol)
@@ -104,7 +121,7 @@ class MultiGaussian(Gaussian):
 
     Usage (creates two Gaussians centered in (0,0) and (1,1), with variances of 1):
     >>> gaussians = MultiGaussian(means=np.array([[0,0],[1,1]]))
-    >>> print(gaussians["means"])
+    >>> print(gaussians["mean"])
     ... [[0. 0.]
     ...  [1. 1.]]
     """
@@ -122,10 +139,9 @@ class MultiGaussian(Gaussian):
             dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
         )
         rec["mean"] = means
-        rec["variance"] = variances
         rec["variance_threshold"] = variance_thresholds
+        rec["variance"] = np.maximum(variance_thresholds, variances)
         return rec.view(cls)
-
 
 class GMMMachine(BaseEstimator):
     """Stores a GMM parameters.
@@ -149,8 +165,16 @@ class GMMMachine(BaseEstimator):
     weights
         The weight of each Gaussian.
 
-    """
+    Attributes
+    ----------
+    means, variances, variance_thresholds:
+        Gaussians parameters.
+    gaussians_:
+        All Gaussians parameters.
+    weights:
+        Gaussians weights.
 
+    """
     def __init__(
         self,
         n_gaussians: int,
@@ -162,7 +186,7 @@ class GMMMachine(BaseEstimator):
         self.convergence_threshold = convergence_threshold
         self.random_state = random_state
         if weights is None:
-            weights = da.full(shape=(n_gaussians,), fill_value=(1.0 / n_gaussians))
+            weights = np.full(shape=(n_gaussians,), fill_value=(1 / n_gaussians))
         self.weights = weights
 
     @property
@@ -194,8 +218,7 @@ class GMMMachine(BaseEstimator):
         if hasattr(self, "gaussians_"):
             self.gaussians_["variance"] = v
         else:
-            zeros = np.zeros_like(v)
-            self.gaussians_ = MultiGaussian(means=zeros, variances=v)
+            self.gaussians_ = MultiGaussian(means=np.zeros_like(v), variances=v)
 
     @property
     def variance_thresholds(self):
@@ -206,8 +229,7 @@ class GMMMachine(BaseEstimator):
         if hasattr(self, "gaussians_"):
             self.gaussians_["variance_threshold"] = t
         else:
-            zeros = np.zeros_like(t)
-            self.gaussians_ = MultiGaussian(means=zeros, variance_thresholds=t)
+            self.gaussians_ = MultiGaussian(means=np.zeros_like(t), variance_thresholds=t)
 
     @property
     def log_weights(self):
@@ -234,7 +256,7 @@ class GMMMachine(BaseEstimator):
             weights=self.weights,
         )
         if hasattr(self, "gaussians_"):
-            copy_machine.gaussians_ = self.gaussians_ # TODO check thats a copy.
+            copy_machine.gaussians_ = self.gaussians_.copy()
         return copy_machine
 
     def log_weighted_likelihood(self, x: da.Array):
@@ -636,8 +658,8 @@ class MAPGMMTrainer(BaseGMMTrainer):
                 f"compatible with current machine (n_gaussians={machine.n_gaussians})."
             )
         self.last_step_stats = Statistics(machine.n_gaussians, data.shape[-1])
-        machine.weights = self.prior_gmm.weights # TODO Check it's a copy!
-        machine.gaussians_ = self.prior_gmm.gaussians_ # TODO Check it's a copy!
+        machine.weights = self.prior_gmm.weights.copy()
+        machine.gaussians_ = self.prior_gmm.gaussians_.copy()
 
     def m_step(self, machine: GMMMachine, data: da.Array):
         # Calculate the "data-dependent adaptation coefficient", alpha_i

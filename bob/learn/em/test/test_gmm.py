@@ -372,11 +372,10 @@ def test_MAPTrainer():
     post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 9]])
     trainer = MAPGMMTrainer(prior_gmm=prior_machine, update_means=True, update_variances=True, update_weights=True, relevance_factor=4,alpha=0.5)
     trainer.initialize(machine, post_data)
-
     trainer.e_step(machine, post_data)
     trainer.m_step(machine, post_data)
     expected_means = np.array([[1.83333333, 1.83333333, 2.],[7.66666667, 7.83333333, 8.33333333]])
-    np.testing.assert_almost_equal(machine.gaussians_["mean"], expected_means)
+    np.testing.assert_almost_equal(machine.means, expected_means)
     expected_vars = np.array([[1, 1, 1], [7, 8, 9]])  # TODO take the values from C++
     np.testing.assert_almost_equal(
         machine.gaussians_["variances"], expected_vars, err_msg="TODO"  # TODO
