@@ -17,8 +17,7 @@ from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import MLGMMTrainer
 from bob.learn.em.mixture import MAPGMMTrainer
 from bob.learn.em.mixture import Statistics
-from bob.learn.em.mixture import Gaussian
-from bob.learn.em.mixture import MultiGaussian
+from bob.learn.em.mixture import Gaussians
 
 
 def test_GMMMachine_1():
@@ -62,10 +61,10 @@ def test_GMMMachine_1():
   # Checks Gaussians access
   gmm.means     = newMeans
   gmm.variances = newVariances
-  np.testing.assert_equal(gmm.gaussians_[0]["mean"], newMeans[0,:])
-  np.testing.assert_equal(gmm.gaussians_[1]["mean"], newMeans[1,:])
-  np.testing.assert_equal(gmm.gaussians_[0]["variance"], newVariances[0,:])
-  np.testing.assert_equal(gmm.gaussians_[1]["variance"], newVariances[1,:])
+  np.testing.assert_equal(gmm.gaussians_[0]["means"], newMeans[0,:])
+  np.testing.assert_equal(gmm.gaussians_[1]["means"], newMeans[1,:])
+  np.testing.assert_equal(gmm.gaussians_[0]["variances"], newVariances[0,:])
+  np.testing.assert_equal(gmm.gaussians_[1]["variances"], newVariances[1,:])
 
   # Checks comparison
   gmm2 = gmm.copy()
@@ -176,7 +175,7 @@ def test_GMMStats():
     machine = GMMMachine(n_gaussians)
     trainer = MLGMMTrainer()
 
-    machine.gaussians_ = MultiGaussian(means=np.array([[0, 0, 0], [8, 8, 8]]))
+    machine.gaussians_ = Gaussians(means=np.array([[0, 0, 0], [8, 8, 8]]))
 
     # Populate the Statistics
     trainer.e_step(machine, data)
@@ -241,7 +240,7 @@ def test_machine_parameters():
     n_gaussians = 3
     n_features = 2
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = MultiGaussian(
+    machine.gaussians_ = Gaussians(
         means=np.repeat([[0], [1], [-1]], n_features, 1)
     )
     np.testing.assert_almost_equal(
@@ -253,12 +252,12 @@ def test_machine_parameters():
 
     new_means = np.repeat([[1], [2], [3]], n_features, axis=1)
     machine.means = new_means
-    np.testing.assert_almost_equal(machine.gaussians_["mean"], new_means)
+    np.testing.assert_almost_equal(machine.gaussians_["means"], new_means)
     assert machine.means.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(machine.means, new_means)
     new_variances = np.repeat([[0.2], [1.1], [1]], n_features, axis=1)
     machine.variances = new_variances
-    np.testing.assert_almost_equal(machine.gaussians_["variance"], new_variances)
+    np.testing.assert_almost_equal(machine.gaussians_["variances"], new_variances)
     assert machine.variances.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(machine.variances, new_variances)
 
@@ -267,7 +266,7 @@ def test_likelihood():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = MultiGaussian(
+    machine.gaussians_ = Gaussians(
         means=np.repeat([[0], [1], [-1]], 3, 1)
     )
     log_likelihood = machine.log_likelihood(data)
@@ -281,7 +280,7 @@ def test_likelihood_variance():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = MultiGaussian(
+    machine.gaussians_ = Gaussians(
         means=np.repeat([[0], [1], [-1]], 3, 1),
         variances=np.array([
             [1.1, 1.2, 0.8],
@@ -305,7 +304,7 @@ def test_likelihood_weight():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = MultiGaussian(
+    machine.gaussians_ = Gaussians(
         means=np.repeat([[0], [1], [-1]], 3, 1)
     )
     machine.weights = [0.6, 0.1, 0.3]
@@ -345,7 +344,7 @@ def test_MLTrainer():
     n_gaussians = 2
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
-    gaussians_init = MultiGaussian(means=np.repeat([[2], [8]], n_features, 1))
+    gaussians_init = Gaussians(means=np.repeat([[2], [8]], n_features, 1))
     trainer = MLGMMTrainer(init_method=gaussians_init, update_means=True, update_variances=True, update_weights=True)
     trainer.initialize(machine, data)
 
@@ -365,7 +364,7 @@ def test_MAPTrainer():
     n_gaussians = 2
     machine = GMMMachine(n_gaussians)
     prior_machine = GMMMachine(n_gaussians)
-    prior_machine.gaussians_ = MultiGaussian(
+    prior_machine.gaussians_ = Gaussians(
         means=np.array([[2, 2, 2], [8, 8, 8]])
     )
     prior_machine.weights = np.array([0.5, 0.5])

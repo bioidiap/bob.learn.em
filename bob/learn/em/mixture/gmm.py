@@ -21,85 +21,98 @@ logger = logging.getLogger(__name__)
 EPSILON = np.finfo(float).eps
 
 
-class Gaussian(np.ndarray):
-    """Represents a multi-dimensional Gaussian.
+class Gaussians(np.ndarray):
+    """Represents a set of multi-dimensional Gaussian.
 
-    This is basically three 1D-arrays: for the mean, the (diagonal) variance, and the
-    variance threshold values.
+    One Gaussian is represented by three 1D-arrays:
+        - its mean,
+        - its (diagonal) variance,
+        - the variance threshold values.
 
-    Each array can be accessed with the `[]` operator (`my_gaussian["variance"]`).
+    Each array can be accessed with the `[]` operator (`my_gaussians["variances"]`).
 
-    Variance thresholds are automatically applied when setting the variance (and when
+    Variances thresholds are automatically applied when setting the variances (and when
     setting the threshold values).
 
     Usage:
-    >>> my_gaussian = Gaussian(mean=np.array([0,1,2]))
-    >>> print(my_gaussian["mean"])
-    ... [0. 1. 2.]
-    >>> print(my_gaussian["variance"])
-    ... [1. 1. 1.]
-
-    A numpy array of multiple Gaussian objects can be accessed in the same way:
-    >>> my_gaussians = np.array(Gaussian(np.array([0,0])), Gaussian(np.array([1,1])))
-    >>> print(my_gaussians["mean"])
-    ... [[0. 0.]
-    ...  [1. 1.]]
-
-    Parameters
-    ----------
-    mean: array of shape (n_features,)
-        Center of the Gaussian distribution.
-    variance: array of shape (n_features,)
-        Diagonal variance matrix of the Gaussian distribution. Defaults to 1.
-    variance_threshold: array of shape (n_features,)
-        Threshold values. Defaults to 1e-5.
+    >>> my_gaussians = Gaussians(means=np.array([[0,0,0],[1,1,1]]))
+    >>> print(my_gaussians["means"])
+    ... [[0. 0. 0.]
+         [1. 1. 1.]]
+    >>> print(my_gaussians["variances"])
+    ... [[1. 1. 1.]
+         [1. 1. 1.]]
     """
 
-    def __new__(cls, mean, variance=None, variance_threshold=None):
-        n_features = len(mean)
-        if variance is None:
-            variance = np.ones_like(mean, dtype=float)
-        if variance_threshold is None:
-            variance_threshold = np.full_like(mean, fill_value=EPSILON, dtype=float)
+    def __new__(cls, means, variances=None, variance_thresholds=None):
+        """
+        Creates the backend 'structured numpy array' with initial values.
+
+        Parameters
+        ----------
+        means: array of shape (n_gaussians, n_features)
+            Center of the Gaussian distribution.
+        variances: array of shape (n_gaussians, n_features)
+            Diagonal variance matrix of the Gaussian distribution. Defaults to 1.
+        variance_thresholds: array of shape (n_gaussians, n_features)
+            Threshold values applied to the variances. Defaults to epsilon.
+        """
+        means = np.array(means)
+        if means.ndim < 2:
+            means = means.reshape((1, -1))
+        n_features = means.shape[-1]
+        n_gaussians = means.shape[0]
+        if variances is None:
+            variances = np.ones_like(means, dtype=float)
+        if variance_thresholds is None:
+            variance_thresholds = np.full_like(means, fill_value=EPSILON, dtype=float)
         rec = np.ndarray(
-            shape=(n_features,),
-            dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
+            shape=(n_gaussians, n_features),
+            dtype=[
+                ("means", float),
+                ("variances", float),
+                ("variance_thresholds", float),
+            ],
         )
-        rec["mean"] = mean
-        rec["variance_threshold"] = variance_threshold
-        rec["variance"] = np.maximum(variance_threshold, variance)
+        rec["means"] = means
+        rec["variance_thresholds"] = variance_thresholds
+        rec["variances"] = np.maximum(variance_thresholds, variances)
         return rec.view(cls)
 
     def log_likelihood(self, x):
-        """Returns the log-likelihood for x on this gaussian.
+        """Returns the log-likelihood for x on each gaussian.
 
         Parameters
         ----------
         x: array of shape (n_features,) or (n_samples, n_features)
-            The point or points to compute the log-likelihood of.
+            The point (or points) to compute the log-likelihood of.
 
         Returns
         -------
-        float or array of shape (n_samples,)
-            The log likelihood of each points in x.
+        array of shape (n_gaussians, n_samples)
+            The log likelihood of each points in x for each Gaussian.
         """
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
-        g_norm = N_LOG_2PI + np.sum(np.log(self["variance"]))
+        g_norm = N_LOG_2PI + np.sum(np.log(self["variances"]), axis=-1)
 
-        # Compute the likelihood for each data point this Gaussian
-        z = da.sum(da.power(x - self["mean"], 2) / self["variance"], axis=-1)
+        # Compute the likelihood for each data point on each Gaussian
+        z = da.sum(
+            da.power(x[None, ..., :] - self["means"][..., None, :], 2)
+            / self["variances"][..., None, :],
+            axis=-1,
+        )
         return -0.5 * (g_norm + z)
 
     def __setitem__(self, key, value) -> None:
         """Set values of items (operator `[]`) of this numpy array.
 
-        Applies the threshold on the variance when setting `variance` or
-        `variance_threshold`.
+        Applies the threshold on the variances when setting `variances` or
+        `variance_thresholds`.
         """
-        if key == "variance":
-            value = np.maximum(self["variance_threshold"], value)
-        elif key == "variance_threshold":
-            super().__setitem__("variance", np.maximum(value, self["variance"]))
+        if key == "variances":
+            value = np.maximum(self["variance_thresholds"], value)
+        elif key == "variance_thresholds":
+            super().__setitem__("variances", np.maximum(value, self["variances"]))
         return super().__setitem__(key, value)
 
     def __eq__(self, other):
@@ -110,47 +123,15 @@ class Gaussian(np.ndarray):
 
     def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
         return (
-            np.allclose(self["mean"], other["mean"], rtol=rtol, atol=atol)
-            and np.allclose(self["variance"], other["variance"], rtol=rtol, atol=atol)
+            np.allclose(self["means"], other["means"], rtol=rtol, atol=atol)
+            and np.allclose(self["variances"], other["variances"], rtol=rtol, atol=atol)
             and np.allclose(
-                self["variance_threshold"],
-                other["variance_threshold"],
+                self["variance_thresholds"],
+                other["variance_thresholds"],
                 rtol=rtol,
                 atol=atol,
             )
         )
-
-
-class MultiGaussian(Gaussian):
-    """Container for multiple Gaussian objects.
-
-    Ensures that the attributes and method are accessed correctly when using multiple
-    Gaussian in one array.
-
-    Usage (creates two Gaussians centered in (0,0) and (1,1), with variances of 1):
-    >>> gaussians = MultiGaussian(means=np.array([[0,0],[1,1]]))
-    >>> print(gaussians["mean"])
-    ... [[0. 0.]
-    ...  [1. 1.]]
-    """
-
-    def __new__(cls, means, variances=None, variance_thresholds=None):
-        if means.ndim < 2:
-            raise ValueError(f"means should be 2D but has ndim={means.ndim}.")
-        n_features = means.shape[-1]
-        n_gaussians = means.shape[0]
-        if variances is None:
-            variances = np.ones_like(means, dtype=float)
-        if variance_thresholds is None:
-            variance_thresholds = np.full_like(means, fill_value=EPSILON, dtype=float)
-        rec = np.ndarray(
-            shape=(n_gaussians, n_features),
-            dtype=[("mean", float), ("variance", float), ("variance_threshold", float)],
-        )
-        rec["mean"] = means
-        rec["variance_threshold"] = variance_thresholds
-        rec["variance"] = np.maximum(variance_thresholds, variances)
-        return rec.view(cls)
 
 
 class GMMMachine(BaseEstimator):
@@ -162,18 +143,6 @@ class GMMMachine(BaseEstimator):
     Gaussians, and iteratively trains with an e-m algorithm.
     If no Trainer is given, a default is used, initializing the Gaussians with k-means
     and training on the data with the maximum likelihood algorithm.
-
-    Parameters
-    ----------
-    n_gaussians
-        The number of gaussians to be represented by the machine.
-    convergence_threshold
-        The threshold value of likelihood difference between e-m steps used for
-        stopping the training iterations.
-    random_state
-        Specifies a RandomState or a seed for reproducibility.
-    weights
-        The weight of each Gaussian.
 
     Attributes
     ----------
@@ -193,6 +162,19 @@ class GMMMachine(BaseEstimator):
         random_state: Union[int, da.random.RandomState] = 0,
         weights: Union[da.Array, None] = None,
     ):
+        """
+        Parameters
+        ----------
+        n_gaussians
+            The number of gaussians to be represented by the machine.
+        convergence_threshold
+            The threshold value of likelihood difference between e-m steps used for
+            stopping the training iterations.
+        random_state
+            Specifies a RandomState or a seed for reproducibility.
+        weights
+            The weight of each Gaussian.
+        """
         self.n_gaussians = n_gaussians
         self.convergence_threshold = convergence_threshold
         self.random_state = random_state
@@ -211,38 +193,36 @@ class GMMMachine(BaseEstimator):
 
     @property
     def means(self):
-        return self.gaussians_["mean"]
+        return self.gaussians_["means"]
 
     @means.setter
     def means(self, m: np.ndarray):
         if hasattr(self, "gaussians_"):
-            self.gaussians_["mean"] = m
+            self.gaussians_["means"] = m
         else:
-            self.gaussians_ = MultiGaussian(means=m)
+            self.gaussians_ = Gaussians(means=m)
 
     @property
     def variances(self):
-        return self.gaussians_["variance"]
+        return self.gaussians_["variances"]
 
     @variances.setter
     def variances(self, v: np.ndarray):
         if hasattr(self, "gaussians_"):
-            self.gaussians_["variance"] = v
+            self.gaussians_["variances"] = v
         else:
-            self.gaussians_ = MultiGaussian(means=np.zeros_like(v), variances=v)
+            self.gaussians_ = Gaussians(means=np.zeros_like(v), variances=v)
 
     @property
     def variance_thresholds(self):
-        return self.gaussians_["variance_threshold"]
+        return self.gaussians_["variance_thresholds"]
 
     @variance_thresholds.setter
     def variance_thresholds(self, t: np.ndarray):
         if hasattr(self, "gaussians_"):
-            self.gaussians_["variance_threshold"] = t
+            self.gaussians_["variance_thresholds"] = t
         else:
-            self.gaussians_ = MultiGaussian(
-                means=np.zeros_like(t), variance_thresholds=t
-            )
+            self.gaussians_ = Gaussians(means=np.zeros_like(t), variance_thresholds=t)
 
     @property
     def log_weights(self):
@@ -288,12 +268,12 @@ class GMMMachine(BaseEstimator):
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
         # Possibility to pre-compute g_norm (would need update on variance change)
         # [array of shape (n_gaussians,)]
-        g_norms = N_LOG_2PI + np.sum(np.log(self.gaussians_["variance"]), axis=-1)
+        g_norms = N_LOG_2PI + np.sum(np.log(self.gaussians_["variances"]), axis=-1)
 
         # Compute the likelihood for each data point on this Gaussian
         z = da.sum(
-            da.power(x[None, :, :] - self.gaussians_["mean"][:, None, :], 2)
-            / self.gaussians_["variance"][:, None, :],
+            da.power(x[None, :, :] - self.gaussians_["means"][:, None, :], 2)
+            / self.gaussians_["variances"][:, None, :],
             axis=-1,
         )
         # Unweighted log likelihoods [array of shape (n_gaussians, n_samples)]
@@ -575,7 +555,7 @@ class MLGMMTrainer(BaseGMMTrainer):
                 weights,
             ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
             # Set the GMM machine gaussians with the results of k-means
-            machine.gaussians_ = MultiGaussian(
+            machine.gaussians_ = Gaussians(
                 means=kmeans_machine.centroids_,
                 variances=variances,
             )
@@ -610,7 +590,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         if self.update_means:
             logger.debug("Update means.")
             # Using n with the applied threshold
-            machine.gaussians_["mean"] = (
+            machine.gaussians_["means"] = (
                 self.last_step_stats.sumPx / thresholded_n[:, None]
             )
 
@@ -622,9 +602,9 @@ class MLGMMTrainer(BaseGMMTrainer):
         if self.update_variances:
             logger.debug("Update variances.")
             machine.gaussians_[
-                "variance"
+                "variances"
             ] = self.last_step_stats.sumPxx / thresholded_n[:, None] - da.power(
-                machine.gaussians_["mean"], 2
+                machine.gaussians_["means"], 2
             )
 
 
@@ -712,7 +692,10 @@ class MAPGMMTrainer(BaseGMMTrainer):
         #   Gaussian Mixture Models", Digital Signal Processing, 2000
         if self.update_means:
             new_means = (
-                da.multiply(alpha[:, None], (self.last_step_stats.sumPx / self.last_step_stats.n[:, None]))
+                da.multiply(
+                    alpha[:, None],
+                    (self.last_step_stats.sumPx / self.last_step_stats.n[:, None]),
+                )
                 + da.multiply((1 - alpha[:, None]), self.prior_gmm.means)
             )
             machine.means = da.where(
@@ -731,8 +714,11 @@ class MAPGMMTrainer(BaseGMMTrainer):
                 self.prior_gmm.variances + self.prior_gmm.means
             ) - da.power(machine.means, 2)
             new_variances = (
-                alpha[:, None] * self.last_step_stats.sumPxx / self.last_step_stats.n[:, None]
-                + (1 - alpha[:, None]) * (self.prior_gmm.variances + self.prior_gmm.means)
+                alpha[:, None]
+                * self.last_step_stats.sumPxx
+                / self.last_step_stats.n[:, None]
+                + (1 - alpha[:, None])
+                * (self.prior_gmm.variances + self.prior_gmm.means)
                 - da.power(machine.means, 2)
             )
             machine.variances = da.where(
