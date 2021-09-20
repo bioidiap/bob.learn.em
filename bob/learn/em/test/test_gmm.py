@@ -382,8 +382,9 @@ def test_MAPTrainer():
     trainer.initialize(machine, post_data)
 
     # Machine equals to priors before fitting
-    np.testing.assert_equal(machine.means, np.array([[2, 2, 2], [8, 8, 8]]))
-    np.testing.assert_equal(machine.variances, np.ones((2,3)))
+    np.testing.assert_equal(machine.means, prior_machine.means)
+    np.testing.assert_equal(machine.variances, prior_machine.variances)
+    np.testing.assert_equal(machine.weights, prior_machine.weights)
 
     trainer.e_step(machine, post_data)
     trainer.m_step(machine, post_data)

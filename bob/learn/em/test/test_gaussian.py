@@ -86,8 +86,9 @@ def test_likelihood():
     # Default settings
     gaussian_def = Gaussian(mean=[1, 2, 3])
     np.testing.assert_equal(gaussian_def["variance"], np.array([1.0, 1.0, 1.0]))
+    eps = np.finfo(float).eps
     np.testing.assert_equal(
-        gaussian_def["variance_threshold"], np.array([1.0e-5, 1.0e-5, 1.0e-5])
+        gaussian_def["variance_threshold"], np.array([eps, eps, eps])
     )
     assert hasattr(gaussian, "log_likelihood")
     log_likelihood = gaussian.log_likelihood(np.array([1.0, 2.0]))
@@ -100,7 +101,8 @@ def test_multi_gaussian():
     )
     expected_means = np.array([[0.0, 0.0], [3.0, 3.0]])
     expected_variances = np.array([[1.0, 1.0], [1.0, 1.0]])
-    expected_variance_thresholds = np.array([[1e-5, 1e-5], [1e-5, 1e-5]])
+    eps = np.finfo(float).eps
+    expected_variance_thresholds = np.array([[eps, eps], [eps, eps]])
     np.testing.assert_equal(gaussians["mean"], expected_means)
     np.testing.assert_equal(gaussians["variance"], expected_variances)
     np.testing.assert_equal(
@@ -111,8 +113,13 @@ def test_multi_gaussian():
 
     # Variances threshold application
     gaussians["variance_threshold"] = np.array([[1e-5, 1e-5], [1e-3, 1e-3]])
-    gaussians["variance"] = np.array([[1e-8, 1e-4], [1e-4, 1e-8]])
-    expected_variances = np.array([[1e-5, 1e-4], [1e-3, 1e-3]])
+    expected_variances = np.array([[1, 1], [1, 1]])
+    np.testing.assert_equal(gaussians["variance"], expected_variances)
+    gaussians["variance"] = np.array([[1e-8, 1e-4], [1e-2, 1e-8]])
+    expected_variances = np.array([[1e-5, 1e-4], [1e-2, 1e-3]])
+    np.testing.assert_equal(gaussians["variance"], expected_variances)
+    gaussians["variance_threshold"] = np.array([[1e-3, 1e-3], [1e-3, 1e-3]])
+    expected_variances = np.array([[1e-3, 1e-3], [1e-2, 1e-3]])
     np.testing.assert_equal(gaussians["variance"], expected_variances)
 
     # Initializing with different shapes
