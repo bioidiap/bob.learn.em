@@ -363,7 +363,6 @@ class GMMMachine(BaseEstimator):
 
 class GMMStats:
     def __init__(self, n_gaussians: int, n_features: int) -> None:
-        print("CREATING GMMStats n_gaussians:", n_gaussians,"n_features:",n_features)
         self.n_gaussians = n_gaussians
         self.n_features = n_features
         # The accumulated log likelihood of all samples
@@ -379,28 +378,44 @@ class GMMStats:
 
     @classmethod
     def from_hdf5(cls, hdf5):
-        """Creates a new GMMStats object from an HDF5 file."""
-        self = cls(n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"]))
-        self.log_likelihood = float(hdf5[
-            "log_liklihood"
-        ])  # TODO? Fix this typo (requires files edit)
-        self.t = int(hdf5["T"])
-        self.n = hdf5["n"].reshape((self.n_gaussians,))
-        self.sum_px = hdf5["sumPx"].reshape(self.shape)
-        self.sum_pxx = hdf5["sumPxx"].reshape(self.shape)
+        """Creates a new GMMStats object from an `HDF5File` object."""
+        try:
+            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+        except RuntimeError:
+            version_major, version_minor = 0, 0
+        if int(version_major) >= 1:
+            if hdf5["meta_writer_class"] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class']} is not a GMMStats.")
+            self = cls(n_gaussians=hdf5["n_gaussians"], n_features=hdf5["n_inputs"])
+            self.log_likelihood = hdf5["log_likelihood"]
+            self.t = hdf5["T"]
+            self.n = hdf5["n"]
+            self.sum_px = hdf5["sumPx"]
+            self.sum_pxx = hdf5["sumPxx"]
+        else: # Legacy file version
+            logger.info("Loading a legacy HDF5 stats file.")
+            self = cls(n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"]))
+            self.log_likelihood = float(hdf5["log_liklihood"])
+            self.t = int(hdf5["T"])
+            self.n = hdf5["n"].reshape((self.n_gaussians,))
+            self.sum_px = hdf5["sumPx"].reshape(self.shape)
+            self.sum_pxx = hdf5["sumPxx"].reshape(self.shape)
         return self
 
     def save(self, hdf5):
+        """Saves the current statistsics in an `HDF5File` object."""
+        hdf5["meta_file_version"] = "1.0"
+        hdf5["meta_writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
         hdf5["n_inputs"] = self.n_features
-        hdf5["log_liklihood"] = self.log_likelihood
+        hdf5["log_likelihood"] = self.log_likelihood
         hdf5["T"] = self.t
         hdf5["n"] = self.n
         hdf5["sumPx"] = self.sum_px
         hdf5["sumPxx"] = self.sum_pxx
 
     def load(self, hdf5):
-        """Overwrites the current statistics with those in an HDF5 file."""
+        """Overwrites the current statistics with those in an `HDF5File` object."""
         new_self = self.from_hdf5(hdf5)
         if new_self.shape != self.shape:
             logger.warning("Loaded GMMStats from hdf5 with a different shape.")
@@ -408,6 +423,7 @@ class GMMStats:
         self.init(new_self.log_likelihood, new_self.t, new_self.n, new_self.sum_px, new_self.sum_pxx)
 
     def init(self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None):
+        """Resets the statistics values to zero or a defined value."""
         self.log_likelihood = log_likelihood
         self.t = t
         self.n = np.zeros(shape=(self.n_gaussians,), dtype=float) if n is None else n
