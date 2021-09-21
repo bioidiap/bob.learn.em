@@ -10,15 +10,109 @@
 
 import numpy as np
 
+import os
+import tempfile
+
 import bob.io.base
 from bob.io.base.test_utils import datafile
 
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import MLGMMTrainer
 from bob.learn.em.mixture import MAPGMMTrainer
-from bob.learn.em.mixture import Statistics
+from bob.learn.em.mixture import GMMStats
 from bob.learn.em.mixture import Gaussians
 
+def test_GMMStats():
+  # Test a GMMStats
+  # Initializes a GMMStats
+  gs = GMMStats(2,3)
+  log_likelihood = -3.
+  T = 57
+  n = np.array([4.37, 5.31], 'float64')
+  sumpx = np.array([[1., 2., 3.], [4., 5., 6.]], 'float64')
+  sumpxx = np.array([[10., 20., 30.], [40., 50., 60.]], 'float64')
+  gs.log_likelihood = log_likelihood
+  gs.t = T
+  gs.n = n
+  gs.sum_px = sumpx
+  gs.sum_pxx = sumpxx
+  np.testing.assert_equal(gs.log_likelihood, log_likelihood)
+  np.testing.assert_equal(gs.t, T)
+  np.testing.assert_equal(gs.n, n)
+  np.testing.assert_equal(gs.sum_px, sumpx)
+  np.testing.assert_equal(gs.sum_pxx, sumpxx)
+  np.testing.assert_equal(gs.shape, (2,3))
+
+  # Saves and reads from file
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats.from_hdf5(bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Saves and reads from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats.from_hdf5(bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Saves and load from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats(2,3)
+  gs_loaded.load(bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Saves and load from file using the keyword argument
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs_loaded = GMMStats(2,3)
+  gs_loaded.load(hdf5=bob.io.base.HDF5File(filename))
+  assert gs == gs_loaded
+  assert (gs != gs_loaded ) is False
+  assert gs.is_similar_to(gs_loaded)
+
+  # Makes them different
+  gs_loaded.t = 58
+  assert (gs == gs_loaded ) is False
+  assert gs != gs_loaded
+  assert not (gs.is_similar_to(gs_loaded))
+
+  # Accumulates from another GMMStats
+  gs2 = GMMStats(2,3)
+  gs2.log_likelihood = log_likelihood
+  gs2.t = T
+  gs2.n = n.copy()
+  gs2.sum_px = sumpx.copy()
+  gs2.sum_pxx = sumpxx.copy()
+  gs2 += gs
+  np.testing.assert_equal(gs2.log_likelihood, 2*log_likelihood)
+  np.testing.assert_equal(gs2.t, 2*T)
+  np.testing.assert_almost_equal(gs2.n, 2*n, decimal=8)
+  np.testing.assert_almost_equal(gs2.sum_px, 2*sumpx, decimal=8)
+  np.testing.assert_almost_equal(gs2.sum_pxx, 2*sumpxx, decimal=8)
+
+  # Reinit and checks for zeros
+  gs_loaded.init()
+  np.testing.assert_equal(gs_loaded.log_likelihood, 0)
+  np.testing.assert_equal(gs_loaded.t, 0)
+  np.testing.assert_equal(gs_loaded.n, 0)
+  np.testing.assert_equal(gs_loaded.sum_px, 0)
+  np.testing.assert_equal(gs_loaded.sum_pxx, 0)
+  # Resize and checks size
+  assert  gs_loaded.shape==(2,3)
+  gs_loaded.resize(4,5)
+  assert  gs_loaded.shape==(4,5)
+  assert gs_loaded.sum_px.shape[0] == 4
+  assert gs_loaded.sum_px.shape[1] == 5
+
+  # Clean-up
+  os.unlink(filename)
 
 def test_GMMMachine_1():
   # Test a GMMMachine basic features
@@ -120,15 +214,15 @@ def test_GMMMachine_2():
   trainer.e_step(gmm, arrayset)
   stats = trainer.last_step_stats
 
-  stats_ref = Statistics(n_gaussians=2, n_features=2)
-  stats_ref.from_file(bob.io.base.HDF5File(datafile("stats.hdf5",__name__, path="../data/")))
+  stats_ref = GMMStats(n_gaussians=2, n_features=2)
+  stats_ref.load(bob.io.base.HDF5File(datafile("stats.hdf5",__name__, path="../data/")))
 
-  assert stats.t == stats_ref.t
-  assert np.allclose(stats.n, stats_ref.n, atol=1e-10)
-  #assert np.array_equal(stats.sumPx, stats_ref.sumPx)
-  #Note AA: precision error above
-  assert np.allclose(stats.sumPx, stats_ref.sumPx, atol=1e-10)
-  assert np.allclose(stats.sumPxx, stats_ref.sumPxx, atol=1e-10)
+  np.testing.assert_equal(stats.t, stats_ref.t)
+  np.testing.assert_almost_equal(stats.n, stats_ref.n, decimal=10)
+  # np.testing.assert_equal(stats.sum_px, stats_ref.sum_px)
+  # Note AA: precision error above
+  np.testing.assert_almost_equal(stats.sum_px, stats_ref.sum_px, decimal=10)
+  np.testing.assert_almost_equal(stats.sum_pxx, stats_ref.sum_pxx, decimal=10)
 
 
 def test_GMMMachine_3():
@@ -166,7 +260,7 @@ def test_GMMMachine_4():
   assert np.isclose(ll, gmm.log_likelihood(data).mean())
 
 
-def test_GMMStats():
+def test_GMMStats_2():
     """Test a GMMStats."""
     # Initializing a GMMStats
     data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
@@ -177,15 +271,15 @@ def test_GMMStats():
 
     machine.gaussians_ = Gaussians(means=np.array([[0, 0, 0], [8, 8, 8]]))
 
-    # Populate the Statistics
+    # Populate the GMMStats
     trainer.e_step(machine, data)
 
     stats = trainer.last_step_stats
 
     # Check shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
-    assert stats.sumPx.shape == (n_gaussians, n_features), stats.sumPx.shape
-    assert stats.sumPxx.shape == (n_gaussians, n_features), stats.sumPxx.shape
+    assert stats.sum_px.shape == (n_gaussians, n_features), stats.sum_px.shape
+    assert stats.sum_pxx.shape == (n_gaussians, n_features), stats.sum_pxx.shape
 
     # Check values
     expected_ll = -37.2998511206581
@@ -196,8 +290,8 @@ def test_GMMStats():
     np.testing.assert_almost_equal(stats.log_likelihood, expected_ll)
     assert stats.t == data.shape[0]
     np.testing.assert_almost_equal(stats.n, expected_n)
-    np.testing.assert_almost_equal(stats.sumPx, expected_sumPx)
-    np.testing.assert_almost_equal(stats.sumPxx, expected_sumPxx)
+    np.testing.assert_almost_equal(stats.sum_px, expected_sumPx)
+    np.testing.assert_almost_equal(stats.sum_pxx, expected_sumPxx)
 
     # Adding Statistics
     new_stats = stats + stats
@@ -208,14 +302,14 @@ def test_GMMStats():
     new_expected_sumPxx = expected_sumPxx * 2
 
     assert new_stats.n.shape == (n_gaussians,), new_stats.n.shape
-    assert new_stats.sumPx.shape == (n_gaussians, n_features), new_stats.sumPx.shape
-    assert new_stats.sumPxx.shape == (n_gaussians, n_features), new_stats.sumPxx.shape
+    assert new_stats.sum_px.shape == (n_gaussians, n_features), new_stats.sum_px.shape
+    assert new_stats.sum_pxx.shape == (n_gaussians, n_features), new_stats.sum_pxx.shape
 
     np.testing.assert_almost_equal(new_stats.log_likelihood, new_expected_ll)
     assert new_stats.t == data.shape[0] * 2
     np.testing.assert_almost_equal(new_stats.n, new_expected_n)
-    np.testing.assert_almost_equal(new_stats.sumPx, new_expected_sumPx)
-    np.testing.assert_almost_equal(new_stats.sumPxx, new_expected_sumPxx)
+    np.testing.assert_almost_equal(new_stats.sum_px, new_expected_sumPx)
+    np.testing.assert_almost_equal(new_stats.sum_pxx, new_expected_sumPxx)
 
     # In-place adding of Statistics
     new_stats += stats
@@ -226,14 +320,14 @@ def test_GMMStats():
     new_expected_sumPxx += expected_sumPxx
 
     assert new_stats.n.shape == (n_gaussians,), new_stats.n.shape
-    assert new_stats.sumPx.shape == (n_gaussians, n_features), new_stats.sumPx.shape
-    assert new_stats.sumPxx.shape == (n_gaussians, n_features), new_stats.sumPxx.shape
+    assert new_stats.sum_px.shape == (n_gaussians, n_features), new_stats.sum_px.shape
+    assert new_stats.sum_pxx.shape == (n_gaussians, n_features), new_stats.sum_pxx.shape
 
     np.testing.assert_almost_equal(new_stats.log_likelihood, new_expected_ll)
     assert new_stats.t == data.shape[0] * 3
     np.testing.assert_almost_equal(new_stats.n, new_expected_n)
-    np.testing.assert_almost_equal(new_stats.sumPx, new_expected_sumPx)
-    np.testing.assert_almost_equal(new_stats.sumPxx, new_expected_sumPxx)
+    np.testing.assert_almost_equal(new_stats.sum_px, new_expected_sumPx)
+    np.testing.assert_almost_equal(new_stats.sum_pxx, new_expected_sumPxx)
 
 
 def test_machine_parameters():

@@ -361,8 +361,9 @@ class GMMMachine(BaseEstimator):
         return X
 
 
-class Statistics:
+class GMMStats:
     def __init__(self, n_gaussians: int, n_features: int) -> None:
+        print("CREATING GMMStats n_gaussians:", n_gaussians,"n_features:",n_features)
         self.n_gaussians = n_gaussians
         self.n_features = n_features
         # The accumulated log likelihood of all samples
@@ -372,37 +373,56 @@ class Statistics:
         # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of P(gaussian_i|x)
         self.n = np.zeros(shape=(n_gaussians,), dtype=float)
         # For each Gaussian, the accumulated sum of responsibility times the sample
-        self.sumPx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
+        self.sum_px = np.zeros(shape=(n_gaussians, n_features), dtype=float)
         # For each Gaussian, the accumulated sum of responsibility times the sample squared
-        self.sumPxx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
+        self.sum_pxx = np.zeros(shape=(n_gaussians, n_features), dtype=float)
 
-    def from_file(self, file):
-        print(dir(file))
-        print(file.keys())
-        self.log_likelihood = file[
+    @classmethod
+    def from_hdf5(cls, hdf5):
+        """Creates a new GMMStats object from an HDF5 file."""
+        self = cls(n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"]))
+        self.log_likelihood = float(hdf5[
             "log_liklihood"
-        ]  # TODO? Fix this typo (requires files edit)
-        self.t = file["T"]
-        self.n = file["n"]
-        self.sumPx = file["sumPx"]
-        self.sumPxx = file["sumPxx"]
+        ])  # TODO? Fix this typo (requires files edit)
+        self.t = int(hdf5["T"])
+        self.n = hdf5["n"].reshape((self.n_gaussians,))
+        self.sum_px = hdf5["sumPx"].reshape(self.shape)
+        self.sum_pxx = hdf5["sumPxx"].reshape(self.shape)
+        return self
 
-    def reset(self):
-        self.log_likelihood = 0.0
-        self.t = 0
-        self.n = np.zeros_like(self.n)
-        self.sumPx = np.zeros_like(self.sumPx)
-        self.sumPxx = np.zeros_like(self.sumPxx)
+    def save(self, hdf5):
+        hdf5["n_gaussians"] = self.n_gaussians
+        hdf5["n_inputs"] = self.n_features
+        hdf5["log_liklihood"] = self.log_likelihood
+        hdf5["T"] = self.t
+        hdf5["n"] = self.n
+        hdf5["sumPx"] = self.sum_px
+        hdf5["sumPxx"] = self.sum_pxx
+
+    def load(self, hdf5):
+        """Overwrites the current statistics with those in an HDF5 file."""
+        new_self = self.from_hdf5(hdf5)
+        if new_self.shape != self.shape:
+            logger.warning("Loaded GMMStats from hdf5 with a different shape.")
+            self.resize(*new_self.shape)
+        self.init(new_self.log_likelihood, new_self.t, new_self.n, new_self.sum_px, new_self.sum_pxx)
+
+    def init(self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None):
+        self.log_likelihood = log_likelihood
+        self.t = t
+        self.n = np.zeros(shape=(self.n_gaussians,), dtype=float) if n is None else n
+        self.sum_px = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float) if sum_px is None else sum_px
+        self.sum_pxx = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float) if sum_pxx is None else sum_pxx
 
     def __add__(self, other):
         if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
             raise ValueError("Statistics could not be added together (shape mismatch)")
-        new_stats = Statistics(self.n_gaussians, self.n_features)
+        new_stats = GMMStats(self.n_gaussians, self.n_features)
         new_stats.log_likelihood = self.log_likelihood + other.log_likelihood
         new_stats.t = self.t + other.t
         new_stats.n = self.n + other.n
-        new_stats.sumPx = self.sumPx + other.sumPx
-        new_stats.sumPxx = self.sumPxx + other.sumPxx
+        new_stats.sum_px = self.sum_px + other.sum_px
+        new_stats.sum_pxx = self.sum_pxx + other.sum_pxx
         return new_stats
 
     def __iadd__(self, other):
@@ -411,9 +431,36 @@ class Statistics:
         self.log_likelihood += other.log_likelihood
         self.t += other.t
         self.n += other.n
-        self.sumPx += other.sumPx
-        self.sumPxx += other.sumPxx
+        self.sum_px += other.sum_px
+        self.sum_pxx += other.sum_pxx
         return self
+
+    def __eq__(self, other):
+        return (
+            self.log_likelihood == other.log_likelihood
+            and self.t == other.t
+            and np.array_equal(self.n, other.n)
+            and np.array_equal(self.sum_px, other.sum_px)
+            and np.array_equal(self.sum_pxx, other.sum_pxx)
+        )
+
+    def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
+        return (
+            np.isclose(self.log_likelihood, other.log_likelihood, rtol=rtol, atol=atol)
+            and np.isclose(self.t, other.t, rtol=rtol, atol=atol)
+            and np.allclose(self.n, other.n, rtol=rtol, atol=atol)
+            and np.allclose(self.sum_px, other.sum_px, rtol=rtol, atol=atol)
+            and np.allclose(self.sum_pxx, other.sum_pxx, rtol=rtol, atol=atol)
+        )
+
+    def resize(self, n_gaussians, n_features):
+        self.n_gaussians = n_gaussians
+        self.n_features = n_features
+        self.init()
+
+    @property
+    def shape(self):
+        return (self.n_gaussians, self.n_features)
 
 
 class BaseGMMTrainer(ABC):
@@ -466,9 +513,9 @@ class BaseGMMTrainer(ABC):
         logger.debug(f"GMM Trainer e-step")
 
         if self.last_step_stats is None:
-            self.last_step_stats = Statistics(machine.n_gaussians, data.shape[-1])
+            self.last_step_stats = GMMStats(machine.n_gaussians, data.shape[-1])
         else:
-            self.last_step_stats.reset()
+            self.last_step_stats.init()
 
         if data.ndim == 1:
             data = data.reshape(shape=(1, -1))
@@ -491,10 +538,10 @@ class BaseGMMTrainer(ABC):
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = da.multiply(responsibility[:, :, None], data[None, :, :])
         # First order stats [array of shape (n_gaussians, n_features)]
-        self.last_step_stats.sumPx = da.sum(px, axis=1)
+        self.last_step_stats.sum_px = da.sum(px, axis=1)
         # Second order stats [array of shape (n_gaussians, n_features)]
         pxx = da.multiply(px[:, :, :], data[None, :, :])
-        self.last_step_stats.sumPxx = da.sum(pxx, axis=1)
+        self.last_step_stats.sum_pxx = da.sum(pxx, axis=1)
 
     @abstractmethod
     def m_step(self, machine: GMMMachine, data: da.Array):
@@ -542,7 +589,7 @@ class MLGMMTrainer(BaseGMMTrainer):
         k-means on the data to find centroids and variances.
         """
         n_features = data.shape[-1]
-        self.last_step_stats = Statistics(machine.n_gaussians, n_features)
+        self.last_step_stats = GMMStats(machine.n_gaussians, n_features)
         if type(self.init_method) is str and self.init_method == "k-means":
             if k_means_trainer is None:
                 k_means_trainer = KMeansTrainer()
@@ -591,7 +638,7 @@ class MLGMMTrainer(BaseGMMTrainer):
             logger.debug("Update means.")
             # Using n with the applied threshold
             machine.gaussians_["means"] = (
-                self.last_step_stats.sumPx / thresholded_n[:, None]
+                self.last_step_stats.sum_px / thresholded_n[:, None]
             )
 
         # Update variances if requested
@@ -603,7 +650,7 @@ class MLGMMTrainer(BaseGMMTrainer):
             logger.debug("Update variances.")
             machine.gaussians_[
                 "variances"
-            ] = self.last_step_stats.sumPxx / thresholded_n[:, None] - da.power(
+            ] = self.last_step_stats.sum_pxx / thresholded_n[:, None] - da.power(
                 machine.gaussians_["means"], 2
             )
 
@@ -656,7 +703,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
                 f"Prior GMM machine (n_gaussians={self.prior_gmm.n_gaussians}) not"
                 f"compatible with current machine (n_gaussians={machine.n_gaussians})."
             )
-        self.last_step_stats = Statistics(machine.n_gaussians, data.shape[-1])
+        self.last_step_stats = GMMStats(machine.n_gaussians, data.shape[-1])
         machine.weights = self.prior_gmm.weights.copy()
         machine.gaussians_ = self.prior_gmm.gaussians_.copy()
 
@@ -694,7 +741,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
             new_means = (
                 da.multiply(
                     alpha[:, None],
-                    (self.last_step_stats.sumPx / self.last_step_stats.n[:, None]),
+                    (self.last_step_stats.sum_px / self.last_step_stats.n[:, None]),
                 )
                 + da.multiply((1 - alpha[:, None]), self.prior_gmm.means)
             )
@@ -715,7 +762,7 @@ class MAPGMMTrainer(BaseGMMTrainer):
             ) - da.power(machine.means, 2)
             new_variances = (
                 alpha[:, None]
-                * self.last_step_stats.sumPxx
+                * self.last_step_stats.sum_pxx
                 / self.last_step_stats.n[:, None]
                 + (1 - alpha[:, None])
                 * (self.prior_gmm.variances + self.prior_gmm.means)
