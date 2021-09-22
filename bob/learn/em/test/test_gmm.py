@@ -12,13 +12,12 @@ import numpy as np
 
 import os
 import tempfile
+from copy import deepcopy
 
 import bob.io.base
 from bob.io.base.test_utils import datafile
 
 from bob.learn.em.mixture import GMMMachine
-from bob.learn.em.mixture import MLGMMTrainer
-from bob.learn.em.mixture import MAPGMMTrainer
 from bob.learn.em.mixture import GMMStats
 from bob.learn.em.mixture import Gaussians
 
@@ -161,7 +160,7 @@ def test_GMMMachine_1():
   np.testing.assert_equal(gmm.gaussians_[1]["variances"], newVariances[1,:])
 
   # Checks comparison
-  gmm2 = gmm.copy()
+  gmm2 = deepcopy(gmm)
   gmm3 = GMMMachine(n_gaussians=2)
   gmm3.weights = weights2
   gmm3.means = means
@@ -210,9 +209,7 @@ def test_GMMMachine_2():
   gmm.variances = np.array([[1, 10], [2, 5]], 'float64')
   gmm.variance_thresholds = np.array([[0, 0], [0, 0]], 'float64')
 
-  trainer = MLGMMTrainer()
-  trainer.e_step(gmm, arrayset)
-  stats = trainer.last_step_stats
+  stats = gmm.acc_statistics(arrayset)
 
   stats_ref = GMMStats(n_gaussians=2, n_features=2)
   stats_ref.load(bob.io.base.HDF5File(datafile("stats.hdf5",__name__, path="../data/")))
@@ -267,14 +264,11 @@ def test_GMMStats_2():
     n_gaussians = 2
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
-    trainer = MLGMMTrainer()
 
     machine.gaussians_ = Gaussians(means=np.array([[0, 0, 0], [8, 8, 8]]))
 
     # Populate the GMMStats
-    trainer.e_step(machine, data)
-
-    stats = trainer.last_step_stats
+    stats = machine.acc_statistics(data)
 
     # Check shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
@@ -437,13 +431,13 @@ def test_MLTrainer():
     data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
     n_gaussians = 2
     n_features = data.shape[-1]
-    machine = GMMMachine(n_gaussians)
     gaussians_init = Gaussians(means=np.repeat([[2], [8]], n_features, 1))
-    trainer = MLGMMTrainer(init_method=gaussians_init, update_means=True, update_variances=True, update_weights=True)
-    trainer.initialize(machine, data)
 
-    trainer.e_step(machine, data)
-    trainer.m_step(machine, data)
+    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init)
+    machine.initialize_gaussians(None)
+
+    stats = machine.e_step( data)
+    machine.m_step(stats, update_means=True, update_variances=True, update_weights=True)
 
     expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
     np.testing.assert_almost_equal(machine.means, expected_means)
@@ -456,31 +450,25 @@ def test_MLTrainer():
 
 def test_MAPTrainer():
     n_gaussians = 2
-    machine = GMMMachine(n_gaussians)
     prior_machine = GMMMachine(n_gaussians)
     prior_machine.gaussians_ = Gaussians(
         means=np.array([[2, 2, 2], [8, 8, 8]])
     )
     prior_machine.weights = np.array([0.5, 0.5])
 
+    machine = GMMMachine(n_gaussians, trainer="map", prior_ubm=prior_machine)
+
     post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
-    trainer = MAPGMMTrainer(
-        prior_gmm=prior_machine,
-        update_means=True,
-        update_variances=True,
-        update_weights=True,
-        relevance_factor=4,
-        alpha=0.5
-    )
-    trainer.initialize(machine, post_data)
+
+    machine.initialize_gaussians(None)
 
     # Machine equals to priors before fitting
     np.testing.assert_equal(machine.means, prior_machine.means)
     np.testing.assert_equal(machine.variances, prior_machine.variances)
     np.testing.assert_equal(machine.weights, prior_machine.weights)
 
-    trainer.e_step(machine, post_data)
-    trainer.m_step(machine, post_data)
+    stats = machine.e_step(post_data)
+    machine.m_step(stats, update_means=True, update_variances=True, update_weights=True)
 
     expected_means = np.array([
         [1.83333333, 1.83333333, 2.],

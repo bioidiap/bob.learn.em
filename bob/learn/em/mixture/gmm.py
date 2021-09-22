@@ -134,234 +134,9 @@ class Gaussians(np.ndarray):
         )
 
 
-class GMMMachine(BaseEstimator):
-    """Stores a GMM parameters.
-
-    Each mixture is a Gaussian represented by a mean and a diagonal variance matrix.
-
-    A Trainer is needed to fit the data. The trainer initializes the machine's
-    Gaussians, and iteratively trains with an e-m algorithm.
-    If no Trainer is given, a default is used, initializing the Gaussians with k-means
-    and training on the data with the maximum likelihood algorithm.
-
-    Attributes
-    ----------
-    means, variances, variance_thresholds:
-        Gaussians parameters.
-    gaussians_:
-        All Gaussians parameters.
-    weights:
-        Gaussians weights.
-
-    """
-
-    def __init__(
-        self,
-        n_gaussians: int,
-        convergence_threshold=1e-5,
-        random_state: Union[int, da.random.RandomState] = 0,
-        weights: Union[da.Array, None] = None,
-    ):
-        """
-        Parameters
-        ----------
-        n_gaussians
-            The number of gaussians to be represented by the machine.
-        convergence_threshold
-            The threshold value of likelihood difference between e-m steps used for
-            stopping the training iterations.
-        random_state
-            Specifies a RandomState or a seed for reproducibility.
-        weights
-            The weight of each Gaussian.
-        """
-        self.n_gaussians = n_gaussians
-        self.convergence_threshold = convergence_threshold
-        self.random_state = random_state
-        if weights is None:
-            weights = np.full(shape=(n_gaussians,), fill_value=(1 / n_gaussians))
-        self.weights = weights
-
-    @property
-    def weights(self):
-        return self.__weights
-
-    @weights.setter
-    def weights(self, w: np.ndarray):
-        self.__weights = w
-        self.__log_weights = np.log(self.__weights)
-
-    @property
-    def means(self):
-        return self.gaussians_["means"]
-
-    @means.setter
-    def means(self, m: np.ndarray):
-        if hasattr(self, "gaussians_"):
-            self.gaussians_["means"] = m
-        else:
-            self.gaussians_ = Gaussians(means=m)
-
-    @property
-    def variances(self):
-        return self.gaussians_["variances"]
-
-    @variances.setter
-    def variances(self, v: np.ndarray):
-        if hasattr(self, "gaussians_"):
-            self.gaussians_["variances"] = v
-        else:
-            self.gaussians_ = Gaussians(means=np.zeros_like(v), variances=v)
-
-    @property
-    def variance_thresholds(self):
-        return self.gaussians_["variance_thresholds"]
-
-    @variance_thresholds.setter
-    def variance_thresholds(self, t: np.ndarray):
-        if hasattr(self, "gaussians_"):
-            self.gaussians_["variance_thresholds"] = t
-        else:
-            self.gaussians_ = Gaussians(means=np.zeros_like(t), variance_thresholds=t)
-
-    @property
-    def log_weights(self):
-        return self.__log_weights
-
-    @property
-    def shape(self):
-        return self.gaussians_.shape
-
-    def __eq__(self, other):
-        return np.array_equal(self.gaussians_, other.gaussians_)
-
-    def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
-        return self.gaussians_.is_similar_to(
-            other.gaussians_, rtol=rtol, atol=atol
-        ) and np.allclose(self.weights, other.weights, rtol=rtol, atol=atol)
-
-    def copy(self):
-        copy_machine = GMMMachine(
-            self.n_gaussians,
-            convergence_threshold=self.convergence_threshold,
-            random_state=self.random_state,
-            weights=self.weights,
-        )
-        if hasattr(self, "gaussians_"):
-            copy_machine.gaussians_ = self.gaussians_.copy()
-        return copy_machine
-
-    def log_weighted_likelihood(self, x: da.Array):
-        """Returns the weighted log likelihood for each Gaussian for a set of data.
-
-        Parameters
-        ----------
-        x: array of shape (n_samples, n_features)
-            Data to compute the log likelihood on.
-
-        Returns
-        -------
-        array of shape (n_gaussians, n_samples)
-            The weighted log likelihood of each sample of each Gaussian.
-        """
-        # Precomputable constants if n_dims is known:
-        N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
-        # Possibility to pre-compute g_norm (would need update on variance change)
-        # [array of shape (n_gaussians,)]
-        g_norms = N_LOG_2PI + np.sum(np.log(self.gaussians_["variances"]), axis=-1)
-
-        # Compute the likelihood for each data point on this Gaussian
-        z = da.sum(
-            da.power(x[None, :, :] - self.gaussians_["means"][:, None, :], 2)
-            / self.gaussians_["variances"][:, None, :],
-            axis=-1,
-        )
-        # Unweighted log likelihoods [array of shape (n_gaussians, n_samples)]
-        l = -0.5 * (g_norms[:, None] + z)
-        log_weighted_likelihood = self.log_weights[:, None] + l
-        return log_weighted_likelihood
-
-    def log_likelihood(self, x: da.Array):
-        """Returns the current log likelihood for a set of data in this Machine.
-
-        Parameters
-        ----------
-        x: array of shape (n_samples, n_features)
-            Data to compute the log likelihood on.
-
-        Returns
-        -------
-        array of shape (n_samples)
-            The log likelihood of each sample.
-        """
-        if x.ndim == 1:
-            x = x.reshape((1, -1))
-
-        # All likelihoods [array of shape (n_gaussians, n_samples)]
-        log_weighted_likelihood = self.log_weighted_likelihood(x)
-
-        def logaddexp_reduce(a, axis, keepdims):
-            return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-np.inf)
-
-        # Sum along gaussians axis (using logAddExp to prevent underflow)
-        ll_reduced = da.reduction(
-            x=log_weighted_likelihood,
-            chunk=logaddexp_reduce,
-            aggregate=logaddexp_reduce,
-            axis=0,
-            dtype=np.float,
-            keepdims=False,
-        )
-
-        return ll_reduced
-
-    def fit(self, X, y=None, trainer=None, max_steps: int = 200, **kwargs):
-        if trainer is None:
-            logger.info("Creating a default GMM trainer (ML GMM).")
-            trainer = MLGMMTrainer(
-                init_method="k-means", random_state=self.random_state
-            )
-
-        trainer.initialize(self, X)
-        average_output = 0
-        logger.info("Training GMM...")
-        for step in range(max_steps):
-            logger.info(f"Iteration = {step:3d}/{max_steps}")
-            average_output_previous = average_output
-            trainer.e_step(self, X)
-            trainer.m_step(self, X)
-
-            average_output = trainer.compute_likelihood(self)
-
-            if step > 0:
-                convergence_value = abs(
-                    (average_output_previous - average_output) / average_output_previous
-                )
-
-                # Terminates if converged (and likelihood computation is set)
-                if (
-                    self.convergence_threshold is not None
-                    and convergence_value <= self.convergence_threshold
-                ):
-                    logger.info("Reached convergence threshold. Training stopped.")
-                    return self
-        logger.info("Reached maximum step. Training stopped without convergence.")
-        return self
-
-    def fit_partial(self, X, y=None, trainer=None, **kwargs):
-        if trainer is None:
-            raise ValueError("Please provide a GMM trainer for fit_partial.")
-
-        trainer.e_step(self, X)
-        trainer.m_step(self, X)
-        return self
-
-    def transform(self, X, **kwargs):
-        raise NotImplementedError  # what to return? The closest gaussian ID? each and all likelihoods?
-        return X
-
-
 class GMMStats:
+    """Stores accumulated statistics of a GMM."""
+
     def __init__(self, n_gaussians: int, n_features: int) -> None:
         self.n_gaussians = n_gaussians
         self.n_features = n_features
@@ -392,9 +167,11 @@ class GMMStats:
             self.n = hdf5["n"]
             self.sum_px = hdf5["sumPx"]
             self.sum_pxx = hdf5["sumPxx"]
-        else: # Legacy file version
+        else:  # Legacy file version
             logger.info("Loading a legacy HDF5 stats file.")
-            self = cls(n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"]))
+            self = cls(
+                n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"])
+            )
             self.log_likelihood = float(hdf5["log_liklihood"])
             self.t = int(hdf5["T"])
             self.n = hdf5["n"].reshape((self.n_gaussians,))
@@ -420,15 +197,29 @@ class GMMStats:
         if new_self.shape != self.shape:
             logger.warning("Loaded GMMStats from hdf5 with a different shape.")
             self.resize(*new_self.shape)
-        self.init(new_self.log_likelihood, new_self.t, new_self.n, new_self.sum_px, new_self.sum_pxx)
+        self.init(
+            new_self.log_likelihood,
+            new_self.t,
+            new_self.n,
+            new_self.sum_px,
+            new_self.sum_pxx,
+        )
 
     def init(self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None):
         """Resets the statistics values to zero or a defined value."""
         self.log_likelihood = log_likelihood
         self.t = t
         self.n = np.zeros(shape=(self.n_gaussians,), dtype=float) if n is None else n
-        self.sum_px = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float) if sum_px is None else sum_px
-        self.sum_pxx = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float) if sum_pxx is None else sum_pxx
+        self.sum_px = (
+            np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
+            if sum_px is None
+            else sum_px
+        )
+        self.sum_pxx = (
+            np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
+            if sum_pxx is None
+            else sum_pxx
+        )
 
     def __add__(self, other):
         if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
@@ -479,314 +270,450 @@ class GMMStats:
         return (self.n_gaussians, self.n_features)
 
 
-class BaseGMMTrainer(ABC):
-    """Base class for the different GMM Trainer implementations.
+class GMMMachine(BaseEstimator):
+    """Stores a GMM parameters.
 
-    Parameters
+    Each mixture is a Gaussian represented by a mean and a diagonal variance matrix.
+
+    TODO doc
+
+    Usage:
+    >>> machine = GMMMachine(n_gaussians=2, trainer="ml")
+    >>> machine = machine.fit(data)
+    >>> print(machine.means)
+
+    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", prior_ubm=machine)
+    >>> map_machine = map_machine.fit(post_data)
+    >>> print(map_machine.means)
+
+    Attributes
     ----------
-    init_method
-        How to initialize the GMM machine.
-    random_state
-        Sets a seed or RandomState for reproducibility
-    update_means
-        Update means on each iteration (m-step).
-    update_variances
-        Update variances on each iteration (m-step).
-    update_weights
-        Update weights on each iteration (m-step).
-    mean_var_update_responsibilities_threshold
-        Threshold over the responsibilities of the Gaussians Equations 9.24, 9.25 of
-        Bishop, `Pattern recognition and machine learning`, 2006 require a division by
-        the responsibilities, which might be equal to zero because of numerical issue.
-        This threshold is used to avoid such divisions.
+    means, variances, variance_thresholds:
+        Gaussians parameters.
+    gaussians_:
+        All Gaussians parameters.
+    weights:
+        Gaussians weights.
     """
 
     def __init__(
         self,
-        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
+        n_gaussians: int,
+        trainer: str = "ml",
+        prior_ubm=None,
+        convergence_threshold: float = 1e-5,
         random_state: Union[int, da.random.RandomState] = 0,
-        update_means: bool = True,
-        update_variances: bool = False,
-        update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
+        initial_gaussians: Union[Gaussians, None] = None,
+        initial_weights: Union[np.ndarray, None] = None,
+        k_means_trainer: Union[KMeansTrainer, None] = None,
     ):
-        self.init_method = init_method
+        """
+        Parameters
+        ----------
+        n_gaussians:
+            The number of gaussians to be represented by the machine.
+        trainer:
+            `"ml"` for the maximum likelihood estimator method;
+            `"map"` for the maximum a posteriori method. (MAP Requires `prior_ubm`)
+        prior_ubm: GMMMachine
+            Required for the MAP method.
+        convergence_threshold:
+            The threshold value of likelihood difference between e-m steps used for
+            stopping the training iterations.
+        random_state:
+            Specifies a RandomState or a seed for reproducibility.
+        initial_gaussians:
+            Optional set of values to skip the k-means initialization.
+        initial_weights: array of shape (n_gaussians,) or None
+            The weight of each Gaussian. (defaults to `1/n_gaussians`)
+        k_means_trainer:
+            Optional trainer for the k-means method, replacing the default one.
+        """
+        self.n_gaussians = n_gaussians
+        self.trainer = trainer
+        self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
+        if self.trainer == "map" and prior_ubm is None:
+            raise ValueError("A prior_ubm is required for MAP GMM.")
+        self.prior_ubm = prior_ubm
+        self.convergence_threshold = convergence_threshold
         self.random_state = random_state
-        self.last_step_stats = None
-        self.update_means = update_means
-        self.update_variances = update_variances
-        self.update_weights = update_weights
-        self.mean_var_update_responsibilities_threshold = (
-            mean_var_update_responsibilities_threshold
+        self.initial_gaussians = initial_gaussians
+        if initial_weights is None:
+            weights = np.full(shape=(n_gaussians,), fill_value=(1 / n_gaussians))
+        self.weights = weights
+        self.kmeans_trainer = k_means_trainer
+
+    @property
+    def weights(self):
+        return self._weights
+
+    @weights.setter
+    def weights(self, w: np.ndarray):
+        self._weights = w
+        self._log_weights = np.log(self._weights)
+
+    @property
+    def means(self):
+        return self.gaussians_["means"]
+
+    @means.setter
+    def means(self, m: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["means"] = m
+        else:
+            self.gaussians_ = Gaussians(means=m)
+
+    @property
+    def variances(self):
+        return self.gaussians_["variances"]
+
+    @variances.setter
+    def variances(self, v: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["variances"] = v
+        else:
+            self.gaussians_ = Gaussians(means=np.zeros_like(v), variances=v)
+
+    @property
+    def variance_thresholds(self):
+        return self.gaussians_["variance_thresholds"]
+
+    @variance_thresholds.setter
+    def variance_thresholds(self, t: np.ndarray):
+        if hasattr(self, "gaussians_"):
+            self.gaussians_["variance_thresholds"] = t
+        else:
+            self.gaussians_ = Gaussians(means=np.zeros_like(t), variance_thresholds=t)
+
+    @property
+    def log_weights(self):
+        return self._log_weights
+
+    @property
+    def shape(self):
+        return self.gaussians_.shape
+
+    def __eq__(self, other):
+        return np.array_equal(self.gaussians_, other.gaussians_)
+
+    def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
+        return self.gaussians_.is_similar_to(
+            other.gaussians_, rtol=rtol, atol=atol
+        ) and np.allclose(self.weights, other.weights, rtol=rtol, atol=atol)
+
+    def initialize_gaussians(self, data: Union[da.Array, None] = None):
+        if self.trainer == "map":
+            self.weights = self.prior_ubm.weights.copy()
+            self.gaussians_ = self.prior_ubm.gaussians_.copy()
+        else:
+            if self.initial_gaussians is None:
+                if data is None:
+                    raise ValueError("Data is required when training with k-means.")
+                logger.info("Initializing GMM with k-means.")
+                kmeans_trainer = self.kmeans_trainer or KMeansTrainer()
+                kmeans_machine = KMeansMachine(self.n_gaussians).fit(
+                    data, trainer=kmeans_trainer
+                )
+
+                (
+                    variances,
+                    weights,
+                ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
+
+                # Set the GMM machine gaussians with the results of k-means
+                self.gaussians_ = Gaussians(
+                    means=kmeans_machine.centroids_,
+                    variances=variances,
+                )
+                self.weights = weights.copy()
+            else:
+                logger.info("Initializing GMM with user-provided values.")
+                self.gaussians_ = self.initial_gaussians.copy()
+                self.weights = np.full((self.n_gaussians,), 1 / self.n_gaussians)
+
+    def log_weighted_likelihood(self, x: da.Array):
+        """Returns the weighted log likelihood for each Gaussian for a set of data.
+
+        Parameters
+        ----------
+        x: array of shape (n_samples, n_features)
+            Data to compute the log likelihood on.
+
+        Returns
+        -------
+        array of shape (n_gaussians, n_samples)
+            The weighted log likelihood of each sample of each Gaussian.
+        """
+        N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
+        # g_norm for each gaussian [array of shape (n_gaussians,)]
+        g_norms = N_LOG_2PI + np.sum(np.log(self.gaussians_["variances"]), axis=-1)
+
+        # Compute the likelihood for each data point on this Gaussian
+        z = da.sum(
+            da.power(x[None, :, :] - self.gaussians_["means"][:, None, :], 2)
+            / self.gaussians_["variances"][:, None, :],
+            axis=-1,
+        )
+        # Unweighted log likelihoods [array of shape (n_gaussians, n_samples)]
+        l = -0.5 * (g_norms[:, None] + z)
+        log_weighted_likelihood = self.log_weights[:, None] + l
+        return log_weighted_likelihood
+
+    def log_likelihood(self, x: da.Array):
+        """Returns the current log likelihood for a set of data in this Machine.
+
+        Parameters
+        ----------
+        x: array of shape (n_samples, n_features)
+            Data to compute the log likelihood on.
+
+        Returns
+        -------
+        array of shape (n_samples)
+            The log likelihood of each sample.
+        """
+        if x.ndim == 1:
+            x = x.reshape((1, -1))
+
+        # All likelihoods [array of shape (n_gaussians, n_samples)]
+        log_weighted_likelihood = self.log_weighted_likelihood(x)
+
+        def logaddexp_reduce(a, axis, keepdims):
+            return np.logaddexp.reduce(a, axis=axis, keepdims=keepdims, initial=-np.inf)
+
+        # Sum along gaussians axis (using logAddExp to prevent underflow)
+        ll_reduced = da.reduction(
+            x=log_weighted_likelihood,
+            chunk=logaddexp_reduce,
+            aggregate=logaddexp_reduce,
+            axis=0,
+            dtype=np.float,
+            keepdims=False,
         )
 
-    @abstractmethod
-    def initialize(self, machine: GMMMachine, data: da.Array):
-        pass
+        return ll_reduced
 
-    def e_step(self, machine: GMMMachine, data: da.Array):
-        # The e-step is the same for each GMM Trainer
-        logger.debug(f"GMM Trainer e-step")
-
-        if self.last_step_stats is None:
-            self.last_step_stats = GMMStats(machine.n_gaussians, data.shape[-1])
-        else:
-            self.last_step_stats.init()
+    def acc_statistics(self, data: da.Array):  # TODO? accumulate successive calls?
+        """Accumulates the statistics of GMMStats for a set of data."""
+        statistics = GMMStats(self.n_gaussians, data.shape[-1])
 
         if data.ndim == 1:
             data = data.reshape(shape=(1, -1))
 
         # Log weighted Gaussian likelihoods [array of shape (n_gaussians,n_samples)]
-        log_weighted_likelihoods = machine.log_weighted_likelihood(data)
+        log_weighted_likelihoods = self.log_weighted_likelihood(data)
         # Log likelihood [array of shape (n_samples,)]
-        log_likelihood = machine.log_likelihood(data)
+        log_likelihood = self.log_likelihood(data)
         # Responsibility P [array of shape (n_gaussians, n_samples)]
         responsibility = da.exp(log_weighted_likelihoods - log_likelihood[None, :])
 
         # Accumulate
 
         # Total likelihood [float]
-        self.last_step_stats.log_likelihood = da.sum(log_likelihood)
+        statistics.log_likelihood = da.sum(log_likelihood)
         # Count of samples [int]
-        self.last_step_stats.t = data.shape[0]
+        statistics.t = data.shape[0]
         # Responsibilities [array of shape (n_gaussians,)]
-        self.last_step_stats.n = da.sum(responsibility, axis=-1)
+        statistics.n = da.sum(responsibility, axis=-1)
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = da.multiply(responsibility[:, :, None], data[None, :, :])
         # First order stats [array of shape (n_gaussians, n_features)]
-        self.last_step_stats.sum_px = da.sum(px, axis=1)
+        statistics.sum_px = da.sum(px, axis=1)
         # Second order stats [array of shape (n_gaussians, n_features)]
         pxx = da.multiply(px[:, :, :], data[None, :, :])
-        self.last_step_stats.sum_pxx = da.sum(pxx, axis=1)
+        statistics.sum_pxx = da.sum(pxx, axis=1)
 
-    @abstractmethod
-    def m_step(self, machine: GMMMachine, data: da.Array):
-        # The m-step must be implemented by the specialized GMM Trainers
-        pass
+        return statistics
 
-    def compute_likelihood(self, machine: GMMMachine):
-        """Returns the likelihood computed at the last e-step."""
-        return self.last_step_stats.log_likelihood / self.last_step_stats.t
+    def e_step(self, data: da.Array):
+        return self.acc_statistics(data)
 
-
-class MLGMMTrainer(BaseGMMTrainer):
-    """Maximum Likelihood trainer for GMM"""
-
-    def __init__(
+    def m_step(
         self,
-        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
-        random_state: Union[int, da.random.RandomState] = 0,
-        update_means: bool = True,
-        update_variances: bool = False,
-        update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
+        stats: GMMStats,
+        update_means=True,
+        update_variances=False,
+        update_weights=False,
         **kwargs,
     ):
-        super().__init__(
-            init_method,
-            random_state,
-            update_means,
-            update_variances,
-            update_weights,
-            mean_var_update_responsibilities_threshold,
+        self.m_step_func(
+            self,
+            stats,
+            update_means=update_means,
+            update_variances=update_variances,
+            update_weights=update_weights,
             **kwargs,
         )
 
-    def initialize(
-        self,
-        machine: GMMMachine,
-        data: da.Array,
-        threshold=1.0e-5,
-        k_means_trainer=None,
-    ):
-        """Sets the initial values of the machine, and sets up the Trainer.
+    def fit(self, X, y=None, max_steps: int = 200, **kwargs):
+        if not hasattr(self, "gaussians_"):
+            self.initialize_gaussians(X)
 
-        The default initialization of the Maximum Likelihood GMM parameters uses
-        k-means on the data to find centroids and variances.
-        """
-        n_features = data.shape[-1]
-        self.last_step_stats = GMMStats(machine.n_gaussians, n_features)
-        if type(self.init_method) is str and self.init_method == "k-means":
-            if k_means_trainer is None:
-                k_means_trainer = KMeansTrainer()
-            logger.info("Initializing GMM with k-means.")
-            kmeans_machine = KMeansMachine(machine.n_gaussians).fit(
-                data, trainer=k_means_trainer
-            )
-            (
-                variances,
-                weights,
-            ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
-            # Set the GMM machine gaussians with the results of k-means
-            machine.gaussians_ = Gaussians(
-                means=kmeans_machine.centroids_,
-                variances=variances,
-            )
-            machine.weights = weights
-        else:
-            machine.gaussians_ = self.init_method  # TODO other name for this param...
-
-    def m_step(self, machine: GMMMachine, data: da.Array):
-        """Updates a gmm machine parameter according to the e-step statistics."""
-        logger.debug(f"ML GMM Trainer m-step")
-        if self.last_step_stats is None:
-            raise RuntimeError("Initialize and e_step must be called before m_step.")
-
-        # Update weights if requested
-        # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
-        if self.update_weights:
-            logger.debug("Update weights.")
-            machine.weights = self.last_step_stats.n / self.last_step_stats.t
-
-        # Threshold the low n to prevent divide by zero
-        thresholded_n = da.where(
-            self.last_step_stats.n < self.mean_var_update_responsibilities_threshold,
-            self.mean_var_update_responsibilities_threshold,
-            self.last_step_stats.n,
-        )
-        # self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
-
-        # Update GMM parameters using the sufficient statistics (m_ss):
-
-        # Update means if requested
-        # (Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006)
-        if self.update_means:
-            logger.debug("Update means.")
-            # Using n with the applied threshold
-            machine.gaussians_["means"] = (
-                self.last_step_stats.sum_px / thresholded_n[:, None]
+        average_output = 0
+        logger.info("Training GMM...")
+        for step in range(max_steps):
+            logger.info(f"Iteration = {step:3d}/{max_steps}")
+            average_output_previous = average_output
+            self.last_statistics = gmm_e_step(self, X)
+            self.m_step_func(
+                machine=self,
+                statistics=self.last_statistics,
             )
 
-        # Update variances if requested
-        # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
-        # ...but we use the "computational formula for the variance", i.e.
-        #  var = 1/n * sum (P(x-mean)(x-mean))
-        #      = 1/n * sum (Pxx) - mean^2
-        if self.update_variances:
-            logger.debug("Update variances.")
-            machine.gaussians_[
-                "variances"
-            ] = self.last_step_stats.sum_pxx / thresholded_n[:, None] - da.power(
-                machine.gaussians_["means"], 2
-            )
+            average_output = (
+                self.last_statistics.log_likelihood / self.last_statistics.t
+            )  # Note: Uses the stats from before m_step, leading to an additional m_step
 
-
-class MAPGMMTrainer(BaseGMMTrainer):
-    """Maximum A Posteriori trainer for GMM.
-
-    This class implements the maximum a posteriori (:ref:`MAP <map>`) M-step of the
-    expectation-maximization algorithm for a GMM Machine.
-    The prior parameters are encoded in the form of a GMM (e.g. a universal background
-    model). The EM algorithm thus performs GMM adaptation.
-
-
-    Parameters
-    ----------
-    relevance_factor:
-        If set, the Reynolds adaptation will be applied with this factor.
-    """
-
-    def __init__(
-        self,
-        prior_gmm: GMMMachine,
-        init_method: Union[str, da.Array, KMeansTrainer] = "k-means",
-        random_state: Union[int, da.random.RandomState] = 0,
-        update_means: bool = True,
-        update_variances: bool = False,
-        update_weights: bool = False,
-        mean_var_update_responsibilities_threshold: float = np.finfo(float).eps,
-        relevance_factor: Union[float, None] = 4,
-        alpha: float = 0.5,
-        **kwargs,
-    ):
-        super().__init__(
-            init_method,
-            random_state,
-            update_means,
-            update_variances,
-            update_weights,
-            mean_var_update_responsibilities_threshold,
-            **kwargs,
-        )
-        self.reynolds_adaptation = not relevance_factor is None
-        self.relevance_factor = relevance_factor
-        self.alpha = alpha
-        self.prior_gmm = prior_gmm
-
-    def initialize(self, machine: GMMMachine, data: da.Array):
-        if machine.n_gaussians != self.prior_gmm.n_gaussians:
-            raise ValueError(
-                f"Prior GMM machine (n_gaussians={self.prior_gmm.n_gaussians}) not"
-                f"compatible with current machine (n_gaussians={machine.n_gaussians})."
-            )
-        self.last_step_stats = GMMStats(machine.n_gaussians, data.shape[-1])
-        machine.weights = self.prior_gmm.weights.copy()
-        machine.gaussians_ = self.prior_gmm.gaussians_.copy()
-
-    def m_step(self, machine: GMMMachine, data: da.Array):
-        # Calculate the "data-dependent adaptation coefficient", alpha_i
-        # [array of shape (n_gaussians, )]
-        if self.reynolds_adaptation:
-            alpha = self.last_step_stats.n / (
-                self.last_step_stats.n + self.relevance_factor
-            )
-        else:
-            if not hasattr(self.alpha, "ndim"):
-                self.alpha = np.full((machine.n_gaussians,), self.alpha)
-            alpha = self.alpha
-
-        # - Update weights if requested
-        #   Equation 11 of Reynolds et al., "Speaker Verification Using Adapted
-        #   Gaussian Mixture Models", Digital Signal Processing, 2000
-        if self.update_weights:
-            # Calculate the maximum likelihood weights [array of shape (n_gaussians,)]
-            ml_weights = self.last_step_stats.n / self.last_step_stats.t
-
-            # Calculate the new weights
-            machine.weights = alpha * ml_weights + (1 - alpha) * self.prior_gmm.weights
-
-            # Apply the scale factor, gamma, to ensure the new weights sum to unity
-            gamma = machine.weights.sum()
-            machine.weights /= gamma
-
-        # Update GMM parameters
-        # - Update means if requested
-        #   Equation 12 of Reynolds et al., "Speaker Verification Using Adapted
-        #   Gaussian Mixture Models", Digital Signal Processing, 2000
-        if self.update_means:
-            new_means = (
-                da.multiply(
-                    alpha[:, None],
-                    (self.last_step_stats.sum_px / self.last_step_stats.n[:, None]),
+            if step > 0:
+                convergence_value = abs(
+                    (average_output_previous - average_output) / average_output_previous
                 )
-                + da.multiply((1 - alpha[:, None]), self.prior_gmm.means)
-            )
-            machine.means = da.where(
-                self.last_step_stats.n[:, None]
-                < self.mean_var_update_responsibilities_threshold,
-                self.prior_gmm.means,
-                new_means,
-            )
 
-        # - Update variance if requested
-        #   Equation 13 of Reynolds et al., "Speaker Verification Using Adapted
-        #   Gaussian Mixture Models", Digital Signal Processing, 2000
-        if self.update_variances:
-            # Calculate new variances (equation 13)
-            prior_norm_variances = (
-                self.prior_gmm.variances + self.prior_gmm.means
-            ) - da.power(machine.means, 2)
-            new_variances = (
-                alpha[:, None]
-                * self.last_step_stats.sum_pxx
-                / self.last_step_stats.n[:, None]
-                + (1 - alpha[:, None])
-                * (self.prior_gmm.variances + self.prior_gmm.means)
-                - da.power(machine.means, 2)
+                # Terminates if converged (and likelihood computation is set)
+                if (
+                    self.convergence_threshold is not None
+                    and convergence_value <= self.convergence_threshold
+                ):
+                    logger.info("Reached convergence threshold. Training stopped.")
+                    return self
+        logger.info("Reached maximum step. Training stopped without convergence.")
+        return self
+
+    def fit_partial(self, X, y=None, **kwargs):
+        if not hasattr(self, "gaussians_"):
+            self.initialize_gaussians(X)
+
+        self.last_statistics = gmm_e_step(self, X)
+        self.m_step_func(
+            machine=self,
+            statistics=self.last_statistics,
+        )
+        return self
+
+    def transform(self, X, **kwargs):
+        return gmm_e_step(self, X)
+
+
+def gmm_e_step(machine: GMMMachine, data: da.Array):
+    # The e-step is the same for each GMM Trainer
+    logger.debug("GMM e-step")
+    return machine.acc_statistics(data)
+
+
+def ml_gmm_m_step(
+    machine: GMMMachine,
+    statistics: GMMStats,
+    update_means=True,
+    update_variances=False,
+    update_weights=False,
+    mean_var_update_threshold=EPSILON,
+):
+    """Updates a gmm machine parameter according to the e-step statistics."""
+    logger.debug("ML GMM Trainer m-step")
+
+    # Update weights if requested
+    # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
+    if update_weights:
+        logger.debug("Update weights.")
+        machine.weights = statistics.n / statistics.t
+
+    # Threshold the low n to prevent divide by zero
+    thresholded_n = da.where(
+        statistics.n < mean_var_update_threshold,
+        mean_var_update_threshold,
+        statistics.n,
+    )
+    # self.last_step_stats.n[self.last_step_stats.n<self.mean_var_update_responsibilities_threshold] = self.mean_var_update_responsibilities_threshold
+
+    # Update GMM parameters using the sufficient statistics (m_ss):
+
+    # Update means if requested
+    # (Equation 9.24 of Bishop, "Pattern recognition and machine learning", 2006)
+    if update_means:
+        logger.debug("Update means.")
+        # Using n with the applied threshold
+        machine.means = statistics.sum_px / thresholded_n[:, None]
+
+    # Update variances if requested
+    # (Equation 9.25 of Bishop, "Pattern recognition and machine learning", 2006)
+    # ...but we use the "computational formula for the variance", i.e.
+    #  var = 1/n * sum (P(x-mean)(x-mean))
+    #      = 1/n * sum (Pxx) - mean^2
+    if update_variances:
+        logger.debug("Update variances.")
+        machine.variances = statistics.sum_pxx / thresholded_n[:, None] - da.power(
+            machine.means, 2
+        )
+
+
+def map_gmm_m_step(
+    machine: GMMMachine,
+    statistics: GMMStats,
+    update_means=True,
+    update_variances=False,
+    update_weights=False,
+    reynolds_adaptation=True,
+    relevance_factor=4,
+    alpha=0.5,
+    mean_var_update_threshold=EPSILON,
+):
+    """Updates a GMMMachine parameters using statistics."""
+    # Calculate the "data-dependent adaptation coefficient", alpha_i
+    # [array of shape (n_gaussians, )]
+    if reynolds_adaptation:
+        alpha = statistics.n / (statistics.n + relevance_factor)
+    else:
+        if not hasattr(alpha, "ndim"):
+            alpha = np.full((machine.n_gaussians,), alpha)
+
+    # - Update weights if requested
+    #   Equation 11 of Reynolds et al., "Speaker Verification Using Adapted
+    #   Gaussian Mixture Models", Digital Signal Processing, 2000
+    if update_weights:
+        # Calculate the maximum likelihood weights [array of shape (n_gaussians,)]
+        ml_weights = statistics.n / statistics.t
+
+        # Calculate the new weights
+        machine.weights = alpha * ml_weights + (1 - alpha) * machine.prior_ubm.weights
+
+        # Apply the scale factor, gamma, to ensure the new weights sum to unity
+        gamma = machine.weights.sum()
+        machine.weights /= gamma
+
+    # Update GMM parameters
+    # - Update means if requested
+    #   Equation 12 of Reynolds et al., "Speaker Verification Using Adapted
+    #   Gaussian Mixture Models", Digital Signal Processing, 2000
+    if update_means:
+        new_means = (
+            da.multiply(
+                alpha[:, None],
+                (statistics.sum_px / statistics.n[:, None]),
             )
-            machine.variances = da.where(
-                self.last_step_stats.n[:, None]
-                < self.mean_var_update_responsibilities_threshold,
-                prior_norm_variances,
-                new_variances,
-            )
+            + da.multiply((1 - alpha[:, None]), machine.prior_ubm.means)
+        )
+        machine.means = da.where(
+            statistics.n[:, None] < mean_var_update_threshold,
+            machine.prior_ubm.means,
+            new_means,
+        )
+
+    # - Update variance if requested
+    #   Equation 13 of Reynolds et al., "Speaker Verification Using Adapted
+    #   Gaussian Mixture Models", Digital Signal Processing, 2000
+    if update_variances:
+        # Calculate new variances (equation 13)
+        prior_norm_variances = (
+            machine.prior_ubm.variances + machine.prior_ubm.means
+        ) - da.power(machine.means, 2)
+        new_variances = (
+            alpha[:, None] * statistics.sum_pxx / statistics.n[:, None]
+            + (1 - alpha[:, None])
+            * (machine.prior_ubm.variances + machine.prior_ubm.means)
+            - da.power(machine.means, 2)
+        )
+        machine.variances = da.where(
+            statistics.n[:, None] < mean_var_update_threshold,
+            prior_norm_variances,
+            new_variances,
+        )
