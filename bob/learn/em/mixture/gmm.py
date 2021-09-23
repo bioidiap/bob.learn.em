@@ -282,7 +282,7 @@ class GMMMachine(BaseEstimator):
     >>> machine = machine.fit(data)
     >>> print(machine.means)
 
-    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", prior_ubm=machine)
+    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", ubm=machine)
     >>> map_machine = map_machine.fit(post_data)
     >>> print(map_machine.means)
 
@@ -300,7 +300,7 @@ class GMMMachine(BaseEstimator):
         self,
         n_gaussians: int,
         trainer: str = "ml",
-        prior_ubm=None,
+        ubm=None,
         convergence_threshold: float = 1e-5,
         random_state: Union[int, da.random.RandomState] = 0,
         initial_gaussians: Union[Gaussians, None] = None,
@@ -314,9 +314,9 @@ class GMMMachine(BaseEstimator):
             The number of gaussians to be represented by the machine.
         trainer:
             `"ml"` for the maximum likelihood estimator method;
-            `"map"` for the maximum a posteriori method. (MAP Requires `prior_ubm`)
-        prior_ubm: GMMMachine
-            Required for the MAP method.
+            `"map"` for the maximum a posteriori method. (MAP Requires `ubm`)
+        ubm: GMMMachine
+            Universal Background Model. GMMMachine Required for the MAP method.
         convergence_threshold:
             The threshold value of likelihood difference between e-m steps used for
             stopping the training iterations.
@@ -332,9 +332,9 @@ class GMMMachine(BaseEstimator):
         self.n_gaussians = n_gaussians
         self.trainer = trainer
         self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
-        if self.trainer == "map" and prior_ubm is None:
-            raise ValueError("A prior_ubm is required for MAP GMM.")
-        self.prior_ubm = prior_ubm
+        if self.trainer == "map" and ubm is None:
+            raise ValueError("A ubm is required for MAP GMM.")
+        self.ubm = ubm
         self.convergence_threshold = convergence_threshold
         self.random_state = random_state
         self.initial_gaussians = initial_gaussians
@@ -403,8 +403,8 @@ class GMMMachine(BaseEstimator):
 
     def initialize_gaussians(self, data: Union[da.Array, None] = None):
         if self.trainer == "map":
-            self.weights = self.prior_ubm.weights.copy()
-            self.gaussians_ = self.prior_ubm.gaussians_.copy()
+            self.weights = self.ubm.weights.copy()
+            self.gaussians_ = self.ubm.gaussians_.copy()
         else:
             if self.initial_gaussians is None:
                 if data is None:
@@ -525,6 +525,66 @@ class GMMMachine(BaseEstimator):
 
         return statistics
 
+    def linear_scoring(self, models, test_stats, test_channel_offsets = 0, frame_length_normalization: bool = False):
+        """Returns a score for each model against `self`, representing the UBM.
+
+        Parameters
+        ----------
+        models: list of GMMMachine objects
+        test_stats: list of GMMStats objects
+        test_channel_offsets: array of shape (n_test_stats, n_gaussians)
+
+        """
+        # All models.means [array of shape (n_models, n_gaussians, n_features)]
+        means = np.array([model.means for model in models]) # TODO elegant way to put into arrays
+        # All stats.sum_px [array of shape (n_test_stats, n_gaussians, n_features)]
+        sum_px = np.array([stat.sum_px for stat in test_stats])
+        # All stats.n [array of shape (n_test_stats, n_gaussians)]
+        n = np.array([stat.n for stat in test_stats])
+        # All stats.t [array of shape (n_test_stats,)]
+        t = np.array([stat.t for stat in test_stats])
+        # Offsets [array of shape (n_test_stats, `n_gaussians * n_features`? TODO)]
+        test_channel_offsets = np.array(test_channel_offsets)
+
+        # TODO sizes broadcast, to accept one or multiple GMM, and one or multiple stats
+        # TODO? special case for MAP? (score self against ubm?)
+
+        # Compute A [array of shape (n_models, n_gaussians * n_features)]
+        a = (means - self.means) / self.variances
+        # Compute B [array of shape (n_gaussians * n_features, n_test_stats)]
+        # TODO: dims check
+        # TODO: channel offset dims test when not 0
+        b = sum_px[:,:,:] - (n[:,:,None] * (self.means[None,:,:] + test_channel_offsets))
+        b = da.transpose(b, axes=(1,2,0))
+        # Apply normalization if needed.
+        if frame_length_normalization:
+            b = da.where(abs(t)<=EPSILON, 0, b[:,:]/t[None,:])
+        # Compute LLR  TODO: dims check
+        print(f"n_gaussians = {means.shape[1]}")
+        print(f"n_features = {means.shape[2]}")
+        print(f"n_models = {means.shape[0]}")
+        print(f"n_test_stats = {sum_px.shape[0]}")
+        print(f"A: {a.shape}")
+        print(f"B: {b.shape}")
+        return da.tensordot(a, b, 2)
+
+    def linear_scoring_means_input(self, means, test_stats, test_channel_offsets = 0, frame_length_normalization: bool = False):
+        """Returns a score for each model against `self`, representing the UBM."""
+        # TODO sizes broadcast
+        # TODO special case for MAP? (score self against ubm?)
+        # Compute A  TODO: dims check
+        a = (means - self.means) / self.variances
+        # Compute B  TODO: dims check
+        b = test_stats.sum_px - (test_stats.n * (self.means + test_channel_offsets))
+        # Apply normalization if needed.
+        if frame_length_normalization:
+            if test_stats.t == 0:
+                b = 0
+            else:
+                b /= test_stats.t
+        # Compute LLR  TODO: dims check
+        return da.dot(a,b)
+
     def e_step(self, data: da.Array):
         return self.acc_statistics(data)
 
@@ -554,7 +614,7 @@ class GMMMachine(BaseEstimator):
         for step in range(max_steps):
             logger.info(f"Iteration = {step:3d}/{max_steps}")
             average_output_previous = average_output
-            self.last_statistics = gmm_e_step(self, X)
+            self.last_statistics = self.e_step(X)
             self.m_step_func(
                 machine=self,
                 statistics=self.last_statistics,
@@ -583,7 +643,7 @@ class GMMMachine(BaseEstimator):
         if not hasattr(self, "gaussians_"):
             self.initialize_gaussians(X)
 
-        self.last_statistics = gmm_e_step(self, X)
+        self.last_statistics = self.e_step(X)
         self.m_step_func(
             machine=self,
             statistics=self.last_statistics,
@@ -591,13 +651,7 @@ class GMMMachine(BaseEstimator):
         return self
 
     def transform(self, X, **kwargs):
-        return gmm_e_step(self, X)
-
-
-def gmm_e_step(machine: GMMMachine, data: da.Array):
-    # The e-step is the same for each GMM Trainer
-    logger.debug("GMM e-step")
-    return machine.acc_statistics(data)
+        return self.e_step(X)
 
 
 def ml_gmm_m_step(
@@ -674,7 +728,7 @@ def map_gmm_m_step(
         ml_weights = statistics.n / statistics.t
 
         # Calculate the new weights
-        machine.weights = alpha * ml_weights + (1 - alpha) * machine.prior_ubm.weights
+        machine.weights = alpha * ml_weights + (1 - alpha) * machine.ubm.weights
 
         # Apply the scale factor, gamma, to ensure the new weights sum to unity
         gamma = machine.weights.sum()
@@ -690,11 +744,11 @@ def map_gmm_m_step(
                 alpha[:, None],
                 (statistics.sum_px / statistics.n[:, None]),
             )
-            + da.multiply((1 - alpha[:, None]), machine.prior_ubm.means)
+            + da.multiply((1 - alpha[:, None]), machine.ubm.means)
         )
         machine.means = da.where(
             statistics.n[:, None] < mean_var_update_threshold,
-            machine.prior_ubm.means,
+            machine.ubm.means,
             new_means,
         )
 
@@ -704,12 +758,12 @@ def map_gmm_m_step(
     if update_variances:
         # Calculate new variances (equation 13)
         prior_norm_variances = (
-            machine.prior_ubm.variances + machine.prior_ubm.means
+            machine.ubm.variances + machine.ubm.means
         ) - da.power(machine.means, 2)
         new_variances = (
             alpha[:, None] * statistics.sum_pxx / statistics.n[:, None]
             + (1 - alpha[:, None])
-            * (machine.prior_ubm.variances + machine.prior_ubm.means)
+            * (machine.ubm.variances + machine.ubm.means)
             - da.power(machine.means, 2)
         )
         machine.variances = da.where(
