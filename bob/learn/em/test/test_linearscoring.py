@@ -48,7 +48,7 @@ def test_LinearScoring():
   stats3.n = np.array([3, 4], 'float64')
   stats3.t = 3+4
 
-  test_channeloffset = [np.array([9, 8, 7, 6], 'float64'), np.array([5, 4, 3, 2], 'float64'), np.array([1, 0, 1, 2], 'float64')]
+  test_channeloffset = [np.array([[9, 8], [7, 6]], 'float64'), np.array([[5, 4], [3, 2]], 'float64'), np.array([[1, 0], [1, 2]], 'float64')]
 
   # Reference scores (from Idiap internal matlab implementation)
   ref_scores_00 = np.array([[2372.9, 5207.7, 5275.7], [2215.7, 4868.1, 4932.1]], 'float64')
@@ -79,21 +79,21 @@ def test_LinearScoring():
   np.testing.assert_almost_equal(scores, ref_scores_11, decimal=7)
 
 
-  # # 2/ Use mean/variance supervectors
+  # # 2/ Use means instead of models TODO
   # # 2/a/ Without test_channelOffset, without frame-length normalisation
-  # scores = linear_scoring_means_input([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3])
+  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3])
   # assert (abs(scores - ref_scores_00) < 1e-7).all()
 
   # # 2/b/ Without test_channelOffset, with frame-length normalisation
-  # scores = linear_scoring_means_input([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3], frame_length_normalization=True)
+  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], frame_length_normalization=True)
   # assert (abs(scores - ref_scores_01) < 1e-7).all()
 
   # # 2/c/ With test_channelOffset, without frame-length normalisation
-  # scores = linear_scoring_means_input([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3], test_channeloffset)
+  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], test_channeloffset)
   # assert (abs(scores - ref_scores_10) < 1e-7).all()
 
   # # 2/d/ With test_channelOffset, with frame-length normalisation
-  # scores = linear_scoring_means_input([model1.mean_supervector, model2.mean_supervector], ubm.mean_supervector, ubm.variance_supervector, [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
+  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
   # assert (abs(scores - ref_scores_11) < 1e-7).all()
 
 

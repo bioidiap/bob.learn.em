@@ -24,7 +24,9 @@ from bob.learn.em.mixture import Gaussians
 def test_GMMStats():
   # Test a GMMStats
   # Initializes a GMMStats
-  gs = GMMStats(2,3)
+  n_gaussians = 2
+  n_features = 3
+  gs = GMMStats(n_gaussians,n_features)
   log_likelihood = -3.
   T = 57
   n = np.array([4.37, 5.31], 'float64')
@@ -40,7 +42,7 @@ def test_GMMStats():
   np.testing.assert_equal(gs.n, n)
   np.testing.assert_equal(gs.sum_px, sumpx)
   np.testing.assert_equal(gs.sum_pxx, sumpxx)
-  np.testing.assert_equal(gs.shape, (2,3))
+  np.testing.assert_equal(gs.shape, (n_gaussians, n_features))
 
   # Saves and reads from file
   filename = str(tempfile.mkstemp(".hdf5")[1])
@@ -61,7 +63,7 @@ def test_GMMStats():
   # Saves and load from file using the keyword argument
   filename = str(tempfile.mkstemp(".hdf5")[1])
   gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats(2,3)
+  gs_loaded = GMMStats(n_gaussians, n_features)
   gs_loaded.load(bob.io.base.HDF5File(filename))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
@@ -70,7 +72,7 @@ def test_GMMStats():
   # Saves and load from file using the keyword argument
   filename = str(tempfile.mkstemp(".hdf5")[1])
   gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats(2,3)
+  gs_loaded = GMMStats(n_gaussians, n_features)
   gs_loaded.load(hdf5=bob.io.base.HDF5File(filename))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
@@ -83,7 +85,7 @@ def test_GMMStats():
   assert not (gs.is_similar_to(gs_loaded))
 
   # Accumulates from another GMMStats
-  gs2 = GMMStats(2,3)
+  gs2 = GMMStats(n_gaussians, n_features)
   gs2.log_likelihood = log_likelihood
   gs2.t = T
   gs2.n = n.copy()
@@ -96,17 +98,17 @@ def test_GMMStats():
   np.testing.assert_almost_equal(gs2.sum_px, 2*sumpx, decimal=8)
   np.testing.assert_almost_equal(gs2.sum_pxx, 2*sumpxx, decimal=8)
 
-  # Reinit and checks for zeros
+  # Re-init and checks for zeros
   gs_loaded.init()
   np.testing.assert_equal(gs_loaded.log_likelihood, 0)
   np.testing.assert_equal(gs_loaded.t, 0)
-  np.testing.assert_equal(gs_loaded.n, 0)
-  np.testing.assert_equal(gs_loaded.sum_px, 0)
-  np.testing.assert_equal(gs_loaded.sum_pxx, 0)
+  np.testing.assert_equal(gs_loaded.n, np.zeros((n_gaussians,)))
+  np.testing.assert_equal(gs_loaded.sum_px, np.zeros((n_gaussians, n_features)))
+  np.testing.assert_equal(gs_loaded.sum_pxx, np.zeros((n_gaussians, n_features)))
   # Resize and checks size
-  assert  gs_loaded.shape==(2,3)
+  assert gs_loaded.shape==(n_gaussians, n_features)
   gs_loaded.resize(4,5)
-  assert  gs_loaded.shape==(4,5)
+  assert gs_loaded.shape == (4,5)
   assert gs_loaded.sum_px.shape[0] == 4
   assert gs_loaded.sum_px.shape[1] == 5
 
@@ -426,18 +428,18 @@ def test_GMMMachine_object():
     np.testing.assert_almost_equal(machine.log_weights, np.log(modified_weights))
 
 
-def test_MLTrainer():
+def test_ml_em():
     # Simple GMM test
     data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
     n_gaussians = 2
     n_features = data.shape[-1]
     gaussians_init = Gaussians(means=np.repeat([[2], [8]], n_features, 1))
 
-    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init)
+    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init, update_means=True, update_variances=True, update_weights=True)
     machine.initialize_gaussians(None)
 
     stats = machine.e_step( data)
-    machine.m_step(stats, update_means=True, update_variances=True, update_weights=True)
+    machine.m_step(stats)
 
     expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
     np.testing.assert_almost_equal(machine.means, expected_means)
@@ -448,7 +450,7 @@ def test_MLTrainer():
     np.testing.assert_almost_equal(machine.variances, expected_variances)
 
 
-def test_MAPTrainer():
+def test_map_em():
     n_gaussians = 2
     prior_machine = GMMMachine(n_gaussians)
     prior_machine.gaussians_ = Gaussians(
@@ -456,7 +458,7 @@ def test_MAPTrainer():
     )
     prior_machine.weights = np.array([0.5, 0.5])
 
-    machine = GMMMachine(n_gaussians, trainer="map", prior_ubm=prior_machine)
+    machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)
 
     post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
 
@@ -468,7 +470,7 @@ def test_MAPTrainer():
     np.testing.assert_equal(machine.weights, prior_machine.weights)
 
     stats = machine.e_step(post_data)
-    machine.m_step(stats, update_means=True, update_variances=True, update_weights=True)
+    machine.m_step(stats)
 
     expected_means = np.array([
         [1.83333333, 1.83333333, 2.],
@@ -480,3 +482,74 @@ def test_MAPTrainer():
     np.testing.assert_almost_equal(machine.variances, expected_vars)
     expected_weights = np.array([0.46226415, 0.53773585])
     np.testing.assert_almost_equal(machine.weights, expected_weights)
+
+
+def test_ml_transformer():
+    data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
+    test_data = np.array([[1, 1, 1], [1, 1, 2], [8, 9, 9], [8, 8, 8]])
+    n_gaussians = 2
+    n_features = 3
+    gaussians_init = Gaussians(means=np.array([[2, 2, 2], [8, 8, 8]]))
+
+    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init, update_means=True, update_variances=True, update_weights=True)
+
+    machine = machine.fit(data)
+
+    expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
+    np.testing.assert_almost_equal(machine.means, expected_means)
+    expected_weights = np.array([2/5, 3/5])
+    np.testing.assert_almost_equal(machine.weights, expected_weights)
+    eps = np.finfo(float).eps
+    expected_variances = np.array([[1/4, 1/4, eps], [eps, 2/3, 2/3]])
+    np.testing.assert_almost_equal(machine.variances, expected_variances)
+
+    stats = machine.transform(test_data)
+
+    expected_stats = GMMStats(n_gaussians, n_features)
+    expected_stats.init(
+        log_likelihood=-6755399441055685.0,
+        t=test_data.shape[0],
+        n=np.array([2, 2], dtype=float),
+        sum_px=np.array([[2, 2, 3], [16, 17, 17]], dtype=float),
+        sum_pxx=np.array([[2, 2, 5], [128, 145, 145]], dtype=float),
+    )
+    assert stats.is_similar_to(expected_stats)
+
+
+def test_map_transformer():
+    post_data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
+    test_data = np.array([[1, 1, 1], [1, 1, 2], [8, 9, 9], [8, 8, 8]])
+    n_gaussians = 2
+    n_features = 3
+    prior_machine = GMMMachine(n_gaussians)
+    prior_machine.gaussians_ = Gaussians(
+        means=np.array([[2, 2, 2], [8, 8, 8]])
+    )
+    prior_machine.weights = np.array([0.5, 0.5])
+
+    machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)
+
+    machine = machine.fit(post_data)
+
+    expected_means = np.array([
+        [1.83333333, 1.83333333, 2.],
+        [7.57142857, 8, 8]
+    ])
+    np.testing.assert_almost_equal(machine.means, expected_means)
+    eps = np.finfo(float).eps
+    expected_vars = np.array([[eps, eps, eps], [eps, eps, eps]])
+    np.testing.assert_almost_equal(machine.variances, expected_vars)
+    expected_weights = np.array([0.46226415, 0.53773585])
+    np.testing.assert_almost_equal(machine.weights, expected_weights)
+
+    stats = machine.transform(test_data)
+
+    expected_stats = GMMStats(n_gaussians, n_features)
+    expected_stats.init(
+        log_likelihood=-1.3837590691807108e+16,
+        t=test_data.shape[0],
+        n=np.array([2, 2], dtype=float),
+        sum_px=np.array([[2, 2, 3], [16, 17, 17]], dtype=float),
+        sum_pxx=np.array([[2, 2, 5], [128, 145, 145]], dtype=float),
+    )
+    assert stats.is_similar_to(expected_stats)
