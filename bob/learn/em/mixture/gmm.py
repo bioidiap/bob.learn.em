@@ -2,10 +2,12 @@
 # @author: Yannick Dayer <yannick.dayer@idiap.ch>
 # @date: Fri 30 Jul 2021 10:06:47 UTC+02
 
+"""This module provides classes and functions for the training and usage of GMM.
+
+"""
+
 import logging
-from abc import ABC
-from abc import abstractmethod
-from typing import Union, Any
+from typing import Union
 
 
 import dask.array as da
@@ -37,11 +39,19 @@ class Gaussians(np.ndarray):
     Usage:
     >>> my_gaussians = Gaussians(means=np.array([[0,0,0],[1,1,1]]))
     >>> print(my_gaussians["means"])
-    ... [[0. 0. 0.]
-         [1. 1. 1.]]
+    [[0. 0. 0.]
+     [1. 1. 1.]]
     >>> print(my_gaussians["variances"])
-    ... [[1. 1. 1.]
-         [1. 1. 1.]]
+    [[1. 1. 1.]
+     [1. 1. 1.]]
+
+
+    Methods
+    -------
+    log_likelihood(X)
+        Returns the log likelihood of each element of X on each Gaussian.
+    is_similar_to(other, rtol=1e-5, atol=1e-8)
+        Returns True if other is equal to self (with tolerances).
     """
 
     def __new__(cls, means, variances=None, variance_thresholds=None):
@@ -57,6 +67,7 @@ class Gaussians(np.ndarray):
         variance_thresholds: array of shape (n_gaussians, n_features)
             Threshold values applied to the variances. Defaults to epsilon.
         """
+
         means = np.array(means)
         if means.ndim < 2:
             means = means.reshape((1, -1))
@@ -92,6 +103,7 @@ class Gaussians(np.ndarray):
         array of shape (n_gaussians, n_samples)
             The log likelihood of each points in x for each Gaussian.
         """
+
         N_LOG_2PI = x.shape[-1] * np.log(2 * np.pi)
         g_norm = N_LOG_2PI + np.sum(np.log(self["variances"]), axis=-1)
 
@@ -109,6 +121,7 @@ class Gaussians(np.ndarray):
         Applies the threshold on the variances when setting `variances` or
         `variance_thresholds`.
         """
+
         if key == "variances":
             value = np.maximum(self["variance_thresholds"], value)
         elif key == "variance_thresholds":
@@ -154,7 +167,15 @@ class GMMStats:
     def __init__(self, n_gaussians: int, n_features: int) -> None:
         self.n_gaussians = n_gaussians
         self.n_features = n_features
-        self.init()
+        self.log_likelihood = 0
+        self.t = 0
+        self.n = da.zeros(shape=(self.n_gaussians,), dtype=float)
+        self.sum_px = (
+            da.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
+        )
+        self.sum_pxx = (
+            da.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
+        )
 
     def init(self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None):
         """Initializes the statistics values to a defined value, or zero by default."""
@@ -193,7 +214,7 @@ class GMMStats:
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
             if hdf5["meta_writer_class"] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class']} is not a GMMStats.")
+                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
             self = cls(n_gaussians=hdf5["n_gaussians"], n_features=hdf5["n_inputs"])
             self.log_likelihood = hdf5["log_likelihood"]
             self.t = hdf5["T"]
@@ -288,20 +309,61 @@ class GMMStats:
 
 
 class GMMMachine(BaseEstimator):
-    """Stores a GMM parameters.
+    """Transformer that stores a Gaussian Mixture Model (GMM) parameters.
 
-    Each mixture is a Gaussian represented by a mean and a diagonal variance matrix.
+    This class implements the statistical model for multivariate diagonal mixture
+    Gaussian distribution (GMM), as well as ways to train a model on data.
 
-    TODO doc
+    A GMM is defined as
+    :math:`\\sum_{c=0}^{C} \\omega_c \\mathcal{N}(x | \\mu_c, \\sigma_c)`, where
+    :math:`C` is the number of Gaussian components :math:`\\mu_c`, :math:`\\sigma_c`
+    and :math:`\\omega_c` are respectively the the mean, variance and the weight of
+    each gaussian component :math:`c`.
+    See Section 2.3.9 of Bishop, \"Pattern recognition and machine learning\", 2006
 
-    Usage:
-    >>> machine = GMMMachine(n_gaussians=2, trainer="ml")
-    >>> machine = machine.fit(data)
-    >>> print(machine.means)
+    Two types of training are available MLE and MAP, chosen with `trainer`.
 
-    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", ubm=machine)
+    Maximum Likelihood Estimation (:ref:`MLE <mle>`, ML)
+    ---------------------------------------
+    The mixtures are initialized (with k-means by default).
+    The means, variances, and weights of the mixtures are then trained on the data to
+    increase the likelihood value. (:ref:`MLE <mle>`)
+
+    Maximum a Posteriori (:ref:`MAP <map>`)
+    --------------------------
+    The MAP machine takes another GMM machine as prior, called Universal Background
+    Model (UBM).
+    The means, variances, and weights of the MAP mixtures are then trained on the data
+    as adaptation of the UBM.
+
+    Both training method use a Expectation-Maximization (e-m) algorithm to itertatively
+    train the GMM.
+
+    Usage
+    -----
+    Maximum likelihood:
+    >>> data = np.array([[0,0,0],[1,1,1]])
+    >>> ml_machine = GMMMachine(n_gaussians=2, trainer="ml")
+    >>> ml_machine = ml_machine.fit(data)
+    >>> print(ml_machine.means)
+    [[1. 1. 1.]
+     [0. 0. 0.]]
+
+    Maximum a Posteriori:
+    >>> post_data = np.array([[0.5, 0.5, 0],[1.5, 1, 1.5]])
+    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", ubm=ml_machine)
     >>> map_machine = map_machine.fit(post_data)
     >>> print(map_machine.means)
+    [[1.1 1.  1.1]
+     [0.1 0.1 0. ]]
+
+    Partial fitting:
+    >>> machine = GMMMachine(n_gaussians=2, trainer="ml")
+    >>> for step in range(5):
+    ...     machine = machine.fit_partial(data)
+    >>> print(machine.means)
+    [[1. 1. 1.]
+     [0. 0. 0.]]
 
     Attributes
     ----------
@@ -360,7 +422,7 @@ class GMMMachine(BaseEstimator):
             Update the GMM weights at every m step.
         """
         self.n_gaussians = n_gaussians
-        self.trainer = trainer
+        self.trainer = trainer if trainer in ["ml", "map"] else "ml"
         self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
         if self.trainer == "map" and ubm is None:
             raise ValueError("A ubm is required for MAP GMM.")
@@ -432,6 +494,90 @@ class GMMMachine(BaseEstimator):
     @property
     def shape(self):
         return self.gaussians_.shape
+
+    @classmethod
+    def from_hdf5(cls, hdf5):
+        """Creates a new GMMMachine object from an `HDF5File` object."""
+        try:
+            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+            logger.debug(
+                f"Reading a GMMStats HDF5 file of version {version_major}.{version_minor}"
+            )
+        except RuntimeError:
+            version_major, version_minor = 0, 0
+        if int(version_major) >= 1:
+            if hdf5["meta_writer_class"] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
+            n_gaussians = hdf5["n_gaussians"]
+            gaussians = None  # TODO load the gaussians here
+            ubm = None  # TODO load the UBM here
+            self = cls(
+                n_gaussians=n_gaussians,
+                trainer=hdf5["trainer"],
+                ubm=ubm,
+                convergence_threshold=1e-5,
+                max_fitting_steps=hdf5["max_fitting_steps"],
+                random_state=0,
+                initial_gaussians=gaussians,
+                weights=hdf5["weights"],
+                k_means_trainer=None,
+                update_means=hdf5["update_means"],
+                update_variances=hdf5["update_variances"],
+                update_weights=hdf5["update_weights"],
+            )
+        else:  # Legacy file version
+            logger.info("Loading a legacy HDF5 stats file.")
+            n_gaussians = hdf5["m_n_gaussians"]
+            g_means = []
+            g_variances = []
+            g_variance_thresholds = []
+            for i in range(n_gaussians):
+                g_means.append = hdf5[f"m_gaussians{i}"]["m_mean"]
+                g_variances.append = hdf5[f"m_gaussians{i}"]["m_variance"]
+                g_variance_thresholds.append = hdf5[f"m_gaussians{i}"]["m_variance_thresholds"]
+            gaussians = Gaussians(
+                means=g_means,
+                variances=g_variances,
+                variance_thresholds=g_variance_thresholds,
+            )
+            ubm = None  # TODO handle that. UBM was not part of the machine before...
+            self = cls(
+                n_gaussians=n_gaussians,
+                ubm=ubm,
+                initial_gaussians=gaussians,
+                weights=hdf5["m_weights"],
+            )
+        return self
+
+    def save(self, hdf5):
+        """Saves the current statistsics in an `HDF5File` object."""
+        hdf5["meta_file_version"] = "1.0"
+        hdf5["meta_writer_class"] = str(self.__class__)
+        hdf5["n_gaussians"] = self.n_gaussians
+        hdf5["trainer"] = self.trainer
+        hdf5["convergence_threshold"] = self.convergence_threshold
+        hdf5["max_fitting_steps"] = self.max_fitting_steps
+        hdf5["random_state"] = self.random_state
+        hdf5["weights"] = self.weights
+        hdf5["update_means"] = self.update_means
+        hdf5["update_variances"] = self.update_variances
+        hdf5["update_weights"] = self.update_weights
+        hdf5["ubm"] = self.ubm  # TODO
+        hdf5["gaussians_"] = self.gaussians_  # TODO
+
+    def load(self, hdf5):
+        """Overwrites the current statistics with those in an `HDF5File` object."""
+        new_self = self.from_hdf5(hdf5)
+        if new_self.shape != self.shape:
+            logger.warning("Loaded GMMStats from hdf5 with a different shape.")
+            self.resize(*new_self.shape)
+        self.init(
+            new_self.log_likelihood,
+            new_self.t,
+            new_self.n,
+            new_self.sum_px,
+            new_self.sum_pxx,
+        )
 
     def __eq__(self, other):
         return np.array_equal(self.gaussians_, other.gaussians_)
@@ -578,84 +724,6 @@ class GMMMachine(BaseEstimator):
 
         return statistics
 
-    def linear_scoring(
-        self,
-        models,
-        test_stats,
-        test_channel_offsets=0,
-        frame_length_normalization: bool = False,
-    ):
-        """Returns a score for each model against `self`, representing the UBM.
-
-        Parameters
-        ----------
-        models: list of GMMMachine objects
-            The models to score against.
-        test_stats: list of GMMStats objects
-        test_channel_offsets: array of shape (n_test_stats, n_gaussians)
-
-        """
-        # All models.means [array of shape (n_models, n_gaussians, n_features)]
-        means = np.array(
-            [model.means for model in models]
-        )  # TODO elegant way to put into arrays (or change input format).
-        # All stats.sum_px [array of shape (n_test_stats, n_gaussians, n_features)]
-        sum_px = np.array([stat.sum_px for stat in test_stats])
-        # All stats.n [array of shape (n_test_stats, n_gaussians)]
-        n = np.array([stat.n for stat in test_stats])
-        # All stats.t [array of shape (n_test_stats,)]
-        t = np.array([stat.t for stat in test_stats])
-        # Offsets [array of shape (n_test_stats, `n_gaussians * n_features`)]
-        test_channel_offsets = np.array(test_channel_offsets)
-
-        # TODO sizes broadcast, to accept one or multiple GMM, and one or multiple stats
-        # TODO? special case for MAP? (score self against ubm?)
-
-        # Compute A [array of shape (n_models, n_gaussians * n_features)]
-        a = (means - self.means) / self.variances
-        # Compute B [array of shape (n_gaussians * n_features, n_test_stats)]
-        b = sum_px[:, :, :] - (
-            n[:, :, None] * (self.means[None, :, :] + test_channel_offsets)
-        )
-        b = da.transpose(b, axes=(1, 2, 0))
-        # Apply normalization if needed.
-        if frame_length_normalization:
-            b = da.where(abs(t) <= EPSILON, 0, b[:, :] / t[None, :])
-        return da.tensordot(a, b, 2)
-
-    def linear_scoring_means_input(
-        self,
-        means,
-        test_stats,
-        test_channel_offsets=0,
-        frame_length_normalization: bool = False,
-    ):
-        """Returns a score for each model against `self`, representing the UBM."""
-
-        # All models.means [array of shape (n_models, n_gaussians, n_features)]
-        means = np.array(means)
-        # All stats.sum_px [array of shape (n_test_stats, n_gaussians, n_features)]
-        sum_px = np.array([stat.sum_px for stat in test_stats])
-        # All stats.n [array of shape (n_test_stats, n_gaussians)]
-        n = np.array([stat.n for stat in test_stats])
-        # All stats.t [array of shape (n_test_stats,)]
-        t = np.array([stat.t for stat in test_stats])
-        # Offsets [array of shape (n_test_stats, `n_gaussians * n_features`)]
-        test_channel_offsets = np.array(test_channel_offsets)
-
-        # TODO sizes broadcast, to accept one or multiple means, and one or multiple stats
-        # TODO? special case for MAP? (score self against ubm?)
-
-        # Compute A [array of shape (n_gaussians * n_features,)]
-        a = (means - self.means) / self.variances
-        # Compute B [array of shape (n_gaussians * n_features,)]
-        b = sum_px[:, :] - (n[:, None] * (self.means[:, :] + test_channel_offsets))
-        b = da.transpose(b, axes=(1, 0))
-        # Apply normalization if needed.
-        if frame_length_normalization:
-            b = da.where(abs(t) <= EPSILON, 0, b / t)
-        return da.dot(a, b).trace().sum()
-
     def e_step(self, data: da.Array):
         return self.acc_statistics(data)
 
@@ -692,14 +760,16 @@ class GMMMachine(BaseEstimator):
             )
 
             average_output_previous = average_output
-            self.last_statistics = self.e_step(X)
+            stats = self.e_step(X)
             self.m_step(
-                stats=self.last_statistics,
+                stats=stats,
             )
 
+            # Note: Uses the stats from before m_step, leading to an additional m_step
+            # (which is not bad because it will always converge)
             average_output = (
-                self.last_statistics.log_likelihood / self.last_statistics.t
-            )  # Note: Uses the stats from before m_step, leading to an additional m_step
+                stats.log_likelihood / stats.t
+            )
 
             if step > 0:
                 convergence_value = abs(
@@ -717,17 +787,18 @@ class GMMMachine(BaseEstimator):
         return self
 
     def fit_partial(self, X, y=None, **kwargs):
+        """Applies one iteration of GMM training.
+        """
         if not hasattr(self, "gaussians_"):
             self.initialize_gaussians(X)
 
-        self.last_statistics = self.e_step(X)
-        self.m_step_func(
-            machine=self,
-            statistics=self.last_statistics,
-        )
+        stats = self.e_step(X)
+        self.m_step(stats=stats)
         return self
 
     def transform(self, X, **kwargs):
+        """Returns the statistics for `X`.
+        """
         return self.e_step(X)
 
 
@@ -788,7 +859,9 @@ def map_gmm_m_step(
     alpha=0.5,
     mean_var_update_threshold=EPSILON,
 ):
-    """Updates a GMMMachine parameters using statistics."""
+    """Updates a GMMMachine parameters using statistics adapted from a UBM."""
+    if machine.ubm is None:
+        raise ValueError("A machine used for MAP must have a UBM.")
     # Calculate the "data-dependent adaptation coefficient", alpha_i
     # [array of shape (n_gaussians, )]
     if reynolds_adaptation:
@@ -847,3 +920,63 @@ def map_gmm_m_step(
             prior_norm_variances,
             new_variances,
         )
+
+
+def linear_scoring(
+    models_means,
+    ubm: Union[GMMMachine, Gaussians],
+    test_stats: Union["list[GMMStats]", GMMStats],
+    test_channel_offsets=0,
+    frame_length_normalization: bool = False,
+):
+    """Estimation of the LLR between a target model and the UBM for a test instance.
+
+    The Linear scoring is an approximation to the log-likelihood ratio (LLR) that was
+    shown to be as accurate and up to two orders of magnitude more efficient to
+    compute. [Glembek2009]
+
+    Parameters
+    ----------
+    models_means: array of shape (n_models, n_gaussians, n_features)
+        The model(s) to score against.
+    ubm:
+        The Universal Background Model.
+    test_stats:
+        The instances to score.
+    test_channel_offsets: array of shape (n_test_stats, n_gaussians)
+        Offset values added to the test instances.
+    """
+    if isinstance(ubm, GMMMachine):
+        if ubm.trainer == "ml":
+            ubm = ubm.gaussians_
+        else:
+            ubm = ubm.ubm
+
+    if models_means.ndim < 2:
+        raise ValueError(
+            "models_means must be of shape `(n_models, n_gaussians, n_features)`."
+            )
+    if models_means.ndim == 2:
+        models_means = models_means[None, :, :]
+
+
+    # All stats.sum_px [array of shape (n_test_stats, n_gaussians, n_features)]
+    sum_px = np.array([stat.sum_px for stat in test_stats])
+    # All stats.n [array of shape (n_test_stats, n_gaussians)]
+    n = np.array([stat.n for stat in test_stats])
+    # All stats.t [array of shape (n_test_stats,)]
+    t = np.array([stat.t for stat in test_stats])
+    # Offsets [array of shape (n_test_stats, `n_gaussians * n_features`)]
+    test_channel_offsets = np.array(test_channel_offsets)
+
+    # Compute A [array of shape (n_models, n_gaussians * n_features)]
+    a = (models_means - ubm["means"]) / ubm["variances"]
+    # Compute B [array of shape (n_gaussians * n_features, n_test_stats)]
+    b = sum_px[:, :, :] - (
+        n[:, :, None] * (ubm["means"][None, :, :] + test_channel_offsets)
+    )
+    b = da.transpose(b, axes=(1, 2, 0))
+    # Apply normalization if needed.
+    if frame_length_normalization:
+        b = da.where(abs(t) <= EPSILON, 0, b[:, :] / t[None, :])
+    return da.tensordot(a, b, 2)
