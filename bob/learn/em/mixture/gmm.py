@@ -7,6 +7,7 @@
 """
 
 import logging
+import numbers
 from typing import Union
 
 import dask.array as da
@@ -87,6 +88,36 @@ class Gaussians(np.ndarray):
         rec["variance_thresholds"] = variance_thresholds
         rec["variances"] = np.maximum(variance_thresholds, variances)
         return rec.view(cls)
+
+    @classmethod
+    def from_hdf5(cls, hdf5):
+        """Creates a new Gaussians object from an `HDF5File` object."""
+        try:
+            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+            logger.debug(
+                f"Reading a Gaussians HDF5 file of version {version_major}.{version_minor}"
+            )
+        except RuntimeError:
+            version_major, version_minor = 0, 0
+        if int(version_major) >= 1:
+            if hdf5["meta_writer_class"] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
+            self = cls(
+                means=hdf5["means"], # TODO what is happening here?
+                variances=hdf5["variances"],
+                variance_thresholds=hdf5["variance_thresholds"],
+            )
+        else:
+            raise RuntimeError("Unsupported Gaussians file version.")
+        return self
+
+    def save(self, hdf5):
+        """Saves the current statistsics in an `HDF5File` object."""
+        hdf5["meta_file_version"] = "1.0"
+        hdf5["meta_writer_class"] = str(self.__class__)
+        hdf5["means"] = self["means"]  # TODO check that it's saved correctly
+        hdf5["variances"] = self["variances"]
+        hdf5["variance_thresholds"] = self["variance_thresholds"]
 
     def log_likelihood(self, data):
         """Returns the log-likelihood for x on each gaussian.
@@ -213,7 +244,7 @@ class GMMStats:
         if int(version_major) >= 1:
             if hdf5["meta_writer_class"] != str(cls):
                 logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
-            self = cls(n_gaussians=hdf5["n_gaussians"], n_features=hdf5["n_inputs"])
+            self = cls(n_gaussians=hdf5["n_gaussians"], n_features=hdf5["n_features"])
             self.log_likelihood = hdf5["log_likelihood"]
             self.t = hdf5["T"]
             self.n = hdf5["n"]
@@ -236,7 +267,7 @@ class GMMStats:
         hdf5["meta_file_version"] = "1.0"
         hdf5["meta_writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
-        hdf5["n_inputs"] = self.n_features
+        hdf5["n_features"] = self.n_features
         hdf5["log_likelihood"] = self.log_likelihood
         hdf5["T"] = self.t
         hdf5["n"] = self.n
@@ -373,11 +404,11 @@ class GMMMachine(BaseEstimator):
 
     Attributes
     ----------
-    means, variances, variance_thresholds:
+    means, variances, variance_thresholds
         Gaussians parameters.
-    gaussians_:
+    gaussians_
         All Gaussians parameters.
-    weights:
+    weights
         Gaussians weights.
     """
 
@@ -400,34 +431,38 @@ class GMMMachine(BaseEstimator):
         """
         Parameters
         ----------
-        n_gaussians:
+        n_gaussians
             The number of gaussians to be represented by the machine.
-        trainer:
+        trainer
             `"ml"` for the maximum likelihood estimator method;
             `"map"` for the maximum a posteriori method. (MAP Requires `ubm`)
         ubm: GMMMachine
             Universal Background Model. GMMMachine Required for the MAP method.
-        convergence_threshold:
+        convergence_threshold
             The threshold value of likelihood difference between e-m steps used for
             stopping the training iterations.
-        max_fitting_steps:
+        max_fitting_steps
             The number of e-m iterations to fit the GMM. Stop the training even when
             the convergence threshold isn't met.
-        random_state:
+        random_state
             Specifies a RandomState or a seed for reproducibility.
-        initial_gaussians:
+        initial_gaussians
             Optional set of values to skip the k-means initialization.
-        weights: array of shape (n_gaussians,) or None
+        weights
             The weight of each Gaussian. (defaults to `1/n_gaussians`)
-        k_means_trainer:
+        k_means_trainer
             Optional trainer for the k-means method, replacing the default one.
-        update_means:
+        update_means
             Update the Gaussians means at every m step.
-        update_variances:
+        update_variances
             Update the Gaussians variances at every m step.
-        update_weights:
+        update_weights
             Update the GMM weights at every m step.
         """
+
+        assert (
+            isinstance(n_gaussians, numbers.Integral)
+        ), f"Update your code to the new format! {type(n_gaussians)}"
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"
         self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
@@ -452,6 +487,8 @@ class GMMMachine(BaseEstimator):
         self.update_variances = update_variances
         self.update_weights = update_weights
         self.mean_var_update_threshold = mean_var_update_threshold
+        if initial_gaussians is not None:
+            self.gaussians_ = initial_gaussians # TODO check that...
 
     @property
     def weights(self):
@@ -516,7 +553,7 @@ class GMMMachine(BaseEstimator):
         return self.gaussians_.shape
 
     @classmethod
-    def from_hdf5(cls, hdf5):
+    def from_hdf5(cls, hdf5, ubm=None):
         """Creates a new GMMMachine object from an `HDF5File` object."""
         try:
             version_major, version_minor = hdf5.get("meta_file_version").split(".")
@@ -528,16 +565,18 @@ class GMMMachine(BaseEstimator):
         if int(version_major) >= 1:
             if hdf5["meta_writer_class"] != str(cls):
                 logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
-            n_gaussians = hdf5["n_gaussians"]
-            gaussians = None  # TODO load the gaussians here
-            ubm = None  # TODO load the UBM here
+            if hdf5["trainer"] == "map" and ubm is None:
+                raise ValueError("The UBM is needed when loading a MAP machine.")
+            hdf5.cd("gaussians")
+            gaussians = Gaussians.from_hdf5(hdf5)
+            hdf5.cd("..")
             self = cls(
-                n_gaussians=n_gaussians,
+                n_gaussians=hdf5["n_gaussians"],
                 trainer=hdf5["trainer"],
                 ubm=ubm,
                 convergence_threshold=1e-5,
                 max_fitting_steps=hdf5["max_fitting_steps"],
-                random_state=0,
+                random_state=hdf5["random_state"],
                 initial_gaussians=gaussians,
                 weights=hdf5["weights"],
                 k_means_trainer=None,
@@ -552,17 +591,16 @@ class GMMMachine(BaseEstimator):
             g_variances = []
             g_variance_thresholds = []
             for i in range(n_gaussians):
-                g_means.append = hdf5[f"m_gaussians{i}"]["m_mean"]
-                g_variances.append = hdf5[f"m_gaussians{i}"]["m_variance"]
-                g_variance_thresholds.append = hdf5[f"m_gaussians{i}"][
-                    "m_variance_thresholds"
-                ]
+                hdf5.cd(f"m_gaussians{i}")
+                g_means.append(hdf5["m_mean"])
+                g_variances.append(hdf5["m_variance"])
+                g_variance_thresholds.append(hdf5["m_variance_thresholds"])
+                hdf5.cd("..")
             gaussians = Gaussians(
                 means=g_means,
                 variances=g_variances,
                 variance_thresholds=g_variance_thresholds,
             )
-            ubm = None  # TODO handle that. UBM was not part of the machine before...
             self = cls(
                 n_gaussians=n_gaussians,
                 ubm=ubm,
@@ -584,8 +622,10 @@ class GMMMachine(BaseEstimator):
         hdf5["update_means"] = self.update_means
         hdf5["update_variances"] = self.update_variances
         hdf5["update_weights"] = self.update_weights
-        hdf5["ubm"] = self.ubm  # TODO
-        hdf5["gaussians_"] = self.gaussians_  # TODO
+        hdf5.create_group("gaussians")
+        hdf5.cd("gaussians")
+        self.gaussians_.save(hdf5)
+        hdf5.cd("..")
 
     def load(self, hdf5):
         """Overwrites the current statistics with those in an `HDF5File` object."""
