@@ -12,6 +12,7 @@ import numpy as np
 
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import GMMStats
+from bob.learn.em.mixture import linear_scoring
 
 def test_LinearScoring():
 
@@ -59,71 +60,69 @@ def test_LinearScoring():
 
   # 1/ Use GMMMachines
   # 1/a/ Without test_channelOffset, without frame-length normalisation
-  scores = ubm.linear_scoring([model1, model2], [stats1, stats2, stats3])
+  scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3])
   np.testing.assert_almost_equal(scores, ref_scores_00, decimal=7)
 
   # 1/b/ Without test_channelOffset, with frame-length normalisation
-  scores = ubm.linear_scoring([model1, model2], [stats1, stats2, stats3], frame_length_normalization=True)
+  scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], frame_length_normalization=True)
   np.testing.assert_almost_equal(scores, ref_scores_01, decimal=7)
-  #scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], (), True)
-  #assert (abs(scores - ref_scores_01) < 1e-7).all()
-  #scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], None, True)
-  #assert (abs(scores - ref_scores_01) < 1e-7).all()
+  scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], 0, True)
+  np.testing.assert_almost_equal(scores, ref_scores_01, decimal=7)
 
   # 1/c/ With test_channelOffset, without frame-length normalisation
-  scores = ubm.linear_scoring([model1, model2], [stats1, stats2, stats3], test_channeloffset)
+  scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], test_channeloffset)
   np.testing.assert_almost_equal(scores, ref_scores_10, decimal=7)
 
   # 1/d/ With test_channelOffset, with frame-length normalisation
-  scores = ubm.linear_scoring([model1, model2], [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
+  scores = linear_scoring([model1, model2], ubm, [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
   np.testing.assert_almost_equal(scores, ref_scores_11, decimal=7)
 
 
-  # # 2/ Use means instead of models TODO
-  # # 2/a/ Without test_channelOffset, without frame-length normalisation
-  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3])
-  # assert (abs(scores - ref_scores_00) < 1e-7).all()
+  # 2/ Use means instead of models
+  # 2/a/ Without test_channelOffset, without frame-length normalisation
+  scores = linear_scoring([model1.means, model2.means], ubm, [stats1, stats2, stats3])
+  assert (abs(scores - ref_scores_00) < 1e-7).all()
 
-  # # 2/b/ Without test_channelOffset, with frame-length normalisation
-  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], frame_length_normalization=True)
-  # assert (abs(scores - ref_scores_01) < 1e-7).all()
+  # 2/b/ Without test_channelOffset, with frame-length normalisation
+  scores = linear_scoring([model1.means, model2.means], ubm, [stats1, stats2, stats3], frame_length_normalization=True)
+  assert (abs(scores - ref_scores_01) < 1e-7).all()
 
-  # # 2/c/ With test_channelOffset, without frame-length normalisation
-  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], test_channeloffset)
-  # assert (abs(scores - ref_scores_10) < 1e-7).all()
+  # 2/c/ With test_channelOffset, without frame-length normalisation
+  scores = linear_scoring([model1.means, model2.means], ubm, [stats1, stats2, stats3], test_channeloffset)
+  assert (abs(scores - ref_scores_10) < 1e-7).all()
 
-  # # 2/d/ With test_channelOffset, with frame-length normalisation
-  # scores = ubm.linear_scoring_means_input([model1.means, model2.means], [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
-  # assert (abs(scores - ref_scores_11) < 1e-7).all()
+  # 2/d/ With test_channelOffset, with frame-length normalisation
+  scores = linear_scoring([model1.means, model2.means], ubm, [stats1, stats2, stats3], test_channeloffset, frame_length_normalization=True)
+  assert (abs(scores - ref_scores_11) < 1e-7).all()
 
 
   # 3/ Using single model/sample
   # 3/a/ without frame-length normalisation
-  score = ubm.linear_scoring_means_input(model1.means, stats1, test_channeloffset[0])
+  score = linear_scoring(model1.means, ubm, stats1, test_channeloffset[0])
   np.testing.assert_almost_equal(score, ref_scores_10[0,0], decimal=7)
-  score = ubm.linear_scoring_means_input(model1.means, stats2, test_channeloffset[1])
+  score = linear_scoring(model1.means, ubm, stats2, test_channeloffset[1])
   np.testing.assert_almost_equal(score, ref_scores_10[0,1], decimal=7)
-  score = ubm.linear_scoring_means_input(model1.means, stats3, test_channeloffset[2])
+  score = linear_scoring(model1.means, ubm, stats3, test_channeloffset[2])
   np.testing.assert_almost_equal(score, ref_scores_10[0,2], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats1, test_channeloffset[0])
+  score = linear_scoring(model2.means, ubm, stats1, test_channeloffset[0])
   np.testing.assert_almost_equal(score, ref_scores_10[1,0], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats2, test_channeloffset[1])
+  score = linear_scoring(model2.means, ubm, stats2, test_channeloffset[1])
   np.testing.assert_almost_equal(score, ref_scores_10[1,1], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats3, test_channeloffset[2])
+  score = linear_scoring(model2.means, ubm, stats3, test_channeloffset[2])
   np.testing.assert_almost_equal(score, ref_scores_10[1,2], decimal=7)
 
 
   # 3/b/ with frame-length normalisation
-  score = ubm.linear_scoring_means_input(model1.means, stats1, test_channeloffset[0], True)
+  score = linear_scoring(model1.means, ubm, stats1, test_channeloffset[0], True)
   np.testing.assert_almost_equal(score, ref_scores_11[0,0], decimal=7)
-  score = ubm.linear_scoring_means_input(model1.means, stats2, test_channeloffset[1], True)
+  score = linear_scoring(model1.means, ubm, stats2, test_channeloffset[1], True)
   np.testing.assert_almost_equal(score, ref_scores_11[0,1], decimal=7)
-  score = ubm.linear_scoring_means_input(model1.means, stats3, test_channeloffset[2], True)
+  score = linear_scoring(model1.means, ubm, stats3, test_channeloffset[2], True)
   np.testing.assert_almost_equal(score, ref_scores_11[0,2], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats1, test_channeloffset[0], True)
+  score = linear_scoring(model2.means, ubm, stats1, test_channeloffset[0], True)
   np.testing.assert_almost_equal(score, ref_scores_11[1,0], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats2, test_channeloffset[1], True)
+  score = linear_scoring(model2.means, ubm, stats2, test_channeloffset[1], True)
   np.testing.assert_almost_equal(score, ref_scores_11[1,1], decimal=7)
-  score = ubm.linear_scoring_means_input(model2.means, stats3, test_channeloffset[2], True)
+  score = linear_scoring(model2.means, ubm, stats3, test_channeloffset[2], True)
   np.testing.assert_almost_equal(score, ref_scores_11[1,2], decimal=7)
 

@@ -99,7 +99,7 @@ def test_GMMStats():
   np.testing.assert_almost_equal(gs2.sum_pxx, 2*sumpxx, decimal=8)
 
   # Re-init and checks for zeros
-  gs_loaded.init()
+  gs_loaded.init_fields()
   np.testing.assert_equal(gs_loaded.log_likelihood, 0)
   np.testing.assert_equal(gs_loaded.t, 0)
   np.testing.assert_equal(gs_loaded.n, np.zeros((n_gaussians,)))
@@ -506,7 +506,7 @@ def test_ml_transformer():
     stats = machine.transform(test_data)
 
     expected_stats = GMMStats(n_gaussians, n_features)
-    expected_stats.init(
+    expected_stats.init_fields(
         log_likelihood=-6755399441055685.0,
         t=test_data.shape[0],
         n=np.array([2, 2], dtype=float),
@@ -545,7 +545,7 @@ def test_map_transformer():
     stats = machine.transform(test_data)
 
     expected_stats = GMMStats(n_gaussians, n_features)
-    expected_stats.init(
+    expected_stats.init_fields(
         log_likelihood=-1.3837590691807108e+16,
         t=test_data.shape[0],
         n=np.array([2, 2], dtype=float),
