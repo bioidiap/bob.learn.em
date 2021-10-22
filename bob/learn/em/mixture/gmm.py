@@ -2,9 +2,7 @@
 # @author: Yannick Dayer <yannick.dayer@idiap.ch>
 # @date: Fri 30 Jul 2021 10:06:47 UTC+02
 
-"""This module provides classes and functions for the training and usage of GMM.
-
-"""
+"""This module provides classes and functions for the training and usage of GMM."""
 
 import logging
 import numbers
@@ -16,6 +14,8 @@ from sklearn.base import BaseEstimator
 
 from bob.learn.em.cluster import KMeansMachine
 from bob.learn.em.cluster import KMeansTrainer
+
+from bob.io.base import HDF5File
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +43,6 @@ class Gaussians(np.ndarray):
     >>> print(my_gaussians["variances"])
     [[1. 1. 1.]
      [1. 1. 1.]]
-
 
     Methods
     -------
@@ -92,6 +91,8 @@ class Gaussians(np.ndarray):
     @classmethod
     def from_hdf5(cls, hdf5):
         """Creates a new Gaussians object from an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "r")
         try:
             version_major, version_minor = hdf5.get("meta_file_version").split(".")
             logger.debug(
@@ -103,7 +104,7 @@ class Gaussians(np.ndarray):
             if hdf5["meta_writer_class"] != str(cls):
                 logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
             self = cls(
-                means=hdf5["means"], # TODO what is happening here?
+                means=hdf5["means"],
                 variances=hdf5["variances"],
                 variance_thresholds=hdf5["variance_thresholds"],
             )
@@ -113,9 +114,11 @@ class Gaussians(np.ndarray):
 
     def save(self, hdf5):
         """Saves the current statistsics in an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "w")
         hdf5["meta_file_version"] = "1.0"
         hdf5["meta_writer_class"] = str(self.__class__)
-        hdf5["means"] = self["means"]  # TODO check that it's saved correctly
+        hdf5["means"] = self["means"]
         hdf5["variances"] = self["variances"]
         hdf5["variance_thresholds"] = self["variance_thresholds"]
 
@@ -157,6 +160,10 @@ class Gaussians(np.ndarray):
         elif key == "variance_thresholds":
             super().__setitem__("variances", np.maximum(value, self["variances"]))
         return super().__setitem__(key, value)
+
+    def __getitem__(self, key):
+        """Get values of items (operator `[]`) of this numpy array."""
+        return super().__getitem__(key).view(np.ndarray)
 
     def __eq__(self, other):
         return np.array_equal(self, other)
@@ -234,6 +241,8 @@ class GMMStats:
     @classmethod
     def from_hdf5(cls, hdf5):
         """Creates a new GMMStats object from an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "r")
         try:
             version_major, version_minor = hdf5.get("meta_file_version").split(".")
             logger.debug(
@@ -264,15 +273,17 @@ class GMMStats:
 
     def save(self, hdf5):
         """Saves the current statistsics in an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "w")
         hdf5["meta_file_version"] = "1.0"
         hdf5["meta_writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
         hdf5["n_features"] = self.n_features
-        hdf5["log_likelihood"] = self.log_likelihood
-        hdf5["T"] = self.t
-        hdf5["n"] = self.n
-        hdf5["sumPx"] = self.sum_px
-        hdf5["sumPxx"] = self.sum_pxx
+        hdf5["log_likelihood"] = float(self.log_likelihood)
+        hdf5["T"] = int(self.t)
+        hdf5["n"] = np.array(self.n)
+        hdf5["sumPx"] = np.array(self.sum_px)
+        hdf5["sumPxx"] = np.array(self.sum_pxx)
 
     def load(self, hdf5):
         """Overwrites the current statistics with those in an `HDF5File` object."""
@@ -460,14 +471,16 @@ class GMMMachine(BaseEstimator):
             Update the GMM weights at every m step.
         """
 
-        assert (
-            isinstance(n_gaussians, numbers.Integral)
+        assert isinstance(
+            n_gaussians, numbers.Integral
         ), f"Update your code to the new format! {type(n_gaussians)}"
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"
         self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
         if self.trainer == "map" and ubm is None:
-            raise ValueError("A ubm is required for MAP GMM.")
+            raise ValueError("A UBM is required for MAP GMM.")
+        if ubm is not None and ubm.n_gaussians != self.n_gaussians:
+            raise ValueError("The UBM machine is not compatible with this machine.")
         self.ubm = ubm
         if max_fitting_steps is None and convergence_threshold is None:
             raise ValueError(
@@ -488,7 +501,11 @@ class GMMMachine(BaseEstimator):
         self.update_weights = update_weights
         self.mean_var_update_threshold = mean_var_update_threshold
         if initial_gaussians is not None:
-            self.gaussians_ = initial_gaussians # TODO check that...
+            self.gaussians_ = initial_gaussians
+        elif self.ubm is not None:
+            self.gaussians_ = self.ubm.gaussians_.copy()
+        else:
+            self.gaussians_ = None # Will initialize at `fit` with k-means.
 
     @property
     def weights(self):
@@ -507,7 +524,7 @@ class GMMMachine(BaseEstimator):
 
     @means.setter
     def means(self, means: "np.ndarray[('n_gaussians', 'n_features'), float]"):
-        if hasattr(self, "gaussians_"):
+        if self.gaussians_ is not None:
             self.gaussians_["means"] = means
         else:
             self.gaussians_ = Gaussians(means=means)
@@ -519,7 +536,7 @@ class GMMMachine(BaseEstimator):
 
     @variances.setter
     def variances(self, variances: "np.ndarray[('n_gaussians', 'n_features'), float]"):
-        if hasattr(self, "gaussians_"):
+        if self.gaussians_ is not None:
             self.gaussians_["variances"] = variances
         else:
             self.gaussians_ = Gaussians(
@@ -535,7 +552,7 @@ class GMMMachine(BaseEstimator):
     def variance_thresholds(
         self, threshold: "np.ndarray[('n_gaussians', 'n_features'), float]"
     ):
-        if hasattr(self, "gaussians_"):
+        if self.gaussians_ is not None:
             self.gaussians_["variance_thresholds"] = threshold
         else:
             self.gaussians_ = Gaussians(
@@ -555,6 +572,8 @@ class GMMMachine(BaseEstimator):
     @classmethod
     def from_hdf5(cls, hdf5, ubm=None):
         """Creates a new GMMMachine object from an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "r")
         try:
             version_major, version_minor = hdf5.get("meta_file_version").split(".")
             logger.debug(
@@ -576,7 +595,6 @@ class GMMMachine(BaseEstimator):
                 ubm=ubm,
                 convergence_threshold=1e-5,
                 max_fitting_steps=hdf5["max_fitting_steps"],
-                random_state=hdf5["random_state"],
                 initial_gaussians=gaussians,
                 weights=hdf5["weights"],
                 k_means_trainer=None,
@@ -611,13 +629,14 @@ class GMMMachine(BaseEstimator):
 
     def save(self, hdf5):
         """Saves the current statistsics in an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "w")
         hdf5["meta_file_version"] = "1.0"
         hdf5["meta_writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
         hdf5["trainer"] = self.trainer
         hdf5["convergence_threshold"] = self.convergence_threshold
         hdf5["max_fitting_steps"] = self.max_fitting_steps
-        hdf5["random_state"] = self.random_state
         hdf5["weights"] = self.weights
         hdf5["update_means"] = self.update_means
         hdf5["update_variances"] = self.update_variances
@@ -626,14 +645,6 @@ class GMMMachine(BaseEstimator):
         hdf5.cd("gaussians")
         self.gaussians_.save(hdf5)
         hdf5.cd("..")
-
-    def load(self, hdf5):
-        """Overwrites the current statistics with those in an `HDF5File` object."""
-        new_self = self.from_hdf5(hdf5)
-        if new_self.shape != self.shape:
-            logger.warning("Loaded GMMMachine from hdf5 with a different shape.")
-            # self.resize(*new_self.shape)
-        # TODO
 
     def __eq__(self, other):
         return np.array_equal(self.gaussians_, other.gaussians_)
@@ -656,7 +667,9 @@ class GMMMachine(BaseEstimator):
                 if data is None:
                     raise ValueError("Data is required when training with k-means.")
                 logger.info("Initializing GMM with k-means.")
-                kmeans_trainer = self.k_means_trainer or KMeansTrainer()
+                kmeans_trainer = self.k_means_trainer or KMeansTrainer(
+                    random_state=self.random_state,
+                )
                 kmeans_machine = KMeansMachine(self.n_gaussians).fit(
                     data, trainer=kmeans_trainer
                 )
@@ -666,7 +679,7 @@ class GMMMachine(BaseEstimator):
                     weights,
                 ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
 
-                # Set the GMM machine gaussians with the results of k-means
+                # Set the GMM machine's gaussians with the results of k-means
                 self.gaussians_ = Gaussians(
                     means=kmeans_machine.centroids_,
                     variances=variances,
@@ -675,6 +688,7 @@ class GMMMachine(BaseEstimator):
             else:
                 logger.info("Initializing GMM with user-provided values.")
                 self.gaussians_ = self.initial_gaussians.copy()
+                self.variance_thresholds = self.initial_variance_thresholds
                 self.weights = np.full((self.n_gaussians,), 1 / self.n_gaussians)
 
     def log_weighted_likelihood(
@@ -741,7 +755,6 @@ class GMMMachine(BaseEstimator):
             dtype=np.float,
             keepdims=False,
         )
-
         return ll_reduced
 
     def acc_statistics(
@@ -815,7 +828,7 @@ class GMMMachine(BaseEstimator):
 
     def fit(self, X, y=None, **kwargs):
         """Trains the GMM on data until convergence or maximum step is reached."""
-        if not hasattr(self, "gaussians_"):
+        if self.gaussians_ is None:
             self.initialize_gaussians(X)
 
         average_output = 0
@@ -859,7 +872,7 @@ class GMMMachine(BaseEstimator):
 
     def fit_partial(self, X, y=None, **kwargs):
         """Applies one iteration of GMM training."""
-        if not hasattr(self, "gaussians_"):
+        if self.gaussians_ is None:
             self.initialize_gaussians(X)
 
         stats = self.e_step(X)
