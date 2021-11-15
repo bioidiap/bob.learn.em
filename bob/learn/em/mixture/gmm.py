@@ -855,7 +855,7 @@ class GMMMachine(BaseEstimator):
             # (which is not bad because it will always converge)
             average_output = stats.log_likelihood / stats.t
 
-            if step > 0:
+            if step > 1:
                 convergence_value = abs(
                     (average_output_previous - average_output) / average_output_previous
                 )
@@ -882,6 +882,12 @@ class GMMMachine(BaseEstimator):
     def transform(self, X, **kwargs):
         """Returns the statistics for `X`."""
         return self.e_step(X)
+
+    def _more_tags(self):
+        return {
+            "stateless": False,
+            "requires_fit": True,
+        }
 
 
 def ml_gmm_m_step(
