@@ -4,6 +4,7 @@ import numpy
 import matplotlib.pyplot as plt
 
 from matplotlib.patches import Ellipse
+from matplotlib.lines import Line2D
 
 import logging
 
@@ -36,6 +37,8 @@ machine = GMMMachine(
 machine.means = numpy.array([[5, 3], [4, 2], [7, 3]], dtype=float)
 machine = machine.fit(data)
 
+
+# Plotting
 figure, ax = plt.subplots()
 ax.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
 ax.scatter(versicolor[:, 0], versicolor[:, 1], c="goldenrod", label="versicolor")
@@ -49,20 +52,18 @@ ax.scatter(
     s=60,
 )
 
-for g in machine.gaussians_:
-    covariance = numpy.diag(g["variances"])
-    radius = numpy.sqrt(5.991)
-    eigvals, eigvecs = numpy.linalg.eig(covariance)
-    axis = numpy.sqrt(eigvals) * radius
-    slope = eigvecs[1][0] / eigvecs[1][1]
-    angle = 180.0 * numpy.arctan(slope) / numpy.pi
+# Draw ellipses for covariance
+for mean, variance in zip(machine.means, machine.variances):
+    eigvals, eigvecs = numpy.linalg.eig(numpy.diag(variance))
+    axis = numpy.sqrt(eigvals) * numpy.sqrt(5.991)
+    angle = 180.0 * numpy.arctan(eigvecs[1][0] / eigvecs[1][1]) / numpy.pi
+    ax.add_patch(Ellipse(mean, *axis, angle=angle, linewidth=1, fill=False, zorder=2))
 
-    e1 = Ellipse(
-        g["means"], axis[0], axis[1], angle=angle, linewidth=1, fill=False, zorder=2
-    )
-    ax.add_patch(e1)
-
-plt.legend()
+# Plot details (legend, axis labels)
+plt.legend(
+    handles=ax.get_legend_handles_labels()[0]
+    + [Line2D([0], [0], color="black", label="covariances")]
+)
 plt.xticks([], [])
 plt.yticks([], [])
 ax.set_xlabel("Sepal length")
