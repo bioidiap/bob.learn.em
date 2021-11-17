@@ -10,6 +10,7 @@ from bob.learn.em import (
 )
 from bob.learn.em.cluster import KMeansMachine
 from bob.learn.em.mixture import GMMMachine
+from bob.learn.em import GMMMachine as LegacyGMMMachine
 import numpy
 import pickle
 
@@ -31,7 +32,7 @@ def test_gmm_machine():
 
 
 def test_isv_base():
-    ubm = GMMMachine(3, 3)
+    ubm = LegacyGMMMachine(3, 3)
     ubm.means = numpy.arange(9).reshape(3, 3).astype("float")
     isv_base = ISVBase(ubm, 2)
     isv_base.u = numpy.arange(18).reshape(9, 2).astype("float")
@@ -49,7 +50,7 @@ def test_isv_machine():
     weights = numpy.array([0.4, 0.6], "float64")
     means = numpy.array([[1, 6, 2], [4, 3, 2]], "float64")
     variances = numpy.array([[1, 2, 1], [2, 1, 2]], "float64")
-    ubm = GMMMachine(2, 3)
+    ubm = LegacyGMMMachine(2, 3)
     ubm.weights = weights
     ubm.means = means
     ubm.variances = variances
@@ -117,7 +118,7 @@ def test_gmmstats():
 def test_ivector_machine():
 
     # Ubm
-    ubm = GMMMachine(2, 3)
+    ubm = LegacyGMMMachine(2, 3)
     ubm.weights = numpy.array([0.4, 0.6])
     ubm.means = numpy.array([[1.0, 7, 4], [4, 5, 3]])
     ubm.variances = numpy.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])
