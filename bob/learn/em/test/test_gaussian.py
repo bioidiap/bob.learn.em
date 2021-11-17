@@ -8,7 +8,11 @@
 """Tests the Gaussian class
 """
 
+import tempfile
+
 import numpy as np
+
+from h5py import File as HDF5File
 
 from bob.learn.em.mixture import Gaussians
 
@@ -17,10 +21,10 @@ def equals(x, y, epsilon):
     return abs(x - y) < epsilon
 
 
-def test_GaussianMachine():
-  # Test a GaussianMachine more thoroughly
+def test_GaussiansObject():
+  """Tests a Gaussians object creation and manipulation."""
 
-  # Initializes a Gaussian with zero mean and unit variance
+  # Initializes a Gaussians with zero mean and unit variance
   g = Gaussians(means=np.zeros((3,)))
   np.testing.assert_equal(g["means"], np.zeros((1,3)))
   np.testing.assert_equal(g["variances"], np.ones((1,3)))
@@ -36,11 +40,37 @@ def test_GaussianMachine():
   np.testing.assert_equal(g["variances"], variance)
   np.testing.assert_equal(g["variance_thresholds"], np.full((1, 3), 0.0005))
 
+  # Save and read from file
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(HDF5File(filename, 'w'))
+  g_loaded = Gaussians.from_hdf5(HDF5File(filename, "r"))
+  assert g == g_loaded
+  assert (g != g_loaded) is False
+  assert g.is_similar_to(g_loaded)
+
+  # Save and read from file using `from_hdf5`
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(hdf5=HDF5File(filename, 'w'))
+  g_loaded = Gaussians.from_hdf5(hdf5=HDF5File(filename, "r"))
+  assert g == g_loaded
+  assert (g != g_loaded) is False
+  assert g.is_similar_to(g_loaded)
+
+  # Save and load from file using `load` into an existing Gaussians
+  filename = str(tempfile.mkstemp(".hdf5")[1])
+  g.save(HDF5File(filename, 'w'))
+  g_loaded = Gaussians(np.zeros(shape=(3,)))  # Dummy fill, same size
+  g_loaded.load(HDF5File(filename, "r"))
+  assert g == g_loaded
+  assert (g != g_loaded) is False
+  assert g.is_similar_to(g_loaded)
+
   # Make them different
   g2 = g.copy()
   g["variance_thresholds"] = 0.001
   assert (g == g2) is False
   assert g != g2
+  assert not g.is_similar_to(g_loaded)
 
   # Check likelihood computation
   sample1 = np.array([0, 1, 2], 'float64')
@@ -70,7 +100,7 @@ def test_gaussian_variance_threshold():
 
 
 def test_likelihood():
-    # Test the likelihood computation of a simple normal Gaussian
+    """Tests the likelihood computation of a simple normal Gaussian."""
     gaussian = Gaussians(means=[0, 0], variances=[1, 1], variance_thresholds=[1e-5, 1e-5])
     log_likelihood = gaussian.log_likelihood(np.array([[0.4, 0.2]], "float64"))
     np.testing.assert_almost_equal(log_likelihood, [[-1.93787706641]], decimal=10)
@@ -94,20 +124,24 @@ def test_likelihood():
 
 
 def test_multiple_gaussian():
+    """Tests the capacity to store and work with multiple gaussians."""
     gaussians = Gaussians(
         means=np.array([[0, 0],[3, 3]])
     )
     expected_means = np.array([[0.0, 0.0], [3.0, 3.0]])
     expected_variances = np.array([[1.0, 1.0], [1.0, 1.0]])
     eps = np.finfo(float).eps
-    expected_variance_thresholds = np.array([[eps, eps], [eps, eps]])
+    expected_var_thresholds = np.array([[eps, eps], [eps, eps]])
     np.testing.assert_equal(gaussians["means"], expected_means)
     np.testing.assert_equal(gaussians["variances"], expected_variances)
-    np.testing.assert_equal(
-        gaussians["variance_thresholds"], expected_variance_thresholds
-    )
-    assert hasattr(gaussians[0], "log_likelihood")
-    gaussians[0].log_likelihood(np.array([1.0, 2.0]))
+    np.testing.assert_equal(gaussians["variance_thresholds"], expected_var_thresholds)
+    test_samples = np.array([[0.0, 0.0], [1.0, 2.0], [3.0, 3.0]])
+    log_likelihoods = gaussians.log_likelihood(test_samples)
+    expected_likelihoods = np.array([
+        [-1.8378770664, -4.3378770664, -10.8378770664],  # samples ll On gaussian 0
+        [-10.8378770664, -4.3378770664, -1.8378770664],  # samples ll On gaussian 1
+    ])
+    np.testing.assert_almost_equal(log_likelihoods, expected_likelihoods, decimal=10)
 
     # Variances threshold application
     gaussians["variance_thresholds"] = np.array([[1e-5, 1e-5], [1e-3, 1e-3]])
@@ -124,7 +158,9 @@ def test_multiple_gaussian():
     gaussians = Gaussians(means=np.zeros(shape=(2,3)), variances=0, variance_thresholds=1e-4)
     np.testing.assert_equal(gaussians["variances"], np.full(shape=(2,3), fill_value=1e-4))
 
+
 def test_gaussians_attributes_copy():
+    """Ensures that the input arrays are correctly copied."""
     means = np.array([[0, 0], [1, 1], [2, 2]], dtype=float)
     variances = np.ones_like(means, dtype=float)
     variance_thresholds = np.full_like(means, 1e-5, dtype=float)

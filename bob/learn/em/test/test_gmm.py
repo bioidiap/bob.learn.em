@@ -13,6 +13,7 @@ import numpy as np
 import os
 import tempfile
 from copy import deepcopy
+from h5py import File as HDF5File
 
 import bob.io.base
 from bob.io.base.test_utils import datafile
@@ -20,6 +21,8 @@ from bob.io.base.test_utils import datafile
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import GMMStats
 from bob.learn.em.mixture import Gaussians
+
+from bob.learn.em.cluster import KMeansTrainer
 
 def test_GMMStats():
   # Test a GMMStats
@@ -44,36 +47,19 @@ def test_GMMStats():
   np.testing.assert_equal(gs.sum_pxx, sumpxx)
   np.testing.assert_equal(gs.shape, (n_gaussians, n_features))
 
-  # Saves and reads from file
+  # Saves and reads from file using `from_hdf5`
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(bob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats.from_hdf5(bob.io.base.HDF5File(filename))
+  gs.save(HDF5File(filename, 'w'))
+  gs_loaded = GMMStats.from_hdf5(HDF5File(filename, "r"))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
   assert gs.is_similar_to(gs_loaded)
 
-  # Saves and reads from file using the keyword argument
+  # Saves and load from file using `load`
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats.from_hdf5(bob.io.base.HDF5File(filename))
-  assert gs == gs_loaded
-  assert (gs != gs_loaded ) is False
-  assert gs.is_similar_to(gs_loaded)
-
-  # Saves and load from file using the keyword argument
-  filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
+  gs.save(hdf5=HDF5File(filename, 'w'))
   gs_loaded = GMMStats(n_gaussians, n_features)
-  gs_loaded.load(bob.io.base.HDF5File(filename))
-  assert gs == gs_loaded
-  assert (gs != gs_loaded ) is False
-  assert gs.is_similar_to(gs_loaded)
-
-  # Saves and load from file using the keyword argument
-  filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(hdf5=bob.io.base.HDF5File(filename, 'w'))
-  gs_loaded = GMMStats(n_gaussians, n_features)
-  gs_loaded.load(hdf5=bob.io.base.HDF5File(filename))
+  gs_loaded.load(HDF5File(filename, "r"))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
   assert gs.is_similar_to(gs_loaded)
@@ -214,7 +200,7 @@ def test_GMMMachine_2():
   stats = gmm.acc_statistics(arrayset)
 
   stats_ref = GMMStats(n_gaussians=2, n_features=2)
-  stats_ref.load(bob.io.base.HDF5File(datafile("stats.hdf5",__name__, path="../data/")))
+  stats_ref.load(HDF5File(datafile("stats.hdf5",__name__, path="../data/"), "r"))
 
   np.testing.assert_equal(stats.t, stats_ref.t)
   np.testing.assert_almost_equal(stats.n, stats_ref.n, decimal=10)
@@ -236,7 +222,7 @@ def test_GMMMachine_3():
   # Compare the log-likelihood with the one obtained using Chris Matlab
   # implementation
   matlab_ll_ref = -2.361583051672024e+02
-  assert abs(gmm.log_likelihood(data) - matlab_ll_ref) < 1e-10
+  np.testing.assert_almost_equal(gmm.log_likelihood(data), matlab_ll_ref, decimal=10)
 
 
 def test_GMMMachine_4():
@@ -350,6 +336,28 @@ def test_machine_parameters():
     np.testing.assert_almost_equal(machine.gaussians_["variances"], new_variances)
     assert machine.variances.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(machine.variances, new_variances)
+
+
+def test_kmeans_plusplus_init():
+    n_gaussians = 3
+    machine = GMMMachine(n_gaussians, k_means_trainer=KMeansTrainer("k-means++"))
+    data = np.array([[1.5, 1], [1, 1.5], [-1, 0.5], [-1.5, 0], [2, 2], [2.5, 2.5]])
+    machine = machine.fit(data)
+    expected_means = np.array([[2.25, 2.25], [-1.25, 0.25], [1.25, 1.25]])
+    expected_variances = np.array([[1/16, 1/16], [1/16, 1/16], [1/16, 1/16]])
+    np.testing.assert_almost_equal(machine.means, expected_means, decimal=3)
+    np.testing.assert_almost_equal(machine.variances, expected_variances)
+
+
+def test_kmeans_parallel_init():
+    n_gaussians = 3
+    machine = GMMMachine(n_gaussians, k_means_trainer=KMeansTrainer("k-means||"))
+    data = np.array([[1.5, 1], [1, 1.5], [-1, 0.5], [-1.5, 0], [2, 2], [2.5, 2.5]])
+    machine = machine.fit(data)
+    expected_means = np.array([[1.25, 1.25], [-1.25, 0.25], [2.25, 2.25]])
+    expected_variances = np.array([[1/16, 1/16], [1/16, 1/16], [1/16, 1/16]])
+    np.testing.assert_almost_equal(machine.means, expected_means, decimal=3)
+    np.testing.assert_almost_equal(machine.variances, expected_variances)
 
 
 def test_likelihood():

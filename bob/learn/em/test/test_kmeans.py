@@ -57,7 +57,10 @@ def test_kmeans_fit():
     data2 = da.random.normal(loc=-1, size=(2000, 3))
     data = da.concatenate([data1, data2], axis=0)
     machine = KMeansMachine(2, random_state=0).fit(data)
-    expected = [[1.00426431, 1.00359693, 1.05996704], [-0.99262315, -1.05226141, -1.00525245]]
+    expected = [
+        [1.00426431, 1.00359693, 1.05996704],
+        [-0.99262315, -1.05226141, -1.00525245],
+    ]
     np.testing.assert_almost_equal(machine.centroids_, expected)
 
 
@@ -68,7 +71,10 @@ def test_kmeans_fit_init_pp():
     data = da.concatenate([data1, data2], axis=0)
     trainer = KMeansTrainer(init_method="k-means++", random_state=0)
     machine = KMeansMachine(2).fit(data, trainer=trainer)
-    expected = [[-0.99262315, -1.05226141, -1.00525245], [1.00426431, 1.00359693, 1.05996704]]
+    expected = [
+        [-0.99262315, -1.05226141, -1.00525245],
+        [1.00426431, 1.00359693, 1.05996704],
+    ]
     np.testing.assert_almost_equal(machine.centroids_, expected)
 
 
@@ -79,5 +85,8 @@ def test_kmeans_fit_init_random():
     data = da.concatenate([data1, data2], axis=0)
     trainer = KMeansTrainer(init_method="random", random_state=0)
     machine = KMeansMachine(2).fit(data, trainer=trainer)
-    expected = [[-0.99433738, -1.05561588, -1.01236246], [0.99800688, 0.99873325, 1.05879539]]
+    expected = [
+        [-0.99433738, -1.05561588, -1.01236246],
+        [0.99800688, 0.99873325, 1.05879539],
+    ]
     np.testing.assert_almost_equal(machine.centroids_, expected)

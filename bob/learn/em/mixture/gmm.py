@@ -15,7 +15,7 @@ from sklearn.base import BaseEstimator
 from bob.learn.em.cluster import KMeansMachine
 from bob.learn.em.cluster import KMeansTrainer
 
-from bob.io.base import HDF5File
+from h5py import File as HDF5File
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +86,11 @@ class Gaussians(np.ndarray):
         rec["means"] = means
         rec["variance_thresholds"] = variance_thresholds
         rec["variances"] = np.maximum(variance_thresholds, variances)
-        return rec.view(cls)
+        self = rec.view(cls)
+        n_log_2pi = self.shape[-1] * np.log(2 * np.pi)
+        # Precomputed g_norm for each gaussian [array of shape (n_gaussians,)]
+        self._g_norms = n_log_2pi + np.log(self["variances"]).sum(axis=-1)
+        return self
 
     @classmethod
     def from_hdf5(cls, hdf5):
@@ -94,26 +98,26 @@ class Gaussians(np.ndarray):
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
         try:
-            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+            version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
             logger.debug(
                 f"Reading a Gaussians HDF5 file of version {version_major}.{version_minor}"
             )
-        except RuntimeError:
+        except TypeError:
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
-            if hdf5["meta_writer_class"] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
+            if hdf5["meta_writer_class"][()] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
             self = cls(
-                means=hdf5["means"],
-                variances=hdf5["variances"],
-                variance_thresholds=hdf5["variance_thresholds"],
+                means=hdf5["means"][()],
+                variances=hdf5["variances"][()],
+                variance_thresholds=hdf5["variance_thresholds"][()],
             )
         else:
             raise RuntimeError("Unsupported Gaussians file version.")
         return self
 
     def save(self, hdf5):
-        """Saves the current statistsics in an `HDF5File` object."""
+        """Saves the current Gaussians parameters in an `HDF5File` object."""
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "w")
         hdf5["meta_file_version"] = "1.0"
@@ -121,6 +125,21 @@ class Gaussians(np.ndarray):
         hdf5["means"] = self["means"]
         hdf5["variances"] = self["variances"]
         hdf5["variance_thresholds"] = self["variance_thresholds"]
+
+    def load(self, hdf5):
+        """Loads Gaussians parameters from an `HDF5File` object."""
+        if isinstance(hdf5, str):
+            hdf5 = HDF5File(hdf5, "r")
+        new_self = Gaussians.from_hdf5(hdf5)
+        if new_self.shape != self.shape:
+            logger.warning(
+                f"Loaded Gaussians {new_self.shape} are not the same shape as "
+                f"the previous ones {self.shape}. Object shape will change."
+            )
+            raise ValueError(f"Could not load Gaussians of shape {new_self.shape}.")
+        self["means"] = new_self["means"]
+        self["variances"] = new_self["variances"]
+        self["variance_thresholds"] = new_self["variance_thresholds"]
 
     def log_likelihood(self, data):
         """Returns the log-likelihood for x on each gaussian.
@@ -136,17 +155,13 @@ class Gaussians(np.ndarray):
             The log likelihood of each points in x for each Gaussian.
         """
 
-        # TODO precompute those
-        n_log_2pi = data.shape[-1] * np.log(2 * np.pi)
-        g_norm = n_log_2pi + np.sum(np.log(self["variances"]), axis=-1)
-
         # Compute the likelihood for each data point on each Gaussian
         z = da.sum(
             da.power(data[None, ..., :] - self["means"][..., None, :], 2)
             / self["variances"][..., None, :],
             axis=-1,
         )
-        return -0.5 * (g_norm + z)
+        return -0.5 * (self._g_norms[:, None] + z)
 
     def __setitem__(self, key, value) -> None:
         """Set values of items (operator `[]`) of this numpy array.
@@ -159,10 +174,16 @@ class Gaussians(np.ndarray):
             value = np.maximum(self["variance_thresholds"], value)
         elif key == "variance_thresholds":
             super().__setitem__("variances", np.maximum(value, self["variances"]))
-        return super().__setitem__(key, value)
+        retval = super().__setitem__(key, value)
+        if key == "variances" or key == "variance_thresholds":
+            # Recompute g_norm for each gaussian [array of shape (n_gaussians,)]
+            n_log_2pi = self["means"].shape[-1] * np.log(2 * np.pi)
+            self._g_norms = n_log_2pi + np.log(self["variances"]).sum(axis=-1)
+        return retval
+
 
     def __getitem__(self, key):
-        """Get values of items (operator `[]`) of this numpy array."""
+        """Get values of items (operator `[]`) of this Gaussians as numpy array."""
         return super().__getitem__(key).view(np.ndarray)
 
     def __eq__(self, other):
@@ -244,31 +265,31 @@ class GMMStats:
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
         try:
-            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+            version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
             logger.debug(
                 f"Reading a GMMStats HDF5 file of version {version_major}.{version_minor}"
             )
-        except RuntimeError:
+        except TypeError:
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
-            if hdf5["meta_writer_class"] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
-            self = cls(n_gaussians=hdf5["n_gaussians"], n_features=hdf5["n_features"])
-            self.log_likelihood = hdf5["log_likelihood"]
-            self.t = hdf5["T"]
-            self.n = hdf5["n"]
-            self.sum_px = hdf5["sumPx"]
-            self.sum_pxx = hdf5["sumPxx"]
+            if hdf5["meta_writer_class"][()] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
+            self = cls(n_gaussians=hdf5["n_gaussians"][()], n_features=hdf5["n_features"][()])
+            self.log_likelihood = hdf5["log_likelihood"][()]
+            self.t = hdf5["T"][()]
+            self.n = hdf5["n"][()]
+            self.sum_px = hdf5["sumPx"][()]
+            self.sum_pxx = hdf5["sumPxx"][()]
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 stats file.")
             self = cls(
-                n_gaussians=int(hdf5["n_gaussians"]), n_features=int(hdf5["n_inputs"])
+                n_gaussians=int(hdf5["n_gaussians"][()]), n_features=int(hdf5["n_inputs"][()])
             )
-            self.log_likelihood = float(hdf5["log_liklihood"])
-            self.t = int(hdf5["T"])
-            self.n = hdf5["n"].reshape((self.n_gaussians,))
-            self.sum_px = hdf5["sumPx"].reshape(self.shape)
-            self.sum_pxx = hdf5["sumPxx"].reshape(self.shape)
+            self.log_likelihood = float(hdf5["log_liklihood"][()])
+            self.t = int(hdf5["T"][()])
+            self.n = hdf5["n"][()].reshape((self.n_gaussians,))
+            self.sum_px = hdf5["sumPx"][()].reshape(self.shape)
+            self.sum_pxx = hdf5["sumPxx"][()].reshape(self.shape)
         return self
 
     def save(self, hdf5):
@@ -471,9 +492,6 @@ class GMMMachine(BaseEstimator):
             Update the GMM weights at every m step.
         """
 
-        assert isinstance(
-            n_gaussians, numbers.Integral
-        ), f"Update your code to the new format! {type(n_gaussians)}"
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"
         self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
@@ -504,6 +522,7 @@ class GMMMachine(BaseEstimator):
             self.gaussians_ = initial_gaussians
         elif self.ubm is not None:
             self.gaussians_ = self.ubm.gaussians_.copy()
+            self.gaussians_._g_norms = self.ubm.gaussians_._g_norms
         else:
             self.gaussians_ = None # Will initialize at `fit` with k-means.
 
@@ -575,44 +594,44 @@ class GMMMachine(BaseEstimator):
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
         try:
-            version_major, version_minor = hdf5.get("meta_file_version").split(".")
+            version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
             logger.debug(
                 f"Reading a GMMStats HDF5 file of version {version_major}.{version_minor}"
             )
-        except RuntimeError:
+        except TypeError:
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
-            if hdf5["meta_writer_class"] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class']} is not {cls}.")
-            if hdf5["trainer"] == "map" and ubm is None:
+            if hdf5["meta_writer_class"][()] != str(cls):
+                logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
+            if hdf5["trainer"][()] == "map" and ubm is None:
                 raise ValueError("The UBM is needed when loading a MAP machine.")
             hdf5.cd("gaussians")
             gaussians = Gaussians.from_hdf5(hdf5)
             hdf5.cd("..")
             self = cls(
-                n_gaussians=hdf5["n_gaussians"],
-                trainer=hdf5["trainer"],
+                n_gaussians=hdf5["n_gaussians"][()],
+                trainer=hdf5["trainer"][()],
                 ubm=ubm,
                 convergence_threshold=1e-5,
-                max_fitting_steps=hdf5["max_fitting_steps"],
+                max_fitting_steps=hdf5["max_fitting_steps"][()],
                 initial_gaussians=gaussians,
-                weights=hdf5["weights"],
+                weights=hdf5["weights"][()],
                 k_means_trainer=None,
-                update_means=hdf5["update_means"],
-                update_variances=hdf5["update_variances"],
-                update_weights=hdf5["update_weights"],
+                update_means=hdf5["update_means"][()],
+                update_variances=hdf5["update_variances"][()],
+                update_weights=hdf5["update_weights"][()],
             )
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 stats file.")
-            n_gaussians = hdf5["m_n_gaussians"]
+            n_gaussians = hdf5["m_n_gaussians"][()]
             g_means = []
             g_variances = []
             g_variance_thresholds = []
             for i in range(n_gaussians):
                 hdf5.cd(f"m_gaussians{i}")
-                g_means.append(hdf5["m_mean"])
-                g_variances.append(hdf5["m_variance"])
-                g_variance_thresholds.append(hdf5["m_variance_thresholds"])
+                g_means.append(hdf5["m_mean"][()])
+                g_variances.append(hdf5["m_variance"][()])
+                g_variance_thresholds.append(hdf5["m_variance_thresholds"][()])
                 hdf5.cd("..")
             gaussians = Gaussians(
                 means=g_means,
@@ -623,7 +642,7 @@ class GMMMachine(BaseEstimator):
                 n_gaussians=n_gaussians,
                 ubm=ubm,
                 initial_gaussians=gaussians,
-                weights=hdf5["m_weights"],
+                weights=hdf5["m_weights"][()],
             )
         return self
 
@@ -662,6 +681,7 @@ class GMMMachine(BaseEstimator):
         if self.trainer == "map":
             self.weights = self.ubm.weights.copy()
             self.gaussians_ = self.ubm.gaussians_.copy()
+            self.gaussians_._g_norms = self.ubm.gaussians_._g_norms
         else:
             if self.initial_gaussians is None:
                 if data is None:
@@ -688,7 +708,7 @@ class GMMMachine(BaseEstimator):
             else:
                 logger.info("Initializing GMM with user-provided values.")
                 self.gaussians_ = self.initial_gaussians.copy()
-                self.variance_thresholds = self.initial_variance_thresholds
+                self.gaussians_._g_norms = self.initial_gaussians._g_norms
                 self.weights = np.full((self.n_gaussians,), 1 / self.n_gaussians)
 
     def log_weighted_likelihood(
@@ -706,19 +726,7 @@ class GMMMachine(BaseEstimator):
         array of shape (n_gaussians, n_samples)
             The weighted log likelihood of each sample of each Gaussian.
         """
-        # TODO precompute those
-        n_log_2pi = data.shape[-1] * np.log(2 * np.pi)
-        # g_norm for each gaussian [array of shape (n_gaussians,)]
-        g_norms = n_log_2pi + np.sum(np.log(self.gaussians_["variances"]), axis=-1)
-
-        # Compute the likelihood for each data point on this Gaussian
-        z = da.sum(
-            da.power(data[None, :, :] - self.gaussians_["means"][:, None, :], 2)
-            / self.gaussians_["variances"][:, None, :],
-            axis=-1,
-        )
-        # Unweighted log likelihoods [array of shape (n_gaussians, n_samples)]
-        l = -0.5 * (g_norms[:, None] + z)
+        l = self.gaussians_.log_likelihood(data)
         log_weighted_likelihood = self.log_weights[:, None] + l
         return log_weighted_likelihood
 
