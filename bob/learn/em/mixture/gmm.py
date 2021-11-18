@@ -760,7 +760,7 @@ class GMMMachine(BaseEstimator):
             chunk=logaddexp_reduce,
             aggregate=logaddexp_reduce,
             axis=0,
-            dtype=np.float,
+            dtype=float,
             keepdims=False,
         )
         return ll_reduced
