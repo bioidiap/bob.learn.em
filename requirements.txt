@@ -9,3 +9,4 @@ bob.learn.activation
 bob.learn.linear
 dask
 dask-ml
+h5py
