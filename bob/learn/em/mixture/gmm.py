@@ -6,6 +6,7 @@
 
 import logging
 import numbers
+import copy
 from typing import Union
 
 import dask.array as da
@@ -87,10 +88,16 @@ class Gaussians(np.ndarray):
         rec["variance_thresholds"] = variance_thresholds
         rec["variances"] = np.maximum(variance_thresholds, variances)
         self = rec.view(cls)
-        n_log_2pi = self.shape[-1] * np.log(2 * np.pi)
-        # Precomputed g_norm for each gaussian [array of shape (n_gaussians,)]
-        self._g_norms = n_log_2pi + np.log(self["variances"]).sum(axis=-1)
+        self._g_norms = None
         return self
+
+    @property
+    def g_norms(self):
+        if not hasattr(self, "_g_norms") or self._g_norms is None:
+            n_log_2pi = self.shape[-1] * np.log(2 * np.pi)
+            # Precomputed g_norm for each gaussian [array of shape (n_gaussians,)]
+            self._g_norms = n_log_2pi + np.log(self["variances"]).sum(axis=-1)
+        return self._g_norms
 
     @classmethod
     def from_hdf5(cls, hdf5):
@@ -161,7 +168,7 @@ class Gaussians(np.ndarray):
             / self["variances"][..., None, :],
             axis=-1,
         )
-        return -0.5 * (self._g_norms[:, None] + z)
+        return -0.5 * (self.g_norms[:, None] + z)
 
     def __setitem__(self, key, value) -> None:
         """Set values of items (operator `[]`) of this numpy array.
@@ -169,18 +176,19 @@ class Gaussians(np.ndarray):
         Applies the threshold on the variances when setting `variances` or
         `variance_thresholds`.
         """
+        value = np.array(value)
 
         if key == "variances":
             value = np.maximum(self["variance_thresholds"], value)
         elif key == "variance_thresholds":
             super().__setitem__("variances", np.maximum(value, self["variances"]))
+
         retval = super().__setitem__(key, value)
         if key == "variances" or key == "variance_thresholds":
             # Recompute g_norm for each gaussian [array of shape (n_gaussians,)]
             n_log_2pi = self["means"].shape[-1] * np.log(2 * np.pi)
             self._g_norms = n_log_2pi + np.log(self["variances"]).sum(axis=-1)
         return retval
-
 
     def __getitem__(self, key):
         """Get values of items (operator `[]`) of this Gaussians as numpy array."""
@@ -274,7 +282,9 @@ class GMMStats:
         if int(version_major) >= 1:
             if hdf5["meta_writer_class"][()] != str(cls):
                 logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
-            self = cls(n_gaussians=hdf5["n_gaussians"][()], n_features=hdf5["n_features"][()])
+            self = cls(
+                n_gaussians=hdf5["n_gaussians"][()], n_features=hdf5["n_features"][()]
+            )
             self.log_likelihood = hdf5["log_likelihood"][()]
             self.t = hdf5["T"][()]
             self.n = hdf5["n"][()]
@@ -283,7 +293,8 @@ class GMMStats:
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 stats file.")
             self = cls(
-                n_gaussians=int(hdf5["n_gaussians"][()]), n_features=int(hdf5["n_inputs"][()])
+                n_gaussians=int(hdf5["n_gaussians"][()]),
+                n_features=int(hdf5["n_inputs"][()]),
             )
             self.log_likelihood = float(hdf5["log_liklihood"][()])
             self.t = int(hdf5["T"][()])
@@ -370,6 +381,10 @@ class GMMStats:
     def shape(self):
         """The number of gaussians and their dimensionality."""
         return (self.n_gaussians, self.n_features)
+
+    def compute(self):
+        for name in ("log_likelihood", "n", "sum_px", "sum_pxx"):
+            setattr(self, name, np.array(getattr(self, name)))
 
 
 class GMMMachine(BaseEstimator):
@@ -521,10 +536,9 @@ class GMMMachine(BaseEstimator):
         if initial_gaussians is not None:
             self.gaussians_ = initial_gaussians
         elif self.ubm is not None:
-            self.gaussians_ = self.ubm.gaussians_.copy()
-            self.gaussians_._g_norms = self.ubm.gaussians_._g_norms
+            self.gaussians_ = copy.deepcopy(self.ubm.gaussians_)
         else:
-            self.gaussians_ = None # Will initialize at `fit` with k-means.
+            self.gaussians_ = None  # Will initialize at `fit` with k-means.
 
     @property
     def weights(self):
@@ -533,7 +547,7 @@ class GMMMachine(BaseEstimator):
 
     @weights.setter
     def weights(self, weights: "np.ndarray[('n_gaussians',), float]"):
-        self._weights = weights
+        self._weights = np.array(weights)
         self._log_weights = np.log(self._weights)
 
     @property
@@ -679,8 +693,8 @@ class GMMMachine(BaseEstimator):
     ):
         """Populates `gaussians_` with either k-means or the UBM values."""
         if self.trainer == "map":
-            self.weights = self.ubm.weights.copy()
-            self.gaussians_ = self.ubm.gaussians_.copy()
+            self.weights = copy.deepcopy(self.ubm.weights)
+            self.gaussians_ = copy.deepcopy(self.ubm.gaussians_)
             self.gaussians_._g_norms = self.ubm.gaussians_._g_norms
         else:
             if self.initial_gaussians is None:
@@ -704,10 +718,10 @@ class GMMMachine(BaseEstimator):
                     means=kmeans_machine.centroids_,
                     variances=variances,
                 )
-                self.weights = weights.copy()
+                self.weights = copy.deepcopy(weights)
             else:
                 logger.info("Initializing GMM with user-provided values.")
-                self.gaussians_ = self.initial_gaussians.copy()
+                self.gaussians_ = copy.deepcopy(self.initial_gaussians)
                 self.gaussians_._g_norms = self.initial_gaussians._g_norms
                 self.weights = np.full((self.n_gaussians,), 1 / self.n_gaussians)
 
@@ -876,6 +890,7 @@ class GMMMachine(BaseEstimator):
                     logger.info("Reached convergence threshold. Training stopped.")
                     return self
         logger.info("Reached maximum step. Training stopped without convergence.")
+        self.compute()
         return self
 
     def fit_partial(self, X, y=None, **kwargs):
@@ -896,6 +911,9 @@ class GMMMachine(BaseEstimator):
             "stateless": False,
             "requires_fit": True,
         }
+
+    def compute(self, *args, **kwargs):
+        setattr(self, "weights", np.array(getattr(self, "weights")))
 
 
 def ml_gmm_m_step(

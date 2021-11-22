@@ -7,7 +7,6 @@
 import logging
 from typing import Union
 
-import dask.array as da
 import numpy as np
 
 from bob.learn.em.mixture import GMMMachine
@@ -85,8 +84,8 @@ def linear_scoring(
     b = sum_px[:, :, :] - (
         n[:, :, None] * (ubm["means"][None, :, :] + test_channel_offsets)
     )
-    b = da.transpose(b, axes=(1, 2, 0))
+    b = np.transpose(b, axes=(1, 2, 0))
     # Apply normalization if needed.
     if frame_length_normalization:
-        b = da.where(abs(t) <= EPSILON, 0, b[:, :] / t[None, :])
-    return da.tensordot(a, b, 2)
+        b = np.where(abs(t) <= EPSILON, 0, b[:, :] / t[None, :])
+    return np.tensordot(a, b, 2)
