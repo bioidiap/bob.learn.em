@@ -480,9 +480,9 @@ class GMMMachine(BaseEstimator):
                 ubm=ubm,
                 weights=hdf5["m_weights"][()],
             )
-            self.means = g_means
-            self.variances = g_variances
-            self.variance_thresholds = g_variance_thresholds
+            self.means = np.array(g_means)
+            self.variances = np.array(g_variances)
+            self.variance_thresholds = np.array(g_variance_thresholds)
         return self
 
     def save(self, hdf5):
@@ -717,11 +717,13 @@ class GMMMachine(BaseEstimator):
             # Note: Uses the stats from before m_step, leading to an additional m_step
             # (which is not bad because it will always converge)
             average_output = stats.log_likelihood / stats.t
+            logger.debug(f"average output = {average_output}")
 
             if step > 1:
                 convergence_value = abs(
                     (average_output_previous - average_output) / average_output_previous
                 )
+                logger.debug(f"convergence val = {convergence_value}")
 
                 # Terminates if converged (and likelihood computation is set)
                 if (
