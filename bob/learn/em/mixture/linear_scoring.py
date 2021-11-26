@@ -59,7 +59,7 @@ def linear_scoring(
     if models_means.ndim == 2:
         models_means = models_means[None, :, :]
 
-    if ubm.traier == "map":
+    if ubm.trainer == "map":
         ubm = ubm.ubm
 
     if isinstance(test_stats, GMMStats):
