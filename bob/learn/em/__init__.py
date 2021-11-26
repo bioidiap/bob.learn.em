@@ -1,7 +1,8 @@
+import bob.extension
+
 from . import cluster
 from . import mixture
 
-import bob.extension
 
 def get_config():
     """Returns a string containing the configuration information."""
@@ -10,4 +11,3 @@ def get_config():
 
 # gets sphinx autodoc done right - don't remove it
 __all__ = [_ for _ in dir() if not _.startswith("_")]
-

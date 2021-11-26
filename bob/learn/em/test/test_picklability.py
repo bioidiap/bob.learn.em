@@ -2,12 +2,13 @@
 # vim: set fileencoding=utf-8 :
 # Tiago de Freitas Pereira <tiago.pereira@idiap.ch>
 
-from bob.learn.em import GMMMachine
-from bob.learn.em import KMeansMachine
-from bob.learn.em import GMMStats
+import pickle
 
 import numpy
-import pickle
+
+from bob.learn.em import GMMMachine
+from bob.learn.em import GMMStats
+from bob.learn.em import KMeansMachine
 
 
 def test_gmm_machine():
