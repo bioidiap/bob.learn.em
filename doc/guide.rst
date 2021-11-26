@@ -58,7 +58,8 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> import bob.learn.em
+   >>> from bob.learn.em.cluster import KMeansMachine
+   >>> from bob.learn.em.cluster import KMeansTrainer
    >>> import numpy
    >>> data = numpy.array(
    ...     [[3,-3,100],
@@ -66,18 +67,14 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
    ...      [3.5,-3.5,99],
    ...      [-7,7,-100],
    ...      [-5,5,-101]], dtype='float64')
-   >>> # Create a kmeans m with k=2 clusters with a dimensionality equal to 3
-   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3)
-   >>> kmeans_trainer = bob.learn.em.KMeansTrainer()
-   >>> max_iterations = 200
-   >>> convergence_threshold = 1e-5
+   >>> # Create a k-means machine with k=2 clusters
+   >>> kmeans_machine = KMeansMachine(2, convergence_threshold=1e-5)
+   >>> kmeans_trainer = KMeansTrainer(max_iter=200)
    >>> # Train the KMeansMachine
-   >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data,
-   ...     max_iterations=max_iterations,
-   ...     convergence_threshold=convergence_threshold)
-   >>> print(kmeans_machine.means)
-   [[ -6.   6.  -100.5]
-    [  3.5 -3.5   99. ]]
+   >>> kmeans_machine = kmeans_machine.fit(data)
+   >>> print(numpy.array(kmeans_machine.centroids_))
+   [[   3.5   -3.5   99. ]
+    [  -6.     6.  -100.5]]
 
 
 Bellow follow an intuition (source code + plot) of a kmeans training using the
@@ -171,8 +168,10 @@ Bellow follow an intuition of the GMM trained the maximum likelihood estimator
 using the Iris flower
 `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-.. plot:: plot/plot_ML.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_ML.py
+      :include-source: False
 
 
 Maximum a posteriori Estimator (MAP)
@@ -232,8 +231,10 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
 Bellow follow an intuition of the GMM trained with the MAP estimator using the
 Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-.. plot:: plot/plot_MAP.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_MAP.py
+      :include-source: False
 
 
 Session Variability Modeling with Gaussian Mixture Models
@@ -326,8 +327,10 @@ The arrows :math:`U_{1}`, :math:`U_{2}` and :math:`U_{3}` are the directions of
 the within class variations, with respect to each Gaussian component, that will
 be suppressed a posteriori.
 
-.. plot:: plot/plot_ISV.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_ISV.py
+      :include-source: False
 
 
 The ISV statistical model is stored in this container
@@ -400,8 +403,10 @@ between class variations with respect to each Gaussian component that will be
 added a posteriori.
 
 
-.. plot:: plot/plot_JFA.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_JFA.py
+      :include-source: False
 
 The JFA statistical model is stored in this container
 :py:class:`bob.learn.em.JFABase` and the training is performed by
@@ -472,8 +477,10 @@ Follow bellow an intuition of the data from the Iris flower
 `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_, embedded in
 the iVector space.
 
-.. plot:: plot/plot_iVector.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_iVector.py
+      :include-source: False
 
 
 The iVector statistical model is stored in this container
