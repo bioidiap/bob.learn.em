@@ -100,7 +100,7 @@ This statistical model is defined in the class
 :py:class:`bob.learn.em.GMMMachine` as bellow.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> # Create a GMM with k=2 Gaussians with the dimensionality of 3
@@ -132,7 +132,7 @@ estimator.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -197,7 +197,7 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -275,7 +275,7 @@ prior GMM.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -340,7 +340,7 @@ Intersession variability modeling.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -414,7 +414,7 @@ The JFA statistical model is stored in this container
 Intersession variability modeling.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -489,7 +489,7 @@ The iVector statistical model is stored in this container
 a Total variability modeling.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -564,7 +564,7 @@ This scoring technique is implemented in :py:func:`bob.learn.em.linear_scoring`.
 The snippet bellow shows how to compute scores using this approximation.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -611,7 +611,7 @@ Let us consider a training set of two classes, each with 3 samples of
 dimensionality 3.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> data1 = numpy.array(
    ...     [[3,-3,100],
@@ -628,6 +628,7 @@ Learning a PLDA model can be performed by instantiating the class
 :py:meth:`bob.learn.em.train` method.
 
 .. doctest::
+   :options: +SKIP
 
    >>> # This creates a PLDABase container for input feature of dimensionality
    >>> # 3 and with subspaces F and G of rank 1 and 2, respectively.
@@ -645,6 +646,7 @@ obtained by calling the
 :py:meth:`bob.learn.em.PLDAMachine.compute_log_likelihood()` method.
 
 .. doctest::
+   :options: +SKIP
 
    >>> plda = bob.learn.em.PLDAMachine(pldabase)
    >>> samples = numpy.array(
@@ -658,6 +660,7 @@ a set of enrollment samples, then, several instances of
 the :py:meth:`bob.learn.em.PLDATrainer.enroll()` method as follows.
 
 .. doctest::
+   :options: +SKIP
 
    >>> plda1 = bob.learn.em.PLDAMachine(pldabase)
    >>> samples1 = numpy.array(
@@ -675,6 +678,7 @@ several test samples can be computed as previously described, and this
 separately for each model.
 
 .. doctest::
+   :options: +SKIP
 
    >>> sample = numpy.array([3.2,-3.3,58], dtype=numpy.float64)
    >>> l1 = plda1.compute_log_likelihood(sample)
@@ -691,6 +695,7 @@ computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enroll})) - \ln(P(x_{test})P(x_{enroll}))`
 
 .. doctest::
+   :options: +SKIP
 
    >>> s1 = plda1(sample)
    >>> s2 = plda2(sample)
