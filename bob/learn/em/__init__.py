@@ -1,7 +1,6 @@
 import bob.extension
 
 from . import cluster
-from . import mixture
 
 
 def get_config():
