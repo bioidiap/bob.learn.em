@@ -9,6 +9,7 @@
 """
 
 import numpy as np
+import dask.array as da
 
 import os
 import tempfile
@@ -20,7 +21,6 @@ from bob.io.base.test_utils import datafile
 
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import GMMStats
-from bob.learn.em.mixture import Gaussians
 
 from bob.learn.em.cluster import KMeansTrainer
 
@@ -32,9 +32,9 @@ def test_GMMStats():
   gs = GMMStats(n_gaussians,n_features)
   log_likelihood = -3.
   T = 57
-  n = np.array([4.37, 5.31], 'float64')
-  sumpx = np.array([[1., 2., 3.], [4., 5., 6.]], 'float64')
-  sumpxx = np.array([[10., 20., 30.], [40., 50., 60.]], 'float64')
+  n = np.array([4.37, 5.31], "float64")
+  sumpx = np.array([[1., 2., 3.], [4., 5., 6.]], "float64")
+  sumpxx = np.array([[10., 20., 30.], [40., 50., 60.]], "float64")
   gs.log_likelihood = log_likelihood
   gs.t = T
   gs.n = n
@@ -49,7 +49,7 @@ def test_GMMStats():
 
   # Saves and reads from file using `from_hdf5`
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(HDF5File(filename, 'w'))
+  gs.save(HDF5File(filename, "w"))
   gs_loaded = GMMStats.from_hdf5(HDF5File(filename, "r"))
   assert gs == gs_loaded
   assert (gs != gs_loaded ) is False
@@ -57,7 +57,7 @@ def test_GMMStats():
 
   # Saves and load from file using `load`
   filename = str(tempfile.mkstemp(".hdf5")[1])
-  gs.save(hdf5=HDF5File(filename, 'w'))
+  gs.save(hdf5=HDF5File(filename, "w"))
   gs_loaded = GMMStats(n_gaussians, n_features)
   gs_loaded.load(HDF5File(filename, "r"))
   assert gs == gs_loaded
@@ -104,14 +104,14 @@ def test_GMMStats():
 def test_GMMMachine_1():
   # Test a GMMMachine basic features
 
-  weights   = np.array([0.5, 0.5], 'float64')
-  weights2   = np.array([0.6, 0.4], 'float64')
-  means     = np.array([[3, 70, 0], [4, 72, 0]], 'float64')
-  means2     = np.array([[3, 7, 0], [4, 72, 0]], 'float64')
-  variances = np.array([[1, 10, 1], [2, 5, 2]], 'float64')
-  variances2 = np.array([[10, 10, 1], [2, 5, 2]], 'float64')
-  varianceThresholds = np.array([[0, 0, 0], [0, 0, 0]], 'float64')
-  varianceThresholds2 = np.array([[0.0005, 0.0005, 0.0005], [0, 0, 0]], 'float64')
+  weights   = np.array([0.5, 0.5], "float64")
+  weights2   = np.array([0.6, 0.4], "float64")
+  means     = np.array([[3, 70, 0], [4, 72, 0]], "float64")
+  means2     = np.array([[3, 7, 0], [4, 72, 0]], "float64")
+  variances = np.array([[1, 10, 1], [2, 5, 2]], "float64")
+  variances2 = np.array([[10, 10, 1], [2, 5, 2]], "float64")
+  varianceThresholds = np.array([[0, 0, 0], [0, 0, 0]], "float64")
+  varianceThresholds2 = np.array([[0.0005, 0.0005, 0.0005], [0, 0, 0]], "float64")
 
   # Initializes a GMMMachine
   gmm = GMMMachine(n_gaussians=2)
@@ -127,11 +127,11 @@ def test_GMMMachine_1():
   np.testing.assert_equal(gmm.variances, variances)
   np.testing.assert_equal(gmm.variance_thresholds, varianceThresholds)
 
-  newMeans = np.array([[3, 70, 2], [4, 72, 2]], 'float64')
-  newVariances = np.array([[1, 1, 1], [2, 2, 2]], 'float64')
+  newMeans = np.array([[3, 70, 2], [4, 72, 2]], "float64")
+  newVariances = np.array([[1, 1, 1], [2, 2, 2]], "float64")
 
   # Checks particular varianceThresholds-related methods
-  varianceThresholds1D = np.array([0.3, 1, 0.5], 'float64')
+  varianceThresholds1D = np.array([0.3, 1, 0.5], "float64")
   gmm.variance_thresholds = varianceThresholds1D
   np.testing.assert_equal(gmm.variance_thresholds[0,:], varianceThresholds1D)
   np.testing.assert_equal(gmm.variance_thresholds[1,:], varianceThresholds1D)
@@ -139,13 +139,10 @@ def test_GMMMachine_1():
   gmm.variance_thresholds = 0.005
   np.testing.assert_equal(gmm.variance_thresholds, np.full((2,3), 0.005))
 
-  # Checks Gaussians access
   gmm.means     = newMeans
   gmm.variances = newVariances
-  np.testing.assert_equal(gmm.gaussians_[0]["means"], newMeans[0,:])
-  np.testing.assert_equal(gmm.gaussians_[1]["means"], newMeans[1,:])
-  np.testing.assert_equal(gmm.gaussians_[0]["variances"], newVariances[0,:])
-  np.testing.assert_equal(gmm.gaussians_[1]["variances"], newVariances[1,:])
+  np.testing.assert_equal(gmm.means, newMeans)
+  np.testing.assert_equal(gmm.variances, newVariances)
 
   # Checks comparison
   gmm2 = deepcopy(gmm)
@@ -192,10 +189,10 @@ def test_GMMMachine_2():
 
   arrayset = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))
   gmm = GMMMachine(n_gaussians=2)
-  gmm.weights   = np.array([0.5, 0.5], 'float64')
-  gmm.means     = np.array([[3, 70], [4, 72]], 'float64')
-  gmm.variances = np.array([[1, 10], [2, 5]], 'float64')
-  gmm.variance_thresholds = np.array([[0, 0], [0, 0]], 'float64')
+  gmm.weights   = np.array([0.5, 0.5], "float64")
+  gmm.means     = np.array([[3, 70], [4, 72]], "float64")
+  gmm.variances = np.array([[1, 10], [2, 5]], "float64")
+  gmm.variance_thresholds = np.array([[0, 0], [0, 0]], "float64")
 
   stats = gmm.acc_statistics(arrayset)
 
@@ -213,11 +210,11 @@ def test_GMMMachine_2():
 def test_GMMMachine_3():
   # Test a GMMMachine (log-likelihood computation)
 
-  data = bob.io.base.load(datafile('data.hdf5', __name__, path="../data/"))
+  data = bob.io.base.load(datafile("data.hdf5", __name__, path="../data/"))
   gmm = GMMMachine(n_gaussians=2)
-  gmm.weights   = bob.io.base.load(datafile('weights.hdf5', __name__, path="../data/"))
-  gmm.means     = bob.io.base.load(datafile('means.hdf5', __name__, path="../data/"))
-  gmm.variances = bob.io.base.load(datafile('variances.hdf5', __name__, path="../data/"))
+  gmm.weights   = bob.io.base.load(datafile("weights.hdf5", __name__, path="../data/"))
+  gmm.means     = bob.io.base.load(datafile("means.hdf5", __name__, path="../data/"))
+  gmm.variances = bob.io.base.load(datafile("variances.hdf5", __name__, path="../data/"))
 
   # Compare the log-likelihood with the one obtained using Chris Matlab
   # implementation
@@ -232,9 +229,9 @@ def test_GMMMachine_4():
   data = np.random.rand(100,50) # Doesn't matter if it is random. The average of 1D array (in python) MUST output the same result for the 2D array (in C++)
 
   gmm = GMMMachine(n_gaussians=2)
-  gmm.weights   = bob.io.base.load(datafile('weights.hdf5', __name__, path="../data/"))
-  gmm.means     = bob.io.base.load(datafile('means.hdf5', __name__, path="../data/"))
-  gmm.variances = bob.io.base.load(datafile('variances.hdf5', __name__, path="../data/"))
+  gmm.weights   = bob.io.base.load(datafile("weights.hdf5", __name__, path="../data/"))
+  gmm.means     = bob.io.base.load(datafile("means.hdf5", __name__, path="../data/"))
+  gmm.variances = bob.io.base.load(datafile("variances.hdf5", __name__, path="../data/"))
 
 
   ll = 0
@@ -253,7 +250,7 @@ def test_GMMStats_2():
     n_features = data.shape[-1]
     machine = GMMMachine(n_gaussians)
 
-    machine.gaussians_ = Gaussians(means=np.array([[0, 0, 0], [8, 8, 8]]))
+    machine.means = np.array([[0, 0, 0], [8, 8, 8]])
 
     # Populate the GMMStats
     stats = machine.acc_statistics(data)
@@ -316,24 +313,18 @@ def test_machine_parameters():
     n_gaussians = 3
     n_features = 2
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = Gaussians(
-        means=np.repeat([[0], [1], [-1]], n_features, 1)
-    )
-    np.testing.assert_almost_equal(
-        machine.means, np.repeat([[0], [1], [-1]], n_features, 1)
-    )
-    np.testing.assert_almost_equal(machine.variances, np.ones((n_gaussians, n_features)))
+    machine.means = np.repeat([[0], [1], [-1]], n_features, 1)
+    np.testing.assert_equal(machine.means, np.repeat([[0], [1], [-1]], n_features, 1))
+    np.testing.assert_equal(machine.variances, np.ones((n_gaussians, n_features)))
 
     # Setters
 
     new_means = np.repeat([[1], [2], [3]], n_features, axis=1)
     machine.means = new_means
-    np.testing.assert_almost_equal(machine.gaussians_["means"], new_means)
     assert machine.means.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(machine.means, new_means)
     new_variances = np.repeat([[0.2], [1.1], [1]], n_features, axis=1)
     machine.variances = new_variances
-    np.testing.assert_almost_equal(machine.gaussians_["variances"], new_variances)
     assert machine.variances.shape == (n_gaussians, n_features)
     np.testing.assert_almost_equal(machine.variances, new_variances)
 
@@ -364,9 +355,7 @@ def test_likelihood():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = Gaussians(
-        means=np.repeat([[0], [1], [-1]], 3, 1)
-    )
+    machine.means = np.repeat([[0], [1], [-1]], 3, 1)
     log_likelihood = machine.log_likelihood(data)
     expected_ll = np.array(
         [-3.6519900964986527, -3.83151883210222, -3.83151883210222, -5.344374066745753]
@@ -378,14 +367,12 @@ def test_likelihood_variance():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = Gaussians(
-        means=np.repeat([[0], [1], [-1]], 3, 1),
-        variances=np.array([
-            [1.1, 1.2, 0.8],
-            [0.2, 0.4, 0.5],
-            [1, 1, 1],
-        ])
-    )
+    machine.means = np.repeat([[0], [1], [-1]], 3, 1)
+    machine.variances = np.array([
+        [1.1, 1.2, 0.8],
+        [0.2, 0.4, 0.5],
+        [1, 1, 1],
+    ])
     log_likelihood = machine.log_likelihood(data)
     expected_ll = np.array(
         [
@@ -402,9 +389,7 @@ def test_likelihood_weight():
     data = np.array([[1, 1, 1], [-1, 0, 0], [0, 0, 1], [2, 2, 2]])
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
-    machine.gaussians_ = Gaussians(
-        means=np.repeat([[0], [1], [-1]], 3, 1)
-    )
+    machine.means = np.repeat([[0], [1], [-1]], 3, 1)
     machine.weights = [0.6, 0.1, 0.3]
     log_likelihood = machine.log_likelihood(data)
     expected_ll = np.array(
@@ -441,9 +426,9 @@ def test_ml_em():
     data = np.array([[1, 2, 2], [2, 1, 2], [7, 8, 9], [7, 7, 8], [7, 9, 7]])
     n_gaussians = 2
     n_features = data.shape[-1]
-    gaussians_init = Gaussians(means=np.repeat([[2], [8]], n_features, 1))
 
-    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init, update_means=True, update_variances=True, update_weights=True)
+    machine = GMMMachine(n_gaussians, update_means=True, update_variances=True, update_weights=True)
+    machine.means = np.repeat([[2], [8]], n_features, 1)
     machine.initialize_gaussians(None)
 
     stats = machine.e_step( data)
@@ -461,9 +446,7 @@ def test_ml_em():
 def test_map_em():
     n_gaussians = 2
     prior_machine = GMMMachine(n_gaussians)
-    prior_machine.gaussians_ = Gaussians(
-        means=np.array([[2, 2, 2], [8, 8, 8]])
-    )
+    prior_machine.means = np.array([[2, 2, 2], [8, 8, 8]])
     prior_machine.weights = np.array([0.5, 0.5])
 
     machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)
@@ -497,9 +480,9 @@ def test_ml_transformer():
     test_data = np.array([[1, 1, 1], [1, 1, 2], [8, 9, 9], [8, 8, 8]])
     n_gaussians = 2
     n_features = 3
-    gaussians_init = Gaussians(means=np.array([[2, 2, 2], [8, 8, 8]]))
 
-    machine = GMMMachine(n_gaussians, initial_gaussians=gaussians_init, update_means=True, update_variances=True, update_weights=True)
+    machine = GMMMachine(n_gaussians, update_means=True, update_variances=True, update_weights=True)
+    machine.means = np.array([[2, 2, 2], [8, 8, 8]])
 
     machine = machine.fit(data)
 
@@ -530,9 +513,7 @@ def test_map_transformer():
     n_gaussians = 2
     n_features = 3
     prior_machine = GMMMachine(n_gaussians)
-    prior_machine.gaussians_ = Gaussians(
-        means=np.array([[2, 2, 2], [8, 8, 8]])
-    )
+    prior_machine.means = np.array([[2, 2, 2], [8, 8, 8]])
     prior_machine.weights = np.array([0.5, 0.5])
 
     machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)

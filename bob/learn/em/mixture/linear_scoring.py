@@ -10,7 +10,6 @@ from typing import Union
 import numpy as np
 
 from bob.learn.em.mixture import GMMMachine
-from bob.learn.em.mixture import Gaussians
 from bob.learn.em.mixture import GMMStats
 
 logger = logging.getLogger(__name__)
@@ -20,7 +19,7 @@ EPSILON = np.finfo(float).eps
 
 def linear_scoring(
     models_means: "Union[list[GMMMachine], np.ndarray[('n_models', 'n_gaussians', 'n_features'), float]]",
-    ubm: Union[GMMMachine, Gaussians],
+    ubm: GMMMachine,
     test_stats: Union["list[GMMStats]", GMMStats],
     test_channel_offsets: "np.ndarray[('n_test_stats', 'n_gaussians'), float]" = 0,
     frame_length_normalization: bool = False,
@@ -37,8 +36,8 @@ def linear_scoring(
         The model(s) to score against. If a list of `GMMMachine` is given, the means
         of each model are considered.
     ubm:
-        The Universal Background Model. Accepts either a `GMMMachine`, or a `Gaussians`
-        object. If the `GMMMachine` uses MAP, it's `ubm` attribute is used.
+        The Universal Background Model. Accepts a `GMMMachine` object. If the
+        `GMMMachine` uses MAP, it's `ubm` attribute is used.
     test_stats:
         The instances to score.
     test_channel_offsets
@@ -60,11 +59,8 @@ def linear_scoring(
     if models_means.ndim == 2:
         models_means = models_means[None, :, :]
 
-    if isinstance(ubm, GMMMachine):
-        if ubm.trainer == "ml":
-            ubm = ubm.gaussians_
-        else:
-            ubm = ubm.ubm.gaussians_
+    if ubm.traier == "map":
+        ubm = ubm.ubm
 
     if isinstance(test_stats, GMMStats):
         test_stats = [test_stats]
@@ -79,10 +75,10 @@ def linear_scoring(
     test_channel_offsets = np.array(test_channel_offsets)
 
     # Compute A [array of shape (n_models, n_gaussians * n_features)]
-    a = (models_means - ubm["means"]) / ubm["variances"]
+    a = (models_means - ubm.means) / ubm.variances
     # Compute B [array of shape (n_gaussians * n_features, n_test_stats)]
     b = sum_px[:, :, :] - (
-        n[:, :, None] * (ubm["means"][None, :, :] + test_channel_offsets)
+        n[:, :, None] * (ubm.means[None, :, :] + test_channel_offsets)
     )
     b = np.transpose(b, axes=(1, 2, 0))
     # Apply normalization if needed.
