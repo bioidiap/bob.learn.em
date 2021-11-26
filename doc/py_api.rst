@@ -18,7 +18,10 @@ Trainers
 
 .. autosummary::
 
-  bob.learn.em.KMeansTrainer
+  bob.learn.em.cluster.KMeansTrainer
+
+..
+  TODO uncomment when implemented
   bob.learn.em.ML_GMMTrainer
   bob.learn.em.MAP_GMMTrainer
   bob.learn.em.ISVTrainer
@@ -32,7 +35,10 @@ Machines
 
 .. autosummary::
 
-  bob.learn.em.KMeansMachine
+  bob.learn.em.cluster.KMeansMachine
+
+..
+  TODO uncomment when implemented
   bob.learn.em.Gaussian
   bob.learn.em.GMMStats
   bob.learn.em.GMMMachine
@@ -46,11 +52,11 @@ Machines
 
 Functions
 ---------
-.. autosummary::
+..
+  TODO uncomment when implemented
+  .. autosummary::
 
-  bob.learn.em.linear_scoring
-  bob.learn.em.train
-  bob.learn.em.train_jfa
+    bob.learn.em.linear_scoring
 
 Detailed Information
 --------------------
