@@ -547,7 +547,7 @@ def test_map_transformer():
 ## Tests from `test_em.py`
 
 def loadGMM():
-    gmm = GMMMachine(2)
+    gmm = GMMMachine(n_gaussians=2)
 
     gmm.weights = bob.io.base.load(datafile("gmm.init_weights.hdf5", __name__, path="../data/"))
     gmm.means = bob.io.base.load(datafile("gmm.init_means.hdf5", __name__, path="../data/"))
@@ -578,13 +578,11 @@ def test_gmm_ML_1():
     gmm.update_weights = True
     gmm = gmm.fit(ar)
 
-    #config = HDF5File(datafile("gmm_ML.hdf5", __name__), "w")
-    #gmm.save(config)
+    # Generate reference
+    # gmm.save(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data"), "w"))
 
-    gmm_ref = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data"), "r")) # TODO update the ref file(s)
-    gmm_ref_32bit_debug = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML_32bit_debug.hdf5", __name__, path="../data/"), "r"))
-    gmm_ref_32bit_release = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML_32bit_release.hdf5", __name__, path="../data/"), "r"))
-    assert (gmm == gmm_ref)  # or (gmm == gmm_ref_32bit_release) or (gmm == gmm_ref_32bit_debug)
+    gmm_ref = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data"), "r"))
+    assert gmm == gmm_ref
 
 
 def test_gmm_ML_2():
@@ -592,7 +590,7 @@ def test_gmm_ML_2():
     ar = bob.io.base.load(datafile("dataNormalized.hdf5", __name__, path="../data/"))
 
     # Initialize GMMMachine
-    gmm = GMMMachine(5, 45)
+    gmm = GMMMachine(n_gaussians=5)
     gmm.means = bob.io.base.load(datafile("meansAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
     gmm.variances = bob.io.base.load(datafile("variancesAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
     gmm.weights = np.exp(bob.io.base.load(datafile("weightsAfterKMeans.hdf5", __name__, path="../data/")).astype("float64"))
@@ -628,7 +626,7 @@ def test_gmm_ML_parallel():
     ar = da.array(bob.io.base.load(datafile("dataNormalized.hdf5", __name__, path="../data/")))
 
     # Initialize GMMMachine
-    gmm = GMMMachine(5, 45)
+    gmm = GMMMachine(n_gaussians=5)
     gmm.means = bob.io.base.load(datafile("meansAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
     gmm.variances = bob.io.base.load(datafile("variancesAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
     gmm.weights = np.exp(bob.io.base.load(datafile("weightsAfterKMeans.hdf5", __name__, path="../data/")).astype("float64"))
@@ -703,6 +701,8 @@ def test_gmm_MAP_2():
     gmm.variances = variances
     gmm.weights = weights
 
+    gmm = gmm.fit(data)
+
     gmm_adapted = GMMMachine(
         n_gaussians=2,
         trainer="map",
@@ -717,7 +717,6 @@ def test_gmm_MAP_2():
     gmm_adapted.variances = variances
     gmm_adapted.weights = weights
 
-    gmm = gmm.fit(data)
 
     gmm_adapted = gmm_adapted.fit(data)
 

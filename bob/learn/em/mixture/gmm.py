@@ -439,7 +439,7 @@ class GMMMachine(BaseEstimator):
         try:
             version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
             logger.debug(
-                f"Reading a GMMStats HDF5 file of version {version_major}.{version_minor}"
+                f"Reading a GMMMachine HDF5 file of version {version_major}.{version_minor}"
             )
         except (TypeError, RuntimeError):
             version_major, version_minor = 0, 0
@@ -460,12 +460,12 @@ class GMMMachine(BaseEstimator):
                 update_variances=hdf5["update_variances"][()],
                 update_weights=hdf5["update_weights"][()],
             )
-            gaussians = hdf5["gaussians"]
-            self.means = gaussians["means"][()]
-            self.variances = gaussians["variances"][()]
-            self.variance_thresholds = gaussians["variance_thresholds"][()]
+            gaussians_group = hdf5["gaussians"]
+            self.means = gaussians_group["means"][()]
+            self.variances = gaussians_group["variances"][()]
+            self.variance_thresholds = gaussians_group["variance_thresholds"][()]
         else:  # Legacy file version
-            logger.info("Loading a legacy HDF5 stats file.")
+            logger.info("Loading a legacy HDF5 machine file.")
             n_gaussians = int(hdf5["m_n_gaussians"][()])
             g_means = []
             g_variances = []
@@ -475,14 +475,11 @@ class GMMMachine(BaseEstimator):
                 g_means.append(gaussian_group["m_mean"][()])
                 g_variances.append(gaussian_group["m_variance"][()])
                 g_variance_thresholds.append(gaussian_group["m_variance_thresholds"][()])
-            self = cls(
-                n_gaussians=n_gaussians,
-                ubm=ubm,
-                weights=hdf5["m_weights"][()],
-            )
-            self.means = np.array(g_means)
-            self.variances = np.array(g_variances)
-            self.variance_thresholds = np.array(g_variance_thresholds)
+            weights = hdf5["m_weights"][()].reshape(n_gaussians)
+            self = cls(n_gaussians=n_gaussians, ubm=ubm, weights=weights)
+            self.means = np.array(g_means).reshape(n_gaussians,-1)
+            self.variances = np.array(g_variances).reshape(n_gaussians,-1)
+            self.variance_thresholds = np.array(g_variance_thresholds).reshape(n_gaussians,-1)
         return self
 
     def save(self, hdf5):
