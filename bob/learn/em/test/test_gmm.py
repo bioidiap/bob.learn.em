@@ -752,7 +752,8 @@ def test_gmm_MAP_3():
         update_means=True,
         update_variances=False,
         update_weights=False,
-        mean_var_update_threshold=accuracy
+        mean_var_update_threshold=accuracy,
+        relevance_factor=None,
     )
     gmm.variance_thresholds = threshold
 

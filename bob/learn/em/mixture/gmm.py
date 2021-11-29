@@ -279,6 +279,8 @@ class GMMMachine(BaseEstimator):
         update_variances: bool = False,
         update_weights: bool = False,
         mean_var_update_threshold: float = EPSILON,
+        alpha: float = 0.5,
+        relevance_factor: Union[None, float] = 4,
     ):
         """
         Parameters
@@ -308,6 +310,14 @@ class GMMMachine(BaseEstimator):
             Update the Gaussians variances at every m step.
         update_weights
             Update the GMM weights at every m step.
+        mean_var_update_threshold:
+            Threshold value used when updating the means and variances.
+        alpha:
+            Ratio for MAP adaptation. Used when `trainer == "map"` and
+            `relevance_factor is None`)
+        relevance_factor:
+            Factor for the computation of alpha with Reyolds adaptation. (Used when
+            `trainer == "map"`)
         """
 
         self.n_gaussians = n_gaussians
@@ -346,6 +356,8 @@ class GMMMachine(BaseEstimator):
             )
         if weights is not None:
             self.weights = weights
+        self.alpha = alpha
+        self.relevance_factor = relevance_factor 
 
     @property
     def weights(self):
@@ -683,6 +695,9 @@ class GMMMachine(BaseEstimator):
             update_variances=self.update_variances,
             update_weights=self.update_weights,
             mean_var_update_threshold=self.mean_var_update_threshold,
+            reynolds_adaptation=self.relevance_factor is not None,
+            alpha=self.alpha,
+            relevance_factor=self.relevance_factor,
             **kwargs,
         )
 
@@ -763,6 +778,7 @@ def ml_gmm_m_step(
     update_variances=False,
     update_weights=False,
     mean_var_update_threshold=EPSILON,
+    **kwargs,
 ):
     """Updates a gmm machine parameter according to the e-step statistics."""
     logger.debug("ML GMM Trainer m-step")
