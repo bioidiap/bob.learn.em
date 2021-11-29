@@ -621,7 +621,7 @@ def test_gmm_ML_2():
 
 
 def test_gmm_ML_parallel():
-    """Trains a GMMMachine with ML_GMMTrainer; compares to an old reference"""
+    """Trains a GMMMachine with ML_GMMTrainer; compares to a reference"""
 
     ar = da.array(load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5")))
 

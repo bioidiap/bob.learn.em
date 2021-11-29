@@ -667,14 +667,14 @@ class GMMMachine(BaseEstimator):
         # Count of samples [int]
         statistics.t += data.shape[0]
         # Responsibilities [array of shape (n_gaussians,)]
-        statistics.n += responsibility.sum(axis=-1)
+        statistics.n = statistics.n + responsibility.sum(axis=-1)
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = np.multiply(responsibility[:, :, None], data[None, :, :])
         # First order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_px += px.sum(axis=1)
+        statistics.sum_px = statistics.sum_px + px.sum(axis=1)
         # Second order stats [array of shape (n_gaussians, n_features)]
         pxx = np.multiply(px[:, :, :], data[None, :, :])
-        statistics.sum_pxx += pxx.sum(axis=1)
+        statistics.sum_pxx = statistics.sum_pxx + pxx.sum(axis=1)
 
         return statistics
 
