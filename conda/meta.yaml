@@ -21,26 +21,16 @@ build:
     - cp -R README.rst requirements.txt doc "${PREFIX}/share/doc/{{ name }}/"
 
 requirements:
-  build:
-    - {{ compiler('c') }}
-    - {{ compiler('cxx') }}
-    - pkg-config {{ pkg_config }}
-    - cmake {{ cmake }}
-    - make {{ make }}
   host:
     - python {{ python }}
     - setuptools {{ setuptools }}
     - pip {{ pip }}
     - bob.extension
     - bob.blitz
-    - bob.core >2.0.5
     - bob.io.base
     - bob.sp
-    - bob.math
     - bob.learn.activation
     - bob.learn.linear
-    - libblitz {{ libblitz }}
-    - boost {{ boost }}
     - numpy {{ numpy }}
     - dask {{ dask }}
     - dask-ml {{ dask_ml }}
@@ -48,7 +38,6 @@ requirements:
   run:
     - python
     - setuptools
-    - boost
     - {{ pin_compatible('numpy') }}
     - {{ pin_compatible('dask') }}
     - {{ pin_compatible('dask-ml') }}

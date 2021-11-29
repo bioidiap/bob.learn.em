@@ -3,11 +3,11 @@
 # @date: Tue 27 Jul 2021 11:04:10 UTC+02
 
 import logging
-from typing import Union
 from typing import Tuple
+from typing import Union
 
-import numpy as np
 import dask.array as da
+import numpy as np
 from dask_ml.cluster.k_means import k_init
 from sklearn.base import BaseEstimator
 
@@ -152,7 +152,9 @@ class KMeansMachine(BaseEstimator):
         """
         if trainer is None:
             logger.info("Using default k-means trainer.")
-            trainer = KMeansTrainer(init_method="k-means||", random_state=self.random_state)
+            trainer = KMeansTrainer(
+                init_method="k-means||", random_state=self.random_state
+            )
 
         logger.debug(f"Initializing trainer.")
         trainer.initialize(
