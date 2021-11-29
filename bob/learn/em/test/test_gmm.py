@@ -15,9 +15,9 @@ import os
 import tempfile
 from copy import deepcopy
 from h5py import File as HDF5File
+from pkg_resources import resource_filename
 
-import bob.io.base
-from bob.io.base.test_utils import datafile
+from bob.io.base import load as load_array
 
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import GMMStats
@@ -187,7 +187,7 @@ def test_GMMMachine_1():
 def test_GMMMachine_2():
   # Test a GMMMachine (statistics)
 
-  arrayset = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))
+  arrayset = load_array(resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5"))
   gmm = GMMMachine(n_gaussians=2)
   gmm.weights   = np.array([0.5, 0.5], "float64")
   gmm.means     = np.array([[3, 70], [4, 72]], "float64")
@@ -197,7 +197,7 @@ def test_GMMMachine_2():
   stats = gmm.acc_statistics(arrayset)
 
   stats_ref = GMMStats(n_gaussians=2, n_features=2)
-  stats_ref.load(HDF5File(datafile("stats.hdf5",__name__, path="../data/"), "r"))
+  stats_ref.load(HDF5File(resource_filename("bob.learn.em", "data/stats.hdf5"), "r"))
 
   np.testing.assert_equal(stats.t, stats_ref.t)
   np.testing.assert_almost_equal(stats.n, stats_ref.n, decimal=10)
@@ -210,11 +210,11 @@ def test_GMMMachine_2():
 def test_GMMMachine_3():
   # Test a GMMMachine (log-likelihood computation)
 
-  data = bob.io.base.load(datafile("data.hdf5", __name__, path="../data/"))
+  data = load_array(resource_filename("bob.learn.em", "data/data.hdf5"))
   gmm = GMMMachine(n_gaussians=2)
-  gmm.weights   = bob.io.base.load(datafile("weights.hdf5", __name__, path="../data/"))
-  gmm.means     = bob.io.base.load(datafile("means.hdf5", __name__, path="../data/"))
-  gmm.variances = bob.io.base.load(datafile("variances.hdf5", __name__, path="../data/"))
+  gmm.weights   = load_array(resource_filename("bob.learn.em", "data/weights.hdf5"))
+  gmm.means     = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
+  gmm.variances = load_array(resource_filename("bob.learn.em", "data/variances.hdf5"))
 
   # Compare the log-likelihood with the one obtained using Chris Matlab
   # implementation
@@ -229,9 +229,9 @@ def test_GMMMachine_4():
   data = np.random.rand(100,50) # Doesn't matter if it is random. The average of 1D array (in python) MUST output the same result for the 2D array (in C++)
 
   gmm = GMMMachine(n_gaussians=2)
-  gmm.weights   = bob.io.base.load(datafile("weights.hdf5", __name__, path="../data/"))
-  gmm.means     = bob.io.base.load(datafile("means.hdf5", __name__, path="../data/"))
-  gmm.variances = bob.io.base.load(datafile("variances.hdf5", __name__, path="../data/"))
+  gmm.weights   = load_array(resource_filename("bob.learn.em", "data/weights.hdf5"))
+  gmm.means     = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
+  gmm.variances = load_array(resource_filename("bob.learn.em", "data/variances.hdf5"))
 
 
   ll = 0
@@ -549,9 +549,9 @@ def test_map_transformer():
 def loadGMM():
     gmm = GMMMachine(n_gaussians=2)
 
-    gmm.weights = bob.io.base.load(datafile("gmm.init_weights.hdf5", __name__, path="../data/"))
-    gmm.means = bob.io.base.load(datafile("gmm.init_means.hdf5", __name__, path="../data/"))
-    gmm.variances = bob.io.base.load(datafile("gmm.init_variances.hdf5", __name__, path="../data/"))
+    gmm.weights = load_array(resource_filename("bob.learn.em", "data/gmm.init_weights.hdf5"))
+    gmm.means = load_array(resource_filename("bob.learn.em", "data/gmm.init_means.hdf5"))
+    gmm.variances = load_array(resource_filename("bob.learn.em", "data/gmm.init_variances.hdf5"))
 
     return gmm
 
@@ -560,7 +560,7 @@ def equals(x, y, epsilon):
 
 def test_gmm_ML_1():
     """Trains a GMMMachine with ML_GMMTrainer"""
-    ar = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))
+    ar = load_array(resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5"))
     gmm = loadGMM()
 
     # test rng handling
@@ -579,29 +579,29 @@ def test_gmm_ML_1():
     gmm = gmm.fit(ar)
 
     # Generate reference
-    # gmm.save(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data"), "w"))
+    # gmm.save(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "w"))
 
-    gmm_ref = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data"), "r"))
+    gmm_ref = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"))
     assert gmm == gmm_ref
 
 
 def test_gmm_ML_2():
     """Trains a GMMMachine with ML_GMMTrainer; compares to an old reference"""
-    ar = bob.io.base.load(datafile("dataNormalized.hdf5", __name__, path="../data/"))
+    ar = load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5"))
 
     # Initialize GMMMachine
     gmm = GMMMachine(n_gaussians=5)
-    gmm.means = bob.io.base.load(datafile("meansAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
-    gmm.variances = bob.io.base.load(datafile("variancesAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
-    gmm.weights = np.exp(bob.io.base.load(datafile("weightsAfterKMeans.hdf5", __name__, path="../data/")).astype("float64"))
+    gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterKMeans.hdf5")).astype("float64")
+    gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterKMeans.hdf5")).astype("float64")
+    gmm.weights = np.exp(load_array(resource_filename("bob.learn.em", "data/weightsAfterKMeans.hdf5")).astype("float64"))
 
     threshold = 0.001
     gmm.variance_thresholds = threshold
 
     # Initialize ML Trainer
     gmm.mean_var_update_threshold = 0.001
-    gmm.max_fitting_steps = 26
-    gmm.convergence_threshold = 0.00001
+    gmm.max_fitting_steps = 25
+    gmm.convergence_threshold = 0.000001
     gmm.update_means = True
     gmm.update_variances = True
     gmm.update_weights = True
@@ -610,26 +610,26 @@ def test_gmm_ML_2():
     gmm = gmm.fit(ar)
     # Test results
     # Load torch3vision reference
-    meansML_ref = bob.io.base.load(datafile("meansAfterML.hdf5", __name__, path="../data/"))
-    variancesML_ref = bob.io.base.load(datafile("variancesAfterML.hdf5", __name__, path="../data/"))
-    weightsML_ref = bob.io.base.load(datafile("weightsAfterML.hdf5", __name__, path="../data/"))
+    meansML_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    variancesML_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    weightsML_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
 
     # Compare to current results
-    np.testing.assert_allclose(gmm.means, meansML_ref, rtol=3e-3)
-    np.testing.assert_allclose(gmm.variances, variancesML_ref, rtol=3e-3)
-    np.testing.assert_allclose(gmm.weights, weightsML_ref, rtol=1e-4)
+    np.testing.assert_allclose(gmm.means, meansML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.variances, variancesML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.weights, weightsML_ref, atol=1e-4)
 
 
 def test_gmm_ML_parallel():
     """Trains a GMMMachine with ML_GMMTrainer; compares to an old reference"""
 
-    ar = da.array(bob.io.base.load(datafile("dataNormalized.hdf5", __name__, path="../data/")))
+    ar = da.array(load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5")))
 
     # Initialize GMMMachine
     gmm = GMMMachine(n_gaussians=5)
-    gmm.means = bob.io.base.load(datafile("meansAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
-    gmm.variances = bob.io.base.load(datafile("variancesAfterKMeans.hdf5", __name__, path="../data/")).astype("float64")
-    gmm.weights = np.exp(bob.io.base.load(datafile("weightsAfterKMeans.hdf5", __name__, path="../data/")).astype("float64"))
+    gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterKMeans.hdf5")).astype("float64")
+    gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterKMeans.hdf5")).astype("float64")
+    gmm.weights = np.exp(load_array(resource_filename("bob.learn.em", "data/weightsAfterKMeans.hdf5")).astype("float64"))
 
     threshold = 0.001
     gmm.variance_thresholds = threshold
@@ -647,24 +647,24 @@ def test_gmm_ML_parallel():
 
     # Test results
     # Load torch3vision reference
-    meansML_ref = bob.io.base.load(datafile("meansAfterML.hdf5", __name__, path="../data/"))
-    variancesML_ref = bob.io.base.load(datafile("variancesAfterML.hdf5", __name__, path="../data/"))
-    weightsML_ref = bob.io.base.load(datafile("weightsAfterML.hdf5", __name__, path="../data/"))
+    meansML_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    variancesML_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    weightsML_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
 
     # Compare to current results
-    np.testing.assert_allclose(gmm.means, meansML_ref, rtol=3e-3)
-    np.testing.assert_allclose(gmm.variances, variancesML_ref, rtol=3e-3)
-    np.testing.assert_allclose(gmm.weights, weightsML_ref, rtol=1e-4)
+    np.testing.assert_allclose(gmm.means, meansML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.variances, variancesML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.weights, weightsML_ref, atol=1e-4)
 
 
 
 def test_gmm_MAP_1():
     """Train a GMMMachine with MAP_GMMTrainer"""
-    ar = bob.io.base.load(datafile("faithful.torch3_f64.hdf5", __name__, path="../data/"))
+    ar = load_array(resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5"))
 
     # test with rng
-    gmmprior = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/"), "r"))
-    gmm = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/"), "r"), ubm = gmmprior)
+    gmmprior = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"))
+    gmm = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"), ubm = gmmprior)
     gmm.update_means = True
     gmm.update_variances = False
     gmm.update_weights = False
@@ -672,36 +672,37 @@ def test_gmm_MAP_1():
     gmm.random_state = rng
     gmm = gmm.fit(ar)
 
-    gmmprior = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/"), "r"))
-    gmm = GMMMachine.from_hdf5(HDF5File(datafile("gmm_ML.hdf5", __name__, path="../data/"), "r"), ubm = gmmprior)
+    gmmprior = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"))
+    gmm = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"), ubm = gmmprior)
     gmm.update_means = True
     gmm.update_variances = False
     gmm.update_weights = False
 
     gmm = gmm.fit(ar)
 
-    gmm_ref = GMMMachine.from_hdf5(HDF5File(datafile("gmm_MAP.hdf5", __name__, path="../data/"), "r"))
+    # Generate reference
+    # gmm.save(HDF5File(resource_filename("bob.learn.em", "data/gmm_MAP.hdf5"), "w"))
 
-    np.testing.assert_allclose(gmm.means, gmm_ref.means, rtol=1e-3)
-    np.testing.assert_allclose(gmm.variances, gmm_ref.variances, rtol=1e-3)
-    np.testing.assert_allclose(gmm.weights, gmm_ref.weights, rtol=1e-3)
+    gmm_ref = GMMMachine.from_hdf5(HDF5File(resource_filename("bob.learn.em", "data/gmm_MAP.hdf5"), "r"))
+
+    np.testing.assert_almost_equal(gmm.means, gmm_ref.means, decimal=3)
+    np.testing.assert_almost_equal(gmm.variances, gmm_ref.variances, decimal=3)
+    np.testing.assert_almost_equal(gmm.weights, gmm_ref.weights, decimal=3)
 
 
 def test_gmm_MAP_2():
     """Train a GMMMachine with MAP_GMMTrainer and compare with matlab reference"""
 
-    data = bob.io.base.load(datafile("data.hdf5", __name__, path="../data/"))
-    data = data.reshape((-1, 1))  # make a 2D array out of it
-    means = bob.io.base.load(datafile("means.hdf5", __name__, path="../data/"))
-    variances = bob.io.base.load(datafile("variances.hdf5", __name__, path="../data/"))
-    weights = bob.io.base.load(datafile("weights.hdf5", __name__, path="../data/"))
+    data = load_array(resource_filename("bob.learn.em", "data/data.hdf5"))
+    data = data.reshape((1, -1))  # make a 2D array out of it
+    means = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
+    variances = load_array(resource_filename("bob.learn.em", "data/variances.hdf5"))
+    weights = load_array(resource_filename("bob.learn.em", "data/weights.hdf5"))
 
     gmm = GMMMachine(n_gaussians=2)
     gmm.means = means
     gmm.variances = variances
     gmm.weights = weights
-
-    gmm = gmm.fit(data)
 
     gmm_adapted = GMMMachine(
         n_gaussians=2,
@@ -717,38 +718,36 @@ def test_gmm_MAP_2():
     gmm_adapted.variances = variances
     gmm_adapted.weights = weights
 
-
     gmm_adapted = gmm_adapted.fit(data)
 
-    new_means = bob.io.base.load(datafile("new_adapted_mean.hdf5", __name__, path="../data/"))
+    new_means = load_array(resource_filename("bob.learn.em", "data/new_adapted_mean.hdf5"))
 
     # Compare to matlab reference
-    np.testing.assert_allclose(new_means[0,:], gmm_adapted.means[:,0], rtol=1e-4)
-    np.testing.assert_allclose(new_means[1,:], gmm_adapted.means[:,1], rtol=1e-4)
+    np.testing.assert_allclose(new_means.T, gmm_adapted.means, rtol=1e-4)
 
 
 def test_gmm_MAP_3():
     """Train a GMMMachine with MAP_GMMTrainer; compares to old reference"""
-    ar = bob.io.base.load(datafile("dataforMAP.hdf5", __name__, path="../data/"))
+    ar = load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5"))
 
     # Initialize GMMMachine
     n_gaussians = 5
     prior_gmm = GMMMachine(n_gaussians)
-    prior_gmm.means = bob.io.base.load(datafile("meansAfterML.hdf5", __name__, path="../data/"))
-    prior_gmm.variances = bob.io.base.load(datafile("variancesAfterML.hdf5", __name__, path="../data/"))
-    prior_gmm.weights = bob.io.base.load(datafile("weightsAfterML.hdf5", __name__, path="../data/"))
+    prior_gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    prior_gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    prior_gmm.weights = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
 
     threshold = 0.001
     prior_gmm.variance_thresholds = threshold
 
     # Initialize MAP Trainer
+    prior = 0.001
     accuracy = 0.00001
-
     gmm = GMMMachine(
         n_gaussians,
         trainer="map",
         ubm=prior_gmm,
-        convergence_threshold=threshold,
+        convergence_threshold=prior,
         max_fitting_steps=1,
         update_means=True,
         update_variances=False,
@@ -762,32 +761,31 @@ def test_gmm_MAP_3():
 
     # Test results
     # Load torch3vision reference
-    meansMAP_ref = bob.io.base.load(datafile("meansAfterMAP.hdf5", __name__, path="../data/"))
-    variancesMAP_ref = bob.io.base.load(datafile("variancesAfterMAP.hdf5", __name__, path="../data/"))
-    weightsMAP_ref = bob.io.base.load(datafile("weightsAfterMAP.hdf5", __name__, path="../data/"))
+    meansMAP_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterMAP.hdf5"))
+    variancesMAP_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterMAP.hdf5"))
+    weightsMAP_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterMAP.hdf5"))
 
     # Compare to current results
     # Gaps are quite large. This might be explained by the fact that there is no
     # adaptation of a given Gaussian in torch3 when the corresponding responsibilities
     # are below the responsibilities threshold
-    np.testing.assert_allclose(gmm.means, meansMAP_ref, rtol=2e-1)
-    np.testing.assert_allclose(gmm.variances, variancesMAP_ref, rtol=1e-4)
-    np.testing.assert_allclose(gmm.weights, weightsMAP_ref, rtol=1e-4)
+    np.testing.assert_allclose(gmm.means, meansMAP_ref, atol=2e-1)
+    np.testing.assert_allclose(gmm.variances, variancesMAP_ref, atol=1e-4)
+    np.testing.assert_allclose(gmm.weights, weightsMAP_ref, atol=1e-4)
 
 
 def test_gmm_test():
+    """ Tests a GMMMachine by computing scores against a model and comparing to a reference
+    """
 
-    # Tests a GMMMachine by computing scores against a model and compare to
-    # an old reference
-
-    ar = bob.io.base.load(datafile("dataforMAP.hdf5", __name__, path="../data/"))
+    ar = load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5"))
 
     # Initialize GMMMachine
     n_gaussians = 5
     gmm = GMMMachine(n_gaussians)
-    gmm.means = bob.io.base.load(datafile("meansAfterML.hdf5", __name__, path="../data/"))
-    gmm.variances = bob.io.base.load(datafile("variancesAfterML.hdf5", __name__, path="../data/"))
-    gmm.weights = bob.io.base.load(datafile("weightsAfterML.hdf5", __name__, path="../data/"))
+    gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    gmm.weights = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
 
     threshold = 0.001
     gmm.variance_thresholds = threshold
