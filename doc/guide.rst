@@ -58,7 +58,8 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> import bob.learn.em
+   >>> from bob.learn.em.cluster import KMeansMachine
+   >>> from bob.learn.em.cluster import KMeansTrainer
    >>> import numpy
    >>> data = numpy.array(
    ...     [[3,-3,100],
@@ -66,18 +67,14 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
    ...      [3.5,-3.5,99],
    ...      [-7,7,-100],
    ...      [-5,5,-101]], dtype='float64')
-   >>> # Create a kmeans m with k=2 clusters with a dimensionality equal to 3
-   >>> kmeans_machine = bob.learn.em.KMeansMachine(2, 3)
-   >>> kmeans_trainer = bob.learn.em.KMeansTrainer()
-   >>> max_iterations = 200
-   >>> convergence_threshold = 1e-5
+   >>> # Create a k-means machine with k=2 clusters
+   >>> kmeans_machine = KMeansMachine(2, convergence_threshold=1e-5)
+   >>> kmeans_trainer = KMeansTrainer(max_iter=200)
    >>> # Train the KMeansMachine
-   >>> bob.learn.em.train(kmeans_trainer, kmeans_machine, data,
-   ...     max_iterations=max_iterations,
-   ...     convergence_threshold=convergence_threshold)
-   >>> print(kmeans_machine.means)
-   [[ -6.   6.  -100.5]
-    [  3.5 -3.5   99. ]]
+   >>> kmeans_machine = kmeans_machine.fit(data)
+   >>> print(numpy.array(kmeans_machine.centroids_))
+   [[   3.5   -3.5   99. ]
+    [  -6.     6.  -100.5]]
 
 
 Bellow follow an intuition (source code + plot) of a kmeans training using the
@@ -103,7 +100,7 @@ This statistical model is defined in the class
 :py:class:`bob.learn.em.GMMMachine` as bellow.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> # Create a GMM with k=2 Gaussians with the dimensionality of 3
@@ -135,7 +132,7 @@ estimator.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -171,8 +168,10 @@ Bellow follow an intuition of the GMM trained the maximum likelihood estimator
 using the Iris flower
 `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-.. plot:: plot/plot_ML.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_ML.py
+      :include-source: False
 
 
 Maximum a posteriori Estimator (MAP)
@@ -198,7 +197,7 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -232,8 +231,10 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
 Bellow follow an intuition of the GMM trained with the MAP estimator using the
 Iris flower `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_.
 
-.. plot:: plot/plot_MAP.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_MAP.py
+      :include-source: False
 
 
 Session Variability Modeling with Gaussian Mixture Models
@@ -274,7 +275,7 @@ prior GMM.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -326,8 +327,10 @@ The arrows :math:`U_{1}`, :math:`U_{2}` and :math:`U_{3}` are the directions of
 the within class variations, with respect to each Gaussian component, that will
 be suppressed a posteriori.
 
-.. plot:: plot/plot_ISV.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_ISV.py
+      :include-source: False
 
 
 The ISV statistical model is stored in this container
@@ -337,7 +340,7 @@ Intersession variability modeling.
 
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -400,8 +403,10 @@ between class variations with respect to each Gaussian component that will be
 added a posteriori.
 
 
-.. plot:: plot/plot_JFA.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_JFA.py
+      :include-source: False
 
 The JFA statistical model is stored in this container
 :py:class:`bob.learn.em.JFABase` and the training is performed by
@@ -409,7 +414,7 @@ The JFA statistical model is stored in this container
 Intersession variability modeling.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -472,8 +477,10 @@ Follow bellow an intuition of the data from the Iris flower
 `dataset <https://en.wikipedia.org/wiki/Iris_flower_data_set>`_, embedded in
 the iVector space.
 
-.. plot:: plot/plot_iVector.py
-   :include-source: False
+..
+   TODO uncomment when implemented
+   .. plot:: plot/plot_iVector.py
+      :include-source: False
 
 
 The iVector statistical model is stored in this container
@@ -482,7 +489,7 @@ The iVector statistical model is stored in this container
 a Total variability modeling.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
     >>> import bob.learn.em
     >>> import numpy
@@ -557,7 +564,7 @@ This scoring technique is implemented in :py:func:`bob.learn.em.linear_scoring`.
 The snippet bellow shows how to compute scores using this approximation.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> import bob.learn.em
    >>> import numpy
@@ -604,7 +611,7 @@ Let us consider a training set of two classes, each with 3 samples of
 dimensionality 3.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE
+   :options: +NORMALIZE_WHITESPACE +SKIP
 
    >>> data1 = numpy.array(
    ...     [[3,-3,100],
@@ -621,6 +628,7 @@ Learning a PLDA model can be performed by instantiating the class
 :py:meth:`bob.learn.em.train` method.
 
 .. doctest::
+   :options: +SKIP
 
    >>> # This creates a PLDABase container for input feature of dimensionality
    >>> # 3 and with subspaces F and G of rank 1 and 2, respectively.
@@ -638,6 +646,7 @@ obtained by calling the
 :py:meth:`bob.learn.em.PLDAMachine.compute_log_likelihood()` method.
 
 .. doctest::
+   :options: +SKIP
 
    >>> plda = bob.learn.em.PLDAMachine(pldabase)
    >>> samples = numpy.array(
@@ -651,6 +660,7 @@ a set of enrollment samples, then, several instances of
 the :py:meth:`bob.learn.em.PLDATrainer.enroll()` method as follows.
 
 .. doctest::
+   :options: +SKIP
 
    >>> plda1 = bob.learn.em.PLDAMachine(pldabase)
    >>> samples1 = numpy.array(
@@ -668,6 +678,7 @@ several test samples can be computed as previously described, and this
 separately for each model.
 
 .. doctest::
+   :options: +SKIP
 
    >>> sample = numpy.array([3.2,-3.3,58], dtype=numpy.float64)
    >>> l1 = plda1.compute_log_likelihood(sample)
@@ -684,6 +695,7 @@ computed, which is defined in more formal way by:
 :math:`s = \ln(P(x_{test},x_{enroll})) - \ln(P(x_{test})P(x_{enroll}))`
 
 .. doctest::
+   :options: +SKIP
 
    >>> s1 = plda1(sample)
    >>> s2 = plda2(sample)
