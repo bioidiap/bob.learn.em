@@ -170,9 +170,9 @@ class KMeansMachine(BaseEstimator):
             trainer.e_step(machine=self, data=X)
             trainer.m_step(machine=self, data=X)
 
-            distance = trainer.compute_likelihood(self)
+            distance = float(trainer.compute_likelihood(self))
 
-            # logger.info(f"Average squared Euclidean distance = {distance.compute()}")
+            logger.info(f"Average squared Euclidean distance = {distance}")
 
             if step > 0:
                 convergence_value = abs(
