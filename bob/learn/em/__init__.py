@@ -1,7 +1,5 @@
 import bob.extension
 
-from . import cluster
-
 
 def get_config():
     """Returns a string containing the configuration information."""

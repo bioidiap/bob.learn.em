@@ -12,7 +12,6 @@ import dask.array as da
 import numpy as np
 
 from bob.learn.em.cluster import KMeansMachine
-from bob.learn.em.cluster import KMeansTrainer
 
 
 def test_KMeansMachine():
@@ -49,49 +48,48 @@ def test_KMeansMachine_var_and_weight():
     np.testing.assert_almost_equal(variances, variances_result)
     np.testing.assert_almost_equal(weights, weights_result)
 
+np.set_printoptions(precision=9)
 
 def test_kmeans_fit():
-    da.random.seed(0)
-    data1 = da.random.normal(loc=1, size=(2000, 3))
-    data2 = da.random.normal(loc=-1, size=(2000, 3))
-    data = da.concatenate([data1, data2], axis=0)
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
     machine = KMeansMachine(2, random_state=0).fit(data)
-    centroids = np.array(machine.centroids_)  # Silences `argsort not implemented`
-    centroids = centroids[np.argsort(centroids[:,0])]
+    centroids = machine.centroids_[np.argsort(machine.centroids_[:,0])]
     expected = [
-        [-0.99262315, -1.05226141, -1.00525245],
-        [1.00426431, 1.00359693, 1.05996704],
+        [-1.07173464, -1.06200356, -1.00724920],
+        [ 0.99479125,  0.99665564,  0.97689017],
     ]
+    print(centroids)
     np.testing.assert_almost_equal(centroids, expected)
 
 
 def test_kmeans_fit_init_pp():
-    da.random.seed(0)
-    data1 = da.random.normal(loc=1, size=(2000, 3))
-    data2 = da.random.normal(loc=-1, size=(2000, 3))
-    data = da.concatenate([data1, data2], axis=0)
-    trainer = KMeansTrainer(init_method="k-means++", random_state=0)
-    machine = KMeansMachine(2).fit(data, trainer=trainer)
-    centroids = np.array(machine.centroids_)  # Silences `argsort not implemented`
-    centroids = centroids[np.argsort(centroids[:,0])]
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+    machine = KMeansMachine(2, init_method="k-means++", random_state=0).fit(data)
+    centroids = machine.centroids_[np.argsort(machine.centroids_[:,0])]
     expected = [
-        [-0.99262315, -1.05226141, -1.00525245],
-        [1.00426431, 1.00359693, 1.05996704],
+        [-1.07173464, -1.06200356, -1.00724920],
+        [ 0.99479125,  0.99665564,  0.97689017],
     ]
+    print(centroids)
     np.testing.assert_almost_equal(centroids, expected, decimal=7)
 
 
 def test_kmeans_fit_init_random():
-    da.random.seed(0)
-    data1 = da.random.normal(loc=1, size=(2000, 3))
-    data2 = da.random.normal(loc=-1, size=(2000, 3))
-    data = da.concatenate([data1, data2], axis=0)
-    trainer = KMeansTrainer(init_method="random", random_state=0)
-    machine = KMeansMachine(2).fit(data, trainer=trainer)
-    centroids = np.array(machine.centroids_)  # Silences `argsort not implemented`
-    centroids = centroids[np.argsort(centroids[:,0])]
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+    machine = KMeansMachine(2, init_method="random", random_state=0).fit(data)
+    centroids = machine.centroids_[np.argsort(machine.centroids_[:,0])]
     expected = [
-        [-0.99433738, -1.05561588, -1.01236246],
-        [0.99800688, 0.99873325, 1.05879539],
+        [-1.07329460, -1.06207104, -1.00714365],
+        [ 0.99529015,  0.99570570,  0.97580858],
     ]
+    print(centroids)
     np.testing.assert_almost_equal(centroids, expected, decimal=7)
