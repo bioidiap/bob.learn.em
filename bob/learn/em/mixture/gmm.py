@@ -13,7 +13,6 @@ import numpy as np
 from sklearn.base import BaseEstimator
 
 from bob.learn.em.cluster import KMeansMachine
-from bob.learn.em.cluster import KMeansTrainer
 
 from h5py import File as HDF5File
 
@@ -274,7 +273,7 @@ class GMMMachine(BaseEstimator):
         max_fitting_steps: Union[int, None] = 200,
         random_state: Union[int, np.random.RandomState] = 0,
         weights: "Union[np.ndarray[('n_gaussians',), float], None]" = None,
-        k_means_trainer: Union[KMeansTrainer, None] = None,
+        k_means_trainer: Union[KMeansMachine, None] = None,
         update_means: bool = True,
         update_variances: bool = False,
         update_weights: bool = False,
@@ -317,7 +316,7 @@ class GMMMachine(BaseEstimator):
             Ratio for MAP adaptation. Used when `trainer == "map"` and
             `relevance_factor is None`)
         relevance_factor:
-            Factor for the computation of alpha with Reyolds adaptation. (Used when
+            Factor for the computation of alpha with Reynolds adaptation. (Used when
             `trainer == "map"`)
         variance_thresholds:
             The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension.
@@ -395,14 +394,14 @@ class GMMMachine(BaseEstimator):
     def variances(self, variances: "np.ndarray[('n_gaussians', 'n_features'), float]"):
         self._variances = np.maximum(self.variance_thresholds, variances)
         # Recompute g_norm for each gaussian [array of shape (n_gaussians,)]
-        n_log_2pi = self.variances.shape[-1] * np.log(2 * np.pi)
+        n_log_2pi = self._variances.shape[-1] * np.log(2 * np.pi)
         self._g_norms = np.array(n_log_2pi + np.log(self._variances).sum(axis=-1))
 
     @property
     def variance_thresholds(self):
         """Threshold below which variances are clamped to prevent precision losses."""
         if self._variance_thresholds is None:
-            raise ValueError("GMMMachine variance thresholds were never set.")
+            return EPSILON
         return self._variance_thresholds
 
     @variance_thresholds.setter
@@ -411,7 +410,8 @@ class GMMMachine(BaseEstimator):
         threshold: "Union[float, np.ndarray[('n_gaussians', 'n_features'), float]]",
     ):
         self._variance_thresholds = threshold
-        self.variances = np.maximum(threshold, self.variances)
+        if self._variances is not None:
+            self.variances = np.maximum(threshold, self._variances)
 
     @property
     def g_norms(self):
@@ -542,12 +542,11 @@ class GMMMachine(BaseEstimator):
             if data is None:
                 raise ValueError("Data is required when training with k-means.")
             logger.info("Initializing GMM with k-means.")
-            kmeans_trainer = self.k_means_trainer or KMeansTrainer(
+            kmeans_machine = self.k_means_trainer or KMeansMachine(
+                self.n_gaussians,
                 random_state=self.random_state,
             )
-            kmeans_machine = KMeansMachine(self.n_gaussians).fit(
-                data, trainer=kmeans_trainer
-            )
+            kmeans_machine = kmeans_machine.fit(data)
 
             (
                 variances,
@@ -706,6 +705,10 @@ class GMMMachine(BaseEstimator):
         else:
             logger.debug("GMM means already set. Initialization was not run!")
 
+        if self._variances is None:
+            logger.warning("Variances were not defined before fit. Using variance=1")
+            self.variances = np.ones_like(self.means)
+
         average_output = 0
         logger.info("Training GMM...")
         step = 0
@@ -713,11 +716,7 @@ class GMMMachine(BaseEstimator):
             step += 1
             logger.info(
                 f"Iteration {step:3d}"
-                + (
-                    f"/{self.max_fitting_steps:3d}"
-                    if self.max_fitting_steps is not None
-                    else ""
-                )
+                + (f"/{self.max_fitting_steps:3d}" if self.max_fitting_steps else "")
             )
 
             average_output_previous = average_output
@@ -750,8 +749,9 @@ class GMMMachine(BaseEstimator):
                     and convergence_value <= self.convergence_threshold
                 ):
                     logger.info("Reached convergence threshold. Training stopped.")
-                    return self
-        logger.info("Reached maximum step. Training stopped without convergence.")
+                    break
+        else:
+            logger.info("Reached maximum step. Training stopped without convergence.")
         self.compute()
         return self
 

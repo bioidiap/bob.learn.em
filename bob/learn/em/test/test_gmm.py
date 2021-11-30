@@ -22,7 +22,7 @@ from bob.io.base import load as load_array
 from bob.learn.em.mixture import GMMMachine
 from bob.learn.em.mixture import GMMStats
 
-from bob.learn.em.cluster import KMeansTrainer
+from bob.learn.em.cluster import KMeansMachine
 
 def test_GMMStats():
   # Test a GMMStats
@@ -133,11 +133,10 @@ def test_GMMMachine_1():
   # Checks particular varianceThresholds-related methods
   varianceThresholds1D = np.array([0.3, 1, 0.5], "float64")
   gmm.variance_thresholds = varianceThresholds1D
-  np.testing.assert_equal(gmm.variance_thresholds[0,:], varianceThresholds1D)
-  np.testing.assert_equal(gmm.variance_thresholds[1,:], varianceThresholds1D)
+  np.testing.assert_equal(gmm.variance_thresholds, varianceThresholds1D)
 
   gmm.variance_thresholds = 0.005
-  np.testing.assert_equal(gmm.variance_thresholds, np.full((2,3), 0.005))
+  np.testing.assert_equal(gmm.variance_thresholds, 0.005)
 
   gmm.means     = newMeans
   gmm.variances = newVariances
@@ -251,6 +250,7 @@ def test_GMMStats_2():
     machine = GMMMachine(n_gaussians)
 
     machine.means = np.array([[0, 0, 0], [8, 8, 8]])
+    machine.variances = np.ones_like(machine.means)
 
     # Populate the GMMStats
     stats = machine.acc_statistics(data)
@@ -314,6 +314,7 @@ def test_machine_parameters():
     n_features = 2
     machine = GMMMachine(n_gaussians)
     machine.means = np.repeat([[0], [1], [-1]], n_features, 1)
+    machine.variances = np.ones_like(machine.means)
     np.testing.assert_equal(machine.means, np.repeat([[0], [1], [-1]], n_features, 1))
     np.testing.assert_equal(machine.variances, np.ones((n_gaussians, n_features)))
 
@@ -331,7 +332,10 @@ def test_machine_parameters():
 
 def test_kmeans_plusplus_init():
     n_gaussians = 3
-    machine = GMMMachine(n_gaussians, k_means_trainer=KMeansTrainer("k-means++"))
+    machine = GMMMachine(
+        n_gaussians,
+        k_means_trainer=KMeansMachine(n_clusters=n_gaussians, init_method="k-means++"),
+    )
     data = np.array([[1.5, 1], [1, 1.5], [-1, 0.5], [-1.5, 0], [2, 2], [2.5, 2.5]])
     machine = machine.fit(data)
     expected_means = np.array([[2.25, 2.25], [-1.25, 0.25], [1.25, 1.25]])
@@ -342,7 +346,10 @@ def test_kmeans_plusplus_init():
 
 def test_kmeans_parallel_init():
     n_gaussians = 3
-    machine = GMMMachine(n_gaussians, k_means_trainer=KMeansTrainer("k-means||"))
+    machine = GMMMachine(
+        n_gaussians,
+        k_means_trainer=KMeansMachine(n_clusters=n_gaussians, init_method="k-means||"),
+    )
     data = np.array([[1.5, 1], [1, 1.5], [-1, 0.5], [-1.5, 0], [2, 2], [2.5, 2.5]])
     machine = machine.fit(data)
     expected_means = np.array([[1.25, 1.25], [-1.25, 0.25], [2.25, 2.25]])
@@ -356,6 +363,7 @@ def test_likelihood():
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
     machine.means = np.repeat([[0], [1], [-1]], 3, 1)
+    machine.variances = np.ones_like(machine.means)
     log_likelihood = machine.log_likelihood(data)
     expected_ll = np.array(
         [-3.6519900964986527, -3.83151883210222, -3.83151883210222, -5.344374066745753]
@@ -390,6 +398,7 @@ def test_likelihood_weight():
     n_gaussians = 3
     machine = GMMMachine(n_gaussians)
     machine.means = np.repeat([[0], [1], [-1]], 3, 1)
+    machine.variances = np.ones_like(machine.means)
     machine.weights = [0.6, 0.1, 0.3]
     log_likelihood = machine.log_likelihood(data)
     expected_ll = np.array(
@@ -429,7 +438,7 @@ def test_ml_em():
 
     machine = GMMMachine(n_gaussians, update_means=True, update_variances=True, update_weights=True)
     machine.means = np.repeat([[2], [8]], n_features, 1)
-    machine.initialize_gaussians(None)
+    machine.variances = np.ones_like(machine.means)
 
     stats = machine.e_step( data)
     machine.m_step(stats)
@@ -447,6 +456,7 @@ def test_map_em():
     n_gaussians = 2
     prior_machine = GMMMachine(n_gaussians)
     prior_machine.means = np.array([[2, 2, 2], [8, 8, 8]])
+    prior_machine.variances = np.ones_like(prior_machine.means)
     prior_machine.weights = np.array([0.5, 0.5])
 
     machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)
@@ -483,6 +493,7 @@ def test_ml_transformer():
 
     machine = GMMMachine(n_gaussians, update_means=True, update_variances=True, update_weights=True)
     machine.means = np.array([[2, 2, 2], [8, 8, 8]])
+    machine.variances = np.ones_like(machine.means)
 
     machine = machine.fit(data)
 
@@ -514,6 +525,7 @@ def test_map_transformer():
     n_features = 3
     prior_machine = GMMMachine(n_gaussians)
     prior_machine.means = np.array([[2, 2, 2], [8, 8, 8]])
+    prior_machine.variances = np.ones_like(prior_machine.means)
     prior_machine.weights = np.array([0.5, 0.5])
 
     machine = GMMMachine(n_gaussians, trainer="map", ubm=prior_machine,  update_means=True, update_variances=True, update_weights=True)
@@ -586,7 +598,7 @@ def test_gmm_ML_1():
 
 
 def test_gmm_ML_2():
-    """Trains a GMMMachine with ML_GMMTrainer; compares to an old reference"""
+    """Trains a GMMMachine with ML_GMMTrainer; compares to a reference"""
     ar = load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5"))
 
     # Initialize GMMMachine
