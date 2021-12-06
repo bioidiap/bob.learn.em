@@ -157,12 +157,13 @@ class KMeansMachine(BaseEstimator):
         weights = weights_count / weights_count.sum()
 
         # Accumulate
+        dask_compatible_eye = np.eye(n_cluster) * np.array(1, like=data)
         means_sum = np.sum(
-            np.eye(n_cluster)[closest_centroid_indices][:, :, None] * data[:, None],
+            dask_compatible_eye[closest_centroid_indices][:, :, None] * data[:, None],
             axis=0,
         )
         variances_sum = np.sum(
-            np.eye(n_cluster)[closest_centroid_indices][:, :, None]
+            dask_compatible_eye[closest_centroid_indices][:, :, None]
             * (data[:, None] ** 2),
             axis=0,
         )

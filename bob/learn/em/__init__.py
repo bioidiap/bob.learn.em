@@ -1,4 +1,5 @@
 import bob.extension
+from .mixture import linear_scoring
 
 
 def get_config():
