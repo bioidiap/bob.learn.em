@@ -156,8 +156,10 @@ class KMeansMachine(BaseEstimator):
         weights_count = np.bincount(closest_centroid_indices, minlength=n_cluster)
         weights = weights_count / weights_count.sum()
 
-        # Accumulate
+        # FIX for `too many indices for array` error if using `np.eye(n_cluster)` alone:
         dask_compatible_eye = np.eye(n_cluster) * np.array(1, like=data)
+
+        # Accumulate
         means_sum = np.sum(
             dask_compatible_eye[closest_centroid_indices][:, :, None] * data[:, None],
             axis=0,
