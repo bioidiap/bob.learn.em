@@ -101,7 +101,7 @@ def test_GMMStats():
   # Clean-up
   os.unlink(filename)
 
-def test_GMMMachine_1():
+def test_GMMMachine():
   # Test a GMMMachine basic features
 
   weights   = np.array([0.5, 0.5], "float64")
@@ -182,9 +182,41 @@ def test_GMMMachine_1():
   assert (gmm == gmm6) is False
   assert gmm.is_similar_to(gmm6) is False
 
+  # Saving and loading
+  filename = tempfile.mkstemp(suffix=".hdf5")[1]
+  gmm.save(HDF5File(filename, "w"))
+  gmm1 = GMMMachine.from_hdf5(HDF5File(filename, "r"))
+  assert gmm == gmm1
+  gmm.save(filename)
+  gmm1 = GMMMachine.from_hdf5(filename)
+  assert gmm == gmm1
+  os.unlink(filename)
 
-def test_GMMMachine_2():
-  # Test a GMMMachine (statistics)
+  # Weights
+  n_gaussians = 5
+  machine = GMMMachine(n_gaussians)
+
+  default_weights = np.full(shape=(n_gaussians,), fill_value=1.0 / n_gaussians)
+  default_log_weights = np.full(
+    shape=(n_gaussians,), fill_value=np.log(1.0 / n_gaussians)
+  )
+
+  # Test weights getting and setting
+  np.testing.assert_almost_equal(machine.weights, default_weights)
+  np.testing.assert_almost_equal(machine.log_weights, default_log_weights)
+
+  modified_weights = default_weights
+  modified_weights[: n_gaussians // 2] = (1 / n_gaussians) / 2
+  modified_weights[n_gaussians // 2 + n_gaussians % 2 :] = (1 / n_gaussians) * 1.5
+
+  # Ensure setter works (log_weights is updated correctly)
+  machine.weights = modified_weights
+  np.testing.assert_almost_equal(machine.weights, modified_weights)
+  np.testing.assert_almost_equal(machine.log_weights, np.log(modified_weights))
+
+
+def test_GMMMachine_stats():
+  """Tests a GMMMachine (statistics)"""
 
   arrayset = load_array(resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5"))
   gmm = GMMMachine(n_gaussians=2)
@@ -206,8 +238,8 @@ def test_GMMMachine_2():
   np.testing.assert_almost_equal(stats.sum_pxx, stats_ref.sum_pxx, decimal=10)
 
 
-def test_GMMMachine_3():
-  # Test a GMMMachine (log-likelihood computation)
+def test_GMMMachine_ll_computation():
+  """Test a GMMMachine (log-likelihood computation)"""
 
   data = load_array(resource_filename("bob.learn.em", "data/data.hdf5"))
   gmm = GMMMachine(n_gaussians=2)
@@ -215,13 +247,12 @@ def test_GMMMachine_3():
   gmm.means     = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
   gmm.variances = load_array(resource_filename("bob.learn.em", "data/variances.hdf5"))
 
-  # Compare the log-likelihood with the one obtained using Chris Matlab
-  # implementation
+  # Compare the log-likelihood with the one obtained using Chris Matlab implementation
   matlab_ll_ref = -2.361583051672024e+02
   np.testing.assert_almost_equal(gmm.log_likelihood(data), matlab_ll_ref, decimal=10)
 
 
-def test_GMMMachine_4():
+def test_GMMMachine_single_ll_vs_multiple():
 
   np.random.seed(3) # FIXING A SEED
 
@@ -241,7 +272,7 @@ def test_GMMMachine_4():
   assert np.isclose(ll, gmm.log_likelihood(data).mean())
 
 
-def test_GMMStats_2():
+def test_GMMStats_operations():
     """Test a GMMStats."""
     # Initializing a GMMStats
     data = np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9], [7, 8, 9]])
@@ -319,18 +350,17 @@ def test_machine_parameters():
     np.testing.assert_equal(machine.variances, np.ones((n_gaussians, n_features)))
 
     # Setters
-
     new_means = np.repeat([[1], [2], [3]], n_features, axis=1)
     machine.means = new_means
     assert machine.means.shape == (n_gaussians, n_features)
-    np.testing.assert_almost_equal(machine.means, new_means)
+    np.testing.assert_equal(machine.means, new_means)
     new_variances = np.repeat([[0.2], [1.1], [1]], n_features, axis=1)
     machine.variances = new_variances
     assert machine.variances.shape == (n_gaussians, n_features)
-    np.testing.assert_almost_equal(machine.variances, new_variances)
+    np.testing.assert_equal(machine.variances, new_variances)
 
 
-def test_kmeans_plusplus_init():
+def test_gmm_kmeans_plusplus_init():
     n_gaussians = 3
     machine = GMMMachine(
         n_gaussians,
@@ -344,7 +374,7 @@ def test_kmeans_plusplus_init():
     np.testing.assert_almost_equal(machine.variances, expected_variances)
 
 
-def test_kmeans_parallel_init():
+def test_gmm_kmeans_parallel_init():
     n_gaussians = 3
     machine = GMMMachine(
         n_gaussians,
@@ -567,9 +597,6 @@ def loadGMM():
 
     return gmm
 
-def equals(x, y, epsilon):
-    return (abs(x - y) < epsilon).all()
-
 def test_gmm_ML_1():
     """Trains a GMMMachine with ML_GMMTrainer"""
     ar = load_array(resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5"))
@@ -630,44 +657,6 @@ def test_gmm_ML_2():
     np.testing.assert_allclose(gmm.means, meansML_ref, atol=3e-3)
     np.testing.assert_allclose(gmm.variances, variancesML_ref, atol=3e-3)
     np.testing.assert_allclose(gmm.weights, weightsML_ref, atol=1e-4)
-
-
-def test_gmm_ML_parallel():
-    """Trains a GMMMachine with ML_GMMTrainer; compares to a reference"""
-
-    ar = da.array(load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5")))
-
-    # Initialize GMMMachine
-    gmm = GMMMachine(n_gaussians=5)
-    gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterKMeans.hdf5")).astype("float64")
-    gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterKMeans.hdf5")).astype("float64")
-    gmm.weights = np.exp(load_array(resource_filename("bob.learn.em", "data/weightsAfterKMeans.hdf5")).astype("float64"))
-
-    threshold = 0.001
-    gmm.variance_thresholds = threshold
-
-    # Initialize ML Trainer
-    gmm.mean_var_update_threshold = 0.001
-    gmm.max_fitting_steps = 25
-    gmm.convergence_threshold = 0.00001
-    gmm.update_means = True
-    gmm.update_variances = True
-    gmm.update_weights = True
-
-    # Run ML
-    gmm.fit(ar)
-
-    # Test results
-    # Load torch3vision reference
-    meansML_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
-    variancesML_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
-    weightsML_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
-
-    # Compare to current results
-    np.testing.assert_allclose(gmm.means, meansML_ref, atol=3e-3)
-    np.testing.assert_allclose(gmm.variances, variancesML_ref, atol=3e-3)
-    np.testing.assert_allclose(gmm.weights, weightsML_ref, atol=1e-4)
-
 
 
 def test_gmm_MAP_1():
@@ -788,7 +777,7 @@ def test_gmm_MAP_3():
 
 
 def test_gmm_test():
-    """ Tests a GMMMachine by computing scores against a model and comparing to a reference
+    """Tests a GMMMachine by computing scores against a model and comparing to a reference
     """
 
     ar = load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5"))
@@ -810,3 +799,88 @@ def test_gmm_test():
 
     # Compare current results to torch3vision
     assert abs(score-score_mean_ref)/score_mean_ref<1e-4
+
+
+def test_gmm_ML_dask():
+    """Trains a GMMMachine with dask array data; compares to a reference"""
+
+    ar = da.array(load_array(resource_filename("bob.learn.em", "data/dataNormalized.hdf5")))
+
+    # Initialize GMMMachine
+    gmm = GMMMachine(n_gaussians=5)
+    gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterKMeans.hdf5")).astype("float64")
+    gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterKMeans.hdf5")).astype("float64")
+    gmm.weights = np.exp(load_array(resource_filename("bob.learn.em", "data/weightsAfterKMeans.hdf5")).astype("float64"))
+
+    threshold = 0.001
+    gmm.variance_thresholds = threshold
+
+    # Initialize ML Trainer
+    gmm.mean_var_update_threshold = 0.001
+    gmm.max_fitting_steps = 25
+    gmm.convergence_threshold = 0.00001
+    gmm.update_means = True
+    gmm.update_variances = True
+    gmm.update_weights = True
+
+    # Run ML
+    gmm.fit(ar)
+
+    # Test results
+    # Load torch3vision reference
+    meansML_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    variancesML_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    weightsML_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
+
+    # Compare to current results
+    np.testing.assert_allclose(gmm.means, meansML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.variances, variancesML_ref, atol=3e-3)
+    np.testing.assert_allclose(gmm.weights, weightsML_ref, atol=1e-4)
+
+def test_gmm_MAP_dask():
+    """Test a GMMMachine for MAP with a dask array as data."""
+    ar = da.array(load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5")))
+
+    # Initialize GMMMachine
+    n_gaussians = 5
+    prior_gmm = GMMMachine(n_gaussians)
+    prior_gmm.means = load_array(resource_filename("bob.learn.em", "data/meansAfterML.hdf5"))
+    prior_gmm.variances = load_array(resource_filename("bob.learn.em", "data/variancesAfterML.hdf5"))
+    prior_gmm.weights = load_array(resource_filename("bob.learn.em", "data/weightsAfterML.hdf5"))
+
+    threshold = 0.001
+    prior_gmm.variance_thresholds = threshold
+
+    # Initialize MAP Trainer
+    prior = 0.001
+    accuracy = 0.00001
+    gmm = GMMMachine(
+        n_gaussians,
+        trainer="map",
+        ubm=prior_gmm,
+        convergence_threshold=prior,
+        max_fitting_steps=1,
+        update_means=True,
+        update_variances=False,
+        update_weights=False,
+        mean_var_update_threshold=accuracy,
+        relevance_factor=None,
+    )
+    gmm.variance_thresholds = threshold
+
+    # Train
+    gmm = gmm.fit(ar)
+
+    # Test results
+    # Load torch3vision reference
+    meansMAP_ref = load_array(resource_filename("bob.learn.em", "data/meansAfterMAP.hdf5"))
+    variancesMAP_ref = load_array(resource_filename("bob.learn.em", "data/variancesAfterMAP.hdf5"))
+    weightsMAP_ref = load_array(resource_filename("bob.learn.em", "data/weightsAfterMAP.hdf5"))
+
+    # Compare to current results
+    # Gaps are quite large. This might be explained by the fact that there is no
+    # adaptation of a given Gaussian in torch3 when the corresponding responsibilities
+    # are below the responsibilities threshold
+    np.testing.assert_allclose(gmm.means, meansMAP_ref, atol=2e-1)
+    np.testing.assert_allclose(gmm.variances, variancesMAP_ref, atol=1e-4)
+    np.testing.assert_allclose(gmm.weights, weightsMAP_ref, atol=1e-4)
