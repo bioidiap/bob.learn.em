@@ -49,9 +49,9 @@ between :math:`Js` of successive iterations are lower than a convergence
 threshold.
 
 In this implementation, the training consists in the definition of the
-statistical model, called machine, (:py:class:`bob.learn.em.KMeansMachine`) and
-this statistical model is learned via a trainer
-(:py:class:`bob.learn.em.KMeansTrainer`).
+statistical model, called machine, (:py:class:`bob.learn.em.cluster.KMeansMachine`) and
+this statistical model is learned by executing the
+:py:meth:`~bob.learn.em.cluster.KMeansMachine.fit` method.
 
 Follow bellow an snippet on how to train a KMeans using Bob_.
 
@@ -59,7 +59,6 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
    :options: +NORMALIZE_WHITESPACE
 
    >>> from bob.learn.em.cluster import KMeansMachine
-   >>> from bob.learn.em.cluster import KMeansTrainer
    >>> import numpy
    >>> data = numpy.array(
    ...     [[3,-3,100],
@@ -68,8 +67,7 @@ Follow bellow an snippet on how to train a KMeans using Bob_.
    ...      [-7,7,-100],
    ...      [-5,5,-101]], dtype='float64')
    >>> # Create a k-means machine with k=2 clusters
-   >>> kmeans_machine = KMeansMachine(2, convergence_threshold=1e-5)
-   >>> kmeans_trainer = KMeansTrainer(max_iter=200)
+   >>> kmeans_machine = KMeansMachine(2, convergence_threshold=1e-5, max_iter=200)
    >>> # Train the KMeansMachine
    >>> kmeans_machine = kmeans_machine.fit(data)
    >>> print(numpy.array(kmeans_machine.centroids_))

@@ -12,7 +12,7 @@ build:
   script:
     - cd {{ project_dir }}
     {% if environ.get('BUILD_EGG') %}
-    - python setup.py sdist --formats=zip
+    - "{{ PYTHON }} setup.py sdist --formats=zip"
     {% endif %}
     - "{{ PYTHON }} -m pip install . -vv"
     # installs the documentation source, readme to share/doc so it is available
@@ -34,17 +34,21 @@ requirements:
     - numpy {{ numpy }}
     - dask {{ dask }}
     - dask-ml {{ dask_ml }}
+    - h5py {{ h5py }}
   run:
     - python
     - setuptools
     - {{ pin_compatible('numpy') }}
     - {{ pin_compatible('dask') }}
     - {{ pin_compatible('dask-ml') }}
+    - {{ pin_compatible('h5py') }}
 
 test:
   imports:
     - {{ name }}
   commands:
+    # runs tests for package only, report only what is in the package
+    # creates html and xml reports and place them in specific directories
     - nosetests --with-coverage --cover-package={{ name }} -sv {{ name }}
     - sphinx-build -aEW {{ project_dir }}/doc {{ project_dir }}/sphinx
     - sphinx-build -aEb doctest {{ project_dir }}/doc sphinx

@@ -19,10 +19,14 @@ class KMeansMachine(BaseEstimator):
 
     Allows the clustering of data with the ``fit`` method.
 
-    Parameters
-    ----------
-    n_clusters: int
-        The number of represented clusters.
+    The training works in two phases:
+        - An initialization (setting the initial values of the centroids)
+        - An e-m loop reducing the total distance between the data points and their
+          closest centroid.
+
+    The initialization can use an iterative process to find the best set of
+    coordinates, use random starting points, or take specified coordinates. The
+    ``init_method`` parameter specifies which of these behavior is considered.
 
     Attributes
     ----------
@@ -41,16 +45,42 @@ class KMeansMachine(BaseEstimator):
     def __init__(
         self,
         n_clusters: int,
+        init_method: Union[str, np.ndarray] = "k-means||",
         convergence_threshold: float = 1e-5,
-        random_state: Union[int, da.random.RandomState] = 0,
+        max_iter: int = 20,
+        random_state: Union[int, np.random.RandomState] = 0,
+        init_max_iter: Union[int, None] = None,
     ) -> None:
+        """
+        Parameters
+        ----------
+        n_clusters: int
+            The number of represented clusters.
+        init_method:
+            One of: "random", "k-means++", or "k-means||", or an array with the wanted
+            starting values of the centroids.
+        max_iter:
+            The maximum number of iterations for the e-m part.
+        random_state:
+            A seed or RandomState used for the initialization part.
+        init_max_iter:
+            The maximum number of iterations for the initialization part.
+        """
+
         if n_clusters < 1:
             raise ValueError("The Number of cluster should be greater thant 0.")
         self.n_clusters = n_clusters
-        self.random_state = random_state
+        self.init_method = init_method
         self.convergence_threshold = convergence_threshold
+        self.max_iter = max_iter
+        self.random_state = random_state
+        self.init_max_iter = init_max_iter
+        self.average_min_distance = np.inf
+        self.zeroeth_order_statistics = None
+        self.first_order_statistics = None
+        self.centroids_ = None
 
-    def get_centroids_distance(self, x: da.Array) -> da.Array:
+    def get_centroids_distance(self, x: np.ndarray) -> np.ndarray:
         """Returns the distance values between x and each cluster's centroid.
 
         The returned values are squared Euclidean distances.
@@ -65,43 +95,43 @@ class KMeansMachine(BaseEstimator):
         distances: ndarray of shape (n_clusters,) or (n_clusters, n_samples)
             For each cluster, the squared Euclidian distance (or distances) to x.
         """
-        return da.sum((self.centroids_[:, None] - x[None, :]) ** 2, axis=-1)
+        return np.sum((self.centroids_[:, None] - x[None, :]) ** 2, axis=-1)
 
-    def get_closest_centroid(self, x: da.Array) -> Tuple[int, float]:
+    def get_closest_centroid(self, x: np.ndarray) -> Tuple[int, float]:
         """Returns the closest mean's index and squared Euclidian distance to x."""
         dists = self.get_centroids_distance(x)
-        min_id = da.argmin(dists, axis=0)
+        min_id = np.argmin(dists, axis=0)
         min_dist = dists[min_id]
         return min_id, min_dist
 
-    def get_closest_centroid_index(self, x: da.Array) -> da.Array:
+    def get_closest_centroid_index(self, x: np.ndarray) -> np.ndarray:
         """Returns the index of the closest cluster mean to x."""
-        return da.argmin(self.get_centroids_distance(x), axis=0)
+        return np.argmin(self.get_centroids_distance(x), axis=0)
 
-    def get_min_distance(self, x: da.Array) -> da.Array:
+    def get_min_distance(self, x: np.ndarray) -> np.ndarray:
         """Returns the smallest distance between that point and the clusters centroids.
 
         For each point in x, the minimum distance to each cluster's mean is returned.
 
         The returned values are squared Euclidean distances.
         """
-        return da.min(self.get_centroids_distance(x), axis=0)
+        return np.min(self.get_centroids_distance(x), axis=0)
 
     def __eq__(self, obj) -> bool:
-        if hasattr(self, "centroids_") and hasattr(obj, "centroids_"):
-            return da.allclose(self.centroids_, obj.centroids_, rtol=0, atol=0)
-        else:
-            raise ValueError("centroids_ was not set. You should call 'fit' first.")
+        return self.is_similar_to(obj, r_epsilon=0, a_epsilon=0)
 
     def is_similar_to(self, obj, r_epsilon=1e-05, a_epsilon=1e-08) -> bool:
-        if hasattr(self, "centroids_") and hasattr(obj, "centroids_"):
-            return da.allclose(
+        if self.centroids_ is not None and obj.centroids_ is not None:
+            return np.allclose(
                 self.centroids_, obj.centroids_, rtol=r_epsilon, atol=a_epsilon
             )
         else:
-            raise ValueError("centroids_ was not set. You should call 'fit' first.")
+            logger.warning(
+                "KMeansMachine `centroids_` was not set. You should call 'fit' first."
+            )
+            return False
 
-    def get_variances_and_weights_for_each_cluster(self, data: da.Array):
+    def get_variances_and_weights_for_each_cluster(self, data: np.ndarray):
         """Returns the clusters variance and weight for data clustered by the machine.
 
         For each cluster, finds the subset of the samples that is closest to that
@@ -111,7 +141,7 @@ class KMeansMachine(BaseEstimator):
 
         Parameters
         ----------
-        data: dask.array
+        data:
             The data to compute the variance of.
 
         Returns
@@ -124,16 +154,19 @@ class KMeansMachine(BaseEstimator):
         """
         n_cluster = self.n_clusters
         closest_centroid_indices = self.get_closest_centroid_index(data)
-        weights_count = da.bincount(closest_centroid_indices, minlength=n_cluster)
+        weights_count = np.bincount(closest_centroid_indices, minlength=n_cluster)
         weights = weights_count / weights_count.sum()
 
+        # FIX for `too many indices for array` error if using `np.eye(n_cluster)` alone:
+        dask_compatible_eye = np.eye(n_cluster) * np.array(1, like=data)
+
         # Accumulate
-        means_sum = da.sum(
-            da.eye(n_cluster)[closest_centroid_indices][:, :, None] * data[:, None],
+        means_sum = np.sum(
+            dask_compatible_eye[closest_centroid_indices][:, :, None] * data[:, None],
             axis=0,
         )
-        variances_sum = da.sum(
-            da.eye(n_cluster)[closest_centroid_indices][:, :, None]
+        variances_sum = np.sum(
+            dask_compatible_eye[closest_centroid_indices][:, :, None]
             * (data[:, None] ** 2),
             axis=0,
         )
@@ -144,83 +177,92 @@ class KMeansMachine(BaseEstimator):
 
         return variances, weights
 
-    def fit(self, X, y=None, trainer=None):
-        """Fits this machine with a k-means trainer.
-
-        The default trainer (when None is given) uses k-means|| for init, then uses e-m
-        until it converges or the limit number of iterations is reached.
-        """
-        if trainer is None:
-            logger.info("Using default k-means trainer.")
-            trainer = KMeansTrainer(
-                init_method="k-means||", random_state=self.random_state
-            )
-
-        logger.debug(f"Initializing trainer.")
-        trainer.initialize(
-            machine=self,
-            data=X,
+    def initialize(self, data: np.ndarray):
+        """Assigns the means to an initial value using a specified method or randomly."""
+        logger.debug(f"Initializing k-means means with '{self.init_method}'.")
+        # k_init requires da.Array as input.
+        data = da.array(data)
+        self.centroids_ = k_init(
+            X=data,
+            n_clusters=self.n_clusters,
+            init=self.init_method,
+            random_state=self.random_state,
+            max_iter=self.init_max_iter,
         )
+
+    def e_step(self, data: np.ndarray):
+        closest_k_indices = self.get_closest_centroid_index(data)
+        # Number of data points in each cluster
+        self.zeroeth_order_statistics = np.bincount(
+            closest_k_indices, minlength=self.n_clusters
+        )
+        # Sum of data points coordinates in each cluster
+        self.first_order_statistics = np.sum(
+            np.eye(self.n_clusters)[closest_k_indices][:, :, None] * data[:, None],
+            axis=0,
+        )
+        self.average_min_distance = self.get_min_distance(data).mean()
+
+    def m_step(self, data: np.ndarray):
+        self.centroids_ = (
+            self.first_order_statistics / self.zeroeth_order_statistics[:, None]
+        )
+
+    def fit(self, X, y=None):
+        """Fits this machine on data samples."""
+        logger.debug(f"Initializing trainer.")
+        self.initialize(data=X)
 
         logger.info("Training k-means.")
         distance = np.inf
-        for step in range(trainer.max_iter):
-            logger.info(f"Iteration {step:3d}/{trainer.max_iter}")
+        step = 0
+        while self.max_iter is None or step < self.max_iter:
+            step += 1
+            logger.info(
+                f"Iteration {step:3d}" + (f"/{self.max_iter}" if self.max_iter else "")
+            )
             distance_previous = distance
-            trainer.e_step(machine=self, data=X)
-            trainer.m_step(machine=self, data=X)
+            self.e_step(data=X)
+            self.m_step(data=X)
 
-            distance = trainer.compute_likelihood(self)
+            # If we're running in dask, persist the centroids so we don't recompute them
+            # from the start of the graph at every step.
+            for attr in ("centroids_",):
+                arr = getattr(self, attr)
+                if isinstance(arr, da.Array):
+                    setattr(self, attr, arr.persist())
 
-            # logger.info(f"Average squared Euclidean distance = {distance.compute()}")
+            distance = float(self.average_min_distance)
 
-            if step > 0:
+            logger.info(f"Average minimal squared Euclidean distance = {distance}")
+
+            if step > 1:
                 convergence_value = abs(
                     (distance_previous - distance) / distance_previous
                 )
-                # logger.info(f"Convergence value = {convergence_value.compute()}")
+                logger.info(f"Convergence value = {convergence_value}")
 
                 # Terminates if converged (and threshold is set)
                 if (
                     self.convergence_threshold is not None
                     and convergence_value <= self.convergence_threshold
                 ):
-                    logger.info("Stopping Training: Convergence threshold met.")
-                    return self
-        logger.info("Stopping Training: Iterations limit reached.")
+                    logger.info("Reached convergence threshold. Training stopped.")
+                    break
+        else:
+            logger.info("Reached maximum step. Training stopped without convergence.")
+        self.compute()
         return self
 
-    def partial_fit(self, X, y=None, trainer=None):
-        if trainer is None:
-            logger.info("Using default k-means trainer.")
-            trainer = KMeansTrainer(init_method="k-means||")
-        if not hasattr(self, "means_"):
-            logger.debug(f"First call of 'partial_fit'. Initializing trainer.")
-            trainer.initialize(
-                machine=self,
-                data=X,
-            )
-        for step in range(trainer.max_iter):
-            logger.info(f"Iteration = {step:3d}/{trainer.max_iter}")
-            distance_previous = distance
-            trainer.e_step(machine=self, data=X)
-            trainer.m_step(machine=self, data=X)
+    def partial_fit(self, X, y=None):
+        """Applies one e-m step of k-means on the data."""
+        if self.centroids_ is None:
+            logger.debug("First call to 'partial_fit'. Initializing...")
+            self.initialize(data=X)
 
-            distance = trainer.compute_likelihood(self)
+        self.e_step(data=X)
+        self.m_step(data=X)
 
-            logger.info(f"Average squared Euclidean distance = {distance}")
-
-            convergence_value = abs((distance_previous - distance) / distance_previous)
-            logger.info(f"Convergence value = {convergence_value}")
-
-            # Terminates if converged (and threshold is set)
-            if (
-                self.convergence_threshold is not None
-                and convergence_value <= self.convergence_threshold
-            ):
-                logger.info("Stopping Training: Convergence threshold met.")
-                return self
-        logger.info("Stopping Training: Iterations limit reached.")
         return self
 
     def transform(self, X):
@@ -253,99 +295,7 @@ class KMeansMachine(BaseEstimator):
         """
         return self.get_closest_centroid_index(X)
 
-
-class KMeansTrainer:
-    """E-M Trainer that applies k-means on a KMeansMachine.
-
-    This trainer works in two phases:
-        - An initialization (setting the initial values of the centroids)
-        - An e-m loop reducing the total distance between the data points and their
-          closest centroid.
-
-    The initialization can use an iterative process to find the best set of
-    coordinates, use random starting points, or take specified coordinates. The
-    ``init_method`` parameter specifies which of these behavior is considered.
-
-    Parameters
-    ----------
-    init_method:
-        One of: "random", "k-means++", or "k-means||", or an array with the wanted
-        starting values of the centroids.
-    init_max_iter:
-        The maximum number of iterations for the initialization part.
-    random_state:
-        A seed or RandomState used for the initialization part.
-    max_iter:
-        The maximum number of iterations for the e-m part.
-    """
-
-    def __init__(
-        self,
-        init_method: Union[str, da.Array] = "k-means||",
-        init_max_iter: Union[int, None] = None,
-        random_state: Union[int, da.random.RandomState] = 0,
-        max_iter: int = 20,
-    ):
-        self.init_method = init_method
-        self.average_min_distance = None
-        self.zeroeth_order_statistics = None
-        self.first_order_statistics = None
-        self.max_iter = max_iter
-        self.init_max_iter = init_max_iter
-        self.random_state = random_state
-
-    def initialize(
-        self,
-        machine: KMeansMachine,
-        data: da.Array,
-    ):
-        """Assigns the means to an initial value using a specified method or randomly."""
-        logger.debug(f"Initializing k-means means with '{self.init_method}'.")
-        data = da.array(data)
-        machine.centroids_ = k_init(
-            X=data,
-            n_clusters=machine.n_clusters,
-            init=self.init_method,
-            random_state=self.random_state,
-            max_iter=self.init_max_iter,
-        )
-
-    def e_step(self, machine: KMeansMachine, data: da.Array):
-        data = da.array(data)
-        closest_centroid_indices = machine.get_closest_centroid_index(data)
-        # Number of data points in each cluster
-        self.zeroeth_order_statistics = da.bincount(
-            closest_centroid_indices, minlength=machine.n_clusters
-        )
-        # Sum of data points coordinates in each cluster
-        self.first_order_statistics = da.sum(
-            da.eye(machine.n_clusters)[closest_centroid_indices][:, :, None]
-            * data[:, None],
-            axis=0,
-        )
-        self.average_min_distance = machine.get_min_distance(data).mean()
-
-    def m_step(self, machine: KMeansMachine, data: da.Array):
-        machine.centroids_ = (
-            self.first_order_statistics / self.zeroeth_order_statistics[:, None]
-        ).persist()
-
-    def compute_likelihood(self, machine: KMeansMachine):
-        if self.average_min_distance is None:
-            logger.error("compute_likelihood should be called after e_step.")
-            return 0
-        return self.average_min_distance
-
-    def copy(self):
-        new_trainer = KMeansTrainer()
-        new_trainer.average_min_distance = self.average_min_distance
-        new_trainer.zeroeth_order_statistics = self.zeroeth_order_statistics
-        new_trainer.first_order_statistics = self.first_order_statistics
-        return new_trainer
-
-    def reset_accumulators(self, machine: KMeansMachine):
-        self.average_min_distance = 0
-        self.zeroeth_order_statistics = da.zeros((machine.n_clusters,), dtype="float64")
-        self.first_order_statistics = da.zeros(
-            (machine.n_clusters, machine.n_dims), dtype="float64"
-        )
+    def compute(self, *args, **kwargs):
+        """Computes delayed arrays if needed."""
+        for name in ("centroids_",):
+            setattr(self, name, np.asarray(getattr(self, name)))

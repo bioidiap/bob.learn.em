@@ -1,6 +1,5 @@
 import bob.extension
-
-from . import cluster
+from .mixture import linear_scoring
 
 
 def get_config():

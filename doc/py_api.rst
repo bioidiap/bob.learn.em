@@ -18,8 +18,6 @@ Trainers
 
 .. autosummary::
 
-  bob.learn.em.cluster.KMeansTrainer
-
 ..
   TODO uncomment when implemented
   bob.learn.em.ML_GMMTrainer
@@ -36,12 +34,11 @@ Machines
 .. autosummary::
 
   bob.learn.em.cluster.KMeansMachine
+  bob.learn.em.mixture.GMMStats
+  bob.learn.em.mixture.GMMMachine
 
 ..
   TODO uncomment when implemented
-  bob.learn.em.Gaussian
-  bob.learn.em.GMMStats
-  bob.learn.em.GMMMachine
   bob.learn.em.ISVBase
   bob.learn.em.ISVMachine
   bob.learn.em.JFABase
