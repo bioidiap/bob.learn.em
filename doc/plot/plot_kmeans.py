@@ -1,5 +1,4 @@
 from bob.learn.em.cluster import KMeansMachine
-from bob.learn.em.cluster import KMeansTrainer
 import bob.db.iris
 import numpy
 import matplotlib.pyplot as plt
@@ -16,9 +15,7 @@ data = numpy.vstack((setosa, versicolor, virginica))
 
 # Training KMeans
 # 3 clusters with a feature dimensionality of 2
-machine = KMeansMachine(n_clusters=3)
-trainer = KMeansTrainer(init_method="k-means++")
-machine.fit(data, trainer=trainer)
+machine = KMeansMachine(n_clusters=3, init_method="k-means++").fit(data)
 
 predictions = machine.predict(data)
 
@@ -39,3 +36,4 @@ plt.yticks([], [])
 ax.set_xlabel("Sepal length")
 ax.set_ylabel("Petal width")
 plt.tight_layout()
+plt.show()
