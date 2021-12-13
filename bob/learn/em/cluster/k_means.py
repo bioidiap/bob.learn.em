@@ -78,6 +78,7 @@ class KMeansMachine(BaseEstimator):
         self.average_min_distance = np.inf
         self.zeroeth_order_statistics = None
         self.first_order_statistics = None
+        self.centroids_ = None
 
     def get_centroids_distance(self, x: np.ndarray) -> np.ndarray:
         """Returns the distance values between x and each cluster's centroid.
@@ -117,18 +118,18 @@ class KMeansMachine(BaseEstimator):
         return np.min(self.get_centroids_distance(x), axis=0)
 
     def __eq__(self, obj) -> bool:
-        if hasattr(self, "centroids_") and hasattr(obj, "centroids_"):
-            return np.allclose(self.centroids_, obj.centroids_, rtol=0, atol=0)
-        else:
-            raise ValueError("centroids_ was not set. You should call 'fit' first.")
+        return self.is_similar_to(obj, r_epsilon=0, a_epsilon=0)
 
     def is_similar_to(self, obj, r_epsilon=1e-05, a_epsilon=1e-08) -> bool:
-        if hasattr(self, "centroids_") and hasattr(obj, "centroids_"):
+        if self.centroids_ is not None and obj.centroids_ is not None:
             return np.allclose(
                 self.centroids_, obj.centroids_, rtol=r_epsilon, atol=a_epsilon
             )
         else:
-            raise ValueError("centroids_ was not set. You should call 'fit' first.")
+            logger.warning(
+                "KMeansMachine `centroids_` was not set. You should call 'fit' first."
+            )
+            return False
 
     def get_variances_and_weights_for_each_cluster(self, data: np.ndarray):
         """Returns the clusters variance and weight for data clustered by the machine.
@@ -255,8 +256,8 @@ class KMeansMachine(BaseEstimator):
 
     def partial_fit(self, X, y=None):
         """Applies one e-m step of k-means on the data."""
-        if not hasattr(self, "centroids_"):
-            logger.debug(f"First call to 'partial_fit'. Initializing...")
+        if self.centroids_ is None:
+            logger.debug("First call to 'partial_fit'. Initializing...")
             self.initialize(data=X)
 
         self.e_step(data=X)
