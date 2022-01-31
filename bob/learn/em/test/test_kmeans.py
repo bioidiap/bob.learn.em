@@ -6,91 +6,191 @@
 # Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 """Tests the KMeans machine
+
+Tries each test with a numpy array and the equivalent dask array.
 """
 
-import os
-import numpy
-import tempfile
+import copy
 
-import bob.io.base
-from bob.learn.em import KMeansMachine
+import dask.array as da
+import numpy as np
 
-def equals(x, y, epsilon):
-  return (abs(x - y) < epsilon)
+from bob.learn.em.cluster import KMeansMachine
+
+
+def to_numpy(*args):
+    result = []
+    for x in args:
+        result.append(np.array(x))
+    if len(result) == 1:
+        return result[0]
+    return result
+
+
+def to_dask_array(*args):
+    result = []
+    for x in args:
+        result.append(da.from_array(np.array(x)))
+    if len(result) == 1:
+        return result[0]
+    return result
+
 
 def test_KMeansMachine():
-  # Test a KMeansMachine
+    # Test a KMeansMachine
 
-  means = numpy.array([[3, 70, 0], [4, 72, 0]], 'float64')
-  mean  = numpy.array([3,70,1], 'float64')
+    means = np.array([[3, 70, 0], [4, 72, 0]], "float64")
+    test_val = np.array([3, 70, 1], "float64")
+    test_arr = np.array([[3, 70, 1],[5, 72, 0]], "float64")
 
-  # Initializes a KMeansMachine
-  km = KMeansMachine(2,3)
-  km.means = means
-  assert km.shape == (2,3)
+    for transform in (to_numpy, to_dask_array):
+        means, test_val, test_arr = transform(means, test_val, test_arr)
 
-  # Sets and gets
-  assert (km.means == means).all()
-  assert (km.get_mean(0) == means[0,:]).all()  
-  assert (km.get_mean(1) == means[1,:]).all()
-  km.set_mean(0, mean)
-  assert (km.get_mean(0) == mean).all()
+        # Initializes a KMeansMachine
+        km = KMeansMachine(2)
+        km.centroids_ = means
 
-  # Distance and closest mean
-  eps = 1e-10
+        # Distance and closest mean
+        np.testing.assert_equal(km.transform(test_val)[0], np.array([1]))
+        np.testing.assert_equal(km.transform(test_val)[1], np.array([6]))
 
-  assert equals( km.get_distance_from_mean(mean, 0), 0, eps)
-  assert equals( km.get_distance_from_mean(mean, 1), 6, eps)  
-  
-  (index, dist) = km.get_closest_mean(mean)
-  
-  assert index == 0
-  assert equals( dist, 0, eps)
-  assert equals( km.get_min_distance(mean), 0, eps)
+        (index, dist) = km.get_closest_centroid(test_val)
+        assert index == 0
+        np.testing.assert_equal(dist, np.array([[1.0]]))
 
-  # Loads and saves
-  filename = str(tempfile.mkstemp(".hdf5")[1])
-  km.save(bob.io.base.HDF5File(filename, 'w'))
-  km_loaded = KMeansMachine(bob.io.base.HDF5File(filename))
-  assert km == km_loaded
+        (indices, dists) = km.get_closest_centroid(test_arr)
+        np.testing.assert_equal(indices, np.array([0,1]))
+        np.testing.assert_equal(dists, np.array([[1,8],[6,1]]))
 
-  # Resize
-  km.resize(4,5)
-  assert km.shape == (4,5)
+        index = km.predict(test_val)
+        assert index == 0
 
-  # Copy constructor and comparison operators
-  km.resize(2,3)
-  km2 = KMeansMachine(km)
-  assert km2 == km
-  assert (km2 != km) is False
-  assert km2.is_similar_to(km)
-  means2 = numpy.array([[3, 70, 0], [4, 72, 2]], 'float64')
-  km2.means = means2
-  assert (km2 == km) is False
-  assert km2 != km
-  assert (km2.is_similar_to(km)) is False
+        indices = km.predict(test_arr)
+        np.testing.assert_equal(indices, np.array([0,1]))
 
-  # Clean-up
-  os.unlink(filename)
-  
-  
-def test_KMeansMachine2():
-  kmeans             = bob.learn.em.KMeansMachine(2,2)
-  kmeans.means       = numpy.array([[1.2,1.3],[0.2,-0.3]])
+        np.testing.assert_equal(km.get_min_distance(test_val), np.array([1]))
+        np.testing.assert_equal(km.get_min_distance(test_arr), np.array([1,1]))
 
-  data               = numpy.array([
-                                  [1.,1],
-                                  [1.2, 3],
-                                  [0,0],
-                                  [0.3,0.2],
-                                  [0.2,0]
-                                 ])
-  variances, weights = kmeans.get_variances_and_weights_for_each_cluster(data)
+        # Check __eq__ and is_similar_to
+        km2 = KMeansMachine(2)
+        assert km != km2
+        assert not km.is_similar_to(km2)
+        km2 = copy.deepcopy(km)
+        assert km == km2
+        assert km.is_similar_to(km2)
+        km2.centroids_[0,0] += 1
+        assert km != km2
+        assert not km.is_similar_to(km2)
 
-  variances_result = numpy.array([[ 0.01,1.],
-                                  [ 0.01555556, 0.00888889]])
-  weights_result = numpy.array([ 0.4, 0.6])
-  
-  assert equals(weights_result,weights, 1e-3).all()
-  assert equals(variances_result,variances,1e-3).all()
- 
+
+def test_KMeansMachine_var_and_weight():
+    for transform in (to_numpy, to_dask_array):
+        kmeans = KMeansMachine(2)
+        kmeans.centroids_ = transform(np.array([[1.2, 1.3], [0.2, -0.3]]))
+
+        data = np.array([[1.0, 1], [1.2, 3], [0, 0], [0.3, 0.2], [0.2, 0]])
+        data = transform(data)
+        variances, weights = kmeans.get_variances_and_weights_for_each_cluster(data)
+
+        variances_result = np.array([[0.01, 1.0], [0.01555556, 0.00888889]])
+        weights_result = np.array([0.4, 0.6])
+
+        np.testing.assert_almost_equal(variances, variances_result, decimal=7)
+        np.testing.assert_equal(weights, weights_result)
+
+
+def test_kmeans_fit():
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    print(data1.min(), data1.max())
+    print(data2.min(), data2.max())
+    data = np.concatenate([data1, data2], axis=0)
+
+    for transform in (to_numpy, to_dask_array):
+        data = transform(data)
+        machine = KMeansMachine(2, random_state=0).fit(data)
+        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
+        expected = [
+            [-1.07173464, -1.06200356, -1.00724920],
+            [0.99479125, 0.99665564, 0.97689017],
+        ]
+        np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
+        # Early stop
+        machine = KMeansMachine(2, max_iter=2)
+        machine.fit(data)
+
+
+def test_kmeans_fit_partial():
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+
+    for transform in (to_numpy, to_dask_array):
+        data = transform(data)
+        machine = KMeansMachine(2, random_state=0)
+        for _ in range(20):
+            machine.partial_fit(data)
+        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
+        expected = [
+            [-1.07173464, -1.06200356, -1.00724920],
+            [0.99479125, 0.99665564, 0.97689017],
+        ]
+        np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
+
+def test_kmeans_fit_init_pp():
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+
+    for transform in (to_numpy, to_dask_array):
+        data = transform(data)
+        machine = KMeansMachine(2, init_method="k-means++", random_state=0).fit(data)
+        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
+        expected = [
+            [-1.07173464, -1.06200356, -1.00724920],
+            [0.99479125, 0.99665564, 0.97689017],
+        ]
+        np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
+
+def test_kmeans_fit_init_random():
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+    for transform in (to_numpy, to_dask_array):
+        data = transform(data)
+        machine = KMeansMachine(2, init_method="random", random_state=0).fit(data)
+        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
+        expected = [
+            [-1.07329460, -1.06207104, -1.00714365],
+            [0.99529015, 0.99570570, 0.97580858],
+        ]
+        np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
+def test_kmeans_parameters():
+    np.random.seed(0)
+    data1 = np.random.normal(loc=1, size=(2000, 3))
+    data2 = np.random.normal(loc=-1, size=(2000, 3))
+    data = np.concatenate([data1, data2], axis=0)
+    for transform in (to_numpy, to_dask_array):
+        data = transform(data)
+        machine = KMeansMachine(
+            n_clusters=2,
+            init_method="k-means||",
+            convergence_threshold=1e-5,
+            max_iter=5,
+            random_state=0,
+            init_max_iter=5,
+        ).fit(data)
+        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
+        expected = [
+            [-1.07173464, -1.06200356, -1.00724920],
+            [0.99479125, 0.99665564, 0.97689017],
+        ]
+        np.testing.assert_almost_equal(centroids, expected, decimal=7)
