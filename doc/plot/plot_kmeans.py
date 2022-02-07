@@ -1,4 +1,4 @@
-import bob.learn.em
+from bob.learn.em.cluster import KMeansMachine
 import bob.db.iris
 import numpy
 import matplotlib.pyplot as plt
@@ -14,11 +14,10 @@ virginica = numpy.column_stack(
 data = numpy.vstack((setosa, versicolor, virginica))
 
 # Training KMeans
-# Two clusters with a feature dimensionality of 3
-machine = bob.learn.em.KMeansMachine(3, 2)
-trainer = bob.learn.em.KMeansTrainer()
-bob.learn.em.train(trainer, machine, data, max_iterations=200,
-                   convergence_threshold=1e-5)  # Train the KMeansMachine
+# 3 clusters with a feature dimensionality of 2
+machine = KMeansMachine(n_clusters=3, init_method="k-means++").fit(data)
+
+predictions = machine.predict(data)
 
 # Plotting
 figure, ax = plt.subplots()
@@ -28,8 +27,8 @@ plt.scatter(versicolor[:, 0],
             versicolor[:, 1], c="goldenrod", label="versicolor")
 plt.scatter(virginica[:, 0],
             virginica[:, 1], c="dimgrey", label="virginica")
-plt.scatter(machine.means[:, 0],
-            machine.means[:, 1], c="blue", marker="x", label="centroids",
+plt.scatter(machine.centroids_[:, 0],
+            machine.centroids_[:, 1], c="blue", marker="x", label="centroids",
             s=60)
 plt.legend()
 plt.xticks([], [])
@@ -37,3 +36,4 @@ plt.yticks([], [])
 ax.set_xlabel("Sepal length")
 ax.set_ylabel("Petal width")
 plt.tight_layout()
+plt.show()
