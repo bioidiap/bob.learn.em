@@ -17,6 +17,8 @@ includes implementations of the following algorithms:
  - Total Variability Modeling (iVectors)
  - Probabilistic Linear Discriminant Analysis (PLDA)
  - EM Principal Component Analysis (EM-PCA)
+ - Whitening
+ - Within-Class Covariance Normalization (WCCN)
 
 
 Documentation

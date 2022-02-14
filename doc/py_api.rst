@@ -36,6 +36,8 @@ Machines
   bob.learn.em.cluster.KMeansMachine
   bob.learn.em.mixture.GMMStats
   bob.learn.em.mixture.GMMMachine
+  bob.learn.em.linear.WCCN
+  bob.learn.em.linear.Whitening
 
 ..
   TODO uncomment when implemented
