@@ -18,10 +18,16 @@ from bob.learn.em.linear import (
 )
 
 
-def test_whitening_py():
+def run_whitening(with_dask):
+
+    # CHECKING THE TYPES
+    if with_dask:
+        import dask.array as numerical_module
+    else:
+        import numpy as numerical_module
 
     # Tests our Whitening extractor.
-    data = da.array(
+    data = numerical_module.array(
         [
             [1.2622, -1.6443, 0.1889],
             [0.4286, -0.8922, 1.3020],
@@ -31,18 +37,20 @@ def test_whitening_py():
             [0.4301, 0.4886, -0.1456],
         ]
     )
-    sample = da.array([1, 2, 3.0])
+    sample = numerical_module.array([1, 2, 3.0])
 
     # Expected results (from matlab)
-    mean_ref = da.array([0.096324163333333, -0.465965438333333, 0.366839091666667])
-    whit_ref = da.array(
+    mean_ref = numerical_module.array(
+        [0.096324163333333, -0.465965438333333, 0.366839091666667]
+    )
+    whit_ref = numerical_module.array(
         [
             [1.608410253685985, 0, 0],
             [1.079813355720326, 1.411083365535711, 0],
             [0.693459921529905, 0.571417184139332, 1.800117179839927],
         ]
     )
-    sample_whitened_ref = da.array(
+    sample_whitened_ref = numerical_module.array(
         [5.942255453628436, 4.984316201643742, 4.739998188373740]
     )
 
@@ -70,10 +78,16 @@ def test_whitening_py():
     assert np.allclose(s2, sample_whitened_ref, eps, eps)
 
 
-def test_wccn_py():
+def run_wccn(with_dask):
+
+    # CHECKING THE TYPES
+    if with_dask:
+        import dask.array as numerical_module
+    else:
+        import numpy as numerical_module
 
     # Tests our Whitening extractor.
-    X = da.array(
+    X = numerical_module.array(
         [
             [1.2622, -1.6443, 0.1889],
             [0.4286, -0.8922, 1.3020],
@@ -85,18 +99,18 @@ def test_wccn_py():
     )
     y = [0, 0, 1, 1, 2, 2]
 
-    sample = da.array([1, 2, 3.0])
+    sample = numerical_module.array([1, 2, 3.0])
 
     # Expected results
-    mean_ref = da.array([0.0, 0.0, 0.0])
-    weight_ref = da.array(
+    mean_ref = numerical_module.array([0.0, 0.0, 0.0])
+    weight_ref = numerical_module.array(
         [
             [15.8455444, 0.0, 0.0],
             [-10.7946764, 2.87942129, 0.0],
             [18.76762201, -2.19719292, 2.1505817],
         ]
     )
-    sample_wccn_ref = da.array([50.55905765, -0.83273618, 6.45174511])
+    sample_wccn_ref = numerical_module.array([50.55905765, -0.83273618, 6.45174511])
 
     # Runs WCCN (first method)
     t = WCCN()
@@ -118,3 +132,19 @@ def test_wccn_py():
     assert np.allclose(t.input_subtract, mean_ref, eps, eps)
     assert np.allclose(t.weights, weight_ref, eps, eps)
     assert np.allclose(s2, sample_wccn_ref, eps, eps)
+
+
+def test_wccn_numpy():
+    run_wccn(with_dask=False)
+
+
+def test_wccn_dask():
+    run_wccn(with_dask=True)
+
+
+def test_whitening_numpy():
+    run_whitening(with_dask=False)
+
+
+def test_whitening_dask():
+    run_whitening(with_dask=True)

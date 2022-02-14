@@ -1,11 +1,11 @@
 from sklearn.base import BaseEstimator
 from sklearn.base import TransformerMixin
 
-# import numpy as np
-from scipy.linalg import inv, cholesky
+
+import dask
+
+# Dask doesn't have an implementation for `pinv`
 from scipy.linalg import pinv
-import dask.array as da
-import numpy as np
 
 
 class WCCN(TransformerMixin, BaseEstimator):
@@ -37,23 +37,34 @@ class WCCN(TransformerMixin, BaseEstimator):
     def __init__(self, pinv=False):
         self.pinv = pinv
 
-    def fit(self, X: da.Array, y: list):
+    def fit(self, X, y):
+
+        # CHECKING THE TYPES
+        if isinstance(X, dask.array.Array):
+            import dask.array as numerical_module
+            from dask.array.linalg import inv, cholesky
+        else:
+            import numpy as numerical_module
+            from scipy.linalg import inv, cholesky
 
         possible_labels = set(y)
-        y_ = np.array(y)
+        y_ = numerical_module.array(y)
 
         n_classes = len(possible_labels)
 
         # 1. compute the means for each label
-        mu_l = da.array(
-            [da.mean(X[np.where(y_ == l)[0]], axis=0) for l in possible_labels]
+        mu_l = numerical_module.array(
+            [
+                numerical_module.mean(X[numerical_module.where(y_ == l)[0]], axis=0)
+                for l in possible_labels
+            ]
         )
 
         # 2. Compute Sw
-        Sw = da.zeros((X.shape[1], X.shape[1]), dtype=float)
+        Sw = numerical_module.zeros((X.shape[1], X.shape[1]), dtype=float)
 
         for l in possible_labels:
-            indexes = np.where(y_ == l)[0]
+            indexes = numerical_module.where(y_ == l)[0]
             X_l_mu_l = X[indexes] - mu_l[l]
 
             Sw += X_l_mu_l.T @ X_l_mu_l
@@ -71,7 +82,7 @@ class WCCN(TransformerMixin, BaseEstimator):
 
         return self
 
-    def transform(self, X: da.Array):
+    def transform(self, X):
 
         return ((X - self.input_subtract) / self.input_divide) @ self.weights
 

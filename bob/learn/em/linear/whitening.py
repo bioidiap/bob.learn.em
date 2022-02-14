@@ -1,9 +1,8 @@
 from sklearn.base import BaseEstimator
 from sklearn.base import TransformerMixin
 import numpy as np
-from dask.array.linalg import inv, cholesky
 from scipy.linalg import pinv
-import dask.array as da
+import dask
 
 
 class Whitening(TransformerMixin, BaseEstimator):
@@ -43,10 +42,19 @@ class Whitening(TransformerMixin, BaseEstimator):
     def __init__(self, pinv: bool = False):
         self.pinv = pinv
 
-    def fit(self, X: da.Array, y=None):
+    def fit(self, X, y=None):
+        # CHECKING THE TYPES
+        if isinstance(X, dask.array.Array):
+            import dask.array as numerical_module
+            from dask.array.linalg import inv, cholesky
+
+        else:
+            import numpy as numerical_module
+            from scipy.linalg import inv, cholesky
+
         # 1. Computes the mean vector and the covariance matrix of the training set
-        mu = da.mean(X, axis=0)
-        cov = da.cov(X.T)
+        mu = numerical_module.mean(X, axis=0)
+        cov = numerical_module.cov(X.T)
 
         # 2. Computes the inverse of the covariance matrix
         inv_cov = pinv(cov) if self.pinv else inv(cov)
@@ -60,7 +68,7 @@ class Whitening(TransformerMixin, BaseEstimator):
 
         return self
 
-    def transform(self, X: da.Array):
+    def transform(self, X):
         return ((X - self.input_subtract) / self.input_divide) @ self.weights
 
     def _more_tags(self):
