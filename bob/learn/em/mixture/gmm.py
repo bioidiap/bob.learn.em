@@ -80,42 +80,42 @@ class GMMStats:
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
         try:
-            version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
+            version_major, version_minor = hdf5.attrs["file_version"].split(".")
             logger.debug(
                 f"Reading a GMMStats HDF5 file of version {version_major}.{version_minor}"
             )
-        except TypeError:
+        except (KeyError, RuntimeError):
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
-            if hdf5["meta_writer_class"][()] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
+            if hdf5.attrs["writer_class"] != str(cls):
+                logger.warning(f"{hdf5.attrs['writer_class']} is not {cls}.")
             self = cls(
                 n_gaussians=hdf5["n_gaussians"][()], n_features=hdf5["n_features"][()]
             )
             self.log_likelihood = hdf5["log_likelihood"][()]
             self.t = hdf5["T"][()]
-            self.n = hdf5["n"][()]
-            self.sum_px = hdf5["sumPx"][()]
-            self.sum_pxx = hdf5["sumPxx"][()]
+            self.n = hdf5["n"][...]
+            self.sum_px = hdf5["sumPx"][...]
+            self.sum_pxx = hdf5["sumPxx"][...]
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 stats file.")
             self = cls(
                 n_gaussians=int(hdf5["n_gaussians"][()]),
                 n_features=int(hdf5["n_inputs"][()]),
             )
-            self.log_likelihood = float(hdf5["log_liklihood"][()])
+            self.log_likelihood = hdf5["log_liklihood"][()]
             self.t = int(hdf5["T"][()])
-            self.n = hdf5["n"][()].reshape((self.n_gaussians,))
-            self.sum_px = hdf5["sumPx"][()].reshape(self.shape)
-            self.sum_pxx = hdf5["sumPxx"][()].reshape(self.shape)
+            self.n = np.reshape(hdf5["n"], (self.n_gaussians,))
+            self.sum_px = np.reshape(hdf5["sumPx"], (self.shape))
+            self.sum_pxx = np.reshape(hdf5["sumPxx"], (self.shape))
         return self
 
     def save(self, hdf5):
         """Saves the current statistsics in an `HDF5File` object."""
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "w")
-        hdf5["meta_file_version"] = "1.0"
-        hdf5["meta_writer_class"] = str(self.__class__)
+        hdf5.attrs["file_version"] = "1.0"
+        hdf5.attrs["writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
         hdf5["n_features"] = self.n_features
         hdf5["log_likelihood"] = float(self.log_likelihood)
@@ -438,16 +438,16 @@ class GMMMachine(BaseEstimator):
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
         try:
-            version_major, version_minor = hdf5.get("meta_file_version")[()].split(".")
+            version_major, version_minor = hdf5.attrs["file_version"].split(".")
             logger.debug(
                 f"Reading a GMMMachine HDF5 file of version {version_major}.{version_minor}"
             )
-        except (TypeError, RuntimeError):
+        except (KeyError, RuntimeError):
             version_major, version_minor = 0, 0
         if int(version_major) >= 1:
-            if hdf5["meta_writer_class"][()] != str(cls):
-                logger.warning(f"{hdf5['meta_writer_class'][()]} is not {cls}.")
-            if hdf5["trainer"][()] == "map" and ubm is None:
+            if hdf5.attrs["writer_class"] != str(cls):
+                logger.warning(f"{hdf5.attrs['writer_class']} is not {cls}.")
+            if hdf5["trainer"] == "map" and ubm is None:
                 raise ValueError("The UBM is needed when loading a MAP machine.")
             self = cls(
                 n_gaussians=hdf5["n_gaussians"][()],
@@ -455,30 +455,30 @@ class GMMMachine(BaseEstimator):
                 ubm=ubm,
                 convergence_threshold=1e-5,
                 max_fitting_steps=hdf5["max_fitting_steps"][()],
-                weights=hdf5["weights"][()],
+                weights=hdf5["weights"][...],
                 k_means_trainer=None,
                 update_means=hdf5["update_means"][()],
                 update_variances=hdf5["update_variances"][()],
                 update_weights=hdf5["update_weights"][()],
             )
             gaussians_group = hdf5["gaussians"]
-            self.means = gaussians_group["means"][()]
-            self.variances = gaussians_group["variances"][()]
-            self.variance_thresholds = gaussians_group["variance_thresholds"][()]
+            self.means = gaussians_group["means"][...]
+            self.variances = gaussians_group["variances"][...]
+            self.variance_thresholds = gaussians_group["variance_thresholds"][...]
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 machine file.")
-            n_gaussians = int(hdf5["m_n_gaussians"][()])
+            n_gaussians = hdf5["m_n_gaussians"][()]
             g_means = []
             g_variances = []
             g_variance_thresholds = []
             for i in range(n_gaussians):
                 gaussian_group = hdf5[f"m_gaussians{i}"]
-                g_means.append(gaussian_group["m_mean"][()])
-                g_variances.append(gaussian_group["m_variance"][()])
+                g_means.append(gaussian_group["m_mean"][...])
+                g_variances.append(gaussian_group["m_variance"][...])
                 g_variance_thresholds.append(
-                    gaussian_group["m_variance_thresholds"][()]
+                    gaussian_group["m_variance_thresholds"][...]
                 )
-            weights = hdf5["m_weights"][()].reshape(n_gaussians)
+            weights = np.reshape(hdf5["m_weights"], (n_gaussians,))
             self = cls(n_gaussians=n_gaussians, ubm=ubm, weights=weights)
             self.means = np.array(g_means).reshape(n_gaussians, -1)
             self.variances = np.array(g_variances).reshape(n_gaussians, -1)
@@ -491,8 +491,8 @@ class GMMMachine(BaseEstimator):
         """Saves the current statistics in an `HDF5File` object."""
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "w")
-        hdf5["meta_file_version"] = "1.0"
-        hdf5["meta_writer_class"] = str(self.__class__)
+        hdf5.attrs["file_version"] = "1.0"
+        hdf5.attrs["writer_class"] = str(self.__class__)
         hdf5["n_gaussians"] = self.n_gaussians
         hdf5["trainer"] = self.trainer
         hdf5["convergence_threshold"] = self.convergence_threshold
