@@ -6,4 +6,4 @@ bob.learn.activation
 bob.learn.linear
 dask
 dask-ml
-h5py
+h5py >= 3
