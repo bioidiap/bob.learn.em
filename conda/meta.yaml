@@ -35,6 +35,7 @@ requirements:
     - dask {{ dask }}
     - dask-ml {{ dask_ml }}
     - h5py {{ h5py }}
+    - h5py >=3
   run:
     - python
     - setuptools
