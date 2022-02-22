@@ -55,6 +55,10 @@ def test_GMMStats():
   assert (gs != gs_loaded ) is False
   assert gs.is_similar_to(gs_loaded)
 
+  assert type(gs_loaded.n_gaussians) is np.int64
+  assert type(gs_loaded.n_features) is np.int64
+  assert type(gs_loaded.log_likelihood) is np.float64
+
   # Saves and load from file using `load`
   filename = str(tempfile.mkstemp(".hdf5")[1])
   gs.save(hdf5=HDF5File(filename, "w"))
@@ -183,14 +187,22 @@ def test_GMMMachine():
   assert gmm.is_similar_to(gmm6) is False
 
   # Saving and loading
-  filename = tempfile.mkstemp(suffix=".hdf5")[1]
-  gmm.save(HDF5File(filename, "w"))
-  gmm1 = GMMMachine.from_hdf5(HDF5File(filename, "r"))
-  assert gmm == gmm1
-  gmm.save(filename)
-  gmm1 = GMMMachine.from_hdf5(filename)
-  assert gmm == gmm1
-  os.unlink(filename)
+  with tempfile.NamedTemporaryFile(suffix=".hdf5") as f:
+      filename = f.name
+      gmm.save(HDF5File(filename, "w"))
+      gmm1 = GMMMachine.from_hdf5(HDF5File(filename, "r"))
+      assert type(gmm1.n_gaussians) is np.int64
+      assert type(gmm1.update_means) is np.bool_
+      assert type(gmm1.update_variances) is np.bool_
+      assert type(gmm1.update_weights) is np.bool_
+      assert type(gmm1.trainer) is str
+      assert gmm1.ubm is None
+      assert gmm == gmm1
+  with tempfile.NamedTemporaryFile(suffix=".hdf5") as f:
+      filename = f.name
+      gmm.save(filename)
+      gmm1 = GMMMachine.from_hdf5(filename)
+      assert gmm == gmm1
 
   # Weights
   n_gaussians = 5
