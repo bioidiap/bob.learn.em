@@ -15,7 +15,7 @@ import copy
 import dask.array as da
 import numpy as np
 
-from bob.learn.em.cluster import KMeansMachine
+from bob.learn.em import KMeansMachine
 
 
 def to_numpy(*args):
@@ -41,7 +41,7 @@ def test_KMeansMachine():
 
     means = np.array([[3, 70, 0], [4, 72, 0]], "float64")
     test_val = np.array([3, 70, 1], "float64")
-    test_arr = np.array([[3, 70, 1],[5, 72, 0]], "float64")
+    test_arr = np.array([[3, 70, 1], [5, 72, 0]], "float64")
 
     for transform in (to_numpy, to_dask_array):
         means, test_val, test_arr = transform(means, test_val, test_arr)
@@ -59,17 +59,17 @@ def test_KMeansMachine():
         np.testing.assert_equal(dist, np.array([[1.0]]))
 
         (indices, dists) = km.get_closest_centroid(test_arr)
-        np.testing.assert_equal(indices, np.array([0,1]))
-        np.testing.assert_equal(dists, np.array([[1,8],[6,1]]))
+        np.testing.assert_equal(indices, np.array([0, 1]))
+        np.testing.assert_equal(dists, np.array([[1, 8], [6, 1]]))
 
         index = km.predict(test_val)
         assert index == 0
 
         indices = km.predict(test_arr)
-        np.testing.assert_equal(indices, np.array([0,1]))
+        np.testing.assert_equal(indices, np.array([0, 1]))
 
         np.testing.assert_equal(km.get_min_distance(test_val), np.array([1]))
-        np.testing.assert_equal(km.get_min_distance(test_arr), np.array([1,1]))
+        np.testing.assert_equal(km.get_min_distance(test_arr), np.array([1, 1]))
 
         # Check __eq__ and is_similar_to
         km2 = KMeansMachine(2)
@@ -78,7 +78,7 @@ def test_KMeansMachine():
         km2 = copy.deepcopy(km)
         assert km == km2
         assert km.is_similar_to(km2)
-        km2.centroids_[0,0] += 1
+        km2.centroids_[0, 0] += 1
         assert km != km2
         assert not km.is_similar_to(km2)
 
@@ -90,7 +90,9 @@ def test_KMeansMachine_var_and_weight():
 
         data = np.array([[1.0, 1], [1.2, 3], [0, 0], [0.3, 0.2], [0.2, 0]])
         data = transform(data)
-        variances, weights = kmeans.get_variances_and_weights_for_each_cluster(data)
+        variances, weights = kmeans.get_variances_and_weights_for_each_cluster(
+            data
+        )
 
         variances_result = np.array([[0.01, 1.0], [0.01555556, 0.00888889]])
         weights_result = np.array([0.4, 0.6])
@@ -149,7 +151,9 @@ def test_kmeans_fit_init_pp():
 
     for transform in (to_numpy, to_dask_array):
         data = transform(data)
-        machine = KMeansMachine(2, init_method="k-means++", random_state=0).fit(data)
+        machine = KMeansMachine(2, init_method="k-means++", random_state=0).fit(
+            data
+        )
         centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
         expected = [
             [-1.07173464, -1.06200356, -1.00724920],
@@ -165,13 +169,16 @@ def test_kmeans_fit_init_random():
     data = np.concatenate([data1, data2], axis=0)
     for transform in (to_numpy, to_dask_array):
         data = transform(data)
-        machine = KMeansMachine(2, init_method="random", random_state=0).fit(data)
+        machine = KMeansMachine(2, init_method="random", random_state=0).fit(
+            data
+        )
         centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
         expected = [
             [-1.07329460, -1.06207104, -1.00714365],
             [0.99529015, 0.99570570, 0.97580858],
         ]
         np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
 
 def test_kmeans_parameters():
     np.random.seed(0)

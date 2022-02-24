@@ -49,16 +49,16 @@ between :math:`Js` of successive iterations are lower than a convergence
 threshold.
 
 In this implementation, the training consists in the definition of the
-statistical model, called machine, (:py:class:`bob.learn.em.cluster.KMeansMachine`) and
+statistical model, called machine, (:py:class:`bob.learn.em.KMeansMachine`) and
 this statistical model is learned by executing the
-:py:meth:`~bob.learn.em.cluster.KMeansMachine.fit` method.
+:py:meth:`~bob.learn.em.KMeansMachine.fit` method.
 
 Follow bellow an snippet on how to train a KMeans using Bob_.
 
 .. doctest::
    :options: +NORMALIZE_WHITESPACE
 
-   >>> from bob.learn.em.cluster import KMeansMachine
+   >>> from bob.learn.em import KMeansMachine
    >>> import numpy
    >>> data = numpy.array(
    ...     [[3,-3,100],
@@ -718,5 +718,3 @@ computed, which is defined in more formal way by:
 .. [8] http://en.wikipedia.org/wiki/Expectation-maximization_algorithm
 .. [9] http://en.wikipedia.org/wiki/Maximum_likelihood
 .. [10] http://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation
-
-

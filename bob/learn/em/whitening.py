@@ -1,8 +1,7 @@
-from sklearn.base import BaseEstimator
-from sklearn.base import TransformerMixin
-import numpy as np
-from scipy.linalg import pinv
 import dask
+
+from scipy.linalg import pinv
+from sklearn.base import BaseEstimator, TransformerMixin
 
 
 class Whitening(TransformerMixin, BaseEstimator):
@@ -46,11 +45,13 @@ class Whitening(TransformerMixin, BaseEstimator):
         # CHECKING THE TYPES
         if isinstance(X, dask.array.Array):
             import dask.array as numerical_module
-            from dask.array.linalg import inv, cholesky
+
+            from dask.array.linalg import cholesky, inv
 
         else:
             import numpy as numerical_module
-            from scipy.linalg import inv, cholesky
+
+            from scipy.linalg import cholesky, inv
 
         # 1. Computes the mean vector and the covariance matrix of the training set
         mu = numerical_module.mean(X, axis=0)

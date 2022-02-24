@@ -3,11 +3,12 @@
 # @date: Tue 27 Jul 2021 11:04:10 UTC+02
 
 import logging
-from typing import Tuple
-from typing import Union
+
+from typing import Tuple, Union
 
 import dask.array as da
 import numpy as np
+
 from dask_ml.cluster.k_means import k_init
 from sklearn.base import BaseEstimator
 
@@ -32,14 +33,6 @@ class KMeansMachine(BaseEstimator):
     ----------
     centroids_: ndarray of shape (n_clusters, n_features)
         The current clusters centroids. Available after fitting.
-
-    Example
-    -------
-    >>> data = dask.array.array([[0,-1,0],[-1,1,1],[3,2,1],[2,2,1],[1,0,2]])
-    >>> machine = KMeansMachine(2).fit(data)
-    >>> machine.centroids_.compute()
-    ... array([[0. , 0. , 1. ],
-    ...        [2.5, 2. , 1. ]])
     """
 
     def __init__(
@@ -79,6 +72,15 @@ class KMeansMachine(BaseEstimator):
         self.zeroeth_order_statistics = None
         self.first_order_statistics = None
         self.centroids_ = None
+
+    @property
+    def means(self) -> np.ndarray:
+        """An alias for `centroids_`."""
+        return self.centroids_
+
+    @means.setter
+    def means(self, value: np.ndarray):
+        self.centroids_ = value
 
     def get_centroids_distance(self, x: np.ndarray) -> np.ndarray:
         """Returns the distance values between x and each cluster's centroid.
@@ -154,7 +156,9 @@ class KMeansMachine(BaseEstimator):
         """
         n_cluster = self.n_clusters
         closest_centroid_indices = self.get_closest_centroid_index(data)
-        weights_count = np.bincount(closest_centroid_indices, minlength=n_cluster)
+        weights_count = np.bincount(
+            closest_centroid_indices, minlength=n_cluster
+        )
         weights = weights_count / weights_count.sum()
 
         # FIX for `too many indices for array` error if using `np.eye(n_cluster)` alone:
@@ -162,7 +166,8 @@ class KMeansMachine(BaseEstimator):
 
         # Accumulate
         means_sum = np.sum(
-            dask_compatible_eye[closest_centroid_indices][:, :, None] * data[:, None],
+            dask_compatible_eye[closest_centroid_indices][:, :, None]
+            * data[:, None],
             axis=0,
         )
         variances_sum = np.sum(
@@ -198,7 +203,8 @@ class KMeansMachine(BaseEstimator):
         )
         # Sum of data points coordinates in each cluster
         self.first_order_statistics = np.sum(
-            np.eye(self.n_clusters)[closest_k_indices][:, :, None] * data[:, None],
+            np.eye(self.n_clusters)[closest_k_indices][:, :, None]
+            * data[:, None],
             axis=0,
         )
         self.average_min_distance = self.get_min_distance(data).mean()
@@ -210,7 +216,7 @@ class KMeansMachine(BaseEstimator):
 
     def fit(self, X, y=None):
         """Fits this machine on data samples."""
-        logger.debug(f"Initializing trainer.")
+        logger.debug("Initializing trainer.")
         self.initialize(data=X)
 
         logger.info("Training k-means.")
@@ -219,7 +225,8 @@ class KMeansMachine(BaseEstimator):
         while self.max_iter is None or step < self.max_iter:
             step += 1
             logger.info(
-                f"Iteration {step:3d}" + (f"/{self.max_iter}" if self.max_iter else "")
+                f"Iteration {step:3d}"
+                + (f"/{self.max_iter}" if self.max_iter else "")
             )
             distance_previous = distance
             self.e_step(data=X)
@@ -234,7 +241,9 @@ class KMeansMachine(BaseEstimator):
 
             distance = float(self.average_min_distance)
 
-            logger.info(f"Average minimal squared Euclidean distance = {distance}")
+            logger.info(
+                f"Average minimal squared Euclidean distance = {distance}"
+            )
 
             if step > 1:
                 convergence_value = abs(
@@ -247,10 +256,14 @@ class KMeansMachine(BaseEstimator):
                     self.convergence_threshold is not None
                     and convergence_value <= self.convergence_threshold
                 ):
-                    logger.info("Reached convergence threshold. Training stopped.")
+                    logger.info(
+                        "Reached convergence threshold. Training stopped."
+                    )
                     break
         else:
-            logger.info("Reached maximum step. Training stopped without convergence.")
+            logger.info(
+                "Reached maximum step. Training stopped without convergence."
+            )
         self.compute()
         return self
 

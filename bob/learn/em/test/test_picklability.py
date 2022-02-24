@@ -6,13 +6,13 @@ import pickle
 
 import numpy
 
-from bob.learn.em.cluster import KMeansMachine
+from bob.learn.em import KMeansMachine
+
 
 def test_kmeans_machine():
     # Test a KMeansMachine
 
     means = numpy.array([[3, 70, 0], [4, 72, 0]], "float64")
-    mean = numpy.array([3, 70, 1], "float64")
 
     # Initializes a KMeansMachine
     kmeans_machine = KMeansMachine(2, 3)
