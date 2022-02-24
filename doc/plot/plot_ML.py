@@ -1,12 +1,14 @@
-from bob.learn.em.mixture import GMMMachine
-import bob.db.iris
-import numpy
-import matplotlib.pyplot as plt
-
-from matplotlib.patches import Ellipse
-from matplotlib.lines import Line2D
-
 import logging
+
+import matplotlib.pyplot as plt
+import numpy
+
+from matplotlib.lines import Line2D
+from matplotlib.patches import Ellipse
+
+import bob.db.iris
+
+from bob.learn.em.mixture import GMMMachine
 
 logger = logging.getLogger("bob.learn.em")
 logger.setLevel("DEBUG")
@@ -41,7 +43,9 @@ machine = machine.fit(data)
 # Plotting
 figure, ax = plt.subplots()
 ax.scatter(setosa[:, 0], setosa[:, 1], c="darkcyan", label="setosa")
-ax.scatter(versicolor[:, 0], versicolor[:, 1], c="goldenrod", label="versicolor")
+ax.scatter(
+    versicolor[:, 0], versicolor[:, 1], c="goldenrod", label="versicolor"
+)
 ax.scatter(virginica[:, 0], virginica[:, 1], c="dimgrey", label="virginica")
 ax.scatter(
     machine.means[:, 0],
@@ -57,7 +61,9 @@ for mean, variance in zip(machine.means, machine.variances):
     eigvals, eigvecs = numpy.linalg.eig(numpy.diag(variance))
     axis = numpy.sqrt(eigvals) * numpy.sqrt(5.991)
     angle = 180.0 * numpy.arctan(eigvecs[1][0] / eigvecs[1][1]) / numpy.pi
-    ax.add_patch(Ellipse(mean, *axis, angle=angle, linewidth=1, fill=False, zorder=2))
+    ax.add_patch(
+        Ellipse(mean, *axis, angle=angle, linewidth=1, fill=False, zorder=2)
+    )
 
 # Plot details (legend, axis labels)
 plt.legend(

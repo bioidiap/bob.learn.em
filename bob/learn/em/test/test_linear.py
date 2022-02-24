@@ -9,13 +9,9 @@
 """Tests on the machine infrastructure.
 """
 
-import dask.array as da
 import numpy as np
 
-from bob.learn.em.linear import (
-    Whitening,
-    WCCN,
-)
+from bob.learn.em import WCCN, Whitening
 
 
 def run_whitening(with_dask):
@@ -110,7 +106,9 @@ def run_wccn(with_dask):
             [18.76762201, -2.19719292, 2.1505817],
         ]
     )
-    sample_wccn_ref = numerical_module.array([50.55905765, -0.83273618, 6.45174511])
+    sample_wccn_ref = numerical_module.array(
+        [50.55905765, -0.83273618, 6.45174511]
+    )
 
     # Runs WCCN (first method)
     t = WCCN()
@@ -124,7 +122,7 @@ def run_wccn(with_dask):
     assert np.allclose(s, sample_wccn_ref, eps, eps)
 
     # Runs WCCN (second method)
-    m2 = t.fit(X, y)
+    t.fit(X, y)
     s2 = t.transform(sample)
 
     # Makes sure results are good
