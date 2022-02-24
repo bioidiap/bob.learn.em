@@ -8,7 +8,7 @@ from matplotlib.patches import Ellipse
 
 import bob.db.iris
 
-from bob.learn.em.mixture import GMMMachine
+from bob.learn.em import GMMMachine
 
 logger = logging.getLogger("bob.learn.em")
 logger.setLevel("DEBUG")
