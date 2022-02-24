@@ -4,17 +4,18 @@
 
 """This module provides classes and functions for the training and usage of GMM."""
 
-import logging
 import copy
+import logging
+
 from typing import Union
 
 import dask.array as da
 import numpy as np
-from sklearn.base import BaseEstimator
-
-from bob.learn.em.cluster import KMeansMachine
 
 from h5py import File as HDF5File
+from sklearn.base import BaseEstimator
+
+from .k_means import KMeansMachine
 
 logger = logging.getLogger(__name__)
 
@@ -44,10 +45,16 @@ class GMMStats:
         self.log_likelihood = 0
         self.t = 0
         self.n = np.zeros(shape=(self.n_gaussians,), dtype=float)
-        self.sum_px = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
-        self.sum_pxx = np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
+        self.sum_px = np.zeros(
+            shape=(self.n_gaussians, self.n_features), dtype=float
+        )
+        self.sum_pxx = np.zeros(
+            shape=(self.n_gaussians, self.n_features), dtype=float
+        )
 
-    def init_fields(self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None):
+    def init_fields(
+        self, log_likelihood=0.0, t=0, n=None, sum_px=None, sum_pxx=None
+    ):
         """Initializes the statistics values to a defined value, or zero by default."""
         # The accumulated log likelihood of all samples
         self.log_likelihood = log_likelihood
@@ -55,7 +62,9 @@ class GMMStats:
         self.t = t
         # For each Gaussian, the accumulated sum of responsibilities, i.e. the sum of
         # P(gaussian_i|x)
-        self.n = np.zeros(shape=(self.n_gaussians,), dtype=float) if n is None else n
+        self.n = (
+            np.zeros(shape=(self.n_gaussians,), dtype=float) if n is None else n
+        )
         # For each Gaussian, the accumulated sum of responsibility times the sample
         self.sum_px = (
             np.zeros(shape=(self.n_gaussians, self.n_features), dtype=float)
@@ -90,7 +99,8 @@ class GMMStats:
             if hdf5.attrs["writer_class"] != str(cls):
                 logger.warning(f"{hdf5.attrs['writer_class']} is not {cls}.")
             self = cls(
-                n_gaussians=hdf5["n_gaussians"][()], n_features=hdf5["n_features"][()]
+                n_gaussians=hdf5["n_gaussians"][()],
+                n_features=hdf5["n_features"][()],
             )
             self.log_likelihood = hdf5["log_likelihood"][()]
             self.t = hdf5["T"][()]
@@ -139,8 +149,13 @@ class GMMStats:
         )
 
     def __add__(self, other):
-        if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
-            raise ValueError("Statistics could not be added together (shape mismatch)")
+        if (
+            self.n_gaussians != other.n_gaussians
+            or self.n_features != other.n_features
+        ):
+            raise ValueError(
+                "Statistics could not be added together (shape mismatch)"
+            )
         new_stats = GMMStats(self.n_gaussians, self.n_features)
         new_stats.log_likelihood = self.log_likelihood + other.log_likelihood
         new_stats.t = self.t + other.t
@@ -150,8 +165,13 @@ class GMMStats:
         return new_stats
 
     def __iadd__(self, other):
-        if self.n_gaussians != other.n_gaussians or self.n_features != other.n_features:
-            raise ValueError("Statistics could not be added together (shape mismatch)")
+        if (
+            self.n_gaussians != other.n_gaussians
+            or self.n_features != other.n_features
+        ):
+            raise ValueError(
+                "Statistics could not be added together (shape mismatch)"
+            )
         self.log_likelihood += other.log_likelihood
         self.t += other.t
         self.n += other.n
@@ -171,7 +191,9 @@ class GMMStats:
     def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
         """Returns True if `other` has the same values (within a tolerance)."""
         return (
-            np.isclose(self.log_likelihood, other.log_likelihood, rtol=rtol, atol=atol)
+            np.isclose(
+                self.log_likelihood, other.log_likelihood, rtol=rtol, atol=atol
+            )
             and np.isclose(self.t, other.t, rtol=rtol, atol=atol)
             and np.allclose(self.n, other.n, rtol=rtol, atol=atol)
             and np.allclose(self.sum_px, other.sum_px, rtol=rtol, atol=atol)
@@ -209,14 +231,14 @@ class GMMMachine(BaseEstimator):
 
     Two types of training are available MLE and MAP, chosen with `trainer`.
 
-    Maximum Likelihood Estimation (:ref:`MLE <mle>`, ML)
-    ---------------------------------------
-    The mixtures are initialized (with k-means by default).
-    The means, variances, and weights of the mixtures are then trained on the data to
+    * Maximum Likelihood Estimation (:ref:`MLE <mle>`, ML)
+
+    The mixtures are initialized (with k-means by default). The means,
+    variances, and weights of the mixtures are then trained on the data to
     increase the likelihood value. (:ref:`MLE <mle>`)
 
-    Maximum a Posteriori (:ref:`MAP <map>`)
-    --------------------------
+    * Maximum a Posteriori (:ref:`MAP <map>`)
+
     The MAP machine takes another GMM machine as prior, called Universal Background
     Model (UBM).
     The means, variances, and weights of the MAP mixtures are then trained on the data
@@ -230,38 +252,10 @@ class GMMMachine(BaseEstimator):
     When setting manually any of the means, variances or variance thresholds, the
     k-means initialization will be skipped in `fit`.
 
-    Usage
-    -----
-    Maximum likelihood:
-    >>> data = np.array([[0,0,0],[1,1,1]])
-    >>> ml_machine = GMMMachine(n_gaussians=2, trainer="ml")
-    >>> ml_machine = ml_machine.fit(data)
-    >>> print(ml_machine.means)
-    [[1. 1. 1.]
-     [0. 0. 0.]]
-
-    Maximum a Posteriori:
-    >>> post_data = np.array([[0.5, 0.5, 0],[1.5, 1, 1.5]])
-    >>> map_machine = GMMMachine(n_gaussians=2, trainer="map", ubm=ml_machine)
-    >>> map_machine = map_machine.fit(post_data)
-    >>> print(map_machine.means)
-    [[1.1 1.  1.1]
-     [0.1 0.1 0. ]]
-
-    Partial fitting:
-    >>> machine = GMMMachine(n_gaussians=2, trainer="ml")
-    >>> for step in range(5):
-    ...     machine = machine.fit_partial(data)
-    >>> print(machine.means)
-    [[1. 1. 1.]
-     [0. 0. 0.]]
-
     Attributes
     ----------
     means, variances, variance_thresholds
         Gaussians parameters.
-    weights
-        Gaussians weights.
     """
 
     def __init__(
@@ -272,7 +266,7 @@ class GMMMachine(BaseEstimator):
         convergence_threshold: float = 1e-5,
         max_fitting_steps: Union[int, None] = 200,
         random_state: Union[int, np.random.RandomState] = 0,
-        weights: "Union[np.ndarray[('n_gaussians',), float], None]" = None,
+        weights: "Union[np.ndarray[('n_gaussians',), float], None]" = None,  # noqa: F821
         k_means_trainer: Union[KMeansMachine, None] = None,
         update_means: bool = True,
         update_variances: bool = False,
@@ -325,11 +319,15 @@ class GMMMachine(BaseEstimator):
 
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"
-        self.m_step_func = map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
+        self.m_step_func = (
+            map_gmm_m_step if self.trainer == "map" else ml_gmm_m_step
+        )
         if self.trainer == "map" and ubm is None:
             raise ValueError("A UBM is required for MAP GMM.")
         if ubm is not None and ubm.n_gaussians != self.n_gaussians:
-            raise ValueError("The UBM machine is not compatible with this machine.")
+            raise ValueError(
+                "The UBM machine is not compatible with this machine."
+            )
         self.ubm = ubm
         if max_fitting_steps is None and convergence_threshold is None:
             raise ValueError(
@@ -351,11 +349,15 @@ class GMMMachine(BaseEstimator):
         if self.ubm is not None:
             self.means = copy.deepcopy(self.ubm.means)
             self.variances = copy.deepcopy(self.ubm.variances)
-            self.variance_thresholds = copy.deepcopy(self.ubm.variance_thresholds)
+            self.variance_thresholds = copy.deepcopy(
+                self.ubm.variance_thresholds
+            )
             self.weights = copy.deepcopy(self.ubm.weights)
         else:
             self.weights = np.full(
-                (self.n_gaussians,), fill_value=(1 / self.n_gaussians), dtype=float
+                (self.n_gaussians,),
+                fill_value=(1 / self.n_gaussians),
+                dtype=float,
             )
         if weights is not None:
             self.weights = weights
@@ -368,7 +370,9 @@ class GMMMachine(BaseEstimator):
         return self._weights
 
     @weights.setter
-    def weights(self, weights: "np.ndarray[('n_gaussians',), float]"):
+    def weights(
+        self, weights: "np.ndarray[('n_gaussians',), float]"  # noqa: F821
+    ):  # noqa: F821
         self._weights = weights
         self._log_weights = np.log(self._weights)
 
@@ -380,7 +384,10 @@ class GMMMachine(BaseEstimator):
         return self._means
 
     @means.setter
-    def means(self, means: "np.ndarray[('n_gaussians', 'n_features'), float]"):
+    def means(
+        self,
+        means: "np.ndarray[('n_gaussians', 'n_features'), float]",  # noqa: F821
+    ):  # noqa: F821
         self._means = means
 
     @property
@@ -391,11 +398,16 @@ class GMMMachine(BaseEstimator):
         return self._variances
 
     @variances.setter
-    def variances(self, variances: "np.ndarray[('n_gaussians', 'n_features'), float]"):
+    def variances(
+        self,
+        variances: "np.ndarray[('n_gaussians', 'n_features'), float]",  # noqa: F821
+    ):
         self._variances = np.maximum(self.variance_thresholds, variances)
         # Recompute g_norm for each gaussian [array of shape (n_gaussians,)]
         n_log_2pi = self._variances.shape[-1] * np.log(2 * np.pi)
-        self._g_norms = np.array(n_log_2pi + np.log(self._variances).sum(axis=-1))
+        self._g_norms = np.array(
+            n_log_2pi + np.log(self._variances).sum(axis=-1)
+        )
 
     @property
     def variance_thresholds(self):
@@ -407,7 +419,7 @@ class GMMMachine(BaseEstimator):
     @variance_thresholds.setter
     def variance_thresholds(
         self,
-        threshold: "Union[float, np.ndarray[('n_gaussians', 'n_features'), float]]",
+        threshold: "Union[float, np.ndarray[('n_gaussians', 'n_features'), float]]",  # noqa: F821
     ):
         self._variance_thresholds = threshold
         if self._variances is not None:
@@ -448,7 +460,9 @@ class GMMMachine(BaseEstimator):
             if hdf5.attrs["writer_class"] != str(cls):
                 logger.warning(f"{hdf5.attrs['writer_class']} is not {cls}.")
             if hdf5["trainer"] == "map" and ubm is None:
-                raise ValueError("The UBM is needed when loading a MAP machine.")
+                raise ValueError(
+                    "The UBM is needed when loading a MAP machine."
+                )
             self = cls(
                 n_gaussians=hdf5["n_gaussians"][()],
                 trainer=hdf5["trainer"][()],
@@ -464,7 +478,9 @@ class GMMMachine(BaseEstimator):
             gaussians_group = hdf5["gaussians"]
             self.means = gaussians_group["means"][...]
             self.variances = gaussians_group["variances"][...]
-            self.variance_thresholds = gaussians_group["variance_thresholds"][...]
+            self.variance_thresholds = gaussians_group["variance_thresholds"][
+                ...
+            ]
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 machine file.")
             n_gaussians = hdf5["m_n_gaussians"][()]
@@ -486,6 +502,11 @@ class GMMMachine(BaseEstimator):
                 n_gaussians, -1
             )
         return self
+
+    def load(self, hdf5):
+        """Overwrites the current state with those in an `HDF5File` object."""
+        new_self = self.from_hdf5(hdf5)
+        self.__dict__.update(new_self.__dict__)
 
     def save(self, hdf5):
         """Saves the current statistics in an `HDF5File` object."""
@@ -510,7 +531,9 @@ class GMMMachine(BaseEstimator):
         return (
             np.array_equal(self.means, other.means)
             and np.array_equal(self.variances, other.variances)
-            and np.array_equal(self.variance_thresholds, other.variance_thresholds)
+            and np.array_equal(
+                self.variance_thresholds, other.variance_thresholds
+            )
             and np.array_equal(self.weights, other.weights)
         )
 
@@ -518,7 +541,9 @@ class GMMMachine(BaseEstimator):
         """Returns True if `other` has the same gaussians (within a tolerance)."""
         return (
             np.allclose(self.means, other.means, rtol=rtol, atol=atol)
-            and np.allclose(self.variances, other.variances, rtol=rtol, atol=atol)
+            and np.allclose(
+                self.variances, other.variances, rtol=rtol, atol=atol
+            )
             and np.allclose(
                 self.variance_thresholds,
                 other.variance_thresholds,
@@ -529,13 +554,16 @@ class GMMMachine(BaseEstimator):
         )
 
     def initialize_gaussians(
-        self, data: "Union[np.ndarray[('n_samples', 'n_features'), float], None]" = None
+        self,
+        data: "Union[np.ndarray[('n_samples', 'n_features'), float], None]" = None,  # noqa: F821
     ):
         """Populates gaussians parameters with either k-means or the UBM values."""
         if self.trainer == "map":
             self.means = copy.deepcopy(self.ubm.means)
             self.variances = copy.deepcopy(self.ubm.variances)
-            self.variance_thresholds = copy.deepcopy(self.ubm.variance_thresholds)
+            self.variance_thresholds = copy.deepcopy(
+                self.ubm.variance_thresholds
+            )
             self.weights = copy.deepcopy(self.ubm.weights)
         else:
             logger.debug("GMM means was never set. Initializing with k-means.")
@@ -559,7 +587,8 @@ class GMMMachine(BaseEstimator):
             self.weights = np.array(copy.deepcopy(weights))
 
     def log_weighted_likelihood(
-        self, data: "np.ndarray[('n_samples', 'n_features'), float]"
+        self,
+        data: "np.ndarray[('n_samples', 'n_features'), float]",  # noqa: F821
     ):
         """Returns the weighted log likelihood for each Gaussian for a set of data.
 
@@ -578,11 +607,14 @@ class GMMMachine(BaseEstimator):
             (data[None, ..., :] - self.means[..., None, :]) ** 2
             / self.variances[..., None, :]
         ).sum(axis=-1)
-        l = -0.5 * (self.g_norms[:, None] + z)
-        log_weighted_likelihood = self.log_weights[:, None] + l
+        ll = -0.5 * (self.g_norms[:, None] + z)
+        log_weighted_likelihood = self.log_weights[:, None] + ll
         return log_weighted_likelihood
 
-    def log_likelihood(self, data: "np.ndarray[('n_samples', 'n_features'), float]"):
+    def log_likelihood(
+        self,
+        data: "np.ndarray[('n_samples', 'n_features'), float]",  # noqa: F821
+    ):
         """Returns the current log likelihood for a set of data in this Machine.
 
         Parameters
@@ -624,7 +656,7 @@ class GMMMachine(BaseEstimator):
 
     def acc_statistics(
         self,
-        data: "np.ndarray[('n_samples', 'n_features'), float]",
+        data: "np.ndarray[('n_samples', 'n_features'), float]",  # noqa: F821
         statistics: Union[GMMStats, None] = None,
     ):
         """Accumulates the statistics of GMMStats for a set of data.
@@ -655,7 +687,9 @@ class GMMMachine(BaseEstimator):
         # Log likelihood [array of shape (n_samples,)]
         log_likelihood = self.log_likelihood(data)
         # Responsibility P [array of shape (n_gaussians, n_samples)]
-        responsibility = np.exp(log_weighted_likelihoods - log_likelihood[None, :])
+        responsibility = np.exp(
+            log_weighted_likelihoods - log_likelihood[None, :]
+        )
 
         # Accumulate
 
@@ -675,7 +709,10 @@ class GMMMachine(BaseEstimator):
 
         return statistics
 
-    def e_step(self, data: "np.ndarray[('n_samples', 'n_features'), float]"):
+    def e_step(
+        self,
+        data: "np.ndarray[('n_samples', 'n_features'), float]",  # noqa: F821
+    ):  # noqa: F821
         """Expectation step of the e-m algorithm."""
         return self.acc_statistics(data)
 
@@ -706,7 +743,9 @@ class GMMMachine(BaseEstimator):
             logger.debug("GMM means already set. Initialization was not run!")
 
         if self._variances is None:
-            logger.warning("Variances were not defined before fit. Using variance=1")
+            logger.warning(
+                "Variances were not defined before fit. Using variance=1"
+            )
             self.variances = np.ones_like(self.means)
 
         average_output = 0
@@ -716,7 +755,11 @@ class GMMMachine(BaseEstimator):
             step += 1
             logger.info(
                 f"Iteration {step:3d}"
-                + (f"/{self.max_fitting_steps:3d}" if self.max_fitting_steps else "")
+                + (
+                    f"/{self.max_fitting_steps:3d}"
+                    if self.max_fitting_steps
+                    else ""
+                )
             )
 
             average_output_previous = average_output
@@ -739,7 +782,8 @@ class GMMMachine(BaseEstimator):
 
             if step > 1:
                 convergence_value = abs(
-                    (average_output_previous - average_output) / average_output_previous
+                    (average_output_previous - average_output)
+                    / average_output_previous
                 )
                 logger.debug(f"convergence val = {convergence_value}")
 
@@ -748,10 +792,14 @@ class GMMMachine(BaseEstimator):
                     self.convergence_threshold is not None
                     and convergence_value <= self.convergence_threshold
                 ):
-                    logger.info("Reached convergence threshold. Training stopped.")
+                    logger.info(
+                        "Reached convergence threshold. Training stopped."
+                    )
                     break
         else:
-            logger.info("Reached maximum step. Training stopped without convergence.")
+            logger.info(
+                "Reached maximum step. Training stopped without convergence."
+            )
         self.compute()
         return self
 
@@ -816,9 +864,9 @@ def ml_gmm_m_step(
     #      = 1/n * sum (Pxx) - mean^2
     if update_variances:
         logger.debug("Update variances.")
-        machine.variances = statistics.sum_pxx / thresholded_n[:, None] - np.power(
-            machine.means, 2
-        )
+        machine.variances = statistics.sum_pxx / thresholded_n[
+            :, None
+        ] - np.power(machine.means, 2)
 
 
 def map_gmm_m_step(
@@ -890,9 +938,9 @@ def map_gmm_m_step(
     #   Gaussian Mixture Models", Digital Signal Processing, 2000
     if update_variances:
         # Calculate new variances (equation 13)
-        prior_norm_variances = (machine.ubm.variances + machine.ubm.means) - np.power(
-            machine.means, 2
-        )
+        prior_norm_variances = (
+            machine.ubm.variances + machine.ubm.means
+        ) - np.power(machine.means, 2)
         new_variances = (
             alpha[:, None] * statistics.sum_pxx / statistics.n[:, None]
             + (1 - alpha[:, None]) * (machine.ubm.variances + machine.ubm.means)

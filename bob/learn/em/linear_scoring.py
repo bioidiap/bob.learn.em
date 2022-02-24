@@ -5,12 +5,12 @@
 """Implements the linear scoring function."""
 
 import logging
+
 from typing import Union
 
 import numpy as np
 
-from bob.learn.em.mixture import GMMMachine
-from bob.learn.em.mixture import GMMStats
+from .gmm import GMMMachine, GMMStats
 
 logger = logging.getLogger(__name__)
 
@@ -18,12 +18,12 @@ EPSILON = np.finfo(float).eps
 
 
 def linear_scoring(
-    models_means: "Union[list[GMMMachine], np.ndarray[('n_models', 'n_gaussians', 'n_features'), float]]",
+    models_means: "Union[list[GMMMachine], np.ndarray[('n_models', 'n_gaussians', 'n_features'), float]]",  # noqa: F821
     ubm: GMMMachine,
     test_stats: Union["list[GMMStats]", GMMStats],
-    test_channel_offsets: "np.ndarray[('n_test_stats', 'n_gaussians'), float]" = 0,
+    test_channel_offsets: "np.ndarray[('n_test_stats', 'n_gaussians'), float]" = 0,  # noqa: F821
     frame_length_normalization: bool = False,
-) -> "np.ndarray[('n_models', 'n_test_stats'), float]":
+) -> "np.ndarray[('n_models', 'n_test_stats'), float]":  # noqa: F821
     """Estimation of the LLR between a target model and the UBM for a test instance.
 
     The Linear scoring is an approximation to the log-likelihood ratio (LLR) that was
