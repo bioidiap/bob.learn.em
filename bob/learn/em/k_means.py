@@ -42,7 +42,8 @@ class KMeansMachine(BaseEstimator):
         convergence_threshold: float = 1e-5,
         max_iter: int = 20,
         random_state: Union[int, np.random.RandomState] = 0,
-        init_max_iter: Union[int, None] = None,
+        init_max_iter: Union[int, None] = 5,
+        oversampling_factor: float = 2,
     ) -> None:
         """
         Parameters
@@ -68,6 +69,7 @@ class KMeansMachine(BaseEstimator):
         self.max_iter = max_iter
         self.random_state = random_state
         self.init_max_iter = init_max_iter
+        self.oversampling_factor = oversampling_factor
         self.average_min_distance = np.inf
         self.zeroeth_order_statistics = None
         self.first_order_statistics = None
@@ -193,6 +195,7 @@ class KMeansMachine(BaseEstimator):
             init=self.init_method,
             random_state=self.random_state,
             max_iter=self.init_max_iter,
+            oversampling_factor=self.oversampling_factor,
         )
 
     def e_step(self, data: np.ndarray):
@@ -226,7 +229,7 @@ class KMeansMachine(BaseEstimator):
             step += 1
             logger.info(
                 f"Iteration {step:3d}"
-                + (f"/{self.max_iter}" if self.max_iter else "")
+                + (f"/{self.max_iter:3d}" if self.max_iter else "")
             )
             distance_previous = distance
             self.e_step(data=X)
@@ -241,7 +244,7 @@ class KMeansMachine(BaseEstimator):
 
             distance = float(self.average_min_distance)
 
-            logger.info(
+            logger.debug(
                 f"Average minimal squared Euclidean distance = {distance}"
             )
 
@@ -249,7 +252,7 @@ class KMeansMachine(BaseEstimator):
                 convergence_value = abs(
                     (distance_previous - distance) / distance_previous
                 )
-                logger.info(f"Convergence value = {convergence_value}")
+                logger.debug(f"Convergence value = {convergence_value}")
 
                 # Terminates if converged (and threshold is set)
                 if (

@@ -212,7 +212,9 @@ class GMMStats:
         return (self.n_gaussians, self.n_features)
 
     def compute(self):
-        for name in ("log_likelihood", "n", "sum_px", "sum_pxx"):
+        for name in ("log_likelihood", "t"):
+            setattr(self, name, float(getattr(self, name)))
+        for name in ("n", "sum_px", "sum_pxx"):
             setattr(self, name, np.asarray(getattr(self, name)))
 
 
@@ -272,9 +274,8 @@ class GMMMachine(BaseEstimator):
         update_variances: bool = False,
         update_weights: bool = False,
         mean_var_update_threshold: float = EPSILON,
-        alpha: float = 0.5,
-        relevance_factor: Union[None, float] = 4,
-        variance_thresholds: float = EPSILON,
+        map_alpha: float = 0.5,
+        map_relevance_factor: Union[None, float] = 4,
     ):
         """
         Parameters
@@ -304,17 +305,14 @@ class GMMMachine(BaseEstimator):
             Update the Gaussians variances at every m step.
         update_weights
             Update the GMM weights at every m step.
-        mean_var_update_threshold:
+        mean_var_update_threshold
             Threshold value used when updating the means and variances.
-        alpha:
+        map_alpha
             Ratio for MAP adaptation. Used when `trainer == "map"` and
             `relevance_factor is None`)
-        relevance_factor:
+        map_relevance_factor
             Factor for the computation of alpha with Reynolds adaptation. (Used when
             `trainer == "map"`)
-        variance_thresholds:
-            The variance flooring thresholds, i.e. the minimum allowed value of variance in each dimension.
-            The variance will be set to this value if an attempt is made to set it to a smaller value.
         """
 
         self.n_gaussians = n_gaussians
@@ -361,8 +359,8 @@ class GMMMachine(BaseEstimator):
             )
         if weights is not None:
             self.weights = weights
-        self.alpha = alpha
-        self.relevance_factor = relevance_factor
+        self.map_alpha = map_alpha
+        self.map_relevance_factor = map_relevance_factor
 
     @property
     def weights(self):
@@ -729,9 +727,9 @@ class GMMMachine(BaseEstimator):
             update_variances=self.update_variances,
             update_weights=self.update_weights,
             mean_var_update_threshold=self.mean_var_update_threshold,
-            reynolds_adaptation=self.relevance_factor is not None,
-            alpha=self.alpha,
-            relevance_factor=self.relevance_factor,
+            reynolds_adaptation=self.map_relevance_factor is not None,
+            alpha=self.map_alpha,
+            relevance_factor=self.map_relevance_factor,
             **kwargs,
         )
 
@@ -839,14 +837,14 @@ def ml_gmm_m_step(
     """Updates a gmm machine parameter according to the e-step statistics."""
     logger.debug("ML GMM Trainer m-step")
 
+    # Threshold the low n to prevent divide by zero
+    thresholded_n = np.clip(statistics.n, mean_var_update_threshold, None)
+
     # Update weights if requested
     # (Equation 9.26 of Bishop, "Pattern recognition and machine learning", 2006)
     if update_weights:
         logger.debug("Update weights.")
-        machine.weights = statistics.n / statistics.t
-
-    # Threshold the low n to prevent divide by zero
-    thresholded_n = np.clip(statistics.n, mean_var_update_threshold, None)
+        machine.weights = thresholded_n / statistics.t
 
     # Update GMM parameters using the sufficient statistics (m_ss):
 
