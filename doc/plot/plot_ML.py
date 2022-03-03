@@ -5,26 +5,18 @@ import numpy
 
 from matplotlib.lines import Line2D
 from matplotlib.patches import Ellipse
-
-import bob.db.iris
+from sklearn.datasets import load_iris
 
 from bob.learn.em import GMMMachine
 
 logger = logging.getLogger("bob.learn.em")
 logger.setLevel("DEBUG")
 
-data_per_class = bob.db.iris.data()
-setosa = numpy.column_stack(
-    (data_per_class["setosa"][:, 0], data_per_class["setosa"][:, 3])
-)
-versicolor = numpy.column_stack(
-    (data_per_class["versicolor"][:, 0], data_per_class["versicolor"][:, 3])
-)
-virginica = numpy.column_stack(
-    (data_per_class["virginica"][:, 0], data_per_class["virginica"][:, 3])
-)
-
-data = numpy.vstack((setosa, versicolor, virginica))
+iris_data = load_iris()
+data = iris_data.data
+setosa = data[iris_data.target == 0]
+versicolor = data[iris_data.target == 1]
+virginica = data[iris_data.target == 2]
 
 # Two clusters with a feature dimensionality of 3
 machine = GMMMachine(
