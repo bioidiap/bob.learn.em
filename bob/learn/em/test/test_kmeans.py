@@ -30,7 +30,10 @@ def to_numpy(*args):
 def to_dask_array(*args):
     result = []
     for x in args:
-        result.append(da.from_array(np.array(x)))
+        x = np.asarray(x)
+        chunks = list(x.shape)
+        chunks[0] //= 2
+        result.append(da.from_array(x, chunks=chunks))
     if len(result) == 1:
         return result[0]
     return result
@@ -54,22 +57,11 @@ def test_KMeansMachine():
         np.testing.assert_equal(km.transform(test_val)[0], np.array([1]))
         np.testing.assert_equal(km.transform(test_val)[1], np.array([6]))
 
-        (index, dist) = km.get_closest_centroid(test_val)
-        assert index == 0
-        np.testing.assert_equal(dist, np.array([[1.0]]))
-
-        (indices, dists) = km.get_closest_centroid(test_arr)
-        np.testing.assert_equal(indices, np.array([0, 1]))
-        np.testing.assert_equal(dists, np.array([[1, 8], [6, 1]]))
-
         index = km.predict(test_val)
         assert index == 0
 
         indices = km.predict(test_arr)
         np.testing.assert_equal(indices, np.array([0, 1]))
-
-        np.testing.assert_equal(km.get_min_distance(test_val), np.array([1]))
-        np.testing.assert_equal(km.get_min_distance(test_arr), np.array([1, 1]))
 
         # Check __eq__ and is_similar_to
         km2 = KMeansMachine(2)
@@ -122,25 +114,6 @@ def test_kmeans_fit():
         # Early stop
         machine = KMeansMachine(2, max_iter=2)
         machine.fit(data)
-
-
-def test_kmeans_fit_partial():
-    np.random.seed(0)
-    data1 = np.random.normal(loc=1, size=(2000, 3))
-    data2 = np.random.normal(loc=-1, size=(2000, 3))
-    data = np.concatenate([data1, data2], axis=0)
-
-    for transform in (to_numpy, to_dask_array):
-        data = transform(data)
-        machine = KMeansMachine(2, random_state=0)
-        for _ in range(20):
-            machine.partial_fit(data)
-        centroids = machine.centroids_[np.argsort(machine.centroids_[:, 0])]
-        expected = [
-            [-1.07173464, -1.06200356, -1.00724920],
-            [0.99479125, 0.99665564, 0.97689017],
-        ]
-        np.testing.assert_almost_equal(centroids, expected, decimal=7)
 
 
 def test_kmeans_fit_init_pp():

@@ -733,7 +733,7 @@ class GMMMachine(BaseEstimator):
             **kwargs,
         )
 
-    def fit(self, X, y=None, **kwargs):
+    def fit(self, X, y=None):
         """Trains the GMM on data until convergence or maximum step is reached."""
         if self._means is None:
             self.initialize_gaussians(X)
