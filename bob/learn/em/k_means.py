@@ -8,10 +8,9 @@ from typing import Union
 
 import dask
 import dask.array as da
-import dask.bag
 import dask.delayed
-import distributed
 import numpy as np
+import scipy.spatial.distance
 
 from dask_ml.cluster.k_means import k_init
 from sklearn.base import BaseEstimator
@@ -26,15 +25,21 @@ def get_centroids_distance(x: np.ndarray, means: np.ndarray) -> np.ndarray:
 
     Parameters
     ----------
-    x: ndarray of shape (n_features,) or (n_samples, n_features)
-        One data point, or a series of data points.
+    x: ndarray of shape (n_samples, n_features)
+        A series of data points.
+    means: ndarray of shape (n_clusters, n_features)
+        The centroids.
 
     Returns
     -------
-    distances: ndarray of shape (n_clusters,) or (n_clusters, n_samples)
+    distances: ndarray of shape (n_clusters, n_samples)
         For each cluster, the squared Euclidian distance (or distances) to x.
     """
-    return np.sum((means[:, None] - x[None, :]) ** 2, axis=-1)
+    x = np.atleast_2d(x)
+    if isinstance(x, da.Array):
+        return np.sum((means[:, None] - x[None, :]) ** 2, axis=-1)
+    else:
+        return scipy.spatial.distance.cdist(means, x, metric="sqeuclidean")
 
 
 def get_closest_centroid_index(centroids_dist: np.ndarray) -> np.ndarray:
@@ -113,6 +118,23 @@ def m_step(stats, n_samples):
 
     means = first_order_statistics / zeroeth_order_statistics[:, None]
     return means, average_min_distance
+
+
+def check_and_persist_dask_input(data):
+    # check if input is a dask array. If so, persist and rebalance data
+    input_is_dask = False
+    if isinstance(data, da.Array):
+        data: da.Array = data.persist()
+        input_is_dask = True
+    return input_is_dask
+
+
+def array_to_delayed_list(data, input_is_dask):
+    # If input is a dask array, convert to delayed chunks
+    if input_is_dask:
+        data = data.to_delayed().ravel().tolist()
+        logger.debug(f"Got {len(data)} chunks.")
+    return data
 
 
 class KMeansMachine(BaseEstimator):
@@ -265,27 +287,14 @@ class KMeansMachine(BaseEstimator):
     def fit(self, X, y=None):
         """Fits this machine on data samples."""
 
-        # check if input is a dask array. If so, persist and rebalance data
-        client, input_is_dask = None, False
-        if isinstance(X, da.Array):
-            X: da.Array = X.persist()
-            input_is_dask = True
-
-            try:
-                client = distributed.Client.current()
-                client.rebalance()
-            except ValueError:
-                pass
+        input_is_dask = check_and_persist_dask_input(X)
 
         logger.debug("Initializing trainer.")
         self.initialize(data=X)
 
         n_samples = len(X)
 
-        # If input is a dask array, convert to delayed chunks
-        if input_is_dask:
-            X = X.to_delayed()
-            logger.debug(f"Got {len(X)} chunks.")
+        X = array_to_delayed_list(X, input_is_dask)
 
         logger.info("Training k-means.")
         distance = np.inf
@@ -301,8 +310,7 @@ class KMeansMachine(BaseEstimator):
             # compute the e-m steps
             if input_is_dask:
                 stats = [
-                    dask.delayed(e_step)(xx, means=self.centroids_)
-                    for xx in X.ravel().tolist()
+                    dask.delayed(e_step)(xx, means=self.centroids_) for xx in X
                 ]
                 self.centroids_, self.average_min_distance = dask.compute(
                     dask.delayed(m_step)(stats, n_samples)
@@ -312,17 +320,6 @@ class KMeansMachine(BaseEstimator):
                 self.centroids_, self.average_min_distance = m_step(
                     stats, n_samples
                 )
-
-            # scatter centroids to all workers for efficiency
-            if client is not None:
-                logger.debug("Broadcasting centroids to all workers.")
-                future = client.scatter(self.centroids_, broadcast=True)
-                self.centroids_ = da.from_delayed(
-                    future,
-                    shape=self.centroids_.shape,
-                    dtype=self.centroids_.dtype,
-                )
-                client.rebalance()
 
             distance = self.average_min_distance
 
@@ -345,6 +342,7 @@ class KMeansMachine(BaseEstimator):
                         "Reached convergence threshold. Training stopped."
                     )
                     break
+
         else:
             logger.info(
                 "Reached maximum step. Training stopped without convergence."

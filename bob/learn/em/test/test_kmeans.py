@@ -14,8 +14,9 @@ import copy
 
 import dask.array as da
 import numpy as np
+import scipy.spatial.distance
 
-from bob.learn.em import KMeansMachine
+from bob.learn.em import KMeansMachine, k_means
 
 
 def to_numpy(*args):
@@ -174,3 +175,18 @@ def test_kmeans_parameters():
             [0.99479125, 0.99665564, 0.97689017],
         ]
         np.testing.assert_almost_equal(centroids, expected, decimal=7)
+
+
+def test_get_centroids_distance():
+    np.random.seed(0)
+    n_features = 60
+    n_samples = 240_000
+    n_clusters = 256
+    data = np.random.normal(loc=1, size=(n_samples, n_features))
+    means = np.random.normal(loc=-1, size=(n_clusters, n_features))
+    oracle = scipy.spatial.distance.cdist(means, data, metric="sqeuclidean")
+    for transform in (to_numpy,):
+        data, means = transform(data, means)
+        dist = k_means.get_centroids_distance(data, means)
+        np.testing.assert_allclose(dist, oracle)
+        assert type(data) is type(dist), (type(data), type(dist))
