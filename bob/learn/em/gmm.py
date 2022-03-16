@@ -119,7 +119,7 @@ def m_step(
         relevance_factor=map_relevance_factor,
     )
     average_output = float(statistics.log_likelihood / statistics.t)
-    return average_output
+    return machine, average_output
 
 
 class GMMStats:
@@ -888,9 +888,11 @@ class GMMMachine(BaseEstimator):
                     )
                     for xx in X
                 ]
-                average_output = dask.compute(
+                new_machine, average_output = dask.compute(
                     dask.delayed(m_step_func)(self, stats)
                 )[0]
+                for attr in ["weights", "means", "variances"]:
+                    setattr(self, attr, getattr(new_machine, attr))
             else:
                 stats = [
                     e_step(
@@ -902,7 +904,7 @@ class GMMMachine(BaseEstimator):
                         log_weights=self.log_weights,
                     )
                 ]
-                average_output = m_step_func(self, stats)
+                _, average_output = m_step_func(self, stats)
 
             logger.debug(f"log likelihood = {average_output}")
             if step > 1:

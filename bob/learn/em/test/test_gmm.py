@@ -16,10 +16,13 @@ from copy import deepcopy
 import dask.array as da
 import numpy as np
 
+from dask.distributed import Client
 from h5py import File as HDF5File
 from pkg_resources import resource_filename
 
 from bob.learn.em import GMMMachine, GMMStats, KMeansMachine
+
+from .test_kmeans import to_dask_array, to_numpy
 
 
 def load_array(filename):
@@ -464,13 +467,22 @@ def test_gmm_kmeans_parallel_init():
     data = np.array(
         [[1.5, 1], [1, 1.5], [-1, 0.5], [-1.5, 0], [2, 2], [2.5, 2.5]]
     )
-    machine = machine.fit(data)
-    expected_means = np.array([[1.25, 1.25], [-1.25, 0.25], [2.25, 2.25]])
-    expected_variances = np.array(
-        [[1 / 16, 1 / 16], [1 / 16, 1 / 16], [1 / 16, 1 / 16]]
-    )
-    np.testing.assert_almost_equal(machine.means, expected_means, decimal=3)
-    np.testing.assert_almost_equal(machine.variances, expected_variances)
+    with Client().as_current():
+        for transform in (to_numpy, to_dask_array):
+            data = transform(data)
+            machine = machine.fit(data)
+            expected_means = np.array(
+                [[1.25, 1.25], [-1.25, 0.25], [2.25, 2.25]]
+            )
+            expected_variances = np.array(
+                [[1 / 16, 1 / 16], [1 / 16, 1 / 16], [1 / 16, 1 / 16]]
+            )
+            np.testing.assert_almost_equal(
+                machine.means, expected_means, decimal=3
+            )
+            np.testing.assert_almost_equal(
+                machine.variances, expected_variances
+            )
 
 
 def test_likelihood():
