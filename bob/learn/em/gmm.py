@@ -18,7 +18,7 @@ import numpy as np
 from h5py import File as HDF5File
 from sklearn.base import BaseEstimator
 
-from .k_means import (
+from .kmeans import (
     KMeansMachine,
     array_to_delayed_list,
     check_and_persist_dask_input,
