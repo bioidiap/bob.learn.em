@@ -1,7 +1,7 @@
 import bob.extension
 
 from .gmm import GMMMachine, GMMStats
-from .k_means import KMeansMachine
+from .kmeans import KMeansMachine
 from .linear_scoring import linear_scoring  # noqa: F401
 from .wccn import WCCN
 from .whitening import Whitening
