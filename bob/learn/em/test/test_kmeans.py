@@ -16,7 +16,7 @@ import dask.array as da
 import numpy as np
 import scipy.spatial.distance
 
-from bob.learn.em import KMeansMachine, k_means
+from bob.learn.em import KMeansMachine, kmeans
 
 
 def to_numpy(*args):
@@ -187,6 +187,6 @@ def test_get_centroids_distance():
     oracle = scipy.spatial.distance.cdist(means, data, metric="sqeuclidean")
     for transform in (to_numpy,):
         data, means = transform(data, means)
-        dist = k_means.get_centroids_distance(data, means)
+        dist = kmeans.get_centroids_distance(data, means)
         np.testing.assert_allclose(dist, oracle)
         assert type(data) is type(dist), (type(data), type(dist))
