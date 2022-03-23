@@ -126,7 +126,16 @@ def check_and_persist_dask_input(data):
     if isinstance(data, da.Array):
         data: da.Array = data.persist()
         input_is_dask = True
-    return input_is_dask
+        # if there is a dask distributed client, rebalance data
+        try:
+            client = dask.distributed.Client.current()
+            client.rebalance()
+        except ValueError:
+            pass
+
+    else:
+        data = np.asarray(data)
+    return input_is_dask, data
 
 
 def array_to_delayed_list(data, input_is_dask):
@@ -241,7 +250,8 @@ class KMeansMachine(BaseEstimator):
             weights: ndarray of shape (n_clusters, )
                 Weight (proportion of quantity of data point) of each cluster.
         """
-        n_clusters = self.n_clusters
+        _, data = check_and_persist_dask_input(data)
+        n_clusters, n_features = self.n_clusters, data.shape[1]
         dist = get_centroids_distance(data, self.centroids_)
         closest_centroid_indices = get_closest_centroid_index(dist)
         weights_count = np.bincount(
@@ -250,10 +260,10 @@ class KMeansMachine(BaseEstimator):
         weights = weights_count / weights_count.sum()
 
         # Accumulate
-        means_sum = np.zeros((n_clusters, data.shape[1]))
+        means_sum = np.zeros((n_clusters, n_features), like=data)
+        variances_sum = np.zeros((n_clusters, n_features), like=data)
         for i in range(n_clusters):
             means_sum[i] = np.sum(data[closest_centroid_indices == i], axis=0)
-        variances_sum = np.zeros((n_clusters, data.shape[1]))
         for i in range(n_clusters):
             variances_sum[i] = np.sum(
                 data[closest_centroid_indices == i] ** 2, axis=0
@@ -282,7 +292,7 @@ class KMeansMachine(BaseEstimator):
     def fit(self, X, y=None):
         """Fits this machine on data samples."""
 
-        input_is_dask = check_and_persist_dask_input(X)
+        input_is_dask, X = check_and_persist_dask_input(X)
 
         logger.debug("Initializing trainer.")
         self.initialize(data=X)
