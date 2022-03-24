@@ -22,6 +22,7 @@ from h5py import File as HDF5File
 from pkg_resources import resource_filename
 
 from bob.learn.em import GMMMachine, GMMStats, KMeansMachine
+from bob.learn.em import gmm as gmm_module
 
 from .test_kmeans import to_dask_array, to_numpy
 
@@ -283,7 +284,14 @@ def test_GMMMachine_stats():
     gmm.variances = np.array([[1, 10], [2, 5]], "float64")
     gmm.variance_thresholds = np.array([[0, 0], [0, 0]], "float64")
 
-    stats = gmm.acc_statistics(arrayset)
+    stats = gmm_module.e_step(
+        arrayset,
+        gmm.weights,
+        gmm.means,
+        gmm.variances,
+        gmm.g_norms,
+        gmm.log_weights,
+    )
 
     stats_ref = GMMStats(n_gaussians=2, n_features=2)
     stats_ref.load(
@@ -355,7 +363,14 @@ def test_GMMStats_operations():
     machine.variances = np.ones_like(machine.means)
 
     # Populate the GMMStats
-    stats = machine.acc_statistics(data)
+    stats = gmm_module.e_step(
+        data,
+        machine.weights,
+        machine.means,
+        machine.variances,
+        machine.g_norms,
+        machine.log_weights,
+    )
 
     # Check shapes
     assert stats.n.shape == (n_gaussians,), stats.n.shape
@@ -601,8 +616,25 @@ def test_ml_em():
     machine.means = np.repeat([[2], [8]], n_features, 1)
     machine.variances = np.ones_like(machine.means)
 
-    stats = machine.e_step(data)
-    machine.m_step(stats)
+    stats = gmm_module.e_step(
+        data,
+        machine.weights,
+        machine.means,
+        machine.variances,
+        machine.g_norms,
+        machine.log_weights,
+    )
+    gmm_module.m_step(
+        machine,
+        [stats],
+        machine.update_means,
+        machine.update_variances,
+        machine.update_weights,
+        machine.mean_var_update_threshold,
+        machine.map_relevance_factor,
+        machine.map_alpha,
+        machine.trainer,
+    )
 
     expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
     np.testing.assert_almost_equal(machine.means, expected_means)
@@ -640,8 +672,25 @@ def test_map_em():
     np.testing.assert_equal(machine.variances, prior_machine.variances)
     np.testing.assert_equal(machine.weights, prior_machine.weights)
 
-    stats = machine.e_step(post_data)
-    machine.m_step(stats)
+    stats = gmm_module.e_step(
+        post_data,
+        machine.weights,
+        machine.means,
+        machine.variances,
+        machine.g_norms,
+        machine.log_weights,
+    )
+    gmm_module.m_step(
+        machine,
+        [stats],
+        machine.update_means,
+        machine.update_variances,
+        machine.update_weights,
+        machine.mean_var_update_threshold,
+        machine.map_relevance_factor,
+        machine.map_alpha,
+        machine.trainer,
+    )
 
     expected_means = np.array(
         [[1.83333333, 1.83333333, 2.0], [7.57142857, 8, 8]]
