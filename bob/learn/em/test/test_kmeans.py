@@ -33,7 +33,7 @@ def to_dask_array(*args):
     for x in args:
         x = np.asarray(x)
         chunks = list(x.shape)
-        chunks[0] //= 2
+        chunks[0] = int(np.ceil(chunks[0] / 2))
         result.append(da.from_array(x, chunks=chunks))
     if len(result) == 1:
         return result[0]
