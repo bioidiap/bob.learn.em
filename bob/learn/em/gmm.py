@@ -58,7 +58,7 @@ def log_weighted_likelihood(data, means, variances, g_norms, log_weights):
     """
     # Compute the likelihood for each data point on each Gaussian
     n_gaussians, n_samples = len(means), len(data)
-    z = np.empty_like(data, shape=(n_gaussians, n_samples))
+    z = np.empty(shape=(n_gaussians, n_samples), like=data)
     for i in range(n_gaussians):
         z[i] = np.sum((data - means[i]) ** 2 / variances[i], axis=-1)
     ll = -0.5 * (g_norms[:, None] + z)
