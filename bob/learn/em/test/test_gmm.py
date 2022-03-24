@@ -286,11 +286,7 @@ def test_GMMMachine_stats():
 
     stats = gmm_module.e_step(
         arrayset,
-        gmm.weights,
-        gmm.means,
-        gmm.variances,
-        gmm.g_norms,
-        gmm.log_weights,
+        gmm,
     )
 
     stats_ref = GMMStats(n_gaussians=2, n_features=2)
@@ -365,11 +361,7 @@ def test_GMMStats_operations():
     # Populate the GMMStats
     stats = gmm_module.e_step(
         data,
-        machine.weights,
-        machine.means,
-        machine.variances,
-        machine.g_norms,
-        machine.log_weights,
+        machine,
     )
 
     # Check shapes
@@ -618,22 +610,11 @@ def test_ml_em():
 
     stats = gmm_module.e_step(
         data,
-        machine.weights,
-        machine.means,
-        machine.variances,
-        machine.g_norms,
-        machine.log_weights,
+        machine,
     )
     gmm_module.m_step(
-        machine,
         [stats],
-        machine.update_means,
-        machine.update_variances,
-        machine.update_weights,
-        machine.mean_var_update_threshold,
-        machine.map_relevance_factor,
-        machine.map_alpha,
-        machine.trainer,
+        machine,
     )
 
     expected_means = np.array([[1.5, 1.5, 2.0], [7.0, 8.0, 8.0]])
@@ -674,22 +655,11 @@ def test_map_em():
 
     stats = gmm_module.e_step(
         post_data,
-        machine.weights,
-        machine.means,
-        machine.variances,
-        machine.g_norms,
-        machine.log_weights,
+        machine,
     )
     gmm_module.m_step(
-        machine,
         [stats],
-        machine.update_means,
-        machine.update_variances,
-        machine.update_weights,
-        machine.mean_var_update_threshold,
-        machine.map_relevance_factor,
-        machine.map_alpha,
-        machine.trainer,
+        machine,
     )
 
     expected_means = np.array(
