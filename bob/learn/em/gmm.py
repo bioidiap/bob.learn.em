@@ -672,12 +672,10 @@ class GMMMachine(BaseEstimator):
 
     def __eq__(self, other):
         return (
-            np.array_equal(self.means, other.means)
-            and np.array_equal(self.variances, other.variances)
-            and np.array_equal(
-                self.variance_thresholds, other.variance_thresholds
-            )
-            and np.array_equal(self.weights, other.weights)
+            np.allclose(self.means, other.means)
+            and np.allclose(self.variances, other.variances)
+            and np.allclose(self.variance_thresholds, other.variance_thresholds)
+            and np.allclose(self.weights, other.weights)
         )
 
     def is_similar_to(self, other, rtol=1e-5, atol=1e-8):
