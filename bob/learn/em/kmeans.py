@@ -37,7 +37,10 @@ def get_centroids_distance(x: np.ndarray, means: np.ndarray) -> np.ndarray:
     """
     x = np.atleast_2d(x)
     if isinstance(x, da.Array):
-        return np.sum((means[:, None] - x[None, :]) ** 2, axis=-1)
+        distances = []
+        for i in range(means.shape[0]):
+            distances.append(np.sum((means[i] - x) ** 2, axis=-1))
+        return da.vstack(distances)
     else:
         return scipy.spatial.distance.cdist(means, x, metric="sqeuclidean")
 
@@ -251,25 +254,27 @@ class KMeansMachine(BaseEstimator):
                 Weight (proportion of quantity of data point) of each cluster.
         """
         _, data = check_and_persist_dask_input(data)
-        n_clusters, n_features = self.n_clusters, data.shape[1]
+
+        # TODO: parallelize this like e_step
+        # Accumulate
         dist = get_centroids_distance(data, self.centroids_)
         closest_centroid_indices = get_closest_centroid_index(dist)
+
+        means_sum, variances_sum = [], []
+        for i in range(self.n_clusters):
+            cluster_data = data[closest_centroid_indices == i]
+            means_sum.append(np.sum(cluster_data, axis=0))
+            variances_sum.append(np.sum(cluster_data ** 2, axis=0))
+
+        means_sum, variances_sum = np.vstack(means_sum), np.vstack(
+            variances_sum
+        )
+
+        # Reduce (similar to m_step)
         weights_count = np.bincount(
-            closest_centroid_indices, minlength=n_clusters
+            closest_centroid_indices, minlength=self.n_clusters
         )
         weights = weights_count / weights_count.sum()
-
-        # Accumulate
-        means_sum = np.zeros((n_clusters, n_features), like=data)
-        variances_sum = np.zeros((n_clusters, n_features), like=data)
-        for i in range(n_clusters):
-            means_sum[i] = np.sum(data[closest_centroid_indices == i], axis=0)
-        for i in range(n_clusters):
-            variances_sum[i] = np.sum(
-                data[closest_centroid_indices == i] ** 2, axis=0
-            )
-
-        # Reduce
         means = means_sum / weights_count[:, None]
         variances = (variances_sum / weights_count[:, None]) - (means ** 2)
 
@@ -336,7 +341,9 @@ class KMeansMachine(BaseEstimator):
                 convergence_value = abs(
                     (distance_previous - distance) / distance_previous
                 )
-                logger.debug(f"Convergence value = {convergence_value}")
+                logger.debug(
+                    f"Convergence value = {convergence_value} and threshold is {self.convergence_threshold}"
+                )
 
                 # Terminates if converged (and threshold is set)
                 if (

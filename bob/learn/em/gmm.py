@@ -51,12 +51,14 @@ def log_weighted_likelihood(data, machine):
         The weighted log likelihood of each sample of each Gaussian.
     """
     # Compute the likelihood for each data point on each Gaussian
-    n_gaussians, n_samples = len(machine.means), len(data)
-    z = np.empty(shape=(n_gaussians, n_samples), like=data)
+    n_gaussians = len(machine.means)
+    z = []
     for i in range(n_gaussians):
-        z[i] = np.sum(
+        temp = np.sum(
             (data - machine.means[i]) ** 2 / machine.variances[i], axis=-1
         )
+        z.append(temp)
+    z = np.vstack(z)
     ll = -0.5 * (machine.g_norms[:, None] + z)
     log_weighted_likelihoods = machine.log_weights[:, None] + ll
     return log_weighted_likelihoods
@@ -727,6 +729,7 @@ class GMMMachine(BaseEstimator):
 
             # Set the GMM machine's gaussians with the results of k-means
             self.means = copy.deepcopy(kmeans_machine.centroids_)
+            # TODO: remove this compute
             self.variances, self.weights = dask.compute(variances, weights)
             logger.debug("Done.")
 
