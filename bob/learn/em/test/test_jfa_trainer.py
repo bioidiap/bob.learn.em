@@ -7,8 +7,7 @@
 # Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 import numpy as np
-from bob.learn.em import GMMMachine, GMMStats, ISVMachine
-import bob.core
+from bob.learn.em import GMMMachine, GMMStats, ISVMachine, JFAMachine
 import copy
 
 # Define Training set and initial values for tests
@@ -118,17 +117,17 @@ def test_JFATrainAndEnrol():
 
     # Calls the train function
     ubm = GMMMachine(2, 3)
-    ubm.mean_supervector = UBM_MEAN
-    ubm.variance_supervector = UBM_VAR
-    mb = JFABase(ubm, 2, 2)
-    t = JFATrainer()
-    t.initialize(mb, TRAINING_STATS)
-    mb.u = M_u
-    mb.v = M_v
-    mb.d = M_d
-    bob.learn.em.train_jfa(t, mb, TRAINING_STATS, initialize=False)
+    ubm.means = UBM_MEAN.reshape((2, 3))
+    ubm.variances = UBM_VAR.reshape((2, 3))
+    it = JFAMachine(ubm, 2, 2, em_iterations=10)
+    # n_acc, f_acc = it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.U = copy.deepcopy(M_u)
+    it.V = copy.deepcopy(M_v)
+    it.D = copy.deepcopy(M_d)
+    it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+    # bob.learn.em.train_jfa(t, mb, TRAINING_STATS, initialize=False)
 
-    v_ref = numpy.array(
+    v_ref = np.array(
         [
             [0.245364911936476, 0.978133261775424],
             [0.769646805052223, 0.940070736856596],
@@ -139,7 +138,7 @@ def test_JFATrainAndEnrol():
         ],
         "float64",
     )
-    u_ref = numpy.array(
+    u_ref = np.array(
         [
             [0.049424652628448, 0.060480486336896],
             [0.178104127464007, 1.884873813495153],
@@ -150,7 +149,7 @@ def test_JFATrainAndEnrol():
         ],
         "float64",
     )
-    d_ref = numpy.array(
+    d_ref = np.array(
         [
             9.648467e-18,
             2.63720683155e-12,
@@ -163,15 +162,14 @@ def test_JFATrainAndEnrol():
     )
 
     eps = 1e-10
-    assert numpy.allclose(mb.v, v_ref, eps)
-    assert numpy.allclose(mb.u, u_ref, eps)
-    assert numpy.allclose(mb.d, d_ref, eps)
+    assert np.allclose(it.V, v_ref, eps)
+    assert np.allclose(it.U, u_ref, eps)
+    assert np.allclose(it.D, d_ref, eps)
 
     # Calls the enroll function
-    m = JFAMachine(mb)
 
-    Ne = numpy.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2, 2))
-    Fe = numpy.array(
+    Ne = np.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2, 2))
+    Fe = np.array(
         [
             0.1579,
             0.1925,
@@ -195,10 +193,10 @@ def test_JFATrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
-    t.enroll(m, gse, 5)
+    latent_y, latent_z = it.enroll(gse, 5)
 
-    y_ref = numpy.array([0.555991469319657, 0.002773650670010], "float64")
-    z_ref = numpy.array(
+    y_ref = np.array([0.555991469319657, 0.002773650670010], "float64")
+    z_ref = np.array(
         [
             8.2228e-20,
             3.15216909492e-13,
@@ -209,10 +207,12 @@ def test_JFATrainAndEnrol():
         ],
         "float64",
     )
-    assert numpy.allclose(m.y, y_ref, eps)
-    assert numpy.allclose(m.z, z_ref, eps)
+
+    assert np.allclose(latent_y, y_ref, eps)
+    assert np.allclose(latent_z, z_ref, eps)
 
     # Testing exceptions
+    """
     nose.tools.assert_raises(RuntimeError, t.initialize, mb, [1, 2, 2])
     nose.tools.assert_raises(RuntimeError, t.initialize, mb, [[1, 2, 2]])
     nose.tools.assert_raises(RuntimeError, t.e_step_u, mb, [1, 2, 2])
@@ -231,43 +231,7 @@ def test_JFATrainAndEnrol():
     nose.tools.assert_raises(RuntimeError, t.m_step_d, mb, [[1, 2, 2]])
 
     nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1, 2, 2]], 5)
-
-
-def test_ISVTrainInitialize():
-
-    # Check that the initialization is consistent and using the rng (cf. issue #118)
-    eps = 1e-10
-
-    # UBM GMM
-    ubm = GMMMachine(2, 3)
-    ubm.means = UBM_MEAN.reshape((2, 3))
-    ubm.variances = UBM_VAR.reshape((2, 3))
-
-    ## ISV
-    # ib = ISVBase(ubm, 2)
-    # first round
-    # rng = bob.core.random.mt19937(0)
-    it = ISVMachine(ubm, 2)
-    # it.rng = rng
-
-    it.initialize(
-        TRAINING_STATS_X, TRAINING_STATS_y, seed=bob.core.random.mt19937(0)
-    )
-    u1 = copy.deepcopy(it.U)
-    d1 = copy.deepcopy(it.D)
-
-    # second round
-    rng = bob.core.random.mt19937(0)
-    it.rng = rng
-    it.initialize(
-        TRAINING_STATS_X, TRAINING_STATS_y, seed=bob.core.random.mt19937(0)
-    )
-    u2 = it.U
-    d2 = it.D
-
-    assert np.allclose(u1, u2, eps)
-    assert np.allclose(d1, d2, eps)
-    pass
+    """
 
 
 def test_ISVTrainAndEnrol():
@@ -320,16 +284,10 @@ def test_ISVTrainAndEnrol():
         r_U=2,
         relevance_factor=4.0,
         em_iterations=10,
-        seed=bob.core.random.mt19937(0),
     )
 
-    n_acc, f_acc = it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
-    it.U = M_u
-    for i in range(10):
-        acc_U_A1, acc_U_A2 = it.e_step(
-            TRAINING_STATS_X, TRAINING_STATS_y, n_acc, f_acc
-        )
-        it.m_step(acc_U_A1, acc_U_A2)
+    it.U = copy.deepcopy(M_u)
+    it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
 
     assert np.allclose(it.D, d_ref, eps)
     assert np.allclose(it.U, u_ref, eps)
@@ -373,3 +331,60 @@ def test_ISVTrainAndEnrol():
     # nose.tools.assert_raises(RuntimeError, t.e_step, mb, [1, 2, 2])
     # nose.tools.assert_raises(RuntimeError, t.e_step, mb, [[1, 2, 2]])
     # nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1, 2, 2]], 5)
+
+
+def test_JFATrainInitialize():
+    # Check that the initialization is consistent and using the rng (cf. issue #118)
+
+    eps = 1e-10
+
+    # UBM GMM
+    ubm = GMMMachine(2, 3)
+    ubm.means = UBM_MEAN.reshape((2, 3))
+    ubm.variances = UBM_VAR.reshape((2, 3))
+
+    ## JFA
+    it = JFAMachine(ubm, 2, 2, em_iterations=10)
+    # first round
+
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    u1 = it.U
+    v1 = it.V
+    d1 = it.D
+
+    # second round
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    u2 = it.U
+    v2 = it.V
+    d2 = it.D
+
+    assert np.allclose(u1, u2, eps)
+    assert np.allclose(v1, v2, eps)
+    assert np.allclose(d1, d2, eps)
+
+
+def test_ISVTrainInitialize():
+
+    # Check that the initialization is consistent and using the rng (cf. issue #118)
+    eps = 1e-10
+
+    # UBM GMM
+    ubm = GMMMachine(2, 3)
+    ubm.means = UBM_MEAN.reshape((2, 3))
+    ubm.variances = UBM_VAR.reshape((2, 3))
+
+    ## ISV
+    it = ISVMachine(ubm, 2, em_iterations=10)
+    # it.rng = rng
+
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    u1 = copy.deepcopy(it.U)
+    d1 = copy.deepcopy(it.D)
+
+    # second round
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    u2 = it.U
+    d2 = it.D
+
+    assert np.allclose(u1, u2, eps)
+    assert np.allclose(d1, d2, eps)

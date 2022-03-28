@@ -5,7 +5,7 @@ from .kmeans import KMeansMachine
 from .linear_scoring import linear_scoring  # noqa: F401
 from .wccn import WCCN
 from .whitening import Whitening
-from .factor_analysis import ISVMachine
+from .factor_analysis import ISVMachine, JFAMachine
 
 
 def get_config():
@@ -30,6 +30,6 @@ def __appropriate__(*args):
 
 
 __appropriate__(
-    KMeansMachine, GMMMachine, GMMStats, WCCN, Whitening, ISVMachine
+    KMeansMachine, GMMMachine, GMMStats, WCCN, Whitening, ISVMachine, JFAMachine
 )
 __all__ = [_ for _ in dir() if not _.startswith("_")]
