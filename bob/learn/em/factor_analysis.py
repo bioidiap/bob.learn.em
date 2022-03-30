@@ -459,22 +459,15 @@ class FactorAnalysisBase(BaseEstimator):
         inv_A1 = np.linalg.inv(acc_U_A1)
 
         # Iterating over the gaussians to update U
-
-        for c in range(self.ubm.n_gaussians):
-
-            U_c = (
-                acc_U_A2[
-                    c
-                    * self.feature_dimension : (c + 1)
-                    * self.feature_dimension,
-                    :,
-                ]
-                @ inv_A1[c, :, :]
+        U_c = (
+            acc_U_A2.reshape(
+                self.ubm.n_gaussians, self.feature_dimension, self.r_U
             )
-            self._U[
-                c * self.feature_dimension : (c + 1) * self.feature_dimension,
-                :,
-            ] = U_c
+            @ inv_A1
+        )
+        self._U = U_c.reshape(
+            self.ubm.n_gaussians * self.feature_dimension, self.r_U
+        )
 
     def _compute_uprod(self):
         """
@@ -483,14 +476,15 @@ class FactorAnalysisBase(BaseEstimator):
 
         ### https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L325
         """
-        UProd = np.zeros((self.ubm.n_gaussians, self.r_U, self.r_U))
-        for c in range(self.ubm.n_gaussians):
-            # U_c.T
-            U_c = self._U[
-                c * self.feature_dimension : (c + 1) * self.feature_dimension, :
-            ]
-            sigma_c = self.ubm.variances[c].flatten()
-            UProd[c, :, :] = U_c.T @ (U_c.T / sigma_c).T
+        # UProd = (self.ubm.n_gaussians, self.r_U, self.r_U)
+
+        Uc = self._U.reshape(
+            (self.ubm.n_gaussians, self.feature_dimension, self.r_U)
+        )
+        UcT = Uc.transpose(0, 2, 1)
+
+        sigma_c = self.ubm.variances[:, np.newaxis]
+        UProd = (UcT / sigma_c) @ Uc
 
         return UProd
 
@@ -893,14 +887,13 @@ class FactorAnalysisBase(BaseEstimator):
         ### https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L193
         """
 
-        VProd = np.zeros((self.ubm.n_gaussians, self.r_V, self.r_V))
-        for c in range(self.ubm.n_gaussians):
-            # V_c.T
-            V_c = self._V[
-                c * self.feature_dimension : (c + 1) * self.feature_dimension, :
-            ]
-            sigma_c = self.ubm.variances[c].flatten()
-            VProd[c, :, :] = V_c.T @ (V_c.T / sigma_c).T
+        Vc = self._V.reshape(
+            (self.ubm.n_gaussians, self.feature_dimension, self.r_V)
+        )
+        VcT = Vc.transpose(0, 2, 1)
+
+        sigma_c = self.ubm.variances[:, np.newaxis]
+        VProd = (VcT / sigma_c) @ Vc
 
         return VProd
 
@@ -1408,23 +1401,15 @@ class JFAMachine(FactorAnalysisBase):
         # https://stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
         inv_A1 = np.linalg.inv(acc_V_A1)
 
-        # Iterating over the gaussians to update V
-
-        for c in range(self.ubm.n_gaussians):
-
-            V_c = (
-                acc_V_A2[
-                    c
-                    * self.feature_dimension : (c + 1)
-                    * self.feature_dimension,
-                    :,
-                ]
-                @ inv_A1[c, :, :]
+        V_c = (
+            acc_V_A2.reshape(
+                (self.ubm.n_gaussians, self.feature_dimension, self.r_V)
             )
-            self._V[
-                c * self.feature_dimension : (c + 1) * self.feature_dimension,
-                :,
-            ] = V_c
+            @ inv_A1
+        )
+        self._V = V_c.reshape(
+            (self.ubm.n_gaussians * self.feature_dimension, self.r_V)
+        )
 
     def finalize_v(self, X, y, n_acc, f_acc):
         """
