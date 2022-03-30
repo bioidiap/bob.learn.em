@@ -1,3 +1,6 @@
+#!/usr/bin/env python
+# @author: Tiago de Freitas Pereira
+
 import dask
 
 # Dask doesn't have an implementation for `pinv`

@@ -37,7 +37,9 @@ References
 ..
    .. [Vogt2008]   *R. Vogt, S. Sridharan*. **'Explicit Modelling of Session Variability for Speaker Verification'**, Computer Speech & Language, 2008, vol. 22, no. 1, pp. 17-38
 ..
-   .. [McCool2013] *C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel*. **'Session Variability Modelling for Face Authentication'**, IET Biometrics, 2013
+
+.. [McCool2013] *C. McCool, R. Wallace, M. McLaren, L. El Shafey, S. Marcel*. **'Session Variability Modelling for Face Authentication'**, IET Biometrics, 2013
+
 ..
    .. [ElShafey2014] *Laurent El Shafey, Chris McCool, Roy Wallace, Sebastien Marcel*. **'A Scalable Formulation of Probabilistic Linear Discriminant Analysis: Applied to Face Recognition'**, TPAMI'2014
 ..

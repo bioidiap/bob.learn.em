@@ -7,7 +7,8 @@ import logging
 import numpy as np
 
 from sklearn.base import BaseEstimator
-from . import linear_scoring
+
+from .linear_scoring import linear_scoring
 
 logger = logging.getLogger(__name__)
 
@@ -317,7 +318,9 @@ class FactorAnalysisBase(BaseEstimator):
         X = np.array(X)
         return list(X[np.where(np.array(y) == i)[0]])
 
-    #################### Estimating U and x ######################
+    """
+    Estimating U and x
+    """
 
     def _compute_id_plus_u_prod_ih(self, x_i, UProd):
         """
@@ -340,7 +343,7 @@ class FactorAnalysisBase(BaseEstimator):
         """
 
         n_i = x_i.n
-        I = np.eye(self.r_U, self.r_U)
+        I = np.eye(self.r_U, self.r_U)  # noqa: E741
 
         # TODO: make the invertion matrix function as a parameter
         return np.linalg.inv(I + (UProd * n_i[:, None, None]).sum(axis=0))
@@ -362,13 +365,12 @@ class FactorAnalysisBase(BaseEstimator):
                 E[y_i] for class `i`
 
         """
-
         f_i = x_i.sum_px
         n_i = x_i.n
-        n_ic = np.repeat(n_i, self.supervector_dimension // 2)
+        n_ic = np.repeat(n_i, self.feature_dimension)
         V = self._V
 
-        ## N_ih*( m + D*z)
+        # N_ih*( m + D*z)
         # z is zero when the computation flow comes from update_X
         if latent_z_i is None:
             # Fn_x_ih = N_{i,h}*(o_{i,h} - m)
@@ -474,7 +476,7 @@ class FactorAnalysisBase(BaseEstimator):
         Computes U_c.T*inv(Sigma_c) @ U_c.T
 
 
-        ### https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L325
+        https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L325
         """
         # UProd = (self.ubm.n_gaussians, self.r_U, self.r_U)
 
@@ -495,10 +497,10 @@ class FactorAnalysisBase(BaseEstimator):
 
         The accumulators are defined as
 
-        :math:`A_1 = \sum\limits_{i=1}^{I}\sum\limits_{h=1}^{H}N_{i,h,c}E(x_{i,h,c} x^{\top}_{i,h,c})`
+        :math:`A_1 = \\sum\\limits_{i=1}^{I}\\sum\\limits_{h=1}^{H}N_{i,h,c}E(x_{i,h,c} x^{\\top}_{i,h,c})`
 
 
-        :math:`A_2 = \sum\limits_{i=1}^{I}\sum\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \mu_c -D_{c}z_{i,c} -V_{c}y_{i,c} )E[x_{i,h}]^{\top}`
+        :math:`A_2 = \\sum\\limits_{i=1}^{I}\\sum\\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \\mu_c -D_{c}z_{i,c} -V_{c}y_{i,c} )E[x_{i,h}]^{\\top}`
 
 
         More information, please, check the technical notes attached
@@ -534,7 +536,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        ## U accumulators
+        # U accumulators
         acc_U_A1 = np.zeros((self.ubm.n_gaussians, self.r_U, self.r_U))
         acc_U_A2 = np.zeros((self.supervector_dimension, self.r_U))
 
@@ -568,7 +570,9 @@ class FactorAnalysisBase(BaseEstimator):
 
         return acc_U_A1, acc_U_A2
 
-    #################### Estimating D and z ######################
+    """
+    Estimating D and z
+    """
 
     def update_z(self, X, y, latent_x, latent_y, latent_z, n_acc, f_acc):
         """
@@ -644,7 +648,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        tmp_CD = np.repeat(n_acc_i, self.supervector_dimension // 2)
+        tmp_CD = np.repeat(n_acc_i, self.feature_dimension)
         id_plus_d_prod = np.ones(tmp_CD.shape) + dt_inv_sigma_d * tmp_CD
         return 1 / id_plus_d_prod
 
@@ -664,9 +668,9 @@ class FactorAnalysisBase(BaseEstimator):
 
         m = self.mean_supervector
 
-        tmp_CD = np.repeat(n_acc_i, self.supervector_dimension // 2)
+        tmp_CD = np.repeat(n_acc_i, self.feature_dimension)
 
-        ## JFA session part
+        # JFA session part
         V_dot_v = V @ latent_y_i if latent_y_i is not None else 0
 
         # m_cache_Fn_z_i = Fi - m_tmp_CD * (m + m_tmp_CD_b); // Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i})
@@ -675,7 +679,7 @@ class FactorAnalysisBase(BaseEstimator):
         # Looping over the sessions
         for session_id in range(len(X_i)):
             n_i = X_i[session_id].n
-            tmp_CD = np.repeat(n_i, self.supervector_dimension // 2)
+            tmp_CD = np.repeat(n_i, self.feature_dimension)
             x_i_h = latent_x_i[:, session_id]
 
             fn_z_i -= tmp_CD * (U @ x_i_h)
@@ -690,10 +694,10 @@ class FactorAnalysisBase(BaseEstimator):
 
         The accumulators are defined as
 
-        :math:`A_1 = \sum\limits_{i=1}^{I}E[z_{i,c}z^{\top}_{i,c}]`
+        :math:`A_1 = \\sum\\limits_{i=1}^{I}E[z_{i,c}z^{\\top}_{i,c}]`
 
 
-        :math:`A_2 = \sum\limits_{i=1}^{I} \Bigg[\sum\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \mu_c -U_{c}x_{i,h,c} -V_{c}y_{i,c} )\Bigg]E[z_{i}]^{\top}`
+        :math:`A_2 = \\sum\\limits_{i=1}^{I} \\Bigg[\\sum\\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \\mu_c -U_{c}x_{i,h,c} -V_{c}y_{i,c} )\\Bigg]E[z_{i}]^{\\top}`
 
 
         More information, please, check the technical notes attached
@@ -757,7 +761,7 @@ class FactorAnalysisBase(BaseEstimator):
                 X_i, latent_x_i, latent_y_i, n_acc[y_i], f_acc[y_i]
             )
 
-            tmp_CD = np.repeat(n_acc[y_i], self.supervector_dimension // 2)
+            tmp_CD = np.repeat(n_acc[y_i], self.feature_dimension)
             acc_D_A1 += (
                 id_plus_d_prod + latent_z[y_i] * latent_z[y_i]
             ) * tmp_CD
@@ -806,7 +810,9 @@ class FactorAnalysisBase(BaseEstimator):
 
         return latent_x, latent_y, latent_z
 
-    #################### Estimating V and y ######################
+    """
+     Estimating V and y
+    """
 
     def update_y(self, X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc):
         """
@@ -874,7 +880,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        I = np.eye(self.r_V, self.r_V)
+        I = np.eye(self.r_V, self.r_V)  # noqa: E741
 
         # TODO: make the invertion matrix function as a parameter
         return np.linalg.inv(I + (VProd * n_acc_i[:, None, None]).sum(axis=0))
@@ -884,7 +890,7 @@ class FactorAnalysisBase(BaseEstimator):
         Computes V_c.T*inv(Sigma_c) @ V_c.T
 
 
-        ### https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L193
+        https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L193
         """
 
         Vc = self._V.reshape(
@@ -904,10 +910,10 @@ class FactorAnalysisBase(BaseEstimator):
         Computes the accumulators for the update of V matrix
         The accumulators are defined as
 
-        :math:`A_1 = \sum\limits_{i=1}^{I}E[y_{i,c}y^{\top}_{i,c}]`
+        :math:`A_1 = \\sum\\limits_{i=1}^{I}E[y_{i,c}y^{\\top}_{i,c}]`
 
 
-        :math:`A_2 = \sum\limits_{i=1}^{I} \Bigg[\sum\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \mu_c -U_{c}x_{i,h,c} -D_{c}z_{i,c} )\Bigg]E[y_{i}]^{\top}`
+        :math:`A_2 = \\sum\\limits_{i=1}^{I} \\Bigg[\\sum\\limits_{h=1}^{H}N_{i,h,c}(o_{i,h} - \\mu_c -U_{c}x_{i,h,c} -D_{c}z_{i,c} )\\Bigg]E[y_{i}]^{\\top}`
 
 
         More information, please, check the technical notes attached
@@ -951,7 +957,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        ## U accumulators
+        # U accumulators
         acc_V_A1 = np.zeros((self.ubm.n_gaussians, self.r_V, self.r_V))
         acc_V_A2 = np.zeros((self.supervector_dimension, self.r_V))
 
@@ -1024,25 +1030,24 @@ class FactorAnalysisBase(BaseEstimator):
 
         # y = self.y[i] # Not doing JFA
 
-        tmp_CD = np.repeat(n_acc_i, self.supervector_dimension // 2)
+        tmp_CD = np.repeat(n_acc_i, self.feature_dimension)
 
         fn_y_i = f_acc_i.flatten() - tmp_CD * (
             m - D * latent_z_i
         )  # Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i})
 
-        ### NOT DOING JFA
-
         # Looping over the sessions of a ;ane;
         for session_id in range(len(X_i)):
             n_i = X_i[session_id].n
             U_dot_x = U @ latent_x_i[:, session_id]
-            tmp_CD = np.repeat(n_i, self.supervector_dimension // 2)
+            tmp_CD = np.repeat(n_i, self.feature_dimension)
             fn_y_i -= tmp_CD * U_dot_x
 
         return fn_y_i
 
-    ####################################################################################################################
-    # Scoring
+    """
+     Scoring
+    """
 
     def estimate_x(self, X):
 
@@ -1064,7 +1069,7 @@ class FactorAnalysisBase(BaseEstimator):
             X_i: list of :py:class:`bob.learn.em.GMMStats`
                 List of statistics for a class
         """
-        I = np.eye(self.r_U, self.r_U)
+        I = np.eye(self.r_U, self.r_U)  # noqa: E741
 
         Uc = self._U.reshape(
             (self.ubm.n_gaussians, self.feature_dimension, self.r_U)
@@ -1072,16 +1077,11 @@ class FactorAnalysisBase(BaseEstimator):
 
         UcT = np.transpose(Uc, axes=(0, 2, 1))
 
-        sigma_c = np.reshape(
-            self.variance_supervector,
-            (self.ubm.n_gaussians, self.feature_dimension),
-        )
+        sigma_c = self.ubm.variances[:, np.newaxis]
 
         n_i_c = np.expand_dims(X_i.n[:, np.newaxis], axis=2)
 
-        id_plus_us_prod_inv = I + (
-            ((UcT / sigma_c[:, np.newaxis]) @ Uc) * n_i_c
-        ).sum(axis=0)
+        id_plus_us_prod_inv = I + (((UcT / sigma_c) @ Uc) * n_i_c).sum(axis=0)
         id_plus_us_prod_inv = np.linalg.inv(id_plus_us_prod_inv)
 
         return id_plus_us_prod_inv
@@ -1135,7 +1135,9 @@ class ISVMachine(FactorAnalysisBase):
 
     """
 
-    def __init__(self, ubm, r_U, em_iterations, relevance_factor=4.0, seed=0):
+    def __init__(
+        self, ubm, r_U, em_iterations=10, relevance_factor=4.0, seed=0
+    ):
         super(ISVMachine, self).__init__(
             ubm,
             r_U=r_U,
@@ -1205,6 +1207,8 @@ class ISVMachine(FactorAnalysisBase):
         # In case those variables are already set
         if not hasattr(self, "_U") or not hasattr(self, "_D"):
             self.create_UVD()
+
+        y = y.tolist() if not isinstance(y, list) else y
 
         # TODO: Point of parallelism
         n_acc, f_acc = self.initialize(X, y)
@@ -1292,7 +1296,7 @@ class JFAMachine(FactorAnalysisBase):
     within-class assumption (modeled with :math:`U`), it also hypothesize that
     between class variations are embedded in a low rank rectangular matrix
     :math:`V`. In the supervector notation, this modeling has the following shape:
-    :math:`\mu_{i, j} = m + Ux_{i, j}  + Vy_{i} + D_z{i}`.
+    :math:`\\mu_{i, j} = m + Ux_{i, j}  + Vy_{i} + D_z{i}`.
 
     For more information check [McCool2013]_
 
@@ -1320,7 +1324,7 @@ class JFAMachine(FactorAnalysisBase):
     """
 
     def __init__(
-        self, ubm, r_U, r_V, em_iterations, relevance_factor=4.0, seed=0
+        self, ubm, r_U, r_V, em_iterations=10, relevance_factor=4.0, seed=0
     ):
         super(JFAMachine, self).__init__(
             ubm,
@@ -1369,7 +1373,7 @@ class JFAMachine(FactorAnalysisBase):
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(y)
 
-        #### UPDATE Y, X AND FINALY Z
+        # UPDATE Y, X AND FINALY Z
 
         latent_y = self.update_y(
             X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc
@@ -1440,7 +1444,7 @@ class JFAMachine(FactorAnalysisBase):
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(y)
 
-        #### UPDATE Y, X AND FINALY Z
+        # UPDATE Y, X AND FINALY Z
 
         latent_y = self.update_y(
             X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc
@@ -1679,6 +1683,8 @@ class JFAMachine(FactorAnalysisBase):
             or not hasattr(self, "_D")
         ):
             self.create_UVD()
+
+        y = y.tolist() if not isinstance(y, list) else y
 
         # TODO: Point of parallelism
         n_acc, f_acc = self.initialize(X, y)

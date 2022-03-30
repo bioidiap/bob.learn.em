@@ -6,9 +6,11 @@
 #
 # Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
-import numpy as np
-from bob.learn.em import GMMMachine, GMMStats, ISVMachine, JFAMachine
 import copy
+
+import numpy as np
+
+from bob.learn.em import GMMMachine, GMMStats, ISVMachine, JFAMachine
 
 # Define Training set and initial values for tests
 F1 = np.array(
@@ -120,12 +122,11 @@ def test_JFATrainAndEnrol():
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
     it = JFAMachine(ubm, 2, 2, em_iterations=10)
-    # n_acc, f_acc = it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+
     it.U = copy.deepcopy(M_u)
     it.V = copy.deepcopy(M_v)
     it.D = copy.deepcopy(M_d)
     it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
-    # bob.learn.em.train_jfa(t, mb, TRAINING_STATS, initialize=False)
 
     v_ref = np.array(
         [
@@ -211,28 +212,6 @@ def test_JFATrainAndEnrol():
     assert np.allclose(latent_y, y_ref, eps)
     assert np.allclose(latent_z, z_ref, eps)
 
-    # Testing exceptions
-    """
-    nose.tools.assert_raises(RuntimeError, t.initialize, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.initialize, mb, [[1, 2, 2]])
-    nose.tools.assert_raises(RuntimeError, t.e_step_u, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.e_step_u, mb, [[1, 2, 2]])
-    nose.tools.assert_raises(RuntimeError, t.m_step_u, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.m_step_u, mb, [[1, 2, 2]])
-
-    nose.tools.assert_raises(RuntimeError, t.e_step_v, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.e_step_v, mb, [[1, 2, 2]])
-    nose.tools.assert_raises(RuntimeError, t.m_step_v, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.m_step_v, mb, [[1, 2, 2]])
-
-    nose.tools.assert_raises(RuntimeError, t.e_step_d, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.e_step_d, mb, [[1, 2, 2]])
-    nose.tools.assert_raises(RuntimeError, t.m_step_d, mb, [1, 2, 2])
-    nose.tools.assert_raises(RuntimeError, t.m_step_d, mb, [[1, 2, 2]])
-
-    nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1, 2, 2]], 5)
-    """
-
 
 def test_ISVTrainAndEnrol():
     # Train and enroll an 'ISVMachine'
@@ -272,9 +251,9 @@ def test_ISVTrainAndEnrol():
         "float64",
     )
 
-    ######################################
-    # Calls the train function
-    ######################################
+    """
+    Calls the train function
+    """
     ubm = GMMMachine(2, 3)
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
@@ -292,9 +271,9 @@ def test_ISVTrainAndEnrol():
     assert np.allclose(it.D, d_ref, eps)
     assert np.allclose(it.U, u_ref, eps)
 
-    ######################################
-    # Calls the enroll function
-    ######################################
+    """
+    Calls the enroll function
+    """
 
     Ne = np.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2, 2))
     Fe = np.array(
@@ -325,13 +304,6 @@ def test_ISVTrainAndEnrol():
     latent_z = it.enroll(gse, 5)
     assert np.allclose(latent_z, z_ref, eps)
 
-    # Testing exceptions
-    # nose.tools.assert_raises(RuntimeError, t.initialize, mb, [1, 2, 2])
-    # nose.tools.assert_raises(RuntimeError, t.initialize, mb, [[1, 2, 2]])
-    # nose.tools.assert_raises(RuntimeError, t.e_step, mb, [1, 2, 2])
-    # nose.tools.assert_raises(RuntimeError, t.e_step, mb, [[1, 2, 2]])
-    # nose.tools.assert_raises(RuntimeError, t.enroll, m, [[1, 2, 2]], 5)
-
 
 def test_JFATrainInitialize():
     # Check that the initialization is consistent and using the rng (cf. issue #118)
@@ -343,7 +315,7 @@ def test_JFATrainInitialize():
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
 
-    ## JFA
+    # JFA
     it = JFAMachine(ubm, 2, 2, em_iterations=10)
     # first round
 
@@ -373,7 +345,7 @@ def test_ISVTrainInitialize():
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
 
-    ## ISV
+    # ISV
     it = ISVMachine(ubm, 2, em_iterations=10)
     # it.rng = rng
 

@@ -7,8 +7,8 @@
 # Copyright (C) 2011-2014 Idiap Research Institute, Martigny, Switzerland
 
 import numpy as np
+
 from bob.learn.em import GMMMachine, GMMStats, ISVMachine, JFAMachine
-import copy
 
 
 def test_JFAMachine():
@@ -97,4 +97,3 @@ def test_ISVMachine():
     score_ref = -3.280498193082100
 
     assert abs(score_ref - score) < eps
-    pass

@@ -1,11 +1,11 @@
 import bob.extension
 
+from .factor_analysis import ISVMachine, JFAMachine
 from .gmm import GMMMachine, GMMStats
 from .kmeans import KMeansMachine
 from .linear_scoring import linear_scoring  # noqa: F401
 from .wccn import WCCN
 from .whitening import Whitening
-from .factor_analysis import ISVMachine, JFAMachine
 
 
 def get_config():
