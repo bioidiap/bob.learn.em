@@ -213,6 +213,84 @@ def test_JFATrainAndEnrol():
     assert np.allclose(latent_z, z_ref, eps)
 
 
+def test_JFATrainAndEnrolWithNumpy():
+    # Train and enroll a JFAMachine
+
+    # Calls the train function
+    ubm = GMMMachine(2, 3)
+    ubm.means = UBM_MEAN.reshape((2, 3))
+    ubm.variances = UBM_VAR.reshape((2, 3))
+    it = JFAMachine(ubm, 2, 2, em_iterations=10)
+
+    it.U = copy.deepcopy(M_u)
+    it.V = copy.deepcopy(M_v)
+    it.D = copy.deepcopy(M_d)
+    it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+
+    v_ref = np.array(
+        [
+            [0.245364911936476, 0.978133261775424],
+            [0.769646805052223, 0.940070736856596],
+            [0.310779202800089, 1.456332053893072],
+            [0.184760934399551, 2.265139705602147],
+            [0.701987784039800, 0.081632150899400],
+            [0.074344030229297, 1.090248340917255],
+        ],
+        "float64",
+    )
+    u_ref = np.array(
+        [
+            [0.049424652628448, 0.060480486336896],
+            [0.178104127464007, 1.884873813495153],
+            [1.204011484266777, 2.281351307871720],
+            [7.278512126426286, -0.390966087173334],
+            [-0.084424326581145, -0.081725474934414],
+            [4.042143689831097, -0.262576386580701],
+        ],
+        "float64",
+    )
+    d_ref = np.array(
+        [
+            9.648467e-18,
+            2.63720683155e-12,
+            2.11822157653706e-10,
+            9.1047243e-17,
+            1.41163442535567e-10,
+            3.30581e-19,
+        ],
+        "float64",
+    )
+
+    eps = 1e-10
+    assert np.allclose(it.V, v_ref, eps)
+    assert np.allclose(it.U, u_ref, eps)
+    assert np.allclose(it.D, d_ref, eps)
+
+    """
+    Calls the enroll function with arrays as input
+    """
+
+    np.random.seed(0)
+    X = np.random.normal(ubm.means[0], scale=0.5, size=(50, 3))
+    latent_y_ref = np.array([-0.13922039, 0.10686916])
+    latent_z_ref = np.array(
+        [
+            [
+                -1.37073043e-17,
+                1.15641870e-12,
+                -8.29922598e-10,
+                -4.17108194e-16,
+                -2.27107305e-09,
+                2.94293314e-18,
+            ]
+        ]
+    )
+
+    latent_y, latent_z = it.enroll_with_array(X)
+    assert np.allclose(latent_z, latent_z_ref, eps)
+    assert np.allclose(latent_y, latent_y_ref, eps)
+
+
 def test_ISVTrainAndEnrol():
     # Train and enroll an 'ISVMachine'
 
@@ -301,8 +379,86 @@ def test_ISVTrainAndEnrol():
 
     gse = [gse1, gse2]
 
-    latent_z = it.enroll(gse, 5)
-    assert np.allclose(latent_z, z_ref, eps)
+
+def test_ISVTrainAndEnrolWithNumpy():
+    # Train and enroll an 'ISVMachine'
+
+    eps = 1e-10
+    d_ref = np.array(
+        [
+            0.39601136,
+            0.07348469,
+            0.47712682,
+            0.44738127,
+            0.43179856,
+            0.45086029,
+        ],
+        "float64",
+    )
+    u_ref = np.array(
+        [
+            [0.855125642430777, 0.563104284748032],
+            [-0.325497865404680, 1.923598985291687],
+            [0.511575659503837, 1.964288663083095],
+            [9.330165761678115, 1.073623827995043],
+            [0.511099245664012, 0.278551249248978],
+            [5.065578541930268, 0.509565618051587],
+        ],
+        "float64",
+    )
+    z_ref = np.array(
+        [
+            -0.079315777443826,
+            0.092702428248543,
+            -0.342488761656616,
+            -0.059922635809136,
+            0.133539981073604,
+            0.213118695516570,
+        ],
+        "float64",
+    )
+
+    """
+    Calls the train function
+    """
+    ubm = GMMMachine(n_gaussians=2)
+    ubm.means = UBM_MEAN.reshape((2, 3))
+    ubm.variances = UBM_VAR.reshape((2, 3))
+
+    it = ISVMachine(
+        ubm,
+        r_U=2,
+        relevance_factor=4.0,
+        em_iterations=10,
+    )
+
+    it.U = copy.deepcopy(M_u)
+    it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+
+    assert np.allclose(it.D, d_ref, eps)
+    assert np.allclose(it.U, u_ref, eps)
+
+    """
+    Calls the enroll function with arrays as input
+    """
+
+    np.random.seed(0)
+    X = np.random.normal(ubm.means[0], scale=0.5, size=(50, 3))
+    latent_z_ref = np.array(
+        [
+            [
+                0.01084525,
+                0.06039035,
+                -0.16920933,
+                -0.17321376,
+                -0.9648409,
+                0.44581105,
+            ]
+        ]
+    )
+
+    latent_z = it.enroll_with_array(X)
+    assert np.allclose(latent_z, latent_z_ref, eps)
 
 
 def test_JFATrainInitialize():

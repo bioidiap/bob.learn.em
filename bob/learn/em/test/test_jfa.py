@@ -55,6 +55,14 @@ def test_JFAMachine():
     score = m.score(model, gs)
     assert abs(score_ref - score) < eps
 
+    # Scoring with numpy array
+    np.random.seed(0)
+    X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
+    score_ref = 2.028009315286946
+    score = m.score_with_array(model, X)
+
+    assert abs(score_ref - score) < eps
+
 
 def test_ISVMachine():
 
@@ -95,5 +103,14 @@ def test_ISVMachine():
     latent_z = np.array([3, 4, 1, 2, 0, 1], "float64")
     score = isv_machine.score(latent_z, gs)
     score_ref = -3.280498193082100
+
+    assert abs(score_ref - score) < eps
+
+    # Scoring with numpy array
+    np.random.seed(0)
+    X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
+    score_ref = -1.2343813195374242
+
+    score = isv_machine.score_with_array(latent_z, X)
 
     assert abs(score_ref - score) < eps

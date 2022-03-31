@@ -2,6 +2,7 @@
 # @author: Tiago de Freitas Pereira
 
 
+from ast import Return
 import logging
 
 import numpy as np
@@ -1105,6 +1106,27 @@ class FactorAnalysisBase(BaseEstimator):
 
         return fn_x.flatten()
 
+    def score_with_array(self, model, data):
+        """
+        Computes the ISV score using a numpy array as input
+
+        Parameters
+        ----------
+        latent_z : numpy.ndarray
+            Latent representation of the client (E[z_i])
+
+        data : list of :py:class:`bob.learn.em.GMMStats`
+            List of statistics to be scored
+
+        Returns
+        -------
+        score : float
+            The linear scored
+
+        """
+
+        return self.score(model, self.ubm.acc_statistics(data))
+
 
 class ISVMachine(FactorAnalysisBase):
     """
@@ -1210,11 +1232,11 @@ class ISVMachine(FactorAnalysisBase):
 
         y = y.tolist() if not isinstance(y, list) else y
 
-        # TODO: Point of parallelism
+        # TODO: Point of MAP-REDUCE
         n_acc, f_acc = self.initialize(X, y)
         for i in range(self.em_iterations):
             logger.info("U Training: Iteration %d", i)
-            # TODO: Point of parallelism
+            # TODO: Point of MAP-REDUCE
             acc_U_A1, acc_U_A2 = self.e_step(X, y, n_acc, f_acc)
             self.m_step(acc_U_A1, acc_U_A2)
 
@@ -1223,6 +1245,8 @@ class ISVMachine(FactorAnalysisBase):
     def enroll(self, X, iterations=1):
         """
         Enrolls a new client
+        In ISV, the enrolment is defined as: :math:`m + Dz` with the latent variables `z`
+        representing the enrolled model.
 
         Parameters
         ----------
@@ -1254,6 +1278,26 @@ class ISVMachine(FactorAnalysisBase):
             )
 
         return latent_z
+
+    def enroll_with_array(self, X, iterations=1):
+        """
+        Enrolls a new client using a numpy array as input
+
+        Parameters
+        ----------
+        X : array
+            features to be enrolled
+
+        iterations : int
+            Number of iterations to perform
+
+        Returns
+        -------
+        self : object
+            z
+
+        """
+        return self.enroll([self.ubm.acc_statistics(X)], iterations)
 
     def score(self, latent_z, data):
         """
@@ -1621,7 +1665,9 @@ class JFAMachine(FactorAnalysisBase):
 
     def enroll(self, X, iterations=1):
         """
-        Enrolls a new client
+        Enrolls a new client.
+        In JFA the enrolment is defined as: :math:`m + Vy + Dz` with the latent variables `y` and `z`
+        representing the enrolled model.
 
         Parameters
         ----------
@@ -1633,8 +1679,8 @@ class JFAMachine(FactorAnalysisBase):
 
         Returns
         -------
-        self : object
-            z, y
+        self : array
+            z, y latent variables
 
         """
         # We have only one class for enrollment
@@ -1656,7 +1702,28 @@ class JFAMachine(FactorAnalysisBase):
                 X, y, latent_x, latent_y, latent_z, n_acc, f_acc
             )
 
-        return latent_y, latent_z
+        # The latent variables are wrapped in to 2axis arrays
+        return latent_y[0], latent_z[0]
+
+    def enroll_with_array(self, X, iterations=1):
+        """
+        Enrolls a new client using a numpy array as input
+
+        Parameters
+        ----------
+        X : array
+            features to be enrolled
+
+        iterations : int
+            Number of iterations to perform
+
+        Returns
+        -------
+        self : object
+            z
+
+        """
+        return self.enroll([self.ubm.acc_statistics(X)], iterations)
 
     def fit(self, X, y):
         """
@@ -1686,13 +1753,13 @@ class JFAMachine(FactorAnalysisBase):
 
         y = y.tolist() if not isinstance(y, list) else y
 
-        # TODO: Point of parallelism
+        # TODO: Point of MAP-REDUCE
         n_acc, f_acc = self.initialize(X, y)
 
         # Updating V
         for i in range(self.em_iterations):
             logger.info("V Training: Iteration %d", i)
-            # TODO: Point of parallelism
+            # TODO: Point of MAP-REDUCE
             acc_V_A1, acc_V_A2 = self.e_step_v(X, y, n_acc, f_acc)
             self.m_step_v(acc_V_A1, acc_V_A2)
         latent_y = self.finalize_v(X, y, n_acc, f_acc)
@@ -1700,7 +1767,7 @@ class JFAMachine(FactorAnalysisBase):
         # Updating U
         for i in range(self.em_iterations):
             logger.info("U Training: Iteration %d", i)
-            # TODO: Point of parallelism
+            # TODO: Point of MAP-REDUCE
             acc_U_A1, acc_U_A2 = self.e_step_u(X, y, latent_y)
             self.m_step_u(acc_U_A1, acc_U_A2)
 
@@ -1709,7 +1776,7 @@ class JFAMachine(FactorAnalysisBase):
         # Updating D
         for i in range(self.em_iterations):
             logger.info("D Training: Iteration %d", i)
-            # TODO: Point of parallelism
+            # TODO: Point of MAP-REDUCE
             acc_D_A1, acc_D_A2 = self.e_step_d(
                 X, y, latent_x, latent_y, n_acc, f_acc
             )
@@ -1719,7 +1786,7 @@ class JFAMachine(FactorAnalysisBase):
 
     def score(self, model, data):
         """
-        Computes the ISV score
+        Computes the JFA score
 
         Parameters
         ----------

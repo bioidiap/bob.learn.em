@@ -51,7 +51,6 @@ References
 ..
    .. [Roweis1998] Roweis, Sam. "EM algorithms for PCA and SPCA." Advances in neural information processing systems (1998): 626-632.
 
-.. [Glembek2009] Glembek, Ondrej, et al. "Comparison of scoring methods used in speaker recognition with joint factor analysis." Acoustics, Speech and Signal Processing, 2009. ICASSP 2009. IEEE International Conference on. IEEE, 2009.
 
 
 Indices and tables
