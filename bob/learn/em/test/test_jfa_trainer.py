@@ -378,6 +378,8 @@ def test_ISVTrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
+    latent_z = it.enroll(gse, 5)
+    assert np.allclose(latent_z, z_ref, eps)
 
 
 def test_ISVTrainAndEnrolWithNumpy():
@@ -403,17 +405,6 @@ def test_ISVTrainAndEnrolWithNumpy():
             [9.330165761678115, 1.073623827995043],
             [0.511099245664012, 0.278551249248978],
             [5.065578541930268, 0.509565618051587],
-        ],
-        "float64",
-    )
-    z_ref = np.array(
-        [
-            -0.079315777443826,
-            0.092702428248543,
-            -0.342488761656616,
-            -0.059922635809136,
-            0.133539981073604,
-            0.213118695516570,
         ],
         "float64",
     )

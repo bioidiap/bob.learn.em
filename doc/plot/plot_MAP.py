@@ -1,8 +1,9 @@
 import matplotlib.pyplot as plt
+import numpy as np
+
 from sklearn.datasets import load_iris
 
 import bob.learn.em
-import numpy as np
 
 np.random.seed(10)
 

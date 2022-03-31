@@ -203,7 +203,7 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
    ...      [  0.5, -0.5,   0.2 ]])
    >>> prior_gmm.weights = numpy.array([ 0.8,   0.5])
    >>> # Creating the model for the adapted GMM, and setting the `prior_gmm` as the source GMM
-   >>> # note that we have set `trainer="map"`, so we use the Maximum a posteriori estimator 
+   >>> # note that we have set `trainer="map"`, so we use the Maximum a posteriori estimator
    >>> adapted_gmm = bob.learn.em.GMMMachine(2, ubm=prior_gmm, trainer="map")
    >>> # Training
    >>> adapted_gmm = adapted_gmm.fit(data)
@@ -271,9 +271,9 @@ prior GMM.
     ...      [1.2, 1.4, 1],
     ...      [0.8, 1., 1]], dtype='float64')
     >>> # Training a GMM with 2 Gaussians of dimension 3
-    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)    
+    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)
     >>> # Creating the container
-    >>> gmm_stats = prior_gmm.acc_statistics(data)    
+    >>> gmm_stats = prior_gmm.acc_statistics(data)
     >>> # Printing the responsibilities
     >>> print(gmm_stats.n/gmm_stats.t)
      [0.6  0.4]
@@ -352,7 +352,7 @@ The snippet bellow shows how to:
    >>> model = isv_machine.enroll_with_array(enroll_data)
    >>> print(model)
      [[ 0.54   0.246  0.505  1.617 -0.791  0.746]]
-   
+
    >>> # Probing
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
    >>> score = isv_machine.score_with_array(model, probe_data)
@@ -414,7 +414,7 @@ such session variability model.
 
    >>> # Finally doing the JFA training with U and V subspaces with dimension of 2
    >>> jfa_machine = bob.learn.em.JFAMachine(ubm, r_U=2, r_V=2).fit(gmm_stats, y)
-   >>> print(jfa_machine.U)      
+   >>> print(jfa_machine.U)
      [[-0.069 -0.029]
      [ 0.079  0.039]
      [ 0.123  0.042]
