@@ -51,12 +51,14 @@ def log_weighted_likelihood(data, machine):
         The weighted log likelihood of each sample of each Gaussian.
     """
     # Compute the likelihood for each data point on each Gaussian
-    n_gaussians, n_samples = len(machine.means), len(data)
-    z = np.empty(shape=(n_gaussians, n_samples), like=data)
+    n_gaussians = len(machine.means)
+    z = []
     for i in range(n_gaussians):
-        z[i] = np.sum(
+        temp = np.sum(
             (data - machine.means[i]) ** 2 / machine.variances[i], axis=-1
         )
+        z.append(temp)
+    z = np.vstack(z)
     ll = -0.5 * (machine.g_norms[:, None] + z)
     log_weighted_likelihoods = machine.log_weights[:, None] + ll
     return log_weighted_likelihoods
@@ -717,17 +719,15 @@ class GMMMachine(BaseEstimator):
             )
             kmeans_machine = kmeans_machine.fit(data)
 
+            # Set the GMM machine's gaussians with the results of k-means
+            self.means = copy.deepcopy(kmeans_machine.centroids_)
             logger.debug(
                 "Estimating the variance and weights of each gaussian from kmeans."
             )
             (
-                variances,
-                weights,
+                self.variances,
+                self.weights,
             ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
-
-            # Set the GMM machine's gaussians with the results of k-means
-            self.means = copy.deepcopy(kmeans_machine.centroids_)
-            self.variances, self.weights = dask.compute(variances, weights)
             logger.debug("Done.")
 
     def log_weighted_likelihood(
@@ -962,13 +962,10 @@ def map_gmm_m_step(
         # n_threshold[statistics.n > mean_var_update_threshold] = statistics.n[
         #     statistics.n > mean_var_update_threshold
         # ]
-        new_means = (
-            np.multiply(
-                alpha[:, None],
-                (statistics.sum_px / n_threshold[:, None]),
-            )
-            + np.multiply((1 - alpha[:, None]), machine.ubm.means)
-        )
+        new_means = np.multiply(
+            alpha[:, None],
+            (statistics.sum_px / n_threshold[:, None]),
+        ) + np.multiply((1 - alpha[:, None]), machine.ubm.means)
         machine.means = np.where(
             statistics.n[:, None] < mean_var_update_threshold,
             machine.ubm.means,
