@@ -962,13 +962,10 @@ def map_gmm_m_step(
         # n_threshold[statistics.n > mean_var_update_threshold] = statistics.n[
         #     statistics.n > mean_var_update_threshold
         # ]
-        new_means = (
-            np.multiply(
-                alpha[:, None],
-                (statistics.sum_px / n_threshold[:, None]),
-            )
-            + np.multiply((1 - alpha[:, None]), machine.ubm.means)
-        )
+        new_means = np.multiply(
+            alpha[:, None],
+            (statistics.sum_px / n_threshold[:, None]),
+        ) + np.multiply((1 - alpha[:, None]), machine.ubm.means)
         machine.means = np.where(
             statistics.n[:, None] < mean_var_update_threshold,
             machine.ubm.means,

@@ -166,7 +166,7 @@ def reduce_indices_means_vars(stats):
     weights_count = np.bincount(closest_centroid_indices, minlength=n_clusters)
     weights = weights_count / weights_count.sum()
     means = means_sum / weights_count[:, None]
-    variances = (variances_sum / weights_count[:, None]) - (means ** 2)
+    variances = (variances_sum / weights_count[:, None]) - (means**2)
 
     return variances, weights
 
