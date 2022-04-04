@@ -719,18 +719,15 @@ class GMMMachine(BaseEstimator):
             )
             kmeans_machine = kmeans_machine.fit(data)
 
+            # Set the GMM machine's gaussians with the results of k-means
+            self.means = copy.deepcopy(kmeans_machine.centroids_)
             logger.debug(
                 "Estimating the variance and weights of each gaussian from kmeans."
             )
             (
-                variances,
-                weights,
+                self.variances,
+                self.weights,
             ) = kmeans_machine.get_variances_and_weights_for_each_cluster(data)
-
-            # Set the GMM machine's gaussians with the results of k-means
-            self.means = copy.deepcopy(kmeans_machine.centroids_)
-            # TODO: remove this compute
-            self.variances, self.weights = dask.compute(variances, weights)
             logger.debug("Done.")
 
     def log_weighted_likelihood(
