@@ -376,7 +376,7 @@ class FactorAnalysisBase(BaseEstimator):
             # Fn_x_ih = N_{i,h}*(o_{i,h} - m)
             fn_x_ih = f_i.flatten() - n_ic * (self.mean_supervector)
         else:
-            # code goes here when the computation flow comes from compute_acculators
+            # code goes here when the computation flow comes from compute_accumulators
             # Fn_x_ih = N_{i,h}*(o_{i,h} - m - D*z_{i})
             fn_x_ih = f_i.flatten() - n_ic * (
                 self.mean_supervector + self._D * latent_z_i
@@ -452,7 +452,7 @@ class FactorAnalysisBase(BaseEstimator):
                 Accumulated statistics for U_A1(n_gaussians, r_U, r_U)
 
             acc_U_A2: array
-                Accumulated statistics for U_A2(n_gaussians* feature_dimention, r_U)
+                Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
 
@@ -531,7 +531,7 @@ class FactorAnalysisBase(BaseEstimator):
                 (n_gaussians, r_U, r_U) A1 accumulator
 
             acc_U_A2:
-                (n_gaussians* feature_dimention, r_U) A2 accumulator
+                (n_gaussians* feature_dimension, r_U) A2 accumulator
 
 
         """
@@ -654,7 +654,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     def _compute_fn_z_i(self, X_i, latent_x_i, latent_y_i, n_acc_i, f_acc_i):
         """
-        Compute Fn_z_i = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i} - U*x_{i,h}) (Normalised first order statistics)
+        Compute Fn_z_i = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i} - U*x_{i,h}) (Normalized first order statistics)
 
         Parameters
         ----------
@@ -690,7 +690,7 @@ class FactorAnalysisBase(BaseEstimator):
         self, X, y, latent_x, latent_y, latent_z, n_acc, f_acc
     ):
         """
-        Compute the acumulators for the D matrix
+        Compute the accumulators for the D matrix
 
         The accumulators are defined as
 
@@ -730,10 +730,10 @@ class FactorAnalysisBase(BaseEstimator):
         Returns
         -------
             acc_D_A1:
-                (n_gaussians* feature_dimention) A1 accumulator
+                (n_gaussians* feature_dimension) A1 accumulator
 
             acc_D_A2:
-                (n_gaussians* feature_dimention) A2 accumulator
+                (n_gaussians* feature_dimension) A2 accumulator
 
         """
 
@@ -953,7 +953,7 @@ class FactorAnalysisBase(BaseEstimator):
                 (n_gaussians, r_V, r_V) A1 accumulator
 
             acc_V_A2:
-                (n_gaussians* feature_dimention, r_V) A2 accumulator
+                (n_gaussians* feature_dimension, r_V) A2 accumulator
 
         """
 
@@ -970,7 +970,7 @@ class FactorAnalysisBase(BaseEstimator):
             latent_y_i = latent_y[i]
             latent_z_i = latent_z[i]
 
-            # Compyting A1 accumulator: \sum_{i=1}^{N}(E(y_i_c @ y_i_c.T))
+            # Computing A1 accumulator: \sum_{i=1}^{N}(E(y_i_c @ y_i_c.T))
             id_plus_prod_v_i = self._compute_id_plus_vprod_i(n_acc_i, VProd)
             id_plus_prod_v_i += (
                 latent_y_i[:, np.newaxis] @ latent_y_i[:, np.newaxis].T
@@ -999,7 +999,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     def _compute_fn_y_i(self, X_i, latent_x_i, latent_z_i, n_acc_i, f_acc_i):
         """
-        // Compute Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i} - U*x_{i,h}) (Normalised first order statistics)
+        // Compute Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i} - U*x_{i,h}) (Normalized first order statistics)
         See equation (30) in [McCool2013]_
 
         Parameters
@@ -1059,6 +1059,10 @@ class FactorAnalysisBase(BaseEstimator):
 
         return id_plus_us_prod_inv @ (ut_inv_sigma @ fn_x)
 
+    def estimate_ux(self, X):
+        x = self.estimate_x(X)
+        return self.U @ x
+
     def _compute_id_plus_us_prod_inv(self, X_i):
         """
         Computes (Id + U^T.Sigma^-1.U.N_{i,h}.U)^-1 =
@@ -1088,7 +1092,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     def _compute_fn_x(self, X_i):
         """
-        Compute Fn_x = sum_{sessions h}(N*(o - m) (Normalised first order statistics)
+        Compute Fn_x = sum_{sessions h}(N*(o - m) (Normalized first order statistics)
 
             Parameters
             ----------
@@ -1129,7 +1133,7 @@ class FactorAnalysisBase(BaseEstimator):
 
 class ISVMachine(FactorAnalysisBase):
     """
-    Implements the Interssion Varibility Modelling hypothesis on top of GMMs
+    Implements the Intersession Variability Modelling hypothesis on top of GMMs
 
     Inter-Session Variability (ISV) modeling is a session variability modeling technique built on top of the Gaussian mixture modeling approach.
     It hypothesizes that within-class variations are embedded in a linear subspace in the GMM means subspace and these variations can be suppressed
@@ -1201,7 +1205,7 @@ class ISVMachine(FactorAnalysisBase):
                 Accumulated statistics for U_A1(n_gaussians, r_U, r_U)
 
             acc_U_A2: array
-                Accumulated statistics for U_A2(n_gaussians* feature_dimention, r_U)
+                Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
 
@@ -1416,7 +1420,7 @@ class JFAMachine(FactorAnalysisBase):
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(y)
 
-        # UPDATE Y, X AND FINALY Z
+        # UPDATE Y, X AND FINALLY Z
 
         latent_y = self.update_y(
             X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc
@@ -1487,7 +1491,7 @@ class JFAMachine(FactorAnalysisBase):
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(y)
 
-        # UPDATE Y, X AND FINALY Z
+        # UPDATE Y, X AND FINALLY Z
 
         latent_y = self.update_y(
             X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc
@@ -1518,7 +1522,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for U_A1(n_gaussians, r_U, r_U)
 
             acc_U_A2: array
-                Accumulated statistics for U_A2(n_gaussians* feature_dimention, r_U)
+                Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
         # self.initialize_XYZ(y)
