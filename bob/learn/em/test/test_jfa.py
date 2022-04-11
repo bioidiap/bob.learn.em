@@ -65,7 +65,7 @@ def test_ISVMachine():
     ubm.variances = np.array([[1, 2, 1], [2, 1, 2]], "float64")
 
     # Creates a ISVMachine
-    isv_machine = ISVMachine(ubm, r_U=2, em_iterations=10)
+    isv_machine = ISVMachine(ubm=ubm, r_U=2, em_iterations=10)
     isv_machine.U = np.array(
         [[1, 2], [3, 4], [5, 6], [7, 8], [9, 10], [11, 12]], "float64"
     )

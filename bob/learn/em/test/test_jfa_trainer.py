@@ -126,7 +126,7 @@ def test_JFATrainAndEnrol():
     it.U = copy.deepcopy(M_u)
     it.V = copy.deepcopy(M_v)
     it.D = copy.deepcopy(M_d)
-    it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
 
     v_ref = np.array(
         [
@@ -225,7 +225,7 @@ def test_JFATrainAndEnrolWithNumpy():
     it.U = copy.deepcopy(M_u)
     it.V = copy.deepcopy(M_v)
     it.D = copy.deepcopy(M_d)
-    it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
 
     v_ref = np.array(
         [
@@ -337,14 +337,14 @@ def test_ISVTrainAndEnrol():
     ubm.variances = UBM_VAR.reshape((2, 3))
 
     it = ISVMachine(
-        ubm,
+        ubm=ubm,
         r_U=2,
         relevance_factor=4.0,
         em_iterations=10,
     )
 
     it.U = copy.deepcopy(M_u)
-    it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+    it = it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
 
     np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
     np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
@@ -417,14 +417,14 @@ def test_ISVTrainAndEnrolWithNumpy():
     ubm.variances = UBM_VAR.reshape((2, 3))
 
     it = ISVMachine(
-        ubm,
+        ubm=ubm,
         r_U=2,
         relevance_factor=4.0,
         em_iterations=10,
     )
 
     it.U = copy.deepcopy(M_u)
-    it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
+    it = it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
 
     np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
     np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
@@ -466,13 +466,13 @@ def test_JFATrainInitialize():
     it = JFAMachine(ubm, 2, 2, em_iterations=10)
     # first round
 
-    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
     u1 = it.U
     v1 = it.V
     d1 = it.D
 
     # second round
-    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
     u2 = it.U
     v2 = it.V
     d2 = it.D
@@ -493,15 +493,15 @@ def test_ISVTrainInitialize():
     ubm.variances = UBM_VAR.reshape((2, 3))
 
     # ISV
-    it = ISVMachine(ubm, 2, em_iterations=10)
+    it = ISVMachine(2, em_iterations=10, ubm=ubm)
     # it.rng = rng
 
-    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
     u1 = copy.deepcopy(it.U)
     d1 = copy.deepcopy(it.D)
 
     # second round
-    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
     u2 = it.U
     d2 = it.D
 

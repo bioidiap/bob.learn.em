@@ -104,6 +104,9 @@ class FactorAnalysisBase(BaseEstimator):
 
         self.relevance_factor = relevance_factor
 
+        if ubm is not None:
+            self.create_UVD()
+
     @property
     def feature_dimension(self):
         """Get the UBM Dimension"""
@@ -216,6 +219,9 @@ class FactorAnalysisBase(BaseEstimator):
         if not hasattr(self, "_U") or not hasattr(self, "_D"):
             self.create_UVD()
 
+        self.initialize_using_stats(ubm_projected_X, y)
+
+    def initialize_using_stats(self, ubm_projected_X, y):
         # Accumulating 0th and 1st order statistics
         # https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/ISVTrainer.cpp#L68
         # 0th order stats
@@ -814,7 +820,7 @@ class FactorAnalysisBase(BaseEstimator):
                 np.zeros(
                     (
                         self.r_U,
-                        y.count(y_i),
+                        np.sum(y == y_i),
                     )
                 )
             )
@@ -1192,7 +1198,7 @@ class ISVMachine(FactorAnalysisBase):
         ubm=None,
         **gmm_kwargs,
     ):
-        super(ISVMachine, self).__init__(
+        super().__init__(
             r_U=r_U,
             relevance_factor=relevance_factor,
             em_iterations=em_iterations,
@@ -1213,7 +1219,7 @@ class ISVMachine(FactorAnalysisBase):
         y: np.ndarray of shape(n_clients,)
             Client labels.
         """
-        return super(ISVMachine, self).initialize(X, y)
+        return super().initialize(X, y)
 
     def e_step(self, X, y, n_acc, f_acc):
         """
@@ -1252,7 +1258,7 @@ class ISVMachine(FactorAnalysisBase):
 
         self.update_U(acc_U_A1, acc_U_A2)
 
-    def fit(self, X, y):
+    def fit_using_stats(self, X, y):
         """
         Trains the U matrix (session variability matrix)
 
@@ -1270,10 +1276,10 @@ class ISVMachine(FactorAnalysisBase):
 
         """
 
-        y = np.array(y).tolist() if not isinstance(y, list) else y
+        y = np.asarray(y)
 
         # TODO: Point of MAP-REDUCE
-        n_acc, f_acc = self.initialize(X, y)
+        n_acc, f_acc = self.initialize_using_stats(X, y)
         for i in range(self.em_iterations):
             logger.info("U Training: Iteration %d", i)
             # TODO: Point of MAP-REDUCE
@@ -1412,19 +1418,24 @@ class JFAMachine(FactorAnalysisBase):
     """
 
     def __init__(
-        self, ubm, r_U, r_V, em_iterations=10, relevance_factor=4.0, seed=0
+        self,
+        ubm,
+        r_U,
+        r_V,
+        em_iterations=10,
+        relevance_factor=4.0,
+        seed=0,
+        **kwargs,
     ):
-        super(JFAMachine, self).__init__(
-            ubm,
+        super().__init__(
+            ubm=ubm,
             r_U=r_U,
             r_V=r_V,
             relevance_factor=relevance_factor,
             em_iterations=em_iterations,
             seed=seed,
+            **kwargs,
         )
-
-    def initialize(self, X, y):
-        return super(JFAMachine, self).initialize(X, y)
 
     def e_step_v(self, X, y, n_acc, f_acc):
         """
@@ -1769,7 +1780,7 @@ class JFAMachine(FactorAnalysisBase):
         """
         return self.enroll([self.ubm.transform(X)], iterations)
 
-    def fit(self, X, y):
+    def fit_using_stats(self, X, y):
         """
         Trains the U matrix (session variability matrix)
 
@@ -1795,10 +1806,10 @@ class JFAMachine(FactorAnalysisBase):
         ):
             self.create_UVD()
 
-        y = np.array(y).tolist() if not isinstance(y, list) else y
+        y = np.asarray(y)
 
         # TODO: Point of MAP-REDUCE
-        n_acc, f_acc = self.initialize(X, y)
+        n_acc, f_acc = self.initialize_using_stats(X, y)
 
         # Updating V
         for i in range(self.em_iterations):
