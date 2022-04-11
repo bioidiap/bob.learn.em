@@ -8,6 +8,7 @@ import dask
 import numpy as np
 
 from sklearn.base import BaseEstimator
+from sklearn.utils.multiclass import unique_labels
 
 from .gmm import GMMMachine
 from .linear_scoring import linear_scoring
@@ -180,7 +181,7 @@ class FactorAnalysisBase(BaseEstimator):
         Estimates the number of classes given the labels
         """
 
-        return np.max(y) + 1
+        return len(unique_labels(y))
 
     def initialize(self, X, y):
         """
@@ -1156,6 +1157,10 @@ class FactorAnalysisBase(BaseEstimator):
         """
 
         return self.score_using_stats(model, self.ubm.transform(data))
+
+    def fit(self, X, y):
+        stats = [self.ubm.transform(xx) for xx in X]
+        return self.fit_using_stats(stats, y)
 
 
 class ISVMachine(FactorAnalysisBase):
