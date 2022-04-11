@@ -1136,7 +1136,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return fn_x.flatten()
 
-    def score_with_array(self, model, data):
+    def score(self, model, data):
         """
         Computes the ISV score using a numpy array as input
 
@@ -1155,7 +1155,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        return self.score(model, self.ubm.transform(data))
+        return self.score_using_stats(model, self.ubm.transform(data))
 
 
 class ISVMachine(FactorAnalysisBase):
@@ -1349,7 +1349,7 @@ class ISVMachine(FactorAnalysisBase):
         """
         return self.enroll([self.ubm.transform(X)], iterations)
 
-    def score(self, latent_z, data):
+    def score_using_stats(self, latent_z, data):
         """
         Computes the ISV score
 
@@ -1839,7 +1839,7 @@ class JFAMachine(FactorAnalysisBase):
 
         return self
 
-    def score(self, model, data):
+    def score_using_stats(self, model, data):
         """
         Computes the JFA score
 

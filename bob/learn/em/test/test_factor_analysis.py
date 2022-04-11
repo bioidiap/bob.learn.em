@@ -392,14 +392,14 @@ def test_JFAMachine():
     model = [y, z]
 
     score_ref = -2.111577181208289
-    score = m.score(model, gs)
+    score = m.score_using_stats(model, gs)
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
     # Scoring with numpy array
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = 2.028009315286946
-    score = m.score_with_array(model, X)
+    score = m.score(model, X)
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
@@ -431,7 +431,7 @@ def test_ISVMachine():
 
     # Enrolled model
     latent_z = np.array([3, 4, 1, 2, 0, 1], "float64")
-    score = isv_machine.score(latent_z, gs)
+    score = isv_machine.score_using_stats(latent_z, gs)
     score_ref = -3.280498193082100
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
@@ -439,5 +439,5 @@ def test_ISVMachine():
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = -1.2343813195374242
-    score = isv_machine.score_with_array(latent_z, X)
+    score = isv_machine.score(latent_z, X)
     np.testing.assert_allclose(score, score_ref, atol=eps)
