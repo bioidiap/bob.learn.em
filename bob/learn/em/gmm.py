@@ -135,16 +135,14 @@ def e_step(data, machine):
     # Count of samples [int]
     statistics.t += data.shape[0]
     # Responsibilities [array of shape (n_gaussians,)]
-    statistics.n = statistics.n + responsibility.sum(axis=-1)
+    statistics.n += responsibility.sum(axis=-1)
     for i in range(n_gaussians):
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = responsibility[i, :, None] * data
         # First order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_px[i] = statistics.sum_px[i] + np.sum(px, axis=0)
+        statistics.sum_px[i] += np.sum(px, axis=0)
         # Second order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_pxx[i] = statistics.sum_pxx[i] + np.sum(
-            px * data, axis=0
-        )
+        statistics.sum_pxx[i] += np.sum(px * data, axis=0)
 
     return statistics
 
