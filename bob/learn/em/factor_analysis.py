@@ -89,9 +89,12 @@ class FactorAnalysisBase(BaseEstimator):
         em_iterations=10,
         seed=0,
         ubm=None,
-        **gmm_kwargs,
+        gmm_kwargs=None,
+        **kwargs,
     ):
+        super().__init__(**kwargs)
         self.ubm = ubm
+        self.gmm_kwargs = gmm_kwargs
         self.em_iterations = em_iterations
         self.seed = seed
 
@@ -1146,7 +1149,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        return self.score(model, self.ubm.acc_statistics(data))
+        return self.score(model, self.ubm.transform(data))
 
 
 class ISVMachine(FactorAnalysisBase):
@@ -1338,7 +1341,7 @@ class ISVMachine(FactorAnalysisBase):
             z
 
         """
-        return self.enroll([self.ubm.acc_statistics(X)], iterations)
+        return self.enroll([self.ubm.transform(X)], iterations)
 
     def score(self, latent_z, data):
         """
@@ -1764,7 +1767,7 @@ class JFAMachine(FactorAnalysisBase):
             z
 
         """
-        return self.enroll([self.ubm.acc_statistics(X)], iterations)
+        return self.enroll([self.ubm.transform(X)], iterations)
 
     def fit(self, X, y):
         """

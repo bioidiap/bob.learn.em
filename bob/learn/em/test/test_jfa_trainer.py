@@ -163,9 +163,9 @@ def test_JFATrainAndEnrol():
     )
 
     eps = 1e-10
-    assert np.allclose(it.V, v_ref, eps)
-    assert np.allclose(it.U, u_ref, eps)
-    assert np.allclose(it.D, d_ref, eps)
+    np.testing.assert_allclose(it.V, v_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
 
     # Calls the enroll function
 
@@ -209,8 +209,8 @@ def test_JFATrainAndEnrol():
         "float64",
     )
 
-    assert np.allclose(latent_y, y_ref, eps)
-    assert np.allclose(latent_z, z_ref, eps)
+    np.testing.assert_allclose(latent_y, y_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
 def test_JFATrainAndEnrolWithNumpy():
@@ -262,9 +262,9 @@ def test_JFATrainAndEnrolWithNumpy():
     )
 
     eps = 1e-10
-    assert np.allclose(it.V, v_ref, eps)
-    assert np.allclose(it.U, u_ref, eps)
-    assert np.allclose(it.D, d_ref, eps)
+    np.testing.assert_allclose(it.V, v_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
 
     """
     Calls the enroll function with arrays as input
@@ -275,20 +275,18 @@ def test_JFATrainAndEnrolWithNumpy():
     latent_y_ref = np.array([-0.13922039, 0.10686916])
     latent_z_ref = np.array(
         [
-            [
-                -1.37073043e-17,
-                1.15641870e-12,
-                -8.29922598e-10,
-                -4.17108194e-16,
-                -2.27107305e-09,
-                2.94293314e-18,
-            ]
+            -1.37073043e-17,
+            1.15641870e-12,
+            -8.29922598e-10,
+            -4.17108194e-16,
+            -2.27107305e-09,
+            2.94293314e-18,
         ]
     )
 
     latent_y, latent_z = it.enroll_with_array(X)
-    assert np.allclose(latent_z, latent_z_ref, eps)
-    assert np.allclose(latent_y, latent_y_ref, eps)
+    np.testing.assert_allclose(latent_z, latent_z_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(latent_y, latent_y_ref, rtol=eps, atol=1e-8)
 
 
 def test_ISVTrainAndEnrol():
@@ -319,12 +317,14 @@ def test_ISVTrainAndEnrol():
     )
     z_ref = np.array(
         [
-            -0.079315777443826,
-            0.092702428248543,
-            -0.342488761656616,
-            -0.059922635809136,
-            0.133539981073604,
-            0.213118695516570,
+            [
+                -0.079315777443826,
+                0.092702428248543,
+                -0.342488761656616,
+                -0.059922635809136,
+                0.133539981073604,
+                0.213118695516570,
+            ]
         ],
         "float64",
     )
@@ -346,8 +346,8 @@ def test_ISVTrainAndEnrol():
     it.U = copy.deepcopy(M_u)
     it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
 
-    assert np.allclose(it.D, d_ref, eps)
-    assert np.allclose(it.U, u_ref, eps)
+    np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
 
     """
     Calls the enroll function
@@ -379,7 +379,7 @@ def test_ISVTrainAndEnrol():
 
     gse = [gse1, gse2]
     latent_z = it.enroll(gse, 5)
-    assert np.allclose(latent_z, z_ref, eps)
+    np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
 def test_ISVTrainAndEnrolWithNumpy():
@@ -426,8 +426,8 @@ def test_ISVTrainAndEnrolWithNumpy():
     it.U = copy.deepcopy(M_u)
     it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
 
-    assert np.allclose(it.D, d_ref, eps)
-    assert np.allclose(it.U, u_ref, eps)
+    np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
 
     """
     Calls the enroll function with arrays as input
@@ -449,7 +449,7 @@ def test_ISVTrainAndEnrolWithNumpy():
     )
 
     latent_z = it.enroll_with_array(X)
-    assert np.allclose(latent_z, latent_z_ref, eps)
+    np.testing.assert_allclose(latent_z, latent_z_ref, rtol=eps, atol=1e-8)
 
 
 def test_JFATrainInitialize():
@@ -477,9 +477,9 @@ def test_JFATrainInitialize():
     v2 = it.V
     d2 = it.D
 
-    assert np.allclose(u1, u2, eps)
-    assert np.allclose(v1, v2, eps)
-    assert np.allclose(d1, d2, eps)
+    np.testing.assert_allclose(u1, u2, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(v1, v2, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(d1, d2, rtol=eps, atol=1e-8)
 
 
 def test_ISVTrainInitialize():
@@ -505,5 +505,5 @@ def test_ISVTrainInitialize():
     u2 = it.U
     d2 = it.D
 
-    assert np.allclose(u1, u2, eps)
-    assert np.allclose(d1, d2, eps)
+    np.testing.assert_allclose(u1, u2, rtol=eps, atol=1e-8)
+    np.testing.assert_allclose(d1, d2, rtol=eps, atol=1e-8)
