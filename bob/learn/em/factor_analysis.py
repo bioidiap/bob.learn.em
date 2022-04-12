@@ -78,7 +78,7 @@ class FactorAnalysisBase(BaseEstimator):
     ubm: :py:class:`bob.learn.em.GMMMachine`
         A trained UBM (Universal Background Model) or a parametrized
         :py:class:`bob.learn.em.GMMMachine` to train the UBM with. If None,
-        `gmm_kwargs` are passed as parameters of a new
+        `ubm_kwargs` are passed as parameters of a new
         :py:class:`bob.learn.em.GMMMachine`.
     """
 
@@ -90,12 +90,12 @@ class FactorAnalysisBase(BaseEstimator):
         em_iterations=10,
         seed=0,
         ubm=None,
-        gmm_kwargs=None,
+        ubm_kwargs=None,
         **kwargs,
     ):
         super().__init__(**kwargs)
         self.ubm = ubm
-        self.gmm_kwargs = gmm_kwargs
+        self.ubm_kwargs = ubm_kwargs
         self.em_iterations = em_iterations
         self.seed = seed
 
@@ -206,7 +206,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         if self.ubm is None:
             logger.info("FA: Creating a new GMMMachine.")
-            self.ubm = GMMMachine(**self.gmm_kwargs)
+            self.ubm = GMMMachine(**self.ubm_kwargs)
 
         # Train the UBM if not already trained
         if self.ubm._means is None:
@@ -1189,7 +1189,7 @@ class ISVMachine(FactorAnalysisBase):
 
     ubm: :py:class:`bob.learn.em.GMMMachine` or None
         A trained UBM (Universal Background Model). If None, the UBM is trained with
-        a new :py:class:`bob.learn.em.GMMMachine` when fit is called, with `gmm_kwargs`
+        a new :py:class:`bob.learn.em.GMMMachine` when fit is called, with `ubm_kwargs`
         as parameters.
 
     """
@@ -1201,7 +1201,8 @@ class ISVMachine(FactorAnalysisBase):
         relevance_factor=4.0,
         seed=0,
         ubm=None,
-        **gmm_kwargs,
+        ubm_kwargs=None,
+        **kwargs,
     ):
         super().__init__(
             r_U=r_U,
@@ -1209,7 +1210,8 @@ class ISVMachine(FactorAnalysisBase):
             em_iterations=em_iterations,
             seed=seed,
             ubm=ubm,
-            **gmm_kwargs,
+            ubm_kwargs=ubm_kwargs,
+            **kwargs,
         )
 
     def initialize(self, X, y):
@@ -1424,12 +1426,13 @@ class JFAMachine(FactorAnalysisBase):
 
     def __init__(
         self,
-        ubm,
         r_U,
         r_V,
         em_iterations=10,
         relevance_factor=4.0,
         seed=0,
+        ubm=None,
+        ubm_kwargs=None,
         **kwargs,
     ):
         super().__init__(
@@ -1439,6 +1442,7 @@ class JFAMachine(FactorAnalysisBase):
             relevance_factor=relevance_factor,
             em_iterations=em_iterations,
             seed=seed,
+            ubm_kwargs=ubm_kwargs,
             **kwargs,
         )
 
