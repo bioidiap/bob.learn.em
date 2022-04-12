@@ -4,7 +4,6 @@
 
 import logging
 
-import dask
 import numpy as np
 
 from sklearn.base import BaseEstimator
@@ -183,7 +182,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return len(unique_labels(y))
 
-    def initialize(self, X, y):
+    def initialize(self, X):
         """
         Accumulating 0th and 1st order statistics. Trains the UBM if needed.
 
@@ -211,16 +210,11 @@ class FactorAnalysisBase(BaseEstimator):
         # Train the UBM if not already trained
         if self.ubm._means is None:
             logger.info(f"FA: Training the UBM with {self.ubm}.")
-            self.ubm.fit(np.vstack(X))  # GMMMachine.fit takes non-labeled data
-
-        logger.info("FA: Projection of training data on the UBM.")
-        ubm_projected_X = [dask.delayed(self.ubm.transform(xx)) for xx in X]
+            self.ubm.fit(X)  # GMMMachine.fit takes non-labeled data
 
         # Initializing the state matrix
         if not hasattr(self, "_U") or not hasattr(self, "_D"):
             self.create_UVD()
-
-        self.initialize_using_stats(ubm_projected_X, y)
 
     def initialize_using_stats(self, ubm_projected_X, y):
         # Accumulating 0th and 1st order statistics
@@ -1159,6 +1153,7 @@ class FactorAnalysisBase(BaseEstimator):
         return self.score_using_stats(model, self.ubm.transform(data))
 
     def fit(self, X, y):
+        self.initialize(X)
         stats = [self.ubm.transform(xx) for xx in X]
         return self.fit_using_stats(stats, y)
 
@@ -1213,20 +1208,6 @@ class ISVMachine(FactorAnalysisBase):
             ubm_kwargs=ubm_kwargs,
             **kwargs,
         )
-
-    def initialize(self, X, y):
-        """Initializes the ISV parameters and trains a UBM with `X` if needed.
-
-        If no UBM has been defined on init, it is trained with a new GMMMachine.
-
-        Parameters
-        ----------
-        X: np.ndarray of shape(n_clients, n_samples, n_features)
-            Input data for each client.
-        y: np.ndarray of shape(n_clients,)
-            Client labels.
-        """
-        return super().initialize(X, y)
 
     def e_step(self, X, y, n_acc, f_acc):
         """
