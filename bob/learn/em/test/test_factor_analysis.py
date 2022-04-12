@@ -9,6 +9,9 @@ import numpy as np
 
 from bob.learn.em import GMMMachine, GMMStats, ISVMachine, JFAMachine
 
+from .test_gmm import multiprocess_dask_client
+from .test_kmeans import to_dask_array, to_numpy
+
 # Define Training set and initial values for tests
 F1 = np.array(
     [
@@ -443,37 +446,34 @@ def test_ISVMachine():
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
+def _create_ubm_prior(means):
+    # Creating a fake prior with 2 gaussians
+    prior_gmm = GMMMachine(2)
+    prior_gmm.means = means.copy()
+    # All nice and round diagonal covariance
+    prior_gmm.variances = np.ones((2, 3)) * 0.5
+    prior_gmm.weights = np.array([0.3, 0.7])
+    return prior_gmm
+
+
 def test_ISV_JFA_fit():
     np.random.seed(10)
     data_class1 = np.random.normal(0, 0.5, (10, 3))
     data_class2 = np.random.normal(-0.2, 0.2, (10, 3))
     data = np.concatenate([data_class1, data_class2], axis=0)
     labels = [0] * 10 + [1] * 10
-
-    # Creating a fake prior with 2 gaussians
-    prior_gmm = GMMMachine(2)
-    prior_gmm.means = np.vstack(
+    means = np.vstack(
         (np.random.normal(0, 0.5, (1, 3)), np.random.normal(1, 0.5, (1, 3)))
     )
-    # All nice and round diagonal covariance
-    prior_gmm.variances = np.ones((2, 3)) * 0.5
-    prior_gmm.weights = np.array([0.3, 0.7])
 
     for prior, machine_type, ref in [
         (
             None,
             "isv",
-            [
-                [0.02619036, 0.07607595],
-                [-0.02570657, -0.07451667],
-                [-0.0430513, -0.12514552],
-                [-0.09729266, -0.28582205],
-                [-0.01035388, -0.03041718],
-                [0.0733034, 0.21534741],
-            ],
+            0.0,
         ),
         (
-            prior_gmm,
+            True,
             "isv",
             [
                 [-0.02361267, 0.0157274],
@@ -497,16 +497,16 @@ def test_ISV_JFA_fit():
             None,
             "jfa",
             [
-                [-1.72285693e-01, 1.47171193e-01],
-                [-1.08402014e-01, 9.25999920e-02],
-                [1.55349449e-02, -1.32703786e-02],
-                [2.13389657e-04, -1.82283334e-04],
-                [1.84127661e-05, -1.57286929e-05],
-                [-1.90492196e-04, 1.62723691e-04],
+                [-0.04687046, -0.06302095],
+                [-0.04380423, -0.05889816],
+                [-0.02083793, -0.0280182],
+                [-0.04728452, -0.06357768],
+                [-0.04371283, -0.05877527],
+                [-0.0203464, -0.0273573],
             ],
         ),
         (
-            prior_gmm,
+            True,
             "jfa",
             [
                 [6.54547662e-03, 1.98699266e-04],
@@ -526,35 +526,40 @@ def test_ISV_JFA_fit():
         ),
     ]:
         ref = np.asarray(ref)
-        ubm_kwargs = dict(n_gaussians=2) if prior is None else None
 
         # Doing the training
-        if machine_type == "isv":
-            machine = ISVMachine(
-                2,
-                ubm=prior,
+        for transform in (to_numpy, to_dask_array):
+            data, labels = transform(data, labels)
+
+            if prior is None:
+                ubm = None
+                ubm_kwargs = dict(n_gaussians=2, ubm=_create_ubm_prior(means))
+            else:
+                ubm = _create_ubm_prior(means)
+                ubm_kwargs = None
+
+            machine_kwargs = dict(
+                ubm=ubm,
                 relevance_factor=4,
                 em_iterations=50,
                 ubm_kwargs=ubm_kwargs,
                 seed=10,
             )
-            test_attr = "U"
-        else:
-            machine = JFAMachine(
-                2,
-                2,
-                ubm=prior,
-                relevance_factor=4,
-                em_iterations=50,
-                ubm_kwargs=ubm_kwargs,
-                seed=10,
+
+            if machine_type == "isv":
+                machine = ISVMachine(2, **machine_kwargs)
+                test_attr = "U"
+            else:
+                machine = JFAMachine(2, 2, **machine_kwargs)
+                test_attr = "V"
+
+            with multiprocess_dask_client():
+                machine.fit(data, labels)
+
+            arr = getattr(machine, test_attr)
+            np.testing.assert_allclose(
+                arr,
+                ref,
+                atol=1e-7,
+                err_msg=f"Test failed with prior={prior} and machine_type={machine_type} and transform={transform}",
             )
-            test_attr = "V"
-        machine.fit(data, labels)
-        arr = getattr(machine, test_attr)
-        np.testing.assert_allclose(
-            arr,
-            ref,
-            atol=1e-7,
-            err_msg=f"Test failed with prior={prior} and machine_type={machine_type}",
-        )

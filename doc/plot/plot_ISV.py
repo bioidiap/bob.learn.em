@@ -8,37 +8,6 @@ import bob.learn.em
 np.random.seed(2)  # FIXING A SEED
 
 
-def isv_train(features, ubm):
-    """
-    Train U matrix
-
-    **Parameters**
-      features: List of :py:class:`bob.learn.em.GMMStats` organized by class
-
-      n_gaussians: UBM (:py:class:`bob.learn.em.GMMMachine`)
-
-    """
-
-    stats = []
-    for user in features:
-        user_stats = []
-        for f in user:
-            s = bob.learn.em.GMMStats(ubm.shape[0], ubm.shape[1])
-            ubm.acc_statistics(f, s)
-            user_stats.append(s)
-        stats.append(user_stats)
-
-    relevance_factor = 4
-    subspace_dimension_of_u = 1
-
-    isvbase = bob.learn.em.ISVBase(ubm, subspace_dimension_of_u)
-    trainer = bob.learn.em.ISVTrainer(relevance_factor)
-    # trainer.rng = bob.core.random.mt19937(int(self.init_seed))
-    bob.learn.em.train(trainer, isvbase, stats, max_iterations=50)
-
-    return isvbase
-
-
 # GENERATING DATA
 iris_data = load_iris()
 X = np.column_stack((iris_data.data[:, 0], iris_data.data[:, 3]))
@@ -72,19 +41,12 @@ ubm.variances = np.array(
 
 ubm.weights = np.array([0.36, 0.36, 0.28])
 
-gmm_stats = [ubm.acc_statistics(x[np.newaxis]) for x in X]
-isv_machine = bob.learn.em.ISVMachine(ubm, r_U, em_iterations=50)
+isv_machine = bob.learn.em.ISVMachine(r_U, em_iterations=50, ubm=ubm)
 isv_machine.U = np.array(
     [[-0.150035, -0.44441, -1.67812, 2.47621, -0.52885, 0.659141]]
 ).T
 
-isv_machine = isv_machine.fit(gmm_stats, y)
-
-# gmm_stats = [ubm.acc_statistics(x) for x in [setosa, versicolor, virginica]]
-# isv_machine = bob.learn.em.ISVMachine(ubm, r_U).fit(gmm_stats, [0, 1, 2])
-
-
-# isvbase = isv_train([setosa, versicolor, virginica], ubm)
+isv_machine = isv_machine.fit(X, y)
 
 # Variability direction
 u0 = isv_machine.U[0:2, 0] / np.linalg.norm(isv_machine.U[0:2, 0])

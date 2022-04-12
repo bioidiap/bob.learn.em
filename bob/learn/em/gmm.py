@@ -855,24 +855,7 @@ class GMMMachine(BaseEstimator):
 
     def transform(self, X, **kwargs):
         """Returns the statistics for `X`."""
-        input_is_dask, X = check_and_persist_dask_input(X)
-
-        if input_is_dask:
-            stats = [
-                dask.delayed(e_step)(
-                    data=xx,
-                    machine=self,
-                )
-                for xx in X
-            ]
-            stats = functools.reduce(operator.iadd, stats)
-            stats = stats.compute()
-        else:
-            stats = e_step(
-                data=X,
-                machine=self,
-            )
-        return stats
+        return e_step(data=X, machine=self)
 
     def _more_tags(self):
         return {

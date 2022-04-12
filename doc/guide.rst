@@ -273,7 +273,7 @@ prior GMM.
     >>> # Training a GMM with 2 Gaussians of dimension 3
     >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)
     >>> # Creating the container
-    >>> gmm_stats = prior_gmm.acc_statistics(data)
+    >>> gmm_stats = prior_gmm.transform(data)
     >>> # Printing the responsibilities
     >>> print(gmm_stats.n/gmm_stats.t)
      [0.6  0.4]
@@ -335,7 +335,7 @@ The snippet bellow shows how to:
    >>> # The input the the ISV Training is the statistics of the GMM
    >>> # Here we are creating a GMMStats for each datapoints, which is NOT usual,
    >>> # but it is done for testing purposes
-   >>> gmm_stats = [ubm.acc_statistics(x[np.newaxis]) for x in X]
+   >>> gmm_stats = [ubm.transform(x[np.newaxis]) for x in X]
 
    >>> # Finally doing the ISV training with U subspace with dimension of 2
    >>> isv_machine = bob.learn.em.ISVMachine(ubm, r_U=2).fit(gmm_stats, y)
@@ -410,7 +410,7 @@ such session variability model.
    >>> # The input the the JFA Training is the statistics of the GMM
    >>> # Here we are creating a GMMStats for each datapoints, which is NOT usual,
    >>> # but it is done for testing purposes
-   >>> gmm_stats = [ubm.acc_statistics(x[np.newaxis]) for x in X]
+   >>> gmm_stats = [ubm.transform(x[np.newaxis]) for x in X]
 
    >>> # Finally doing the JFA training with U and V subspaces with dimension of 2
    >>> jfa_machine = bob.learn.em.JFAMachine(ubm, r_U=2, r_V=2).fit(gmm_stats, y)

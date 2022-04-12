@@ -4,12 +4,14 @@
 
 import logging
 
+import dask
 import numpy as np
 
 from sklearn.base import BaseEstimator
 from sklearn.utils.multiclass import unique_labels
 
 from .gmm import GMMMachine
+from .kmeans import check_and_persist_dask_input
 from .linear_scoring import linear_scoring
 
 logger = logging.getLogger(__name__)
@@ -204,12 +206,8 @@ class FactorAnalysisBase(BaseEstimator):
         """
 
         if self.ubm is None:
-            logger.info("FA: Creating a new GMMMachine.")
+            logger.info("FA: Creating a new GMMMachine and training it.")
             self.ubm = GMMMachine(**self.ubm_kwargs)
-
-        # Train the UBM if not already trained
-        if self.ubm._means is None:
-            logger.info(f"FA: Training the UBM with {self.ubm}.")
             self.ubm.fit(X)  # GMMMachine.fit takes non-labeled data
 
         # Initializing the state matrix
@@ -1153,8 +1151,14 @@ class FactorAnalysisBase(BaseEstimator):
         return self.score_using_stats(model, self.ubm.transform(data))
 
     def fit(self, X, y):
+        input_is_dask, X = check_and_persist_dask_input(X)
         self.initialize(X)
-        stats = [self.ubm.transform(xx) for xx in X]
+        if input_is_dask:
+            stats = [dask.delayed(self.ubm.transform)(xx) for xx in X]
+            stats = dask.compute(*stats)
+        else:
+            stats = [self.ubm.transform(xx) for xx in X]
+        del X  # we don't need to persist X anymore
         return self.fit_using_stats(stats, y)
 
 
@@ -1269,7 +1273,7 @@ class ISVMachine(FactorAnalysisBase):
         # TODO: Point of MAP-REDUCE
         n_acc, f_acc = self.initialize_using_stats(X, y)
         for i in range(self.em_iterations):
-            logger.info("U Training: Iteration %d", i)
+            logger.info("U Training: Iteration %d", i + 1)
             # TODO: Point of MAP-REDUCE
             acc_U_A1, acc_U_A2 = self.e_step(X, y, n_acc, f_acc)
             self.m_step(acc_U_A1, acc_U_A2)
@@ -1309,7 +1313,7 @@ class ISVMachine(FactorAnalysisBase):
         latent_x, _, latent_z = self.initialize_XYZ(y)
         latent_y = None
         for i in range(iterations):
-            logger.info("Enrollment: Iteration %d", i)
+            logger.info("Enrollment: Iteration %d", i + 1)
             latent_x = self.update_x(X, y, UProd, latent_x, latent_y, latent_z)
             latent_z = self.update_z(
                 X, y, latent_x, latent_y, latent_z, n_acc, f_acc
@@ -1738,7 +1742,7 @@ class JFAMachine(FactorAnalysisBase):
         latent_x, latent_y, latent_z = self.initialize_XYZ(y)
 
         for i in range(iterations):
-            logger.info("Enrollment: Iteration %d", i)
+            logger.info("Enrollment: Iteration %d", i + 1)
             latent_y = self.update_y(
                 X, y, VProd, latent_x, latent_y, latent_z, n_acc, f_acc
             )
@@ -1803,7 +1807,7 @@ class JFAMachine(FactorAnalysisBase):
 
         # Updating V
         for i in range(self.em_iterations):
-            logger.info("V Training: Iteration %d", i)
+            logger.info("V Training: Iteration %d", i + 1)
             # TODO: Point of MAP-REDUCE
             acc_V_A1, acc_V_A2 = self.e_step_v(X, y, n_acc, f_acc)
             self.m_step_v(acc_V_A1, acc_V_A2)
@@ -1811,7 +1815,7 @@ class JFAMachine(FactorAnalysisBase):
 
         # Updating U
         for i in range(self.em_iterations):
-            logger.info("U Training: Iteration %d", i)
+            logger.info("U Training: Iteration %d", i + 1)
             # TODO: Point of MAP-REDUCE
             acc_U_A1, acc_U_A2 = self.e_step_u(X, y, latent_y)
             self.m_step_u(acc_U_A1, acc_U_A2)
@@ -1820,7 +1824,7 @@ class JFAMachine(FactorAnalysisBase):
 
         # Updating D
         for i in range(self.em_iterations):
-            logger.info("D Training: Iteration %d", i)
+            logger.info("D Training: Iteration %d", i + 1)
             # TODO: Point of MAP-REDUCE
             acc_D_A1, acc_D_A2 = self.e_step_d(
                 X, y, latent_x, latent_y, n_acc, f_acc

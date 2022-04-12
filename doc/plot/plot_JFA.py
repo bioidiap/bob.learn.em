@@ -24,7 +24,7 @@ def isv_train(features, ubm):
         user_stats = []
         for f in user:
             s = bob.learn.em.GMMStats(ubm.shape[0], ubm.shape[1])
-            ubm.acc_statistics(f, s)
+            ubm.transform(f, s)
             user_stats.append(s)
         stats.append(user_stats)
 
@@ -75,7 +75,7 @@ ubm.variances = np.array(
 ubm.weights = np.array([0.36, 0.36, 0.28])
 # .fit(X)
 
-gmm_stats = [ubm.acc_statistics(x[np.newaxis]) for x in X]
+gmm_stats = [ubm.transform(x[np.newaxis]) for x in X]
 jfa_machine = bob.learn.em.JFAMachine(ubm, r_U, r_V, em_iterations=50)
 
 # Initializing with old bob initialization
@@ -94,7 +94,7 @@ jfa_machine = jfa_machine.fit(gmm_stats, y)
 
 # .fit(gmm_stats, y)
 
-# gmm_stats = [ubm.acc_statistics(x) for x in [setosa, versicolor, virginica]]
+# gmm_stats = [ubm.transform(x) for x in [setosa, versicolor, virginica]]
 # jfa_machine = bob.learn.em.JFAMachine(ubm, r_U, r_V).fit(gmm_stats, [0, 1, 2])
 
 
