@@ -7,11 +7,12 @@ import numpy as np
 logger = logging.getLogger(__name__)
 
 
-def check_and_persist_dask_input(data):
+def check_and_persist_dask_input(data, persist=True):
     # check if input is a dask array. If so, persist and rebalance data
     input_is_dask = False
     if isinstance(data, da.Array):
-        data: da.Array = data.persist()
+        if persist:
+            data: da.Array = data.persist()
         input_is_dask = True
         # if there is a dask distributed client, rebalance data
         try:

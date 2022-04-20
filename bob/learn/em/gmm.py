@@ -854,7 +854,7 @@ class GMMMachine(BaseEstimator):
         """Returns the statistics for `X`."""
         return e_step(data=X, machine=self)
 
-    def transform_one_by_one(self, X):
+    def stats_per_sample(self, X):
         return [e_step(data=xx, machine=self) for xx in X]
 
     def _more_tags(self):
