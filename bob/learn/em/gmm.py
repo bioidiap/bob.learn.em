@@ -18,11 +18,8 @@ import numpy as np
 from h5py import File as HDF5File
 from sklearn.base import BaseEstimator
 
-from .kmeans import (
-    KMeansMachine,
-    array_to_delayed_list,
-    check_and_persist_dask_input,
-)
+from .kmeans import KMeansMachine
+from .utils import array_to_delayed_list, check_and_persist_dask_input
 
 logger = logging.getLogger(__name__)
 
@@ -853,9 +850,12 @@ class GMMMachine(BaseEstimator):
             )
         return self
 
-    def transform(self, X, **kwargs):
+    def transform(self, X):
         """Returns the statistics for `X`."""
         return e_step(data=X, machine=self)
+
+    def transform_one_by_one(self, X):
+        return [e_step(data=xx, machine=self) for xx in X]
 
     def _more_tags(self):
         return {

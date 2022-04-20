@@ -194,7 +194,7 @@ def test_JFATrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
-    latent_y, latent_z = it.enroll(gse, 5)
+    latent_y, latent_z = it.enroll_using_stats(gse, 5)
 
     y_ref = np.array([0.555991469319657, 0.002773650670010], "float64")
     z_ref = np.array(
@@ -302,7 +302,7 @@ def test_ISVTrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
-    latent_z = it.enroll(gse, 5)
+    latent_z = it.enroll_using_stats(gse, 5)
     np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
@@ -320,13 +320,14 @@ def test_JFATrainInitialize():
     it = JFAMachine(2, 2, em_iterations=10, ubm=ubm)
     # first round
 
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    n_classes = it.estimate_number_of_classes(TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u1 = it.U
     v1 = it.V
     d1 = it.D
 
     # second round
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u2 = it.U
     v2 = it.V
     d2 = it.D
@@ -350,12 +351,13 @@ def test_ISVTrainInitialize():
     it = ISVMachine(2, em_iterations=10, ubm=ubm)
     # it.rng = rng
 
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    n_classes = it.estimate_number_of_classes(TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u1 = copy.deepcopy(it.U)
     d1 = copy.deepcopy(it.D)
 
     # second round
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u2 = it.U
     d2 = it.D
 
