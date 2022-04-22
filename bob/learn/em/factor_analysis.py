@@ -180,12 +180,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     @U.setter
     def U(self, value):
-        U_shape = (self.supervector_dimension, self.r_U)
-        if value.shape != U_shape:
-            raise ValueError(
-                f"U must be a numpy array of shape {U_shape}, but a matrix of shape {value.shape} was provided."
-            )
-        self._U = value
+        self._U = np.array(value)
 
     @property
     def D(self):
@@ -194,12 +189,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     @D.setter
     def D(self, value):
-        D_shape = (self.supervector_dimension,)
-        if value.shape != D_shape:
-            raise ValueError(
-                f"D must be a numpy array of shape {D_shape}, but a matrix of shape {value.shape} was provided."
-            )
-        self._D = value
+        self._D = np.array(value)
 
     @property
     def V(self):
@@ -208,12 +198,7 @@ class FactorAnalysisBase(BaseEstimator):
 
     @V.setter
     def V(self, value):
-        V_shape = (self.supervector_dimension, self.r_V)
-        if value.shape != V_shape:
-            raise ValueError(
-                f"V must be a numpy array of shape {V_shape}, but a matrix of shape {value.shape} was provided."
-            )
-        self._V = value
+        self._V = np.array(value)
 
     def estimate_number_of_classes(self, y):
         """
