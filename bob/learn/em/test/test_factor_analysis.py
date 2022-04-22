@@ -556,8 +556,8 @@ def test_ISV_JFA_fit():
                 test_attr = "V"
 
             err_msg = f"Test failed with prior={prior} and machine_type={machine_type} and transform={transform}"
-            # with multiprocess_dask_client():
-            machine.fit(data, labels)
+            with multiprocess_dask_client():
+                machine.fit(data, labels)
 
             arr = getattr(machine, test_attr)
             np.testing.assert_allclose(
