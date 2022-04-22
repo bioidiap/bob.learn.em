@@ -329,33 +329,21 @@ The snippet bellow shows how to:
    >>> data_class2 = np.random.normal(-0.2, 0.2, (10, 3))
    >>> X = np.vstack((data_class1, data_class2))
    >>> y = np.hstack((np.zeros(10, dtype=int), np.ones(10, dtype=int)))
-   >>> # Training an UBM with 2 gaussians
-   >>> ubm = bob.learn.em.GMMMachine(2).fit(X)
-
-   >>> # The input the the ISV Training is the statistics of the GMM
-   >>> # Here we are creating a GMMStats for each datapoints, which is NOT usual,
-   >>> # but it is done for testing purposes
-   >>> gmm_stats = [ubm.transform(x[np.newaxis]) for x in X]
-
-   >>> # Finally doing the ISV training with U subspace with dimension of 2
-   >>> isv_machine = bob.learn.em.ISVMachine(ubm, r_U=2).fit(gmm_stats, y)
-   >>> print(isv_machine.U)
-     [[-0.079 -0.011]
-     [ 0.078  0.039]
-     [ 0.129  0.018]
-     [ 0.175  0.254]
-     [ 0.019  0.027]
-     [-0.132 -0.191]]
+   >>> # Create an ISV machine with a UBM of 2 gaussians
+   >>> isv_machine = bob.learn.em.ISVMachine(r_U=2, ubm_kwargs=dict(n_gaussians=2))
+   >>> _ = isv_machine.fit(X, y)  # DOCTEST: +SKIP_
+   >>> isv_machine.U
+     array(...)
 
    >>> # Enrolling a subject
    >>> enroll_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> model = isv_machine.enroll_with_array(enroll_data)
+   >>> model = isv_machine.enroll(enroll_data)
    >>> print(model)
      [[ 0.54   0.246  0.505  1.617 -0.791  0.746]]
 
    >>> # Probing
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> score = isv_machine.score_with_array(model, probe_data)
+   >>> score = isv_machine.score(model, probe_data)
    >>> print(score)
      [2.754]
 
@@ -404,31 +392,19 @@ such session variability model.
    >>> data_class2 = np.random.normal(-0.2, 0.2, (10, 3))
    >>> X = np.vstack((data_class1, data_class2))
    >>> y = np.hstack((np.zeros(10, dtype=int), np.ones(10, dtype=int)))
-   >>> # Training an UBM with 2 gaussians
-   >>> ubm = bob.learn.em.GMMMachine(2).fit(X)
-
-   >>> # The input the the JFA Training is the statistics of the GMM
-   >>> # Here we are creating a GMMStats for each datapoints, which is NOT usual,
-   >>> # but it is done for testing purposes
-   >>> gmm_stats = [ubm.transform(x[np.newaxis]) for x in X]
-
-   >>> # Finally doing the JFA training with U and V subspaces with dimension of 2
-   >>> jfa_machine = bob.learn.em.JFAMachine(ubm, r_U=2, r_V=2).fit(gmm_stats, y)
-   >>> print(jfa_machine.U)
-     [[-0.069 -0.029]
-     [ 0.079  0.039]
-     [ 0.123  0.042]
-     [ 0.17   0.255]
-     [ 0.018  0.027]
-     [-0.128 -0.192]]
+   >>> # Create a JFA machine with a UBM of 2 gaussians
+   >>> jfa_machine = bob.learn.em.JFAMachine(r_U=2, r_V=2, ubm_kwargs=dict(n_gaussians=2))
+   >>> _ = jfa_machine.fit(X, y)
+   >>> jfa_machine.U
+     array(...)
 
    >>> enroll_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> model = jfa_machine.enroll_with_array(enroll_data)
+   >>> model = jfa_machine.enroll(enroll_data)
    >>> print(model)
      (array([0.634, 0.165]), array([ 0.,  0.,  0.,  0., -0.,  0.]))
 
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> score = jfa_machine.score_with_array(model, probe_data)
+   >>> score = jfa_machine.score(model, probe_data)
    >>> print(score)
      [0.471]
 
