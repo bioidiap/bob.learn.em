@@ -557,7 +557,7 @@ def test_ISV_JFA_fit():
                 relevance_factor=4,
                 em_iterations=50,
                 ubm_kwargs=ubm_kwargs,
-                seed=10,
+                random_state=10,
             )
 
             if machine_type == "isv":

@@ -850,9 +850,14 @@ class GMMMachine(BaseEstimator):
             )
         return self
 
+    def acc_stats(self, X):
+        """Returns the statistics for `X`."""
+        # we need this because sometimes the transform function gets overridden
+        return e_step(data=X, machine=self)
+
     def transform(self, X):
         """Returns the statistics for `X`."""
-        return e_step(data=X, machine=self)
+        return self.acc_stats(X)
 
     def stats_per_sample(self, X):
         return [e_step(data=xx, machine=self) for xx in X]
