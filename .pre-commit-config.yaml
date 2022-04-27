@@ -14,6 +14,11 @@ repos:
     rev: 3.9.2
     hooks:
       - id: flake8
+        exclude: |
+              (?x)^(
+                  bob/devtools/templates/setup.py|
+                  deps/bob-devel/run_test.py
+              )$
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.1.0
     hooks:

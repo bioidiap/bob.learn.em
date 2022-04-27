@@ -18,11 +18,8 @@ import numpy as np
 from h5py import File as HDF5File
 from sklearn.base import BaseEstimator
 
-from .kmeans import (
-    KMeansMachine,
-    array_to_delayed_list,
-    check_and_persist_dask_input,
-)
+from .kmeans import KMeansMachine
+from .utils import array_to_delayed_list, check_and_persist_dask_input
 
 logger = logging.getLogger(__name__)
 
@@ -135,16 +132,14 @@ def e_step(data, machine):
     # Count of samples [int]
     statistics.t += data.shape[0]
     # Responsibilities [array of shape (n_gaussians,)]
-    statistics.n = statistics.n + responsibility.sum(axis=-1)
+    statistics.n += responsibility.sum(axis=-1)
     for i in range(n_gaussians):
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = responsibility[i, :, None] * data
         # First order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_px[i] = statistics.sum_px[i] + np.sum(px, axis=0)
+        statistics.sum_px[i] += np.sum(px, axis=0)
         # Second order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_pxx[i] = statistics.sum_pxx[i] + np.sum(
-            px * data, axis=0
-        )
+        statistics.sum_pxx[i] += np.sum(px * data, axis=0)
 
     return statistics
 
@@ -855,12 +850,17 @@ class GMMMachine(BaseEstimator):
             )
         return self
 
-    def transform(self, X, **kwargs):
+    def acc_stats(self, X):
         """Returns the statistics for `X`."""
-        return e_step(
-            data=X,
-            machine=self,
-        )
+        # we need this because sometimes the transform function gets overridden
+        return e_step(data=X, machine=self)
+
+    def transform(self, X):
+        """Returns the statistics for `X`."""
+        return self.acc_stats(X)
+
+    def stats_per_sample(self, X):
+        return [e_step(data=xx, machine=self) for xx in X]
 
     def _more_tags(self):
         return {

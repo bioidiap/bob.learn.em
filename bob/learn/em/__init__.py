@@ -1,5 +1,6 @@
 import bob.extension
 
+from .factor_analysis import ISVMachine, JFAMachine
 from .gmm import GMMMachine, GMMStats
 from .kmeans import KMeansMachine
 from .linear_scoring import linear_scoring  # noqa: F401
@@ -29,10 +30,6 @@ def __appropriate__(*args):
 
 
 __appropriate__(
-    KMeansMachine,
-    GMMMachine,
-    GMMStats,
-    WCCN,
-    Whitening,
+    KMeansMachine, GMMMachine, GMMStats, WCCN, Whitening, ISVMachine, JFAMachine
 )
 __all__ = [_ for _ in dir() if not _.startswith("_")]

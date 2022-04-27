@@ -15,6 +15,8 @@ import scipy.spatial.distance
 from dask_ml.cluster.k_means import k_init
 from sklearn.base import BaseEstimator
 
+from .utils import array_to_delayed_list, check_and_persist_dask_input
+
 logger = logging.getLogger(__name__)
 
 
@@ -169,32 +171,6 @@ def reduce_indices_means_vars(stats):
     variances = (variances_sum / weights_count[:, None]) - (means**2)
 
     return variances, weights
-
-
-def check_and_persist_dask_input(data):
-    # check if input is a dask array. If so, persist and rebalance data
-    input_is_dask = False
-    if isinstance(data, da.Array):
-        data: da.Array = data.persist()
-        input_is_dask = True
-        # if there is a dask distributed client, rebalance data
-        try:
-            client = dask.distributed.Client.current()
-            client.rebalance()
-        except ValueError:
-            pass
-
-    else:
-        data = np.asarray(data)
-    return input_is_dask, data
-
-
-def array_to_delayed_list(data, input_is_dask):
-    # If input is a dask array, convert to delayed chunks
-    if input_is_dask:
-        data = data.to_delayed().ravel().tolist()
-        logger.debug(f"Got {len(data)} chunks.")
-    return data
 
 
 class KMeansMachine(BaseEstimator):
