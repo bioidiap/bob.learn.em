@@ -1,2 +1,0 @@
-# The bob.core>2.0.5 in the requirements.txt is making the bob.core not download
-bob.core
