@@ -231,8 +231,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         if self.ubm is None:
             logger.info("Creating a new GMMMachine and training it.")
-            gmm_class = self.ubm_kwargs.pop("gmm_class", GMMMachine)
-            self.ubm: GMMMachine = gmm_class(**self.ubm_kwargs)
+            self.ubm = GMMMachine(**self.ubm_kwargs)
             self.ubm.fit(X)
 
         if self.ubm._means is None:
