@@ -183,7 +183,9 @@ class GMMStats:
         Second order statistic
     """
 
-    def __init__(self, n_gaussians: int, n_features: int) -> None:
+    def __init__(self, n_gaussians: int, n_features: int, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         self.n_gaussians = n_gaussians
         self.n_features = n_features
         self.log_likelihood = 0
@@ -420,6 +422,7 @@ class GMMMachine(BaseEstimator):
         mean_var_update_threshold: float = EPSILON,
         map_alpha: float = 0.5,
         map_relevance_factor: Union[None, float] = 4,
+        **kwargs,
     ):
         """
         Parameters
@@ -458,6 +461,8 @@ class GMMMachine(BaseEstimator):
             Factor for the computation of alpha with Reynolds adaptation. (Used when
             `trainer == "map"`)
         """
+
+        super().__init__(**kwargs)
 
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"

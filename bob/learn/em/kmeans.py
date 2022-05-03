@@ -202,6 +202,7 @@ class KMeansMachine(BaseEstimator):
         random_state: Union[int, np.random.RandomState] = 0,
         init_max_iter: Union[int, None] = 5,
         oversampling_factor: float = 2,
+        **kwargs,
     ) -> None:
         """
         Parameters
@@ -218,6 +219,8 @@ class KMeansMachine(BaseEstimator):
         init_max_iter:
             The maximum number of iterations for the initialization part.
         """
+
+        super().__init__(**kwargs)
 
         if n_clusters < 1:
             raise ValueError("The Number of cluster should be greater thant 0.")
