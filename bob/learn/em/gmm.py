@@ -460,6 +460,8 @@ class GMMMachine(BaseEstimator):
             `trainer == "map"`)
         """
 
+        super().__init__(**kwargs)
+
         self.n_gaussians = n_gaussians
         self.trainer = trainer if trainer in ["ml", "map"] else "ml"
         self.m_step_func = (
@@ -506,7 +508,6 @@ class GMMMachine(BaseEstimator):
             self.weights = weights
         self.map_alpha = map_alpha
         self.map_relevance_factor = map_relevance_factor
-        super().__init__(**kwargs)
 
     @property
     def weights(self):
