@@ -183,7 +183,9 @@ class GMMStats:
         Second order statistic
     """
 
-    def __init__(self, n_gaussians: int, n_features: int) -> None:
+    def __init__(self, n_gaussians: int, n_features: int, **kwargs) -> None:
+        super().__init__(**kwargs)
+
         self.n_gaussians = n_gaussians
         self.n_features = n_features
         self.log_likelihood = 0

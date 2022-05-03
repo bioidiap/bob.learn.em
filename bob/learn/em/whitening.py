@@ -41,7 +41,8 @@ class Whitening(TransformerMixin, BaseEstimator):
 
     """
 
-    def __init__(self, pinv: bool = False):
+    def __init__(self, pinv: bool = False, **kwargs):
+        super().__init__(**kwargs)
         self.pinv = pinv
 
     def fit(self, X, y=None):
