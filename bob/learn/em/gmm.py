@@ -420,6 +420,7 @@ class GMMMachine(BaseEstimator):
         mean_var_update_threshold: float = EPSILON,
         map_alpha: float = 0.5,
         map_relevance_factor: Union[None, float] = 4,
+        **kwargs,
     ):
         """
         Parameters
@@ -505,6 +506,7 @@ class GMMMachine(BaseEstimator):
             self.weights = weights
         self.map_alpha = map_alpha
         self.map_relevance_factor = map_relevance_factor
+        super().__init__(**kwargs)
 
     @property
     def weights(self):
