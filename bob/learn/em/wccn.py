@@ -34,7 +34,8 @@ class WCCN(TransformerMixin, BaseEstimator):
 
     """
 
-    def __init__(self, pinv=False):
+    def __init__(self, pinv=False, **kwargs):
+        super().__init__(**kwargs)
         self.pinv = pinv
 
     def fit(self, X, y):
