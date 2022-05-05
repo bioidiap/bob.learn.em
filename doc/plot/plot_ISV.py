@@ -46,7 +46,7 @@ isv_machine.U = np.array(
     [[-0.150035, -0.44441, -1.67812, 2.47621, -0.52885, 0.659141]]
 ).T
 
-isv_machine = isv_machine.fit(X, y)
+isv_machine = isv_machine.fit_using_array(X, y)
 
 # Variability direction
 u0 = isv_machine.U[0:2, 0] / np.linalg.norm(isv_machine.U[0:2, 0])
