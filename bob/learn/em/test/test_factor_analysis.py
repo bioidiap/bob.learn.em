@@ -121,12 +121,12 @@ def test_JFATrainAndEnrol():
     ubm = GMMMachine(2, 3)
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
-    it = JFAMachine(2, 2, em_iterations=10, ubm=ubm)
+    it = JFAMachine(2, 2, em_iterations=10, enroll_iterations=5, ubm=ubm)
 
     it.U = copy.deepcopy(M_u)
     it.V = copy.deepcopy(M_v)
     it.D = copy.deepcopy(M_d)
-    it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
 
     v_ref = np.array(
         [
@@ -194,7 +194,7 @@ def test_JFATrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
-    latent_y, latent_z = it.enroll_using_stats(gse, 5)
+    latent_y, latent_z = it.enroll(gse)
 
     y_ref = np.array([0.555991469319657, 0.002773650670010], "float64")
     z_ref = np.array(
@@ -265,10 +265,11 @@ def test_ISVTrainAndEnrol():
         r_U=2,
         relevance_factor=4.0,
         em_iterations=10,
+        enroll_iterations=5,
     )
 
     it.U = copy.deepcopy(M_u)
-    it = it.fit_using_stats(TRAINING_STATS_X, TRAINING_STATS_y)
+    it = it.fit(TRAINING_STATS_X, TRAINING_STATS_y)
 
     np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
     np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
@@ -302,7 +303,7 @@ def test_ISVTrainAndEnrol():
     gse2.sum_px = Fe[:, 1].reshape(2, 3)
 
     gse = [gse1, gse2]
-    latent_z = it.enroll_using_stats(gse, 5)
+    latent_z = it.enroll(gse)
     np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
@@ -321,13 +322,13 @@ def test_JFATrainInitialize():
     # first round
 
     n_classes = it.estimate_number_of_classes(TRAINING_STATS_y)
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u1 = it.U
     v1 = it.V
     d1 = it.D
 
     # second round
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u2 = it.U
     v2 = it.V
     d2 = it.D
@@ -352,12 +353,12 @@ def test_ISVTrainInitialize():
     # it.rng = rng
 
     n_classes = it.estimate_number_of_classes(TRAINING_STATS_y)
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u1 = copy.deepcopy(it.U)
     d1 = copy.deepcopy(it.D)
 
     # second round
-    it.initialize_using_stats(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
+    it.initialize(TRAINING_STATS_X, TRAINING_STATS_y, n_classes)
     u2 = it.U
     d2 = it.D
 
@@ -397,14 +398,14 @@ def test_JFAMachine():
     model = [y, z]
 
     score_ref = -2.111577181208289
-    score = m.score_using_stats(model, gs)
+    score = m.score(model, gs)
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
     # Scoring with numpy array
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = 2.028009315286946
-    score = m.score(model, X)
+    score = m.score_using_array(model, X)
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
@@ -436,7 +437,7 @@ def test_ISVMachine():
 
     # Enrolled model
     latent_z = np.array([3, 4, 1, 2, 0, 1], "float64")
-    score = isv_machine.score_using_stats(latent_z, gs)
+    score = isv_machine.score(latent_z, gs)
     score_ref = -3.280498193082100
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
@@ -444,7 +445,7 @@ def test_ISVMachine():
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = -1.2343813195374242
-    score = isv_machine.score(latent_z, X)
+    score = isv_machine.score_using_array(latent_z, X)
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
@@ -573,7 +574,10 @@ def test_ISV_JFA_fit():
 
             err_msg = f"Test failed with prior={prior} and machine_type={machine_type} and transform={transform}"
             with multiprocess_dask_client():
-                machine.fit(data, labels)
+                machine.fit_using_array(data, labels)
+            print(
+                f"\nFinished training machine={machine_type} with prior={prior} and transform={transform}"
+            )
 
             arr = getattr(machine, test_attr)
             np.testing.assert_allclose(

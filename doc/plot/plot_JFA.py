@@ -56,7 +56,7 @@ jfa_machine.Y = np.array(
 jfa_machine.D = np.array(
     [0.732467, 0.281321, 0.543212, -0.512974, 1.04108, 0.835224]
 )
-jfa_machine = jfa_machine.fit(X, y)
+jfa_machine = jfa_machine.fit_using_array(X, y)
 
 
 # Variability direction U

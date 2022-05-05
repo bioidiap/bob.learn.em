@@ -9,7 +9,6 @@ import operator
 import dask
 import numpy as np
 
-from dask.array.core import Array
 from dask.delayed import Delayed
 from sklearn.base import BaseEstimator
 from sklearn.utils import check_consistent_length
@@ -23,14 +22,11 @@ logger = logging.getLogger(__name__)
 
 
 def is_input_dask_nested(X):
-    """
-    Check if the input is a dask delayed or array or a (nested) list of dask
-    delayed or array objects.
-    """
+    """Check if the input is a dask delayed or a (nested) list of dask delayed."""
     if isinstance(X, (list, tuple)):
         return is_input_dask_nested(X[0])
 
-    if isinstance(X, (Delayed, Array)):
+    if isinstance(X, Delayed):
         return True
     else:
         return False
@@ -51,9 +47,15 @@ def check_dask_input_samples_per_class(X, y):
     return input_is_dask, n_classes, n_samples_per_class
 
 
-def reduce_iadd(a):
-    """Reduces a list by adding all elements into the first element"""
-    return functools.reduce(operator.iadd, a)
+def reduce_iadd(*args):
+    """Reduces one or several lists by adding all elements into the first element"""
+    ret = []
+    for a in args:
+        ret.append(functools.reduce(operator.iadd, a))
+
+    if len(ret) == 1:
+        return ret[0]
+    return ret
 
 
 def mult_along_axis(A, B, axis):
@@ -61,10 +63,6 @@ def mult_along_axis(A, B, axis):
     Magic function to multiply two arrays along a given axis.
     Taken from https://stackoverflow.com/questions/30031828/multiply-numpy-ndarray-with-1d-array-along-a-given-axis
     """
-
-    # ensure we're working with Numpy arrays
-    A = np.array(A)
-    B = np.array(B)
 
     # shape check
     if axis >= A.ndim:
@@ -129,6 +127,7 @@ class FactorAnalysisBase(BaseEstimator):
         relevance_factor=4.0,
         em_iterations=10,
         random_state=0,
+        enroll_iterations=1,
         ubm=None,
         ubm_kwargs=None,
         **kwargs,
@@ -138,6 +137,7 @@ class FactorAnalysisBase(BaseEstimator):
         self.ubm_kwargs = ubm_kwargs
         self.em_iterations = em_iterations
         self.random_state = random_state
+        self.enroll_iterations = enroll_iterations
 
         # axis 1 dimensions of U and V
         self.r_U = r_U
@@ -208,7 +208,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return len(unique_labels(y))
 
-    def initialize(self, X):
+    def initialize_using_array(self, X):
         """
         Accumulating 0th and 1st order statistics. Trains the UBM if needed.
 
@@ -238,13 +238,15 @@ class FactorAnalysisBase(BaseEstimator):
             logger.info("UBM means are None, training the UBM.")
             self.ubm.fit(X)
 
+    def initialize(self, ubm_projected_X, y, n_classes):
+        # Accumulating 0th and 1st order statistics
+        # https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/ISVTrainer.cpp#L68
+
+        logger.debug("Initializing the ISV/JFA using the UBM statistics.")
+
         # Initializing the state matrix
         if not hasattr(self, "_U") or not hasattr(self, "_D"):
             self.create_UVD()
-
-    def initialize_using_stats(self, ubm_projected_X, y, n_classes):
-        # Accumulating 0th and 1st order statistics
-        # https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/ISVTrainer.cpp#L68
 
         if is_input_dask_nested(ubm_projected_X):
             n_acc = [
@@ -256,15 +258,14 @@ class FactorAnalysisBase(BaseEstimator):
                 dask.delayed(self._sum_f_statistics)(xx, yy, n_classes)
                 for xx, yy in zip(ubm_projected_X, y)
             ]
-            n_acc, f_acc = dask.compute(n_acc, f_acc)
-            n_acc = reduce_iadd(n_acc)
-            f_acc = reduce_iadd(f_acc)
+            n_acc, f_acc = reduce_iadd(n_acc, f_acc)
         else:
             # 0th order stats
             n_acc = self._sum_n_statistics(ubm_projected_X, y, n_classes)
             # 1st order stats
             f_acc = self._sum_f_statistics(ubm_projected_X, y, n_classes)
 
+        n_acc, f_acc = dask.compute(n_acc, f_acc)
         return n_acc, f_acc
 
     def create_UVD(self):
@@ -322,7 +323,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
         # 0th order stats
-        n_acc = np.zeros((n_classes, self.ubm.n_gaussians))
+        n_acc = np.zeros((n_classes, self.ubm.n_gaussians), like=X[0].n)
 
         # Iterate for each client
         for x_i, y_i in zip(X, y):
@@ -358,7 +359,8 @@ class FactorAnalysisBase(BaseEstimator):
                 n_classes,
                 self.ubm.n_gaussians,
                 self.feature_dimension,
-            )
+            ),
+            like=X[0].sum_px,
         )
         # Iterate for each client
         for x_i, y_i in zip(X, y):
@@ -381,8 +383,8 @@ class FactorAnalysisBase(BaseEstimator):
             i: int
                 Class id to return the statistics for
         """
-        X = np.array(X)
-        return list(X[np.array(y) == i])
+        indices = np.where(np.array(y) == i)[0]
+        return [X[i] for i in indices]
 
     """
     Estimating U and x
@@ -505,7 +507,7 @@ class FactorAnalysisBase(BaseEstimator):
             latent_x = [None] * n_classes
             for y_i in unique_labels(y):
                 latent_x[y_i] = self._compute_latent_x_per_class(
-                    X_i=np.array(X)[y == y_i],
+                    X_i=self._get_statistics_by_class_id(X, y, y_i),
                     UProd=UProd,
                     UTinvSigma=UTinvSigma,
                     latent_y_i=latent_y[y_i] if latent_y is not None else None,
@@ -526,6 +528,9 @@ class FactorAnalysisBase(BaseEstimator):
                 x_i, latent_z_i=latent_z_i, latent_y_i=latent_y_i
             )
             latent_x_i.append(id_plus_prod_ih @ (UTinvSigma @ fn_x_ih))
+        # make sure latent_x_i stays a dask array by converting the list to a
+        # dask array explicitly
+        latent_x_i = np.vstack(latent_x_i)
         latent_x_i = np.swapaxes(latent_x_i, 0, 1)
         return latent_x_i
 
@@ -543,7 +548,6 @@ class FactorAnalysisBase(BaseEstimator):
                 Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
-
         # Inverting A1 over the zero axis
         # https://stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
         inv_A1 = np.linalg.inv(acc_U_A1)
@@ -626,8 +630,10 @@ class FactorAnalysisBase(BaseEstimator):
         """
 
         # U accumulators
-        acc_U_A1 = np.zeros((self.ubm.n_gaussians, self.r_U, self.r_U))
-        acc_U_A2 = np.zeros((self.supervector_dimension, self.r_U))
+        acc_U_A1 = np.zeros(
+            (self.ubm.n_gaussians, self.r_U, self.r_U), like=X[0].n
+        )
+        acc_U_A2 = np.zeros((self.supervector_dimension, self.r_U), like=X[0].n)
 
         # Loops over all people
         for y_i in set(y):
@@ -764,6 +770,8 @@ class FactorAnalysisBase(BaseEstimator):
 
         # m_cache_Fn_z_i = Fi - m_tmp_CD * (m + m_tmp_CD_b); // Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - V*y_{i})
         fn_z_i = f_acc_i.flatten() - tmp_CD * (m + V_dot_v)
+        # convert fn_z_i to dask array here if required to make sure fn_z_i -= ... works
+        fn_z_i = np.array(fn_z_i, like=X_i[0].n)
 
         # Looping over the sessions
         for session_id in range(len(X_i)):
@@ -826,8 +834,8 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        acc_D_A1 = np.zeros((self.supervector_dimension,))
-        acc_D_A2 = np.zeros((self.supervector_dimension,))
+        acc_D_A1 = np.zeros((self.supervector_dimension,), like=X[0].n)
+        acc_D_A2 = np.zeros((self.supervector_dimension,), like=X[0].n)
 
         # Precomputing
         # self._D.T / sigma
@@ -858,7 +866,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return acc_D_A1, acc_D_A2
 
-    def initialize_XYZ(self, n_samples_per_class):
+    def initialize_XYZ(self, n_samples_per_class, like=None):
         """
         Initialize E[x], E[y], E[z] state variables
 
@@ -873,21 +881,22 @@ class FactorAnalysisBase(BaseEstimator):
         latent_x = (n_classes, r_U, n_sessions)
 
         """
+        kw = dict(like=like) if isinstance(like, dask.array.core.Array) else {}
 
         # x (Eq. 36)
         # (n_classes, r_U,  n_samples )
         latent_x = []
         for n_s in n_samples_per_class:
-            latent_x.append(np.zeros((self.r_U, n_s)))
+            latent_x.append(np.zeros((self.r_U, n_s), **kw))
 
         n_classes = len(n_samples_per_class)
         latent_y = (
-            np.zeros((n_classes, self.r_V))
+            np.zeros((n_classes, self.r_V), **kw)
             if self.r_V and self.r_V > 0
             else None
         )
 
-        latent_z = np.zeros((n_classes, self.supervector_dimension))
+        latent_z = np.zeros((n_classes, self.supervector_dimension), **kw)
 
         return latent_x, latent_y, latent_z
 
@@ -1089,8 +1098,10 @@ class FactorAnalysisBase(BaseEstimator):
         """
 
         # U accumulators
-        acc_V_A1 = np.zeros((self.ubm.n_gaussians, self.r_V, self.r_V))
-        acc_V_A2 = np.zeros((self.supervector_dimension, self.r_V))
+        acc_V_A1 = np.zeros(
+            (self.ubm.n_gaussians, self.r_V, self.r_V), like=X[0].n
+        )
+        acc_V_A2 = np.zeros((self.supervector_dimension, self.r_V), like=X[0].n)
 
         # Loops over all people
         for i in set(y):
@@ -1240,7 +1251,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return fn_x.flatten()
 
-    def score(self, model, data):
+    def score_using_array(self, model, data):
         """
         Computes the ISV score using a numpy array as input
 
@@ -1259,18 +1270,23 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        return self.score_using_stats(model, self.ubm.acc_stats(data))
+        return self.score(model, self.ubm.acc_stats(data))
 
-    def fit(self, X, y):
+    def fit_using_array(self, X, y):
+        """Fits the model using a numpy array or a dask array as input
+        The y matrix is computed to a numpy array immediately.
+        """
 
-        input_is_dask, X = check_and_persist_dask_input(X, persist=False)
+        input_is_dask, X = check_and_persist_dask_input(X, persist=True)
+        y = dask.compute(y)[0]
         y = np.squeeze(np.asarray(y))
         check_consistent_length(X, y)
 
-        self.initialize(X)
+        self.initialize_using_array(X)
 
         if input_is_dask:
             # split the X array based on the classes
+            # since the EM algorithm is only parallelizable per class
             X_new, y_new = [], []
             for class_id in unique_labels(y):
                 class_indices = y == class_id
@@ -1279,16 +1295,34 @@ class FactorAnalysisBase(BaseEstimator):
             X, y = X_new, y_new
             del X_new, y_new
 
-            stats = [
-                dask.delayed(self.ubm.stats_per_sample)(xx).persist()
-                for xx in X
-            ]
+            stats = [dask.delayed(self.ubm.transform)(xx).persist() for xx in X]
         else:
-            stats = self.ubm.stats_per_sample(X)
+            stats = self.ubm.transform(X)
 
+        logger.info("Computing statistics per sample")
         del X
-        self.fit_using_stats(stats, y)
+        self.fit(stats, y)
         return self
+
+    def enroll_using_array(self, X):
+        """
+        Enrolls a new client using a numpy array as input
+
+        Parameters
+        ----------
+        X : array
+            features to be enrolled
+
+        iterations : int
+            Number of iterations to perform
+
+        Returns
+        -------
+        self : object
+            z
+
+        """
+        return self.enroll([self.ubm.acc_stats(X)])
 
 
 class ISVMachine(FactorAnalysisBase):
@@ -1349,7 +1383,7 @@ class ISVMachine(FactorAnalysisBase):
         # self.initialize_XYZ(y)
         UProd = self._compute_uprod()
         _, _, latent_z = self.initialize_XYZ(
-            n_samples_per_class=n_samples_per_class
+            n_samples_per_class=n_samples_per_class, like=X[0].n
         )
         latent_y = None
 
@@ -1390,14 +1424,13 @@ class ISVMachine(FactorAnalysisBase):
 
         """
         acc_U_A1 = [acc[0] for acc in acc_U_A1_acc_U_A2_list]
-        acc_U_A1 = reduce_iadd(acc_U_A1)
-
         acc_U_A2 = [acc[1] for acc in acc_U_A1_acc_U_A2_list]
-        acc_U_A2 = reduce_iadd(acc_U_A2)
+
+        acc_U_A1, acc_U_A2 = reduce_iadd(acc_U_A1, acc_U_A2)
 
         return self.update_U(acc_U_A1, acc_U_A2)
 
-    def fit_using_stats(self, X, y):
+    def fit(self, X, y):
         """
         Trains the U matrix (session variability matrix)
 
@@ -1420,10 +1453,10 @@ class ISVMachine(FactorAnalysisBase):
             n_samples_per_class,
         ) = check_dask_input_samples_per_class(X, y)
 
-        n_acc, f_acc = self.initialize_using_stats(X, y, n_classes)
+        n_acc, f_acc = self.initialize(X, y, n_classes)
 
         for i in range(self.em_iterations):
-            logger.info("U Training: Iteration %d", i + 1)
+            logger.info("ISV U Training: Iteration %d", i + 1)
             if input_is_dask:
                 e_step_output = [
                     dask.delayed(self.e_step)(
@@ -1453,7 +1486,7 @@ class ISVMachine(FactorAnalysisBase):
         ubm_projected_X = self.ubm.acc_stats(X)
         return self.estimate_ux(ubm_projected_X)
 
-    def enroll_using_stats(self, X, iterations=1):
+    def enroll(self, X):
         """
         Enrolls a new client
         In ISV, the enrolment is defined as: :math:`m + Dz` with the latent variables `z`
@@ -1464,16 +1497,13 @@ class ISVMachine(FactorAnalysisBase):
         X : list of :py:class:`bob.learn.em.GMMStats`
             List of statistics to be enrolled
 
-
-        iterations : int
-            Number of iterations to perform
-
         Returns
         -------
         self : object
             z
 
         """
+        iterations = self.enroll_iterations
         # We have only one class for enrollment
         y = list(np.zeros(len(X), dtype=np.int32))
         n_acc = self._sum_n_statistics(X, y=y, n_classes=1)
@@ -1504,7 +1534,7 @@ class ISVMachine(FactorAnalysisBase):
 
         return latent_z
 
-    def enroll(self, X, iterations=1):
+    def enroll_using_array(self, X):
         """
         Enrolls a new client using a numpy array as input
 
@@ -1522,9 +1552,9 @@ class ISVMachine(FactorAnalysisBase):
             z
 
         """
-        return self.enroll_using_stats([self.ubm.acc_stats(X)], iterations)
+        return self.enroll([self.ubm.acc_stats(X)])
 
-    def score_using_stats(self, latent_z, data):
+    def score(self, latent_z, data):
         """
         Computes the ISV score
 
@@ -1651,7 +1681,7 @@ class JFAMachine(FactorAnalysisBase):
         VProd = self._compute_vprod()
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(
-            n_samples_per_class=n_samples_per_class
+            n_samples_per_class=n_samples_per_class, like=X[0].n
         )
 
         # UPDATE Y, X AND FINALLY Z
@@ -1698,10 +1728,9 @@ class JFAMachine(FactorAnalysisBase):
 
         """
         acc_V_A1 = [acc[0] for acc in acc_V_A1_acc_V_A2_list]
-        acc_V_A1 = reduce_iadd(acc_V_A1)
-
         acc_V_A2 = [acc[1] for acc in acc_V_A1_acc_V_A2_list]
-        acc_V_A2 = reduce_iadd(acc_V_A2)
+
+        acc_V_A1, acc_V_A2 = reduce_iadd(acc_V_A1, acc_V_A2)
 
         # Inverting A1 over the zero axis
         # https://stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
@@ -1749,7 +1778,7 @@ class JFAMachine(FactorAnalysisBase):
         VProd = self._compute_vprod()
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(
-            n_samples_per_class=n_samples_per_class
+            n_samples_per_class=n_samples_per_class, like=X[0].n
         )
 
         # UPDATE Y, X AND FINALLY Z
@@ -1839,8 +1868,7 @@ class JFAMachine(FactorAnalysisBase):
         acc_U_A1 = [acc[0] for acc in acc_U_A1_acc_U_A2_list]
         acc_U_A2 = [acc[1] for acc in acc_U_A1_acc_U_A2_list]
 
-        acc_U_A1 = reduce_iadd(acc_U_A1)
-        acc_U_A2 = reduce_iadd(acc_U_A2)
+        acc_U_A1, acc_U_A2 = reduce_iadd(acc_U_A1, acc_U_A2)
 
         return self.update_U(acc_U_A1, acc_U_A2)
 
@@ -1973,13 +2001,12 @@ class JFAMachine(FactorAnalysisBase):
         acc_D_A1 = [acc[0] for acc in acc_D_A1_acc_D_A2_list]
         acc_D_A2 = [acc[1] for acc in acc_D_A1_acc_D_A2_list]
 
-        acc_D_A1 = reduce_iadd(acc_D_A1)
-        acc_D_A2 = reduce_iadd(acc_D_A2)
+        acc_D_A1, acc_D_A2 = reduce_iadd(acc_D_A1, acc_D_A2)
 
         self._D = acc_D_A2 / acc_D_A1
         return self._D
 
-    def enroll_using_stats(self, X, iterations=1):
+    def enroll(self, X):
         """
         Enrolls a new client.
         In JFA the enrolment is defined as: :math:`m + Vy + Dz` with the latent variables `y` and `z`
@@ -1990,15 +2017,13 @@ class JFAMachine(FactorAnalysisBase):
         X : list of :py:class:`bob.learn.em.GMMStats`
             List of statistics
 
-        iterations : int
-            Number of iterations to perform
-
         Returns
         -------
         self : array
             z, y latent variables
 
         """
+        iterations = self.enroll_iterations
         # We have only one class for enrollment
         y = list(np.zeros(len(X), dtype=np.int32))
         n_acc = self._sum_n_statistics(X, y=y, n_classes=1)
@@ -2044,27 +2069,7 @@ class JFAMachine(FactorAnalysisBase):
         # The latent variables are wrapped in to 2axis arrays
         return latent_y[0], latent_z[0]
 
-    def enroll(self, X, iterations=1):
-        """
-        Enrolls a new client using a numpy array as input
-
-        Parameters
-        ----------
-        X : array
-            features to be enrolled
-
-        iterations : int
-            Number of iterations to perform
-
-        Returns
-        -------
-        self : object
-            z
-
-        """
-        return self.enroll_using_stats([self.ubm.acc_stats(X)], iterations)
-
-    def fit_using_stats(self, X, y):
+    def fit(self, X, y):
         """
         Trains the U matrix (session variability matrix)
 
@@ -2082,21 +2087,13 @@ class JFAMachine(FactorAnalysisBase):
 
         """
 
-        # In case those variables are already set
-        if (
-            not hasattr(self, "_U")
-            or not hasattr(self, "_V")
-            or not hasattr(self, "_D")
-        ):
-            self.create_UVD()
-
         (
             input_is_dask,
             n_classes,
             n_samples_per_class,
         ) = check_dask_input_samples_per_class(X, y)
 
-        n_acc, f_acc = self.initialize_using_stats(X, y, n_classes=n_classes)
+        n_acc, f_acc = self.initialize(X, y, n_classes=n_classes)
 
         # Updating V
         for i in range(self.em_iterations):
@@ -2191,7 +2188,7 @@ class JFAMachine(FactorAnalysisBase):
 
         return self
 
-    def score_using_stats(self, model, data):
+    def score(self, model, data):
         """
         Computes the JFA score
 
