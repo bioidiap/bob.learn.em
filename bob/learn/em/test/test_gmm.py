@@ -732,7 +732,7 @@ def test_ml_transformer():
         )
         np.testing.assert_almost_equal(machine.variances, expected_variances)
 
-        stats = machine.transform(test_data)
+        stats = machine.acc_stats(test_data)
 
         expected_stats = GMMStats(n_gaussians, n_features)
         expected_stats.init_fields(
@@ -780,7 +780,7 @@ def test_map_transformer():
         expected_weights = np.array([0.46226415, 0.53773585])
         np.testing.assert_almost_equal(machine.weights, expected_weights)
 
-        stats = machine.transform(test_data)
+        stats = machine.acc_stats(test_data)
 
         expected_stats = GMMStats(n_gaussians, n_features)
         expected_stats.init_fields(

@@ -273,7 +273,7 @@ prior GMM.
     >>> # Training a GMM with 2 Gaussians of dimension 3
     >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)
     >>> # Creating the container
-    >>> gmm_stats = prior_gmm.transform(data)
+    >>> gmm_stats = prior_gmm.acc_stats(data)
     >>> # Printing the responsibilities
     >>> print(gmm_stats.n/gmm_stats.t)
      [0.6  0.4]
@@ -331,19 +331,21 @@ The snippet bellow shows how to:
    >>> y = np.hstack((np.zeros(10, dtype=int), np.ones(10, dtype=int)))
    >>> # Create an ISV machine with a UBM of 2 gaussians
    >>> isv_machine = bob.learn.em.ISVMachine(r_U=2, ubm_kwargs=dict(n_gaussians=2))
-   >>> _ = isv_machine.fit(X, y)  # DOCTEST: +SKIP_
+   >>> _ = isv_machine.fit_using_array(X, y)  # DOCTEST: +SKIP_
+   >>> # Alternatively, you can create a pipeline of a GMMMachine and an ISVMachine
+   >>> # and call pipeline.fit(X, y) instead of calling isv.fit_using_array(X, y)
    >>> isv_machine.U
      array(...)
 
    >>> # Enrolling a subject
    >>> enroll_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> model = isv_machine.enroll(enroll_data)
+   >>> model = isv_machine.enroll_using_array(enroll_data)
    >>> print(model)
      [[ 0.54   0.246  0.505  1.617 -0.791  0.746]]
 
    >>> # Probing
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> score = isv_machine.score(model, probe_data)
+   >>> score = isv_machine.score_using_array(model, probe_data)
    >>> print(score)
      [2.754]
 
@@ -394,17 +396,17 @@ such session variability model.
    >>> y = np.hstack((np.zeros(10, dtype=int), np.ones(10, dtype=int)))
    >>> # Create a JFA machine with a UBM of 2 gaussians
    >>> jfa_machine = bob.learn.em.JFAMachine(r_U=2, r_V=2, ubm_kwargs=dict(n_gaussians=2))
-   >>> _ = jfa_machine.fit(X, y)
+   >>> _ = jfa_machine.fit_using_array(X, y)
    >>> jfa_machine.U
      array(...)
 
    >>> enroll_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> model = jfa_machine.enroll(enroll_data)
+   >>> model = jfa_machine.enroll_using_array(enroll_data)
    >>> print(model)
      (array([0.634, 0.165]), array([ 0.,  0.,  0.,  0., -0.,  0.]))
 
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
-   >>> score = jfa_machine.score(model, probe_data)
+   >>> score = jfa_machine.score_using_array(model, probe_data)
    >>> print(score)
      [0.471]
 
