@@ -112,7 +112,7 @@ def e_step(data, machine):
     n_gaussians = len(machine.weights)
 
     # Allow the absence of previous statistics
-    statistics = GMMStats(n_gaussians, data.shape[-1])
+    statistics = GMMStats(n_gaussians, data.shape[-1], like=data)
 
     # Log weighted Gaussian likelihoods [array of shape (n_gaussians,n_samples)]
     log_weighted_likelihoods = log_weighted_likelihood(
@@ -128,18 +128,24 @@ def e_step(data, machine):
     # Accumulate
 
     # Total likelihood [float]
-    statistics.log_likelihood += log_likelihood.sum()
+    statistics.log_likelihood = log_likelihood.sum()
     # Count of samples [int]
-    statistics.t += data.shape[0]
+    statistics.t = data.shape[0]
     # Responsibilities [array of shape (n_gaussians,)]
-    statistics.n += responsibility.sum(axis=-1)
+    statistics.n = responsibility.sum(axis=-1)
+    sum_px, sum_pxx = [], []
     for i in range(n_gaussians):
         # p * x [array of shape (n_gaussians, n_samples, n_features)]
         px = responsibility[i, :, None] * data
         # First order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_px[i] += np.sum(px, axis=0)
+        # statistics.sum_px[i] = np.sum(px, axis=0)
+        sum_px.append(np.sum(px, axis=0))
         # Second order stats [array of shape (n_gaussians, n_features)]
-        statistics.sum_pxx[i] += np.sum(px * data, axis=0)
+        # statistics.sum_pxx[i] = np.sum(px * data, axis=0)
+        sum_pxx.append(np.sum(px * data, axis=0))
+
+    statistics.sum_px = np.vstack(sum_px)
+    statistics.sum_pxx = np.vstack(sum_pxx)
 
     return statistics
 
@@ -183,19 +189,22 @@ class GMMStats:
         Second order statistic
     """
 
-    def __init__(self, n_gaussians: int, n_features: int, **kwargs) -> None:
+    def __init__(
+        self, n_gaussians: int, n_features: int, like=None, **kwargs
+    ) -> None:
         super().__init__(**kwargs)
-
         self.n_gaussians = n_gaussians
         self.n_features = n_features
         self.log_likelihood = 0
         self.t = 0
-        self.n = np.zeros(shape=(self.n_gaussians,), dtype=float)
+        # create dask arrays if required
+        kw = dict(like=like) if like is not None else {}
+        self.n = np.zeros(shape=(self.n_gaussians,), dtype=float, **kw)
         self.sum_px = np.zeros(
-            shape=(self.n_gaussians, self.n_features), dtype=float
+            shape=(self.n_gaussians, self.n_features), dtype=float, **kw
         )
         self.sum_pxx = np.zeros(
-            shape=(self.n_gaussians, self.n_features), dtype=float
+            shape=(self.n_gaussians, self.n_features), dtype=float, **kw
         )
 
     def init_fields(
@@ -357,11 +366,10 @@ class GMMStats:
         """The number of gaussians and their dimensionality."""
         return (self.n_gaussians, self.n_features)
 
-    def compute(self):
-        for name in ("log_likelihood", "t"):
-            setattr(self, name, float(getattr(self, name)))
-        for name in ("n", "sum_px", "sum_pxx"):
-            setattr(self, name, np.asarray(getattr(self, name)))
+    @property
+    def nbytes(self):
+        """The number of bytes used by the statistics n, sum_px, sum_pxx."""
+        return self.n.nbytes + self.sum_px.nbytes + self.sum_pxx.nbytes
 
 
 class GMMMachine(BaseEstimator):
@@ -673,6 +681,9 @@ class GMMMachine(BaseEstimator):
         gaussians_group["variance_thresholds"] = self.variance_thresholds
 
     def __eq__(self, other):
+        if self._means is None:
+            return False
+
         return (
             np.allclose(self.means, other.means)
             and np.allclose(self.variances, other.variances)
@@ -862,16 +873,10 @@ class GMMMachine(BaseEstimator):
 
     def transform(self, X):
         """Returns the statistics for `X`."""
-        return self.acc_stats(X)
+        return self.stats_per_sample(X)
 
     def stats_per_sample(self, X):
         return [e_step(data=xx, machine=self) for xx in X]
-
-    def _more_tags(self):
-        return {
-            "stateless": False,
-            "requires_fit": True,
-        }
 
 
 def ml_gmm_m_step(
