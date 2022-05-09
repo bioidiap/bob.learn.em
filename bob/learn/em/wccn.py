@@ -90,6 +90,3 @@ class WCCN(TransformerMixin, BaseEstimator):
     def transform(self, X):
 
         return ((X - self.input_subtract) / self.input_divide) @ self.weights
-
-    def _more_tags(self):
-        return {"stateless": False, "requires_fit": True}

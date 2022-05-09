@@ -19,3 +19,4 @@ build
 *.egg
 src/
 record.txt
+dask-worker-space
