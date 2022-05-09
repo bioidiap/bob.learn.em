@@ -7,6 +7,7 @@ import logging
 import operator
 
 import dask
+import dask.bag
 import numpy as np
 
 from dask.delayed import Delayed
