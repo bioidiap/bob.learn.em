@@ -31,6 +31,7 @@ requirements:
     - dask-ml {{ dask_ml }}
     - h5py {{ h5py }}
     - h5py >=3
+    - scikit-learn {{ scikit_learn }}
   run:
     - python
     - setuptools
@@ -38,6 +39,9 @@ requirements:
     - {{ pin_compatible('dask') }}
     - {{ pin_compatible('dask-ml') }}
     - {{ pin_compatible('h5py') }}
+    # scikit-learn keeps breaking API in minor versions, so we pin to the
+    # next minor version
+    - {{ pin_compatible('scikit-learn', max_pin='x.x') }}
 
 test:
   imports:
