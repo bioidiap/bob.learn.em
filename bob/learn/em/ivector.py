@@ -2,15 +2,16 @@
 # @author: Yannick Dayer <yannick.dayer@idiap.ch>
 # @date: Fri 06 May 2022 14:18:25 UTC+02
 
+import copy
 import logging
 
-from typing import List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 
 from sklearn.base import BaseEstimator
 
-from bob.learn.em import GMMMachine, GMMStats
+from bob.learn.em import GMMMachine, GMMStats, linear_scoring
 
 logger = logging.getLogger("__name__")
 
@@ -93,7 +94,7 @@ def compute_tct_sigmac_inv(T: np.ndarray, sigma: np.ndarray) -> np.ndarray:
 
     # Vectorized version:
 
-    # T.T (c,t,d) / sigma (c,1,d)
+    # TT_sigma_inv (c,t,d) = T.T (c,t,d) / sigma (c,1,d)
     Tct_sigmacInv = T.transpose(0, 2, 1) / sigma[:, None, :]
 
     # Tt_sigma_inv (c,t,d)
@@ -244,8 +245,10 @@ class IVectorMachine(BaseEstimator):
         self.dim_c = self.ubm.n_gaussians
         self.dim_d = self.ubm.means.shape[-1]
 
-        self.T = np.zeros(shape=(self.dim_c, self.dim_d, self.dim_t))
-        self.sigma = np.zeros(shape=(self.dim_c, self.dim_d))
+        self.T = np.zeros(
+            shape=(self.dim_c, self.dim_d, self.dim_t)
+        )  # TODO random ?
+        self.sigma = copy.deepcopy(self.ubm.variances)
 
     def e_step(self, data: List[GMMStats]) -> IVectorStats:
         """Computes the expectation step of the e-m algorithm."""
@@ -391,4 +394,52 @@ class IVectorMachine(BaseEstimator):
         return self
 
     def project(self, stats: GMMStats) -> IVectorStats:
+        if not isinstance(stats, GMMStats):
+            return [self.project(s) for s in stats]  # TODO yes?
         return forward(self.ubm.means, stats, self.T, self.sigma)
+
+    def transform(self, data: np.ndarray) -> List[IVectorStats]:
+        """Transforms the data using the trained IVectorMachine.
+
+        Parameters
+        ----------
+        data : np.ndarray
+            The data to transform.
+
+        Returns
+        -------
+        np.ndarray
+            The transformed data.
+        """
+        stats = self.project(self.ubm.acc_stats(data))
+        return stats.t
+
+    def enroll(self, stats: List[GMMStats]) -> IVectorStats:
+        """Enrolls a new speaker.
+
+        Parameters
+        ----------
+        stats : List[GMMStats]
+            The GMM statistics of the speaker to enroll.
+
+        Returns
+        -------
+        IVectorStats
+            The IVector statistics of the speaker.
+        """
+        return self.project(stats)
+
+    def score(self, model: IVectorStats, probes: List[GMMStats]) -> List[float]:
+        return linear_scoring(
+            model,
+            ubm=self.ubm,
+            test_stats=probes,
+            test_channel_offsets=0,
+            frame_length_normalization=True,
+        )
+
+    def _more_tags(self) -> Dict[str, Any]:
+        return {
+            "requires_fit": True,
+            "bob_fit_supports_dask_arrays": True,
+        }
