@@ -186,27 +186,6 @@ def compute_tt_sigma_inv_fnorm(
     return output
 
 
-def forward(
-    ubm_means: np.ndarray, stats: GMMStats, T: np.ndarray, sigma: np.ndarray
-):
-    # void bob::learn::em::IVectorMachine::forward_(const bob::learn::em::GMMStats& gs,
-    #   blitz::Array<double,1>& ivector) const
-    # {
-    #   // Computes \f$(Id + \sum_{c=1}^{C} N_{i,j,c} T^{T} \Sigma_{c}^{-1} T)\f$
-    #   computeIdTtSigmaInvT(gs, m_tmp_tt);
-
-    #   // Computes \f$T^{T} \Sigma^{-1} \sum_{c=1}^{C} (F_c - N_c ubmmean_{c})\f$
-    #   computeTtSigmaInvFnorm(gs, m_tmp_t1);
-
-    #   // Solves m_tmp_tt.ivector = m_tmp_t1
-    #   bob::math::linsolve(m_tmp_tt, m_tmp_t1, ivector);
-    # }
-    return np.linalg.solve(
-        compute_id_tt_sigma_inv_t(stats, T, sigma),
-        compute_tt_sigma_inv_fnorm(ubm_means, stats, T, sigma),
-    )
-
-
 class IVectorMachine(BaseEstimator):
     """Trains and projects data using I-Vector.
 
@@ -397,26 +376,39 @@ class IVectorMachine(BaseEstimator):
             logger.info(f"Did not converge after {step+1} steps.")
         return self
 
-    def project(self, stats: GMMStats) -> IVectorStats:
-        if not isinstance(stats, GMMStats):
-            return [self.project(s) for s in stats]  # TODO yes?
-        return forward(self.ubm.means, stats, self.T, self.sigma)
+    def project(self, stats: GMMStats) -> np.ndarray:
+        """Projects the GMMStats on the IVectorMachine.
 
-    def transform(self, data: np.ndarray) -> List[IVectorStats]:
+        This takes data already projected onto the UBM.
+
+        **Returns:**
+        The IVector of the input stats.
+
+        """
+
+        return np.linalg.solve(
+            compute_id_tt_sigma_inv_t(stats, self.T, self.sigma),
+            compute_tt_sigma_inv_fnorm(
+                self.ubm.means, stats, self.T, self.sigma
+            ),
+        )
+
+    def transform(self, data: List[np.ndarray]) -> List[np.ndarray]:
         """Transforms the data using the trained IVectorMachine.
 
-        Parameters
-        ----------
-        data : np.ndarray
-            The data to transform.
+        This takes MFCC data, will project them onto the ubm, and compute the IVector
+        statistics.
 
-        Returns
-        -------
-        np.ndarray
-            The transformed data.
+        **Parameters:**
+
+        data
+        The data (MFCC features) to transform. Arrays of shape (n_samples, n_features).
+
+        **Returns:**
+
+        The IVector for each sample. Shape: (dim_t,)
         """
-        stats = self.project(self.ubm.acc_stats(data))
-        return stats.t
+        return [self.project(self.ubm.acc_stats(d)) for d in data]
 
     def enroll(self, stats: List[GMMStats]) -> IVectorStats:
         """Enrolls a new speaker.
@@ -433,7 +425,9 @@ class IVectorMachine(BaseEstimator):
         """
         return self.project(stats)
 
-    def score(self, model: IVectorStats, probes: List[GMMStats]) -> List[float]:
+    def score(
+        self, model: IVectorStats, probes: List[np.ndarray]
+    ) -> List[float]:
         return linear_scoring(
             model,
             ubm=self.ubm,

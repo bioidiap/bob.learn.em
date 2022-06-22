@@ -2,8 +2,9 @@
 # @author: Yannick Dayer <yannick.dayer@idiap.ch>
 # @date: Fri 06 May 2022 12:59:21 UTC+02
 
+import copy
+
 import numpy as np
-import pytest
 
 from bob.learn.em import GMMMachine, GMMStats, IVectorMachine
 
@@ -58,29 +59,24 @@ def test_ivector_machine_projection():
 
 
 def test_ivector_machine_transformer():
+    dim_t = 2
     ubm = GMMMachine(n_gaussians=2)
     ubm.means = np.array([[1, 7, 4], [4, 5, 3]], dtype=float)
     ubm.variances = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]], dtype=float)
-    machine = IVectorMachine(ubm=ubm, dim_t=2)
+    machine = IVectorMachine(ubm=ubm, dim_t=dim_t)
+    machine.T = np.array(
+        [[[1, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]], dtype=float
+    )
     assert hasattr(machine, "fit")
     assert hasattr(machine, "transform")
     assert hasattr(machine, "enroll")
     assert hasattr(machine, "score")
 
-    transformed = machine.transform([np.ndarray([1, 2, 3])])[0]
-    assert isinstance(transformed, IVectorMachine)
-    nij_sigma_wij2_ref = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])  # TODO
-    nij_ref = np.array([[1, 2, 3], [4, 5, 6]])
-    fnorm_sigma_wij_ref = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])  # TODO
-    snormij_ref = np.array([[1, 2, 3], [4, 5, 6]])
-    np.testing.assert_almost_equal(
-        transformed.nij_sigma_wij2, nij_sigma_wij2_ref
+    transformed = machine.transform([np.array([1, 2, 3])])[0]
+    assert isinstance(transformed, np.ndarray)
+    np.testing.assert_array_equal(
+        transformed, np.array([-0.04213415, 0.21463343])
     )
-    np.testing.assert_almost_equal(transformed.nij, nij_ref)
-    np.testing.assert_almost_equal(
-        transformed.fnorm_sigma_wij, fnorm_sigma_wij_ref
-    )
-    np.testing.assert_almost_equal(transformed.snormij, snormij_ref)
 
 
 def test_ivector_machine_training():
@@ -324,6 +320,7 @@ def test_trainer_nosigma():
 
     data = [gs1, gs2]
 
+    # Reference values TODO: load from hdf5 file
     acc_Nij_Sigma_wij2_ref1 = np.array(
         [
             [[0.03202305, -0.02947769], [-0.02947769, 0.0561132]],
@@ -411,7 +408,7 @@ def test_trainer_nosigma():
     assert acc_Nij_Sigma_wij2_ref1.shape == (2, 2, 2)
     assert acc_Nij_Sigma_wij2_ref2.shape == (2, 2, 2)
 
-    # Python implementation
+    # Reference implementation
     # Machine
     m = IVectorMachine(ubm, dim_t=2)
     t = np.array([[[1.0, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]])
@@ -444,16 +441,15 @@ def test_trainer_nosigma():
 
     # New implementation
     # Machine
-    m = IVectorMachine(ubm, dim_t=2)
+    m = IVectorMachine(ubm, dim_t=2, update_sigma=False)
     t = np.array([[[1.0, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]])
     sigma = np.array([[1.0, 2.0, 1.0], [3.0, 2.0, 4.0]])
 
     # Initialization
     m.T = t
-    m.sigma = sigma
+    m.sigma = copy.deepcopy(sigma)
     stats = None
     for it in range(2):
-        print("Iteration:", it)
         # E-Step
         stats = m.e_step(data)
         np.testing.assert_almost_equal(
@@ -470,10 +466,7 @@ def test_trainer_nosigma():
         # M-Step
         m.m_step(stats)
         np.testing.assert_almost_equal(t_ref[it], m.T, decimal=5)
-        np.testing.assert_equal(sigma, m.sigma)  # sigma is not updated
-
-    # testing exceptions
-    pytest.raises(RuntimeError, m.e_step, [1, 2, 2])
+        np.testing.assert_equal(sigma, m.sigma)  # sigma should not be updated
 
 
 def test_trainer_update_sigma():
@@ -512,90 +505,90 @@ def test_trainer_update_sigma():
 
     data = [gs1, gs2]
 
-    # Reference values
-    acc_Nij_Sigma_wij2_ref1 = {
-        0: np.array([[0.03202305, -0.02947769], [-0.02947769, 0.0561132]]),
-        1: np.array([[0.07953279, -0.07829414], [-0.07829414, 0.13814242]]),
-    }
-    acc_Fnorm_Sigma_wij_ref1 = {
-        0: np.array(
+    # Reference values TODO: load from hdf5 file
+    acc_Nij_Sigma_wij2_ref1 = np.array(
+        [
+            [[0.03202305, -0.02947769], [-0.02947769, 0.0561132]],
+            [[0.07953279, -0.07829414], [-0.07829414, 0.13814242]],
+        ]
+    )
+    acc_Fnorm_Sigma_wij_ref1 = np.array(
+        [
             [
                 [-0.29622691, 0.61411796],
                 [0.09391764, -0.27955961],
                 [-0.39014455, 0.89367757],
-            ]
-        ),
-        1: np.array(
+            ],
             [
                 [0.04695882, -0.13977981],
                 [-0.05718673, 0.24159665],
                 [-0.17098161, 0.47326585],
-            ]
-        ),
-    }
-    acc_Snorm_ref1 = np.array([16.6, 22.4, 16.6, 61.4, 55.0, 97.4])
+            ],
+        ]
+    )
+    acc_Snorm_ref1 = np.array([[16.6, 22.4, 16.6], [61.4, 55.0, 97.4]])
     N_ref1 = np.array([0.6, 1.4])
     t_ref1 = np.array(
         [
-            [1.59543739, 11.78239235],
-            [-3.20130371, -6.66379081],
-            [4.79674111, 18.44618316],
-            [-0.91765407, -1.5319461],
-            [2.26805901, 3.03434944],
-            [2.76600031, 4.9935962],
+            [
+                [1.59543739, 11.78239235],
+                [-3.20130371, -6.66379081],
+                [4.79674111, 18.44618316],
+            ],
+            [
+                [-0.91765407, -1.5319461],
+                [2.26805901, 3.03434944],
+                [2.76600031, 4.9935962],
+            ],
         ]
     )
     sigma_ref1 = np.array(
         [
-            16.39472121,
-            34.72955353,
-            3.3108037,
-            43.73496916,
-            38.85472445,
-            68.22116903,
+            [16.39472121, 34.72955353, 3.3108037],
+            [43.73496916, 38.85472445, 68.22116903],
         ]
     )
 
-    acc_Nij_Sigma_wij2_ref2 = {
-        0: np.array([[0.50807426, -0.11907756], [-0.11907756, 0.12336544]]),
-        1: np.array([[1.18602399, -0.2835859], [-0.2835859, 0.39440498]]),
-    }
-    acc_Fnorm_Sigma_wij_ref2 = {
-        0: np.array(
+    acc_Nij_Sigma_wij2_ref2 = np.array(
+        [
+            [[0.50807426, -0.11907756], [-0.11907756, 0.12336544]],
+            [[1.18602399, -0.2835859], [-0.2835859, 0.39440498]],
+        ]
+    )
+    acc_Fnorm_Sigma_wij_ref2 = np.array(
+        [
             [
                 [0.07221453, 1.1189786],
                 [-0.08681275, -0.35396112],
                 [0.15902728, 1.47293972],
-            ]
-        ),
-        1: np.array(
+            ],
             [
                 [-0.04340637, -0.17698056],
                 [0.10662127, 0.21484933],
                 [0.13116645, 0.64474271],
-            ]
-        ),
-    }
-    acc_Snorm_ref2 = np.array([16.6, 22.4, 16.6, 61.4, 55.0, 97.4])
+            ],
+        ]
+    )
+    acc_Snorm_ref2 = np.array([[16.6, 22.4, 16.6], [61.4, 55.0, 97.4]])
     N_ref2 = np.array([0.6, 1.4])
     t_ref2 = np.array(
         [
-            [2.93105054, 11.89961223],
-            [-1.08988119, -3.92120757],
-            [4.02093173, 15.82081981],
-            [-0.17376634, -0.57366984],
-            [0.26585634, 0.73589952],
-            [0.60557877, 2.07014704],
+            [
+                [2.93105054, 11.89961223],
+                [-1.08988119, -3.92120757],
+                [4.02093173, 15.82081981],
+            ],
+            [
+                [-0.17376634, -0.57366984],
+                [0.26585634, 0.73589952],
+                [0.60557877, 2.07014704],
+            ],
         ]
     )
     sigma_ref2 = np.array(
         [
-            5.12154025e00,
-            3.48623823e01,
-            1.00000000e-05,
-            4.37792350e01,
-            3.91525332e01,
-            6.85613258e01,
+            [5.12154025e00, 3.48623823e01, 1.00000000e-05],
+            [4.37792350e01, 3.91525332e01, 6.85613258e01],
         ]
     )
 
@@ -609,70 +602,66 @@ def test_trainer_update_sigma():
     t_ref = [t_ref1, t_ref2]
     sigma_ref = [sigma_ref1, sigma_ref2]
 
-    # Python implementation
+    # Reference implementation
     # Machine
     m = IVectorMachine(ubm, 2)
     t = np.array([[[1.0, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]])
-    sigma = np.array([1.0, 2.0, 1.0, 3.0, 2.0, 4.0])
+    sigma = np.array([[1.0, 2.0, 1.0], [3.0, 2.0, 4.0]])
 
     # Initialization
     trainer = IVectorTrainerPy(sigma_update=True)
     trainer.initialize(m, data)
-    m.t = t
+    m.T = t
     m.sigma = sigma
+
     for it in range(2):
         # E-Step
         trainer.e_step(m, data)
-        for k in acc_Nij_Sigma_wij2_ref[it]:
-            assert np.allclose(
-                acc_Nij_Sigma_wij2_ref[it][k],
-                trainer.m_acc_Nij_Sigma_wij2[k],
-                1e-5,
-            )
-        for k in acc_Fnorm_Sigma_wij_ref[it]:
-            assert np.allclose(
-                acc_Fnorm_Sigma_wij_ref[it][k],
-                trainer.m_acc_Fnorm_Sigma_wij[k],
-                1e-5,
-            )
-        assert np.allclose(acc_Snorm_ref[it], trainer.m_acc_Snorm, 1e-5)
-        assert np.allclose(N_ref[it], trainer.m_N, 1e-5)
+        np.testing.assert_almost_equal(
+            acc_Nij_Sigma_wij2_ref[it], trainer.m_acc_Nij_Sigma_wij2, decimal=5
+        )
+        np.testing.assert_almost_equal(
+            acc_Fnorm_Sigma_wij_ref[it],
+            trainer.m_acc_Fnorm_Sigma_wij,
+            decimal=5,
+        )
+        np.testing.assert_almost_equal(
+            acc_Snorm_ref[it], trainer.m_acc_Snorm, decimal=5
+        )
+        np.testing.assert_almost_equal(N_ref[it], trainer.m_N, decimal=5)
 
         # M-Step
-        trainer.m_step(m, data)
-        assert np.allclose(t_ref[it], m.t, 1e-5)
-        assert np.allclose(sigma_ref[it], m.sigma, 1e-5)
+        trainer.m_step(m)
+        np.testing.assert_almost_equal(t_ref[it], m.T, decimal=5)
+        np.testing.assert_almost_equal(sigma_ref[it], m.sigma, decimal=5)
 
-    # C++ implementation TODO
+    # New implementation
     # Machine
-    m = IVectorMachine(ubm, 2)
-    m.variance_threshold = 1e-5
+    m = IVectorMachine(
+        ubm, dim_t=2, variance_floor=1e-5
+    )  # update_sigma is True by default
 
-    # Initialization
-    # trainer = IVectorTrainer(update_sigma=True)
-    # trainer.initialize(m)
-    # m.t = t
-    # m.sigma = sigma
-    # for it in range(2):
-    #     # E-Step
-    #     trainer.e_step(m, data)
-    #     for k in acc_Nij_Sigma_wij2_ref[it]:
-    #         assert np.allclose(
-    #             acc_Nij_Sigma_wij2_ref[it][k], trainer.acc_nij_wij2[k], 1e-5
-    #         )
-    #     for k in acc_Fnorm_Sigma_wij_ref[it]:
-    #         assert np.allclose(
-    #             acc_Fnorm_Sigma_wij_ref[it][k], trainer.acc_fnormij_wij[k], 1e-5
-    #         )
-    #     assert np.allclose(
-    #         acc_Snorm_ref[it].reshape(dim_c, dim_d), trainer.acc_snormij, 1e-5
-    #     )
-    #     assert np.allclose(N_ref[it], trainer.acc_nij, 1e-5)
+    # Manual Initialization
+    m.T = t
+    m.sigma = sigma
+    for it in range(2):
+        # E-Step
+        stats = m.e_step(data)
+        np.testing.assert_almost_equal(
+            acc_Nij_Sigma_wij2_ref[it], stats.nij_sigma_wij2, decimal=5
+        )
+        np.testing.assert_almost_equal(
+            acc_Fnorm_Sigma_wij_ref[it], stats.fnorm_sigma_wij, decimal=5
+        )
+        np.testing.assert_almost_equal(
+            acc_Snorm_ref[it], stats.snormij, decimal=5
+        )
+        np.testing.assert_almost_equal(N_ref[it], stats.nij, decimal=5)
 
-    #     # M-Step
-    #     trainer.m_step(m)
-    #     assert np.allclose(t_ref[it], m.t, 1e-5)
-    #     assert np.allclose(sigma_ref[it], m.sigma, 1e-5)
+        # M-Step
+        m.m_step(stats)
+        np.testing.assert_almost_equal(t_ref[it], m.T, decimal=5)
+        np.testing.assert_almost_equal(sigma_ref[it], m.sigma, decimal=5)
 
 
 def test_trainer_update_sigma_parallel():
@@ -814,8 +803,8 @@ def test_trainer_update_sigma_parallel():
 
     # C++ implementation TODO
     # Machine
-    serial_m = IVectorMachine(ubm, 2)
-    serial_m.variance_threshold = 1e-5
+    # serial_m = IVectorMachine(ubm, 2)
+    # serial_m.variance_threshold = 1e-5
 
     # SERIAL TRAINER
     # serial_trainer = IVectorTrainer(update_sigma=True)
