@@ -145,8 +145,8 @@ estimator.
    >>> # In this setup, kmeans is used to initialize the means, variances and weights of the gaussians
    >>> gmm_machine = bob.learn.em.GMMMachine(n_gaussians=2, trainer="ml")
    >>> # Training
-   >>> gmm_machine = gmm_machine.fit(data)
-   >>> print(gmm_machine.means)
+   >>> gmm_machine = gmm_machine.fit(data) # doctest: +SKIP
+   >>> print(gmm_machine.means) # doctest: +SKIP
     [[   3.5   -3.5   99. ]
      [  -6.     6.  -100.5]]
 
@@ -206,8 +206,8 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
    >>> # note that we have set `trainer="map"`, so we use the Maximum a posteriori estimator
    >>> adapted_gmm = bob.learn.em.GMMMachine(2, ubm=prior_gmm, trainer="map")
    >>> # Training
-   >>> adapted_gmm = adapted_gmm.fit(data)
-   >>> print(adapted_gmm.means)
+   >>> adapted_gmm = adapted_gmm.fit(data) # doctest: +SKIP
+   >>> print(adapted_gmm.means) # doctest: +SKIP
     [[ -4.      2.3   -10.5  ]
      [  0.944  -1.833  36.889]]
 
@@ -271,11 +271,11 @@ prior GMM.
     ...      [1.2, 1.4, 1],
     ...      [0.8, 1., 1]], dtype='float64')
     >>> # Training a GMM with 2 Gaussians of dimension 3
-    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)
+    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data) # doctest: +SKIP
     >>> # Creating the container
-    >>> gmm_stats = prior_gmm.acc_stats(data)
+    >>> gmm_stats = prior_gmm.acc_stats(data) # doctest: +SKIP
     >>> # Printing the responsibilities
-    >>> print(gmm_stats.n/gmm_stats.t)
+    >>> print(gmm_stats.n/gmm_stats.t) # doctest: +SKIP
      [0.6  0.4]
 
 
