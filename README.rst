@@ -1,12 +1,12 @@
 .. vim: set fileencoding=utf-8 :
 .. Mon 15 Aug 2016 09:48:28 CEST
 
-.. image:: https://img.shields.io/badge/docs-v3.0.3-orange.svg
-   :target: https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/v3.0.3/index.html
-.. image:: https://gitlab.idiap.ch/bob/bob.learn.em/badges/v3.0.3/pipeline.svg
-   :target: https://gitlab.idiap.ch/bob/bob.learn.em/commits/v3.0.3
-.. image:: https://gitlab.idiap.ch/bob/bob.learn.em/badges/v3.0.3/coverage.svg
-   :target: https://gitlab.idiap.ch/bob/bob.learn.em/commits/v3.0.3
+.. image:: https://img.shields.io/badge/docs-latest-orange.svg
+   :target: https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/master/index.html
+.. image:: https://gitlab.idiap.ch/bob/bob.learn.em/badges/master/pipeline.svg
+   :target: https://gitlab.idiap.ch/bob/bob.learn.em/commits/master
+.. image:: https://gitlab.idiap.ch/bob/bob.learn.em/badges/master/coverage.svg
+   :target: https://gitlab.idiap.ch/bob/bob.learn.em/commits/master
 .. image:: https://img.shields.io/badge/gitlab-project-0000c0.svg
    :target: https://gitlab.idiap.ch/bob/bob.learn.em
 
