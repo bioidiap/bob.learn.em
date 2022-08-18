@@ -5,7 +5,7 @@
 import copy
 import logging
 
-from typing import Any, Dict, List, Tuple
+from typing import Any, Dict, List, Tuple, Optional
 
 import numpy as np
 
@@ -87,12 +87,10 @@ def compute_tct_sigmac_inv(T: np.ndarray, sigma: np.ndarray) -> np.ndarray:
 
 def compute_tct_sigmac_inv_tc(T: np.ndarray, sigma: np.ndarray) -> np.ndarray:
     """Computes T_{c}^{T}.sigma_{c}^{-1}.T_{c}"""
-    Tct_sigmacInv_Tc = np.zeros(shape=(T.shape[0], T.shape[-1], T.shape[-1]))
-
     tct_sigmac_inv = compute_tct_sigmac_inv(T, sigma)
-    for c in range(T.shape[0]):  # TODO Vectorize
-        # (c,t,t) = (c,t,d) @ (c,d,t)
-        Tct_sigmacInv_Tc[c] = tct_sigmac_inv[c] @ T[c]
+
+    # (c,t,t) = (c,t,d) @ (c,d,t)
+    Tct_sigmacInv_Tc = tct_sigmac_inv @ T
 
     # Output: shape (c,t,t)
     return Tct_sigmacInv_Tc
@@ -102,11 +100,11 @@ def compute_id_tt_sigma_inv_t(
     stats: GMMStats, T: np.ndarray, sigma: np.ndarray
 ) -> np.ndarray:
     dim_t = T.shape[-1]
-    output = np.eye(dim_t, dim_t)
     tct_sigmac_inv_tc = compute_tct_sigmac_inv_tc(T, sigma)
-    for c in range(stats.n.shape[0]):  # TODO Vectorize
-        # (t,t) += scalar * (c,t,t)
-        output += stats.n[c] * tct_sigmac_inv_tc[c]
+
+    output = np.eye(dim_t, dim_t) + np.einsum(
+        "c,ctu->tu", stats.n, tct_sigmac_inv_tc
+    )
 
     # Output: (t,t)
     return output
@@ -120,12 +118,11 @@ def compute_tt_sigma_inv_fnorm(
     Returns an array of shape (t,)
     """
 
-    output = np.zeros(shape=T.shape[-1])
     tct_sigmac_inv = compute_tct_sigmac_inv(T, sigma)  # (c,t,d)
     fnorm = stats.sum_px - stats.n[:, None] * ubm_means  # (c,d)
-    for c in range(T.shape[0]):  # TODO Vectorize
-        # (t,) += (c,t,d) @ (c,d)
-        output += tct_sigmac_inv[c] @ fnorm[c]
+
+    # (t,) += (t,d) @ (d) [repeated c times]
+    output = np.einsum("ctd,cd->t", tct_sigmac_inv, fnorm)
 
     # Output: shape (t,)
     return output
@@ -138,16 +135,20 @@ class IVectorMachine(BaseEstimator):
         - dim_c: number of Gaussians
         - dim_d: number of features
         - dim_t: dimension of the i-vector
-    Attributes:
-        T (c,d,t): The total variability matrix \f$T\f$
-        sigma (c,d): The diagonal covariance matrix \f$\\Sigma\f$
+
+    **Attributes**
+    T (c,d,t):
+        The total variability matrix :math:`T`
+    sigma (c,d):
+        The diagonal covariance matrix :math:`Sigma`
+
     """
 
     def __init__(
         self,
         ubm: GMMMachine,
         dim_t: int = 2,
-        convergence_threshold: float = 1e-5,
+        convergence_threshold: Optional[float] = None,
         max_iterations: int = 25,
         update_sigma: bool = True,
         variance_floor: float = 1e-10,
@@ -155,8 +156,7 @@ class IVectorMachine(BaseEstimator):
     ) -> None:
         """Initializes the IVectorMachine object.
 
-        Parameters
-        ----------
+        **Parameters**
         ubm:
             The Universal Background Model.
         dim_t:
@@ -173,10 +173,17 @@ class IVectorMachine(BaseEstimator):
         self.dim_d = self.ubm.means.shape[-1]
         self.variance_floor = variance_floor
 
-        self.T = np.zeros(
-            shape=(self.dim_c, self.dim_d, self.dim_t)
-        )  # TODO random ?
+        self.T = np.random.normal(
+            loc=0.0,
+            scale=1.0,
+            size=(self.dim_c, self.dim_d, self.dim_t),
+        )
         self.sigma = copy.deepcopy(self.ubm.variances)
+
+        if self.convergence_threshold:
+            logger.info(
+                "The convergence threshold is ignored by IVectorMachine."
+            )
 
     def e_step(self, data: List[GMMStats]) -> IVectorStats:
         """Computes the expectation step of the e-m algorithm."""
@@ -213,15 +220,14 @@ class IVectorMachine(BaseEstimator):
             )
 
             # Do the accumulation for each component
-            stats.snormij += Snorm  # (dim_c, dim_d)
+            stats.snormij = stats.snormij + Snorm  # shape: (c, d)
 
-            for c in range(self.dim_c):
-                stats.nij_sigma_wij2[c] += (
-                    Nij[c] * sigma_w_ij2
-                )  # (dim_t, dim_t)
-            # stats.nij_sigma_wij2 += Nij[:, None] * sigma_w_ij2  # (c, t, t) # TODO Vectorized v. Not working
-            stats.nij += Nij
-            stats.fnorm_sigma_wij += np.matmul(
+            # (c,t,t) += (c,) * (t,t)
+            stats.nij_sigma_wij2 = stats.nij_sigma_wij2 + (
+                Nij[:, None, None] * sigma_w_ij2[None, :, :]
+            )  # (c,t,t)
+            stats.nij = stats.nij + Nij
+            stats.fnorm_sigma_wij = stats.fnorm_sigma_wij + np.matmul(
                 Fnorm[:, :, None], sigma_w_ij[None, :]
             )  # (c,d,t)
 
@@ -257,24 +263,16 @@ class IVectorMachine(BaseEstimator):
         ``max_iterations`` is reached.
         """
 
-        # t_old = 0
         for step in range(self.max_iterations):
-            logger.debug(f"IVector step {step+1}.")
+            logger.debug(
+                f"IVector step {step+1:{len(str(self.max_iterations))}d}/{self.max_iterations}."
+            )
             # E-step
             stats = self.e_step(data)
             # M-step
             self.m_step(stats)
-            # Convergence
-            # if step > 0:
-            # if np.linalg.norm(stats.t - t_old) < self.convergence_threshold:
-            #     logger.info(f"Converged after {step+1} steps.")
-            #     logger.debug(
-            #         f"t_diff: {stats.t - t_old} (Convergence threshold: {self.convergence_threshold})"
-            #     )
-            #     break
-            # t_old = stats.t
         else:
-            logger.info(f"Did not converge after {step+1} steps.")
+            logger.info(f"Reached {step+1} steps.")
         return self
 
     def project(self, stats: GMMStats) -> np.ndarray:

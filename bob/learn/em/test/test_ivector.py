@@ -47,7 +47,6 @@ def test_ivector_machine_base():
 
 
 def test_ivector_machine_projection():
-
     # Create the UBM and set its values manually
     ubm = GMMMachine(n_gaussians=2)
     ubm.weights = np.array([0.4, 0.6], dtype=float)
@@ -97,7 +96,6 @@ def test_ivector_machine_transformer():
 
 
 def test_ivector_machine_training():
-
     gs1 = GMMStats.from_hdf5(
         resource_filename("bob.learn.em", "data/ivector_gs1.hdf5")
     )
@@ -108,14 +106,27 @@ def test_ivector_machine_training():
     data = [gs1, gs2]
 
     # Define the ubm
-    ubm = GMMMachine(n_gaussians=3)
-    ubm.means = np.array([[1, 2, 3], [6, 7, 8], [10, 11, 12]])
-    ubm.variances = np.ones((3, 3))
+    ubm = GMMMachine(n_gaussians=2)
+    ubm.means = np.array([[1, 2, 3], [6, 7, 8]])
+    ubm.variances = np.ones((2, 3))
+
+    np.random.seed(0)
 
     machine = IVectorMachine(ubm=ubm, dim_t=2)
     machine.fit(data)
 
-    assert False, "TODO: add tests (with projection)"
+
+    test_data = GMMStats(2,3)
+    test_data.t = 1
+    test_data.log_likelihood = -0.5
+    test_data.n = np.array([0.5, 0.5])
+    test_data.sum_px = np.array([[8, 0, 4], [6, 6, 6]])
+    test_data.sum_pxx = np.array([[10, 20, 30], [60, 70, 80]])
+    projected = machine.project(test_data)
+
+    proj_reference = np.array([ 0.94235246, -0.61557883])
+
+    np.testing.assert_almost_equal(projected, proj_reference, decimal=7)
 
 
 def _load_references_from_file(filename):
@@ -244,24 +255,39 @@ def test_trainer_update_sigma():
         )
 
 
-def test_ivector_fit_parallel():
+def test_ivector_fit():
     # Ubm
     ubm = GMMMachine(n_gaussians=2)
     ubm.weights = np.array([0.4, 0.6])
     ubm.means = np.array([[1.0, 7, 4], [4, 5, 3]])
     ubm.variances = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])
 
-    fit_data = np.random.normal(
-        loc=1, scale=1, size=(100, 3)
-    )  # TODO save to ref file
-    test_data = np.random.normal(
-        loc=1, scale=1.2, size=(50, 3)
-    )  # TODO save to ref file
-    reference_result = np.array([10, 10] * 50)
-    # TODO load ref files
 
+    fit_data_file = resource_filename("bob.learn.em", "data/ivector_fit_data.hdf5")
+    with HDF5File(fit_data_file, "r") as f:
+        fit_data = f["array"][()]
+
+    test_data_file = resource_filename("bob.learn.em", "data/ivector_test_data.hdf5")
+    with HDF5File(test_data_file, "r") as f:
+        test_data = f["array"][()]
+
+    reference_result_file = resource_filename("bob.learn.em", "data/ivector_results.hdf5")
+    with HDF5File(reference_result_file, "r") as f:
+        reference_result = f["array"][()]
+
+    # Serial test
+    np.random.seed(0)
+    fit_data = to_numpy(fit_data)
+    projected_data = ubm.transform([d for d in fit_data])
+    m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
+    m.fit([d for d in projected_data])
+    result = m.transform([d for d in test_data])
+    np.testing.assert_almost_equal(result, reference_result, decimal=5)
+
+    # Parallel test
     with _dask_distributed_context():
-        for transform in to_numpy, to_dask_array:
+        for transform in [to_numpy, to_dask_array]:
+            np.random.seed(0)
             fit_data = transform(fit_data)
             projected_data = ubm.transform([d for d in fit_data])
             m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
@@ -270,146 +296,3 @@ def test_ivector_fit_parallel():
             np.testing.assert_almost_equal(
                 np.array(result), reference_result, decimal=5
             )
-
-    # Reference values
-    # acc_Nij_Sigma_wij2_ref1 = {
-    #     0: np.array([[0.03202305, -0.02947769], [-0.02947769, 0.0561132]]),
-    #     1: np.array([[0.07953279, -0.07829414], [-0.07829414, 0.13814242]]),
-    # }
-    # acc_Fnorm_Sigma_wij_ref1 = {
-    #     0: np.array(
-    #         [
-    #             [-0.29622691, 0.61411796],
-    #             [0.09391764, -0.27955961],
-    #             [-0.39014455, 0.89367757],
-    #         ]
-    #     ),
-    #     1: np.array(
-    #         [
-    #             [0.04695882, -0.13977981],
-    #             [-0.05718673, 0.24159665],
-    #             [-0.17098161, 0.47326585],
-    #         ]
-    #     ),
-    # }
-    # acc_Snorm_ref1 = np.array([16.6, 22.4, 16.6, 61.4, 55.0, 97.4])
-    # N_ref1 = np.array([0.6, 1.4])
-    # t_ref1 = np.array(
-    #     [
-    #         [1.59543739, 11.78239235],
-    #         [-3.20130371, -6.66379081],
-    #         [4.79674111, 18.44618316],
-    #         [-0.91765407, -1.5319461],
-    #         [2.26805901, 3.03434944],
-    #         [2.76600031, 4.9935962],
-    #     ]
-    # )
-    # sigma_ref1 = np.array(
-    #     [
-    #         16.39472121,
-    #         34.72955353,
-    #         3.3108037,
-    #         43.73496916,
-    #         38.85472445,
-    #         68.22116903,
-    #     ]
-    # )
-
-    # acc_Nij_Sigma_wij2_ref2 = {
-    #     0: np.array([[0.50807426, -0.11907756], [-0.11907756, 0.12336544]]),
-    #     1: np.array([[1.18602399, -0.2835859], [-0.2835859, 0.39440498]]),
-    # }
-    # acc_Fnorm_Sigma_wij_ref2 = {
-    #     0: np.array(
-    #         [
-    #             [0.07221453, 1.1189786],
-    #             [-0.08681275, -0.35396112],
-    #             [0.15902728, 1.47293972],
-    #         ]
-    #     ),
-    #     1: np.array(
-    #         [
-    #             [-0.04340637, -0.17698056],
-    #             [0.10662127, 0.21484933],
-    #             [0.13116645, 0.64474271],
-    #         ]
-    #     ),
-    # }
-    # acc_Snorm_ref2 = np.array([16.6, 22.4, 16.6, 61.4, 55.0, 97.4])
-    # N_ref2 = np.array([0.6, 1.4])
-    # t_ref2 = np.array(
-    #     [
-    #         [2.93105054, 11.89961223],
-    #         [-1.08988119, -3.92120757],
-    #         [4.02093173, 15.82081981],
-    #         [-0.17376634, -0.57366984],
-    #         [0.26585634, 0.73589952],
-    #         [0.60557877, 2.07014704],
-    #     ]
-    # )
-    # sigma_ref2 = np.array(
-    #     [
-    #         5.12154025e00,
-    #         3.48623823e01,
-    #         1.00000000e-05,
-    #         4.37792350e01,
-    #         3.91525332e01,
-    #         6.85613258e01,
-    #     ]
-    # )
-
-    # acc_Nij_Sigma_wij2_ref = [acc_Nij_Sigma_wij2_ref1, acc_Nij_Sigma_wij2_ref2]
-    # acc_Fnorm_Sigma_wij_ref = [
-    #     acc_Fnorm_Sigma_wij_ref1,
-    #     acc_Fnorm_Sigma_wij_ref2,
-    # ]
-    # acc_Snorm_ref = [acc_Snorm_ref1, acc_Snorm_ref2]
-    # N_ref = [N_ref1, N_ref2]
-    # t_ref = [t_ref1, t_ref2]
-    # sigma_ref = [sigma_ref1, sigma_ref2]
-
-    # # Machine
-    # t = np.array([[1.0, 2], [4, 1], [0, 3], [5, 8], [7, 10], [11, 1]])
-    # sigma = np.array([1.0, 2.0, 1.0, 3.0, 2.0, 4.0])
-
-    # C++ implementation TODO
-    # Machine
-    # serial_m = IVectorMachine(ubm, 2)
-    # serial_m.variance_threshold = 1e-5
-
-    # SERIAL TRAINER
-    # serial_trainer = IVectorTrainer(update_sigma=True)
-    # serial_m.t = t
-    # serial_m.sigma = sigma
-
-    # bob.learn.em.train(
-    #     serial_trainer, serial_m, data, max_iterations=5, initialize=True
-    # )
-
-    # # PARALLEL TRAINER
-    # parallel_m = IVectorMachine(ubm, 2)
-    # parallel_m.variance_threshold = 1e-5
-
-    # parallel_trainer = IVectorTrainer(update_sigma=True)
-    # parallel_m.t = t
-    # parallel_m.sigma = sigma
-
-    # bob.learn.em.train(
-    #     parallel_trainer,
-    #     parallel_m,
-    #     data,
-    #     max_iterations=5,
-    #     initialize=True,
-    #     pool=2,
-    # )
-
-    # assert np.allclose(
-    #     serial_trainer.acc_nij_wij2, parallel_trainer.acc_nij_wij2, 1e-5
-    # )
-    # assert np.allclose(
-    #     serial_trainer.acc_fnormij_wij, parallel_trainer.acc_fnormij_wij, 1e-5
-    # )
-    # assert np.allclose(
-    #     serial_trainer.acc_snormij, parallel_trainer.acc_snormij, 1e-5
-    # )
-    # assert np.allclose(serial_trainer.acc_nij, parallel_trainer.acc_nij, 1e-5)
