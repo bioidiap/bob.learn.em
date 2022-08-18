@@ -115,8 +115,7 @@ def test_ivector_machine_training():
     machine = IVectorMachine(ubm=ubm, dim_t=2)
     machine.fit(data)
 
-
-    test_data = GMMStats(2,3)
+    test_data = GMMStats(2, 3)
     test_data.t = 1
     test_data.log_likelihood = -0.5
     test_data.n = np.array([0.5, 0.5])
@@ -124,7 +123,7 @@ def test_ivector_machine_training():
     test_data.sum_pxx = np.array([[10, 20, 30], [60, 70, 80]])
     projected = machine.project(test_data)
 
-    proj_reference = np.array([ 0.94235246, -0.61557883])
+    proj_reference = np.array([0.94235246, -0.61557883])
 
     np.testing.assert_almost_equal(projected, proj_reference, decimal=7)
 
@@ -262,16 +261,21 @@ def test_ivector_fit():
     ubm.means = np.array([[1.0, 7, 4], [4, 5, 3]])
     ubm.variances = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])
 
-
-    fit_data_file = resource_filename("bob.learn.em", "data/ivector_fit_data.hdf5")
+    fit_data_file = resource_filename(
+        "bob.learn.em", "data/ivector_fit_data.hdf5"
+    )
     with HDF5File(fit_data_file, "r") as f:
         fit_data = f["array"][()]
 
-    test_data_file = resource_filename("bob.learn.em", "data/ivector_test_data.hdf5")
+    test_data_file = resource_filename(
+        "bob.learn.em", "data/ivector_test_data.hdf5"
+    )
     with HDF5File(test_data_file, "r") as f:
         test_data = f["array"][()]
 
-    reference_result_file = resource_filename("bob.learn.em", "data/ivector_results.hdf5")
+    reference_result_file = resource_filename(
+        "bob.learn.em", "data/ivector_results.hdf5"
+    )
     with HDF5File(reference_result_file, "r") as f:
         reference_result = f["array"][()]
 
