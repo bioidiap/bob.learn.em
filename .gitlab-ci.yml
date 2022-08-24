@@ -1,1 +1,1 @@
-include: 'https://gitlab.idiap.ch/bob/bob.devtools/raw/master/bob/devtools/data/gitlab-ci/single-package.yaml'
+include: 'https://gitlab.idiap.ch/bob/bob.devtools/raw/gitlab-test/bob/devtools/data/gitlab-ci/single-package.yaml'
