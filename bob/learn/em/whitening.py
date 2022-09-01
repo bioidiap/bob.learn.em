@@ -59,7 +59,7 @@ class Whitening(TransformerMixin, BaseEstimator):
 
         # 1. Computes the mean vector and the covariance matrix of the training set
         mu = numerical_module.mean(X, axis=0)
-        cov = numerical_module.cov(X.T)
+        cov = numerical_module.cov(numerical_module.transpose(X))
 
         # 2. Computes the inverse of the covariance matrix
         inv_cov = pinv(cov) if self.pinv else inv(cov)

@@ -50,6 +50,8 @@ class WCCN(TransformerMixin, BaseEstimator):
 
             from scipy.linalg import cholesky, inv
 
+            X = numerical_module.array(X)
+
         possible_labels = set(y)
         y_ = numerical_module.array(y)
 
@@ -89,4 +91,7 @@ class WCCN(TransformerMixin, BaseEstimator):
 
     def transform(self, X):
 
-        return ((X - self.input_subtract) / self.input_divide) @ self.weights
+        return [
+            ((x - self.input_subtract) / self.input_divide) @ self.weights
+            for x in X
+        ]
