@@ -305,7 +305,9 @@ class KMeansMachine(BaseEstimator):
         """Assigns the means to an initial value using a specified method or randomly."""
         logger.debug(f"Initializing k-means means with '{self.init_method}'.")
         # k_init requires da.Array as input.
+        logger.debug("Transform k-means data to dask array")
         data = da.array(data)
+        logger.debug("Get k-means centroids")
         self.centroids_ = k_init(
             X=data,
             n_clusters=self.n_clusters,
@@ -314,6 +316,7 @@ class KMeansMachine(BaseEstimator):
             max_iter=self.init_max_iter,
             oversampling_factor=self.oversampling_factor,
         )
+        logger.debug("End of k-means initialization")
 
     def fit(self, X, y=None):
         """Fits this machine on data samples."""
@@ -323,8 +326,10 @@ class KMeansMachine(BaseEstimator):
         logger.debug("Initializing trainer.")
         self.initialize(data=X)
 
+        logger.debug("Get the number of samples")
         n_samples = len(X)
 
+        logger.debug("Transform X array to delayed list")
         X = array_to_delayed_list(X, input_is_dask)
 
         logger.info("Training k-means.")
