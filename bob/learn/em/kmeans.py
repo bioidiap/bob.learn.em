@@ -303,6 +303,7 @@ class KMeansMachine(BaseEstimator):
 
     def initialize(self, data: np.ndarray):
         """Assigns the means to an initial value using a specified method or randomly."""
+        logger.debug("k-means initialization")
         logger.debug(f"Initializing k-means means with '{self.init_method}'.")
         # k_init requires da.Array as input.
         logger.debug("Transform k-means data to dask array")
