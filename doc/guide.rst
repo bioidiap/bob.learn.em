@@ -98,7 +98,7 @@ This statistical model is defined in the class
 :py:class:`bob.learn.em.GMMMachine` as bellow.
 
 .. doctest::
-   :options: +NORMALIZE_WHITESPACE +SKIP
+   :options: +NORMALIZE_WHITESPACE
 
    >>> import bob.learn.em
    >>> # Create a GMM with k=2 Gaussians
@@ -145,8 +145,8 @@ estimator.
    >>> # In this setup, kmeans is used to initialize the means, variances and weights of the gaussians
    >>> gmm_machine = bob.learn.em.GMMMachine(n_gaussians=2, trainer="ml")
    >>> # Training
-   >>> gmm_machine = gmm_machine.fit(data) # doctest: +SKIP
-   >>> print(gmm_machine.means) # doctest: +SKIP
+   >>> gmm_machine = gmm_machine.fit(data)
+   >>> print(gmm_machine.means)
     [[   3.5   -3.5   99. ]
      [  -6.     6.  -100.5]]
 
@@ -206,8 +206,8 @@ Follow bellow an snippet on how to train a GMM using the MAP estimator.
    >>> # note that we have set `trainer="map"`, so we use the Maximum a posteriori estimator
    >>> adapted_gmm = bob.learn.em.GMMMachine(2, ubm=prior_gmm, trainer="map")
    >>> # Training
-   >>> adapted_gmm = adapted_gmm.fit(data) # doctest: +SKIP
-   >>> print(adapted_gmm.means) # doctest: +SKIP
+   >>> adapted_gmm = adapted_gmm.fit(data)
+   >>> print(adapted_gmm.means)
     [[ -4.      2.3   -10.5  ]
      [  0.944  -1.833  36.889]]
 
@@ -271,11 +271,11 @@ prior GMM.
     ...      [1.2, 1.4, 1],
     ...      [0.8, 1., 1]], dtype='float64')
     >>> # Training a GMM with 2 Gaussians of dimension 3
-    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data) # doctest: +SKIP
+    >>> prior_gmm = bob.learn.em.GMMMachine(2).fit(data)
     >>> # Creating the container
-    >>> gmm_stats = prior_gmm.acc_stats(data) # doctest: +SKIP
+    >>> gmm_stats = prior_gmm.acc_stats(data)
     >>> # Printing the responsibilities
-    >>> print(gmm_stats.n/gmm_stats.t) # doctest: +SKIP
+    >>> print(gmm_stats.n/gmm_stats.t)
      [0.6  0.4]
 
 
@@ -331,7 +331,7 @@ The snippet bellow shows how to:
    >>> y = np.hstack((np.zeros(10, dtype=int), np.ones(10, dtype=int)))
    >>> # Create an ISV machine with a UBM of 2 gaussians
    >>> isv_machine = bob.learn.em.ISVMachine(r_U=2, ubm_kwargs=dict(n_gaussians=2))
-   >>> _ = isv_machine.fit_using_array(X, y)  # DOCTEST: +SKIP_
+   >>> _ = isv_machine.fit_using_array(X, y)
    >>> # Alternatively, you can create a pipeline of a GMMMachine and an ISVMachine
    >>> # and call pipeline.fit(X, y) instead of calling isv.fit_using_array(X, y)
    >>> isv_machine.U
