@@ -12,6 +12,7 @@ from h5py import File as HDF5File
 from pkg_resources import resource_filename
 
 from bob.learn.em import GMMMachine, GMMStats, IVectorMachine
+from bob.learn.em.ivector import e_step, m_step
 
 from .test_kmeans import to_dask_array, to_numpy
 
@@ -27,23 +28,20 @@ def _dask_distributed_context():
 
 
 def test_ivector_machine_base():
-    dim_c, dim_d, dim_t = 2, 3, 4
-
     # Create the UBM and set its values manually
-    ubm = GMMMachine(n_gaussians=dim_c)
+    ubm = GMMMachine(n_gaussians=2)
     ubm.weights = np.array([0.4, 0.6], dtype=float)
     ubm.means = np.array([[1, 7, 4], [4, 5, 3]], dtype=float)
     ubm.variances = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]], dtype=float)
 
-    machine = IVectorMachine(ubm=ubm, dim_t=dim_t)
+    machine = IVectorMachine(ubm=ubm, dim_t=4)
 
     assert hasattr(machine, "ubm")
     assert hasattr(machine, "T")
     assert hasattr(machine, "sigma")
 
-    assert machine.T.shape == (dim_c, dim_d, dim_t), machine.T.shape
-    assert machine.sigma.shape == (dim_c, dim_d), machine.sigma.shape
-    np.testing.assert_equal(machine.sigma, ubm.variances)
+    assert machine.T is None
+    assert machine.sigma is None
 
 
 def test_ivector_machine_projection():
@@ -83,12 +81,11 @@ def test_ivector_machine_transformer():
     machine.T = np.array(
         [[[1, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]], dtype=float
     )
+    machine.sigma = ubm.variances.copy()
     assert hasattr(machine, "fit")
     assert hasattr(machine, "transform")
-    assert hasattr(machine, "enroll")
-    assert hasattr(machine, "score")
 
-    transformed = machine.transform([np.array([1, 2, 3])])[0]
+    transformed = machine.transform(ubm.transform([np.array([1, 2, 3])]))[0]
     assert isinstance(transformed, np.ndarray)
     np.testing.assert_almost_equal(
         transformed, np.array([0.02774721, -0.35237828]), decimal=7
@@ -169,14 +166,16 @@ def test_trainer_nosigma():
     # Machine
     m = IVectorMachine(ubm, dim_t=2, update_sigma=False)
 
-    # Initialization
+    # Manual Initialization
+    m.dim_c = ubm.n_gaussians
+    m.dim_d = ubm.shape[-1]
     m.T = np.array([[[1.0, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]])
     init_sigma = np.array([[1.0, 2.0, 1.0], [3.0, 2.0, 4.0]])
     m.sigma = copy.deepcopy(init_sigma)
     stats = None
     for it in range(2):
         # E-Step
-        stats = m.e_step(data)
+        stats = e_step(m, data)
         np.testing.assert_almost_equal(
             references[it]["nij_sigma_wij2"], stats.nij_sigma_wij2, decimal=5
         )
@@ -191,7 +190,7 @@ def test_trainer_nosigma():
         )
 
         # M-Step
-        m.m_step(stats)
+        m_step(m, [stats])
         np.testing.assert_almost_equal(references[it]["T"], m.T, decimal=5)
         np.testing.assert_equal(
             init_sigma, m.sigma
@@ -227,12 +226,14 @@ def test_trainer_update_sigma():
     )  # update_sigma is True by default
 
     # Manual Initialization
+    m.dim_c = ubm.n_gaussians
+    m.dim_d = ubm.shape[-1]
     m.T = np.array([[[1.0, 2], [4, 1], [0, 3]], [[5, 8], [7, 10], [11, 1]]])
     m.sigma = np.array([[1.0, 2.0, 1.0], [3.0, 2.0, 4.0]])
 
     for it in range(2):
         # E-Step
-        stats = m.e_step(data)
+        stats = e_step(m, data)
         np.testing.assert_almost_equal(
             references[it]["nij_sigma_wij2"], stats.nij_sigma_wij2, decimal=5
         )
@@ -247,7 +248,7 @@ def test_trainer_update_sigma():
         )
 
         # M-Step
-        m.m_step(stats)
+        m_step(m, [stats])
         np.testing.assert_almost_equal(references[it]["T"], m.T, decimal=5)
         np.testing.assert_almost_equal(
             references[it]["sigma"], m.sigma, decimal=5
@@ -282,10 +283,10 @@ def test_ivector_fit():
     # Serial test
     np.random.seed(0)
     fit_data = to_numpy(fit_data)
-    projected_data = ubm.transform([d for d in fit_data])
+    projected_data = ubm.transform(d for d in fit_data)
     m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
-    m.fit([d for d in projected_data])
-    result = m.transform([d for d in test_data])
+    m.fit(d for d in projected_data)
+    result = m.transform(ubm.transform(d for d in test_data))
     np.testing.assert_almost_equal(result, reference_result, decimal=5)
 
     # Parallel test
@@ -293,10 +294,10 @@ def test_ivector_fit():
         for transform in [to_numpy, to_dask_array]:
             np.random.seed(0)
             fit_data = transform(fit_data)
-            projected_data = ubm.transform([d for d in fit_data])
+            projected_data = ubm.transform(d for d in fit_data)
             m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
-            m.fit([d for d in projected_data])
-            result = m.transform([d for d in test_data])
+            m.fit(d for d in projected_data)
+            result = m.transform(d for d in test_data)
             np.testing.assert_almost_equal(
                 np.array(result), reference_result, decimal=5
             )

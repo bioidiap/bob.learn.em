@@ -3,12 +3,14 @@
 # @date: Fri 06 May 2022 14:18:25 UTC+02
 
 import copy
+import functools
 import logging
+import operator
 
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import dask
-import dask.array as da
+import dask.bag
 import numpy as np
 
 from sklearn.base import BaseEstimator
@@ -177,26 +179,35 @@ def e_step(machine: "IVectorMachine", data: List[GMMStats]) -> IVectorStats:
     return stats
 
 
-def m_step(machine: "IVectorMachine", stats: IVectorStats) -> "IVectorMachine":
+def m_step(
+    machine: "IVectorMachine", stats: List[IVectorStats]
+) -> "IVectorMachine":
     """Updates the Machine with the maximization step of the e-m algorithm."""
-    for c in range(machine.dim_c):  # TODO Vectorize
-        # T update
-        A = stats.nij_sigma_wij2[c].transpose()
-        B = stats.fnorm_sigma_wij[c].transpose()
-        if not A.any():  # if all A == 0
-            X = np.zeros(shape=(machine.dim_t, machine.dim_d), dtype=np.float64)
-        else:
-            X = np.linalg.solve(A, B)
-        machine.T[c, :] = X.transpose()
-        # Sigma update
-        if machine.update_sigma:
-            Fnorm_sigma_w_ij_Tt = np.diag(np.dot(stats.fnorm_sigma_wij[c], X))
-            machine.sigma[c] = (
-                stats.snormij[c] - Fnorm_sigma_w_ij_Tt
-            ) / stats.nij[c]
-            machine.sigma[c][
-                machine.sigma[c] < machine.variance_floor
-            ] = machine.variance_floor
+    stats = functools.reduce(operator.iadd, stats)
+
+    A = stats.nij_sigma_wij2.transpose((0, 2, 1))
+    B = stats.fnorm_sigma_wij.transpose((0, 2, 1))
+
+    X = np.zeros_like(B)
+    # Solve for all A != 0
+    if any(mask := A.any(axis=(-2, -1))):
+        X[mask] = [
+            np.linalg.solve(A[c], B[c]) for c in range(len(mask)) if A[c].any()
+        ]
+
+    machine.T = X.transpose((0, 2, 1))
+
+    if machine.update_sigma:
+        fnorm_sigma_wij_tt = np.diagonal(
+            stats.fnorm_sigma_wij @ X, axis1=-2, axis2=-1
+        )
+        machine.sigma = (stats.snormij - fnorm_sigma_wij_tt) / stats.nij[
+            :, None
+        ]
+        machine.sigma[
+            machine.sigma < machine.variance_floor
+        ] = machine.variance_floor
+
     return machine
 
 
@@ -255,7 +266,9 @@ class IVectorMachine(BaseEstimator):
                 "The convergence threshold is ignored by IVectorMachine."
             )
 
-    def fit(self, X: np.ndarray, y=None) -> "IVectorMachine":
+    def fit(
+        self, X: Union[List[np.ndarray], dask.bag.Bag], y=None
+    ) -> "IVectorMachine":
         """Trains the IVectorMachine.
 
         Repeats the e-m steps until the convergence criterion is met or
@@ -267,11 +280,11 @@ class IVectorMachine(BaseEstimator):
         # if self.ubm._means is None:  # Train a GMMMachine if not set
         #     logger.info("UBM not trained. Training it inside IVectorMachine.")
         #     self.ubm.fit(X)
-        # __import__("ipdb").set_trace()
         # X = self.ubm.transform(X)  # Transform to GMMStats
         chunky = False
-        if isinstance(X, da.Array):
+        if isinstance(X, dask.bag.Bag):
             chunky = True
+            X = X.to_delayed()
 
         self.dim_c = self.ubm.n_gaussians
         self.dim_d = self.ubm.means.shape[-1]
@@ -292,9 +305,13 @@ class IVectorMachine(BaseEstimator):
                     )
                     for xx in X
                 ]
-                new_machine = dask.compute(dask.delayed(m_step)(stats, self))[0]
+                logger.debug(f"Computing step {step}")
+                new_machine = dask.compute(dask.delayed(m_step)(self, stats))[0]
                 for attr in ["T", "sigma"]:
                     setattr(self, attr, getattr(new_machine, attr))
+
+                self.T.persist()
+                self.sigma.persist()
             else:
                 stats = [
                     e_step(
@@ -302,8 +319,8 @@ class IVectorMachine(BaseEstimator):
                         data=X,
                     )
                 ]
-                _ = m_step(stats, self)
-            logger.debug(
+                _ = m_step(self, stats)
+            logger.info(
                 f"IVector step {step+1:{len(str(self.max_iterations))}d}/{self.max_iterations}."
             )
         logger.info(f"Reached {step+1} steps.")
@@ -349,5 +366,5 @@ class IVectorMachine(BaseEstimator):
     def _more_tags(self) -> Dict[str, Any]:
         return {
             "requires_fit": True,
-            "bob_fit_supports_dask_array": True,
+            "bob_fit_supports_dask_bag": True,
         }
