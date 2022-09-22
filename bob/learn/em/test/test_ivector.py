@@ -130,8 +130,9 @@ def test_ivector_machine_training():
     test_data.sum_px = np.array([[8, 0, 4], [6, 6, 6]])
     test_data.sum_pxx = np.array([[10, 20, 30], [60, 70, 80]])
     projected = machine.project(test_data)
+    print([f"{p:.8f}" for p in projected])
 
-    proj_reference = np.array([0.94235246, -0.61557883])
+    proj_reference = np.array([0.94234370, -0.61558459])
 
     np.testing.assert_almost_equal(projected, proj_reference, decimal=7)
 
