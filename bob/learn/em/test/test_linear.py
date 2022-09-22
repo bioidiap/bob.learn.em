@@ -55,7 +55,7 @@ def run_whitening(with_dask):
     t = Whitening()
     t.fit(data)
 
-    s = t.transform(sample)
+    s = t.transform([sample])
 
     # Makes sure results are good
     eps = 1e-4
@@ -65,7 +65,7 @@ def run_whitening(with_dask):
 
     # Runs whitening (second method)
     m2 = t.fit(data)
-    s2 = t.transform(sample)
+    s2 = t.transform([sample])
 
     # Makes sure results are good
     eps = 1e-4
@@ -113,7 +113,7 @@ def run_wccn(with_dask):
     # Runs WCCN (first method)
     t = WCCN()
     t.fit(X, y=y)
-    s = t.transform(sample)
+    s = t.transform([sample])
 
     # Makes sure results are good
     eps = 1e-4
@@ -123,7 +123,7 @@ def run_wccn(with_dask):
 
     # Runs WCCN (second method)
     t.fit(X, y)
-    s2 = t.transform(sample)
+    s2 = t.transform([sample])
 
     # Makes sure results are good
     eps = 1e-4
