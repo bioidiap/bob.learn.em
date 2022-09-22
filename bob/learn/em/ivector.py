@@ -183,18 +183,21 @@ def m_step(
     machine: "IVectorMachine", stats: List[IVectorStats]
 ) -> "IVectorMachine":
     """Updates the Machine with the maximization step of the e-m algorithm."""
+    # Merge all the stats
     stats = functools.reduce(operator.iadd, stats)
 
     A = stats.nij_sigma_wij2.transpose((0, 2, 1))
     B = stats.fnorm_sigma_wij.transpose((0, 2, 1))
 
+    # Default value of X if any of A[c] is 0
     X = np.zeros_like(B)
-    # Solve for all A != 0
-    if any(mask := A.any(axis=(-2, -1))):
+    # Solve for all A[c] != 0
+    if any(mask := A.any(axis=(-2, -1))):  # Prevents solving with 0 matrices
         X[mask] = [
             np.linalg.solve(A[c], B[c]) for c in range(len(mask)) if A[c].any()
         ]
 
+    # Update the machine
     machine.T = X.transpose((0, 2, 1))
 
     if machine.update_sigma:
@@ -309,9 +312,6 @@ class IVectorMachine(BaseEstimator):
                 new_machine = dask.compute(dask.delayed(m_step)(self, stats))[0]
                 for attr in ["T", "sigma"]:
                     setattr(self, attr, getattr(new_machine, attr))
-
-                self.T.persist()
-                self.sigma.persist()
             else:
                 stats = [
                     e_step(

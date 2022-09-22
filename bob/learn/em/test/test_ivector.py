@@ -5,6 +5,7 @@
 import contextlib
 import copy
 
+import dask.bag
 import dask.distributed
 import numpy as np
 
@@ -13,8 +14,7 @@ from pkg_resources import resource_filename
 
 from bob.learn.em import GMMMachine, GMMStats, IVectorMachine
 from bob.learn.em.ivector import e_step, m_step
-
-from .test_kmeans import to_dask_array, to_numpy
+from bob.learn.em.test.test_kmeans import to_numpy
 
 
 @contextlib.contextmanager
@@ -25,6 +25,17 @@ def _dask_distributed_context():
             yield client
     finally:
         client.close()
+
+
+def to_dask_bag(*args):
+    """Converts all args into dask Bags."""
+    result = []
+    for x in args:
+        x = np.asarray(x)
+        result.append(dask.bag.from_sequence(x, npartitions=x.shape[0] * 2))
+    if len(result) == 1:
+        return result[0]
+    return result
 
 
 def test_ivector_machine_base():
@@ -283,21 +294,22 @@ def test_ivector_fit():
     # Serial test
     np.random.seed(0)
     fit_data = to_numpy(fit_data)
-    projected_data = ubm.transform(d for d in fit_data)
+    projected_data = ubm.transform(fit_data)
     m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
-    m.fit(d for d in projected_data)
-    result = m.transform(ubm.transform(d for d in test_data))
+    m.fit(projected_data)
+    result = m.transform(ubm.transform(test_data))
     np.testing.assert_almost_equal(result, reference_result, decimal=5)
 
     # Parallel test
     with _dask_distributed_context():
-        for transform in [to_numpy, to_dask_array]:
+        for transform in [to_numpy, to_dask_bag]:
             np.random.seed(0)
             fit_data = transform(fit_data)
-            projected_data = ubm.transform(d for d in fit_data)
+            projected_data = ubm.transform(fit_data)
+            projected_data = transform(projected_data)
             m = IVectorMachine(ubm=ubm, dim_t=2, max_iterations=2)
-            m.fit(d for d in projected_data)
-            result = m.transform(d for d in test_data)
+            m.fit(projected_data)
+            result = m.transform(ubm.transform(test_data))
             np.testing.assert_almost_equal(
                 np.array(result), reference_result, decimal=5
             )
