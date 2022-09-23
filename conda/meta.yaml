@@ -35,7 +35,7 @@ requirements:
   run:
     - python
     - setuptools
-    - {{ pin_compatible('numpy') }}
+    - {{ pin_compatible('numpy', max_pin='x.x') }}
     - {{ pin_compatible('dask') }}
     - {{ pin_compatible('dask-ml') }}
     - {{ pin_compatible('h5py') }}
