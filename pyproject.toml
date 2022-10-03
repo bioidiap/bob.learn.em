@@ -1,6 +1,75 @@
 [build-system]
-    requires = ["setuptools", "wheel", "bob.extension"]
+    requires = ["setuptools>=61.0.0", "wheel"]
     build-backend = "setuptools.build_meta"
+
+[project]
+    name = "bob.learn.em"
+    requires-python = ">=3.9"
+    description = "Bindings for EM machines and trainers of Bob"
+    dynamic = ["readme", "version", "dependencies"]
+    license = {text = "BSD 3-Clause License"}
+    authors = [
+    {name = "Andre Anjos"},
+    {email = "andre.anjos@idiap.ch"},
+    ]
+    keywords = ["bob", "em", "expectation-maximization"]
+
+    classifiers=[
+        "Framework :: Bob",
+        "Development Status :: 4 - Beta",
+        "Intended Audience :: Developers",
+        "License :: OSI Approved :: BSD License",
+        "Natural Language :: English",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
+
+[project.urls]
+    documentation = "https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/stable/"
+    homepage = "https://pypi.org/project/bob.learn.em/"
+    repository = "https://gitlab.idiap.ch/bob/bob.learn.em"
+    changelog = "https://gitlab.idiap.ch/bob/bob.learn.em/-/releases"
+
+[project.optional-dependencies]
+    qa = ["pre-commit"]
+    doc = [
+        "sphinx",
+        "sphinx_rtd_theme",
+        "sphinx-autodoc-typehints",
+        "sphinxcontrib-programoutput",
+        "matplotlib",
+        ]
+    test = [
+        "pytest",
+        "pytest-cov",
+        "coverage",
+        ]
+
+[project.entry-points."bob.learn.em.test.config"]
+    first = "tests.data.basic_config"
+    first-a = "tests.data.basic_config:a"
+    first-b = "tests.data.basic_config:b"
+    second = "tests.data.second_config"
+    second-b = "tests.data.second_config:b"
+    second-c = "tests.data.second_config:c"
+    complex = "tests.data.complex"
+    complex-var = "tests.data.complex:cplx"
+    verbose-config = "tests.data.verbose_config"
+    error-config = "tests.data.doesnt_exist"
+
+[tool.setuptools]
+    zip-safe = false
+    package-dir = {"" = "bob"}
+
+[tool.setuptools.dynamic]
+    readme = {file = "README.rst"}
+    version = {file = "version.txt"}
+    dependencies = {file = "requirements.txt"}
+
+
+[tool.distutils.bdist_wheel]
+    universal = true
 
 [tool.isort]
     profile = "black"
@@ -10,3 +79,15 @@
 
 [tool.black]
     line-length = 80
+
+[tool.coverage.run]
+    relative_files = true
+
+[tool.pytest.ini_options]
+    addopts = [
+        "--import-mode=append",
+        "--cov-report=term-missing",
+        "--cov=bob.learn.em",
+    ]
+    junit_logging = "all"
+    junit_log_passing_tests = false
