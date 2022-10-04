@@ -46,18 +46,6 @@
         "coverage",
         ]
 
-[project.entry-points."bob.learn.em.test.config"]
-    first = "tests.data.basic_config"
-    first-a = "tests.data.basic_config:a"
-    first-b = "tests.data.basic_config:b"
-    second = "tests.data.second_config"
-    second-b = "tests.data.second_config:b"
-    second-c = "tests.data.second_config:c"
-    complex = "tests.data.complex"
-    complex-var = "tests.data.complex:cplx"
-    verbose-config = "tests.data.verbose_config"
-    error-config = "tests.data.doesnt_exist"
-
 [tool.setuptools]
     zip-safe = false
     package-dir = {"" = "bob"}
