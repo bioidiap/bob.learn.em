@@ -48,7 +48,7 @@
 
 [tool.setuptools]
     zip-safe = false
-    package-dir = {"" = "bob"}
+    packages = ["bob"]
 
 [tool.setuptools.dynamic]
     readme = {file = "README.rst"}
