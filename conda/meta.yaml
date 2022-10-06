@@ -4,7 +4,7 @@
 
 package:
   name: {{ name }}
-  version: {{ data['tool']['setuptools']['dynamic']['version'] }}
+  version: {{ data['project']['version'] }}
 
 build:
   number: {{ environ.get('BOB_BUILD_NUMBER', 0) }}
@@ -12,8 +12,7 @@ build:
     - {{ pin_subpackage(name) }}
   script:
     - cd {{ project_dir }}
-    - echo {{ SRC_DIR }}
-    - "{{ PYTHON }} -m pip install {{ SRC_DIR }} -vv"
+    - "{{ PYTHON }} -m pip install . -vv"
     # installs the documentation source, readme to share/doc so it is available
     # during test time
     - install -d "${PREFIX}/share/doc/{{ name }}"
@@ -49,6 +48,7 @@ test:
     # runs tests for package only, report only what is in the package
     # creates xml tests report and place it in a specific directory
     # creates html and xml coverage reports and place them in a specific directory
+    - ls -lah
     - pytest --verbose --cov {{ name }} --cov-report term-missing --cov-report html:{{ project_dir }}/sphinx/coverage --cov-report xml:{{ project_dir }}/coverage.xml --junitxml={{ project_dir }}/test_results.xml --pyargs {{ name }}
     - sphinx-build -aEW {{ project_dir }}/doc {{ project_dir }}/sphinx
     - sphinx-build -aEb doctest {{ project_dir }}/doc sphinx

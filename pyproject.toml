@@ -4,9 +4,10 @@
 
 [project]
     name = "bob.learn.em"
+    version = "3.0.5b0"
     requires-python = ">=3.9"
     description = "Bindings for EM machines and trainers of Bob"
-    dynamic = ["readme", "version", "dependencies"]
+    dynamic = ["readme", "dependencies"]
     license = {text = "BSD 3-Clause License"}
     authors = [
     {name = "Andre Anjos"},
@@ -52,7 +53,6 @@
 
 [tool.setuptools.dynamic]
     readme = {file = "README.rst"}
-    version = {file = "version.txt"}
     dependencies = {file = "requirements.txt"}
 
 
