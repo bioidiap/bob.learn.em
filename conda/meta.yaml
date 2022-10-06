@@ -1,9 +1,10 @@
-{% set name = 'bob.learn.em' %}
+{% set data = load_file_data(RECIPE_DIR + '/../pyproject.toml') %}
+{% set name = data['project']['name'] %}
 {% set project_dir = environ.get('RECIPE_DIR') + '/..' %}
 
 package:
   name: {{ name }}
-  version: {{ environ.get('BOB_PACKAGE_VERSION', '0.0.1') }}
+  version: {{ data['tool']['setuptools']['dynamic']['version'] }}
 
 build:
   number: {{ environ.get('BOB_BUILD_NUMBER', 0) }}
@@ -11,10 +12,8 @@ build:
     - {{ pin_subpackage(name) }}
   script:
     - cd {{ project_dir }}
-    {% if environ.get('BUILD_EGG') %}
-    - "{{ PYTHON }} setup.py sdist --formats=zip"
-    {% endif %}
-    - "{{ PYTHON }} -m pip install . -vv"
+    - echo {{ SRC_DIR }}
+    - "{{ PYTHON }} -m pip install {{ SRC_DIR }} -vv"
     # installs the documentation source, readme to share/doc so it is available
     # during test time
     - install -d "${PREFIX}/share/doc/{{ name }}"
@@ -64,7 +63,7 @@ test:
     - matplotlib {{ matplotlib }}
 
 about:
-  home: https://www.idiap.ch/software/bob/
-  license: BSD 3-Clause
-  summary: Bindings for emelaneous machines and trainers of Bob
+  home: {{ data['project']['urls']['homepage'] }}
+  license: {{ data['project']['description'] }}
+  summary: {{ data['project']['license']['text'] }}
   license_family: BSD
