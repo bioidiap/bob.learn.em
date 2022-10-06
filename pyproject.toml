@@ -49,6 +49,7 @@
 
 [tool.setuptools]
     zip-safe = false
+    include-package-data = true
     packages = ["bob"]
 
 [tool.setuptools.dynamic]
