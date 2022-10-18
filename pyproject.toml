@@ -4,7 +4,7 @@
 
 [project]
     name = "bob.learn.em"
-    version = "3.0.5b0"
+    version = "3.2.1b0"
     requires-python = ">=3.9"
     description = "Bindings for EM machines and trainers of Bob"
     dynamic = ["readme", "dependencies"]
