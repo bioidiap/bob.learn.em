@@ -294,9 +294,23 @@ def test_GMMMachine():
     )
 
 
+def test_GMMMachine_legacy_loading():
+    """Tests that old GMMMachine checkpoints are loaded correctly."""
+    reference_file = resource_filename("bob.learn.em", "data/gmm_ML.hdf5")
+    legacy_gmm_file = resource_filename(
+        "bob.learn.em", "data/gmm_ML_legacy.hdf5"
+    )
+    gmm = GMMMachine.from_hdf5(legacy_gmm_file)
+    assert isinstance(gmm, GMMMachine)
+    assert isinstance(gmm.n_gaussians, np.int64), type(gmm.n_gaussians)
+    assert isinstance(gmm.weights, np.ndarray), type(gmm.weights)
+    reference = GMMMachine.from_hdf5(reference_file)
+    np.testing.assert_allclose(gmm.variances, reference.variances)
+    assert gmm.is_similar_to(reference)
+
+
 def test_GMMMachine_stats():
     """Tests a GMMMachine (statistics)"""
-
     arrayset = load_array(
         resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5")
     )
@@ -802,7 +816,9 @@ def test_gmm_ML_1():
         resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5")
     )
     gmm_ref = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r")
+        HDF5File(
+            resource_filename("bob.learn.em", "data/gmm_ML_fitted.hdf5"), "r"
+        )
     )
 
     for transform in (to_numpy, to_dask_array):
@@ -823,8 +839,6 @@ def test_gmm_ML_1():
         gmm.update_means = True
         gmm.update_variances = True
         gmm.update_weights = True
-        # Generate reference
-        # gmm.save(HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "w"))
 
         gmm = gmm.fit(ar)
 
@@ -911,16 +925,6 @@ def test_gmm_MAP_1():
     gmmprior = GMMMachine.from_hdf5(
         HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r")
     )
-    gmm = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"),
-        ubm=gmmprior,
-    )
-    gmm.update_means = True
-    gmm.update_variances = False
-    gmm.update_weights = False
-
-    # Generate reference
-    # gmm.save(HDF5File(resource_filename("bob.learn.em", "data/gmm_MAP.hdf5"), "w"))
 
     gmm_ref = GMMMachine.from_hdf5(
         HDF5File(resource_filename("bob.learn.em", "data/gmm_MAP.hdf5"), "r")
@@ -928,13 +932,21 @@ def test_gmm_MAP_1():
 
     for transform in (to_numpy, to_dask_array):
         ar = transform(ar)
-        gmm = gmm.fit(ar)
-
-        np.testing.assert_almost_equal(gmm.means, gmm_ref.means, decimal=3)
-        np.testing.assert_almost_equal(
-            gmm.variances, gmm_ref.variances, decimal=3
+        gmm = GMMMachine.from_hdf5(
+            HDF5File(
+                resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"
+            ),
+            ubm=gmmprior,
         )
-        np.testing.assert_almost_equal(gmm.weights, gmm_ref.weights, decimal=3)
+        gmm.update_means = True
+        gmm.update_variances = False
+        gmm.update_weights = False
+        gmm.fit(ar)
+        np.testing.assert_almost_equal(gmm.means, gmm_ref.means, decimal=7)
+        np.testing.assert_almost_equal(
+            gmm.variances, gmm_ref.variances, decimal=7
+        )
+        np.testing.assert_almost_equal(gmm.weights, gmm_ref.weights, decimal=7)
 
 
 def test_gmm_MAP_2():

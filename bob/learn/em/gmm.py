@@ -598,7 +598,7 @@ class GMMMachine(BaseEstimator):
         return self.means.shape
 
     @classmethod
-    def from_hdf5(cls, hdf5, ubm=None):
+    def from_hdf5(cls, hdf5: Union[str, HDF5File], ubm: "GMMMachine" = None):
         """Creates a new GMMMachine object from an `HDF5File` object."""
         if isinstance(hdf5, str):
             hdf5 = HDF5File(hdf5, "r")
