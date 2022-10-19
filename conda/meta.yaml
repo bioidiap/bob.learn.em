@@ -43,7 +43,7 @@ requirements:
 
 test:
   imports:
-    - {{ name }}
+    - {{ name.replace('-','_') }}
   commands:
     # runs tests for package only, report only what is in the package
     # creates xml tests report and place it in a specific directory
@@ -53,6 +53,6 @@ test:
 
 about:
   home: {{ data['project']['urls']['homepage'] }}
-  license: {{ data['project']['description'] }}
-  summary: {{ data['project']['license']['text'] }}
+  summary: {{ data['project']['description'] }}
+  license: {{ data['project']['license']['text'] }}
   license_family: BSD
