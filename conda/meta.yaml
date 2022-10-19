@@ -24,7 +24,6 @@ requirements:
     - python {{ python }}
     - setuptools {{ setuptools }}
     - pip {{ pip }}
-    - bob.extension
     - numpy {{ numpy }}
     - dask {{ dask }}
     - dask-ml {{ dask_ml }}

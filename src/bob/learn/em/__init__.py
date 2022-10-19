@@ -1,5 +1,3 @@
-import bob.extension
-
 from .factor_analysis import ISVMachine, JFAMachine
 from .gmm import GMMMachine, GMMStats
 from .ivector import IVectorMachine
@@ -7,11 +5,6 @@ from .kmeans import KMeansMachine
 from .linear_scoring import linear_scoring  # noqa: F401
 from .wccn import WCCN
 from .whitening import Whitening
-
-
-def get_config():
-    """Returns a string containing the configuration information."""
-    return bob.extension.get_config(__name__)
 
 
 # gets sphinx autodoc done right - don't remove it
