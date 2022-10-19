@@ -17,7 +17,6 @@ dist
 build
 .DS_Store
 *.egg
-src/
 record.txt
 dask-worker-space
 .gitlab-ci-local*
