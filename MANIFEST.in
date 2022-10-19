@@ -1,4 +1,4 @@
-include LICENSE README.rst buildout.cfg develop.cfg requirements.txt version.txt
+include LICENSE README.rst develop.cfg
 recursive-include doc conf.py *.rst
 recursive-include bob/learn/em *.cpp *.h
 recursive-include bob/learn/em/data *.*

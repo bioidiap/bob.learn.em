@@ -7,7 +7,7 @@
     version = "3.2.1b0"
     requires-python = ">=3.9"
     description = "Bindings for EM machines and trainers of Bob"
-    dynamic = ["readme", "dependencies"]
+    dynamic = ["readme"]
     license = {text = "BSD 3-Clause License"}
     authors = [
     {name = "Andre Anjos"},
@@ -24,6 +24,14 @@
         "Programming Language :: Python",
         "Programming Language :: Python :: 3",
         "Topic :: Software Development :: Libraries :: Python Modules",
+    ]
+    dependencies = [
+        "setuptools",
+        "bob.extension",
+        "dask",
+        "dask-ml",
+        "h5py >= 3",
+        "scikit-learn",
     ]
 
 [project.urls]
@@ -54,7 +62,6 @@
 
 [tool.setuptools.dynamic]
     readme = {file = "README.rst"}
-    dependencies = {file = "requirements.txt"}
 
 
 [tool.distutils.bdist_wheel]
