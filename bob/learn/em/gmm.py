@@ -636,7 +636,7 @@ class GMMMachine(BaseEstimator):
             ]
         else:  # Legacy file version
             logger.info("Loading a legacy HDF5 machine file.")
-            n_gaussians = hdf5["m_n_gaussians"][()]
+            n_gaussians = hdf5["m_n_gaussians"][()][0]
             g_means = []
             g_variances = []
             g_variance_thresholds = []
