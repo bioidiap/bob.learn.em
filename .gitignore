@@ -20,3 +20,4 @@ build
 record.txt
 dask-worker-space
 .gitlab-ci-local*
+html/

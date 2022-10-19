@@ -48,6 +48,7 @@
         "sphinx-autodoc-typehints",
         "sphinxcontrib-programoutput",
         "matplotlib",
+        "furo",
         ]
     test = [
         "pytest",
@@ -57,8 +58,7 @@
 
 [tool.setuptools]
     zip-safe = false
-    include-package-data = true
-    packages = ["bob"]
+    package-dir = {"" = "src"}
 
 [tool.setuptools.dynamic]
     readme = {file = "README.rst"}

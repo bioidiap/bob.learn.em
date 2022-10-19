@@ -2,13 +2,11 @@
 # vim: set fileencoding=utf-8 :
 
 import os
-import sys
 
 import pkg_resources
 
 # -- General configuration -----------------------------------------------------
 # Adding the parent directory to the python path.
-sys.path.insert(0, os.path.abspath("../"))
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = "1.3"
