@@ -7,6 +7,7 @@ package:
   version: {{ data['project']['version'] }}
 
 build:
+  noarch: python
   number: {{ environ.get('BOB_BUILD_NUMBER', 0) }}
   run_exports:
     - {{ pin_subpackage(name) }}
