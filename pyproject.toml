@@ -48,7 +48,6 @@
         "sphinx-autodoc-typehints",
         "sphinxcontrib-programoutput",
         "matplotlib",
-        "furo",
         ]
     test = [
         "pytest",
