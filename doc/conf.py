@@ -6,7 +6,6 @@ import os
 import pkg_resources
 
 # -- General configuration -----------------------------------------------------
-# Adding the parent directory to the python path.
 
 # If your documentation needs a minimal Sphinx version, state it here.
 needs_sphinx = "1.3"
