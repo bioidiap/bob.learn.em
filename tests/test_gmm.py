@@ -47,13 +47,13 @@ def loadGMM():
     gmm = GMMMachine(n_gaussians=2)
 
     gmm.weights = load_array(
-        resource_filename("bob.learn.em", "data/gmm.init_weights.hdf5")
+        resource_filename(__name__, "data/gmm.init_weights.hdf5")
     )
     gmm.means = load_array(
-        resource_filename("bob.learn.em", "data/gmm.init_means.hdf5")
+        resource_filename(__name__, "data/gmm.init_means.hdf5")
     )
     gmm.variances = load_array(
-        resource_filename("bob.learn.em", "data/gmm.init_variances.hdf5")
+        resource_filename(__name__, "data/gmm.init_variances.hdf5")
     )
 
     return gmm
@@ -296,10 +296,8 @@ def test_GMMMachine():
 
 def test_GMMMachine_legacy_loading():
     """Tests that old GMMMachine checkpoints are loaded correctly."""
-    reference_file = resource_filename("bob.learn.em", "data/gmm_ML.hdf5")
-    legacy_gmm_file = resource_filename(
-        "bob.learn.em", "data/gmm_ML_legacy.hdf5"
-    )
+    reference_file = resource_filename(__name__, "data/gmm_ML.hdf5")
+    legacy_gmm_file = resource_filename(__name__, "data/gmm_ML_legacy.hdf5")
     gmm = GMMMachine.from_hdf5(legacy_gmm_file)
     assert isinstance(gmm, GMMMachine)
     assert isinstance(gmm.n_gaussians, np.int64), type(gmm.n_gaussians)
@@ -312,7 +310,7 @@ def test_GMMMachine_legacy_loading():
 def test_GMMMachine_stats():
     """Tests a GMMMachine (statistics)"""
     arrayset = load_array(
-        resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5")
+        resource_filename(__name__, "data/faithful.torch3_f64.hdf5")
     )
     gmm = GMMMachine(n_gaussians=2)
     gmm.weights = np.array([0.5, 0.5], "float64")
@@ -327,7 +325,7 @@ def test_GMMMachine_stats():
 
     stats_ref = GMMStats(n_gaussians=2, n_features=2)
     stats_ref.load(
-        HDF5File(resource_filename("bob.learn.em", "data/stats.hdf5"), "r")
+        HDF5File(resource_filename(__name__, "data/stats.hdf5"), "r")
     )
 
     np.testing.assert_equal(stats.t, stats_ref.t)
@@ -341,14 +339,12 @@ def test_GMMMachine_stats():
 def test_GMMMachine_ll_computation():
     """Test a GMMMachine (log-likelihood computation)"""
 
-    data = load_array(resource_filename("bob.learn.em", "data/data.hdf5"))
+    data = load_array(resource_filename(__name__, "data/data.hdf5"))
     gmm = GMMMachine(n_gaussians=2)
-    gmm.weights = load_array(
-        resource_filename("bob.learn.em", "data/weights.hdf5")
-    )
-    gmm.means = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
+    gmm.weights = load_array(resource_filename(__name__, "data/weights.hdf5"))
+    gmm.means = load_array(resource_filename(__name__, "data/means.hdf5"))
     gmm.variances = load_array(
-        resource_filename("bob.learn.em", "data/variances.hdf5")
+        resource_filename(__name__, "data/variances.hdf5")
     )
 
     # Compare the log-likelihood with the one obtained using Chris Matlab implementation
@@ -367,12 +363,10 @@ def test_GMMMachine_single_ll_vs_multiple():
     )  # Doesn't matter if it is random. The average of 1D array (in python) MUST output the same result for the 2D array (in C++)
 
     gmm = GMMMachine(n_gaussians=2)
-    gmm.weights = load_array(
-        resource_filename("bob.learn.em", "data/weights.hdf5")
-    )
-    gmm.means = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
+    gmm.weights = load_array(resource_filename(__name__, "data/weights.hdf5"))
+    gmm.means = load_array(resource_filename(__name__, "data/means.hdf5"))
     gmm.variances = load_array(
-        resource_filename("bob.learn.em", "data/variances.hdf5")
+        resource_filename(__name__, "data/variances.hdf5")
     )
 
     ll = 0
@@ -813,12 +807,10 @@ def test_map_transformer():
 def test_gmm_ML_1():
     """Trains a GMMMachine with ML_GMMTrainer"""
     ar = load_array(
-        resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5")
+        resource_filename(__name__, "data/faithful.torch3_f64.hdf5")
     )
     gmm_ref = GMMMachine.from_hdf5(
-        HDF5File(
-            resource_filename("bob.learn.em", "data/gmm_ML_fitted.hdf5"), "r"
-        )
+        HDF5File(resource_filename(__name__, "data/gmm_ML_fitted.hdf5"), "r")
     )
 
     for transform in (to_numpy, to_dask_array):
@@ -847,20 +839,18 @@ def test_gmm_ML_1():
 
 def test_gmm_ML_2():
     # Trains a GMMMachine with ML_GMMTrainer; compares to a reference
-    ar = load_array(
-        resource_filename("bob.learn.em", "data/dataNormalized.hdf5")
-    )
+    ar = load_array(resource_filename(__name__, "data/dataNormalized.hdf5"))
 
     # Test results
     # Load torch3vision reference
     meansML_ref = load_array(
-        resource_filename("bob.learn.em", "data/meansAfterML.hdf5")
+        resource_filename(__name__, "data/meansAfterML.hdf5")
     )
     variancesML_ref = load_array(
-        resource_filename("bob.learn.em", "data/variancesAfterML.hdf5")
+        resource_filename(__name__, "data/variancesAfterML.hdf5")
     )
     weightsML_ref = load_array(
-        resource_filename("bob.learn.em", "data/weightsAfterML.hdf5")
+        resource_filename(__name__, "data/weightsAfterML.hdf5")
     )
 
     for transform in (to_numpy, to_dask_array):
@@ -868,16 +858,14 @@ def test_gmm_ML_2():
         # Initialize GMMMachine
         gmm = GMMMachine(n_gaussians=5)
         gmm.means = load_array(
-            resource_filename("bob.learn.em", "data/meansAfterKMeans.hdf5")
+            resource_filename(__name__, "data/meansAfterKMeans.hdf5")
         ).astype("float64")
         gmm.variances = load_array(
-            resource_filename("bob.learn.em", "data/variancesAfterKMeans.hdf5")
+            resource_filename(__name__, "data/variancesAfterKMeans.hdf5")
         ).astype("float64")
         gmm.weights = np.exp(
             load_array(
-                resource_filename(
-                    "bob.learn.em", "data/weightsAfterKMeans.hdf5"
-                )
+                resource_filename(__name__, "data/weightsAfterKMeans.hdf5")
             ).astype("float64")
         )
 
@@ -904,15 +892,15 @@ def test_gmm_ML_2():
 def test_gmm_MAP_1():
     # Train a GMMMachine with MAP_GMMTrainer
     ar = load_array(
-        resource_filename("bob.learn.em", "data/faithful.torch3_f64.hdf5")
+        resource_filename(__name__, "data/faithful.torch3_f64.hdf5")
     )
 
     # test with rng
     gmmprior = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r")
+        HDF5File(resource_filename(__name__, "data/gmm_ML.hdf5"), "r")
     )
     gmm = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"),
+        HDF5File(resource_filename(__name__, "data/gmm_ML.hdf5"), "r"),
         ubm=gmmprior,
     )
     gmm.update_means = True
@@ -923,19 +911,17 @@ def test_gmm_MAP_1():
     gmm = gmm.fit(ar)
 
     gmmprior = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r")
+        HDF5File(resource_filename(__name__, "data/gmm_ML.hdf5"), "r")
     )
 
     gmm_ref = GMMMachine.from_hdf5(
-        HDF5File(resource_filename("bob.learn.em", "data/gmm_MAP.hdf5"), "r")
+        HDF5File(resource_filename(__name__, "data/gmm_MAP.hdf5"), "r")
     )
 
     for transform in (to_numpy, to_dask_array):
         ar = transform(ar)
         gmm = GMMMachine.from_hdf5(
-            HDF5File(
-                resource_filename("bob.learn.em", "data/gmm_ML.hdf5"), "r"
-            ),
+            HDF5File(resource_filename(__name__, "data/gmm_ML.hdf5"), "r"),
             ubm=gmmprior,
         )
         gmm.update_means = True
@@ -952,13 +938,11 @@ def test_gmm_MAP_1():
 def test_gmm_MAP_2():
     # Train a GMMMachine with MAP_GMMTrainer and compare with matlab reference
 
-    data = load_array(resource_filename("bob.learn.em", "data/data.hdf5"))
+    data = load_array(resource_filename(__name__, "data/data.hdf5"))
     data = data.reshape((1, -1))  # make a 2D array out of it
-    means = load_array(resource_filename("bob.learn.em", "data/means.hdf5"))
-    variances = load_array(
-        resource_filename("bob.learn.em", "data/variances.hdf5")
-    )
-    weights = load_array(resource_filename("bob.learn.em", "data/weights.hdf5"))
+    means = load_array(resource_filename(__name__, "data/means.hdf5"))
+    variances = load_array(resource_filename(__name__, "data/variances.hdf5"))
+    weights = load_array(resource_filename(__name__, "data/weights.hdf5"))
 
     gmm = GMMMachine(n_gaussians=2)
     gmm.means = means
@@ -980,7 +964,7 @@ def test_gmm_MAP_2():
     gmm_adapted.weights = weights
 
     new_means = load_array(
-        resource_filename("bob.learn.em", "data/new_adapted_mean.hdf5")
+        resource_filename(__name__, "data/new_adapted_mean.hdf5")
     )
 
     for transform in (to_numpy, to_dask_array):
@@ -993,19 +977,19 @@ def test_gmm_MAP_2():
 
 def test_gmm_MAP_3():
     # Train a GMMMachine with MAP_GMMTrainer; compares to old reference
-    ar = load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5"))
+    ar = load_array(resource_filename(__name__, "data/dataforMAP.hdf5"))
 
     # Initialize GMMMachine
     n_gaussians = 5
     prior_gmm = GMMMachine(n_gaussians)
     prior_gmm.means = load_array(
-        resource_filename("bob.learn.em", "data/meansAfterML.hdf5")
+        resource_filename(__name__, "data/meansAfterML.hdf5")
     )
     prior_gmm.variances = load_array(
-        resource_filename("bob.learn.em", "data/variancesAfterML.hdf5")
+        resource_filename(__name__, "data/variancesAfterML.hdf5")
     )
     prior_gmm.weights = load_array(
-        resource_filename("bob.learn.em", "data/weightsAfterML.hdf5")
+        resource_filename(__name__, "data/weightsAfterML.hdf5")
     )
 
     threshold = 0.001
@@ -1031,13 +1015,13 @@ def test_gmm_MAP_3():
     # Test results
     # Load torch3vision reference
     meansMAP_ref = load_array(
-        resource_filename("bob.learn.em", "data/meansAfterMAP.hdf5")
+        resource_filename(__name__, "data/meansAfterMAP.hdf5")
     )
     variancesMAP_ref = load_array(
-        resource_filename("bob.learn.em", "data/variancesAfterMAP.hdf5")
+        resource_filename(__name__, "data/variancesAfterMAP.hdf5")
     )
     weightsMAP_ref = load_array(
-        resource_filename("bob.learn.em", "data/weightsAfterMAP.hdf5")
+        resource_filename(__name__, "data/weightsAfterMAP.hdf5")
     )
 
     for transform in (to_numpy, to_dask_array):
@@ -1057,19 +1041,19 @@ def test_gmm_MAP_3():
 def test_gmm_test():
     # Tests a GMMMachine by computing scores against a model and comparing to a reference
 
-    ar = load_array(resource_filename("bob.learn.em", "data/dataforMAP.hdf5"))
+    ar = load_array(resource_filename(__name__, "data/dataforMAP.hdf5"))
 
     # Initialize GMMMachine
     n_gaussians = 5
     gmm = GMMMachine(n_gaussians)
     gmm.means = load_array(
-        resource_filename("bob.learn.em", "data/meansAfterML.hdf5")
+        resource_filename(__name__, "data/meansAfterML.hdf5")
     )
     gmm.variances = load_array(
-        resource_filename("bob.learn.em", "data/variancesAfterML.hdf5")
+        resource_filename(__name__, "data/variancesAfterML.hdf5")
     )
     gmm.weights = load_array(
-        resource_filename("bob.learn.em", "data/weightsAfterML.hdf5")
+        resource_filename(__name__, "data/weightsAfterML.hdf5")
     )
 
     threshold = 0.001

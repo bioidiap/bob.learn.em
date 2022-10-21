@@ -14,7 +14,8 @@ from pkg_resources import resource_filename
 
 from bob.learn.em import GMMMachine, GMMStats, IVectorMachine
 from bob.learn.em.ivector import e_step, m_step
-from bob.learn.em.test.test_kmeans import to_numpy
+
+from .test_kmeans import to_numpy
 
 
 @contextlib.contextmanager
@@ -105,10 +106,10 @@ def test_ivector_machine_transformer():
 
 def test_ivector_machine_training():
     gs1 = GMMStats.from_hdf5(
-        resource_filename("bob.learn.em", "data/ivector_gs1.hdf5")
+        resource_filename(__name__, "data/ivector_gs1.hdf5")
     )
     gs2 = GMMStats.from_hdf5(
-        resource_filename("bob.learn.em", "data/ivector_gs2.hdf5")
+        resource_filename(__name__, "data/ivector_gs2.hdf5")
     )
 
     data = [gs1, gs2]
@@ -160,7 +161,7 @@ def test_trainer_nosigma():
 
     data = [
         GMMStats.from_hdf5(
-            resource_filename("bob.learn.em", f"data/ivector_gs{i+1}.hdf5")
+            resource_filename(__name__, f"data/ivector_gs{i+1}.hdf5")
         )
         for i in range(2)
     ]
@@ -168,7 +169,7 @@ def test_trainer_nosigma():
     references = [
         _load_references_from_file(
             resource_filename(
-                "bob.learn.em", f"data/ivector_ref_nosigma_step{i+1}.hdf5"
+                __name__, f"data/ivector_ref_nosigma_step{i+1}.hdf5"
             )
         )
         for i in range(2)
@@ -217,16 +218,14 @@ def test_trainer_update_sigma():
 
     data = [
         GMMStats.from_hdf5(
-            resource_filename("bob.learn.em", f"data/ivector_gs{i+1}.hdf5")
+            resource_filename(__name__, f"data/ivector_gs{i+1}.hdf5")
         )
         for i in range(2)
     ]
 
     references = [
         _load_references_from_file(
-            resource_filename(
-                "bob.learn.em", f"data/ivector_ref_step{i+1}.hdf5"
-            )
+            resource_filename(__name__, f"data/ivector_ref_step{i+1}.hdf5")
         )
         for i in range(2)
     ]
@@ -273,20 +272,16 @@ def test_ivector_fit():
     ubm.means = np.array([[1.0, 7, 4], [4, 5, 3]])
     ubm.variances = np.array([[0.5, 1.0, 1.5], [1.0, 1.5, 2.0]])
 
-    fit_data_file = resource_filename(
-        "bob.learn.em", "data/ivector_fit_data.hdf5"
-    )
+    fit_data_file = resource_filename(__name__, "data/ivector_fit_data.hdf5")
     with HDF5File(fit_data_file, "r") as f:
         fit_data = f["array"][()]
 
-    test_data_file = resource_filename(
-        "bob.learn.em", "data/ivector_test_data.hdf5"
-    )
+    test_data_file = resource_filename(__name__, "data/ivector_test_data.hdf5")
     with HDF5File(test_data_file, "r") as f:
         test_data = f["array"][()]
 
     reference_result_file = resource_filename(
-        "bob.learn.em", "data/ivector_results.hdf5"
+        __name__, "data/ivector_results.hdf5"
     )
     with HDF5File(reference_result_file, "r") as f:
         reference_result = f["array"][()]
