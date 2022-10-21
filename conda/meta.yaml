@@ -5,6 +5,9 @@ package:
   name: {{ name }}
   version: {{ data['project']['version'] }}
 
+source:
+  path: ..
+
 build:
   noarch: python
   number: {{ environ.get('BOB_BUILD_NUMBER', 0) }}
