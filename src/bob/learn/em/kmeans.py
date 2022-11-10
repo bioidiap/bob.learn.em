@@ -308,6 +308,7 @@ class KMeansMachine(BaseEstimator):
         # k_init requires da.Array as input.
         logger.debug("Transform k-means data to dask array")
         data = da.array(data)
+        data.rechunk(1, data.shape[-1])  # Prevents issue with large arrays.
         logger.debug("Get k-means centroids")
         self.centroids_ = k_init(
             X=data,
