@@ -231,15 +231,3 @@ autodoc_default_options = {
     "undoc-members": True,
     "show-inheritance": True,
 }
-
-# For inter-documentation mapping:
-from bob.extension.utils import link_documentation, load_requirements
-
-sphinx_requirements = "extra-intersphinx.txt"
-if os.path.exists(sphinx_requirements):
-    intersphinx_mapping = link_documentation(
-        additional_packages=["python", "numpy"]
-        + load_requirements(sphinx_requirements)
-    )
-else:
-    intersphinx_mapping = link_documentation()
