@@ -148,7 +148,6 @@ class FactorAnalysisBase(BaseEstimator):
     @property
     def feature_dimension(self):
         """Get the UBM Dimension"""
-
         # TODO: Add this on the GMMMachine class
         return self.ubm.means.shape[1]
 
@@ -159,16 +158,12 @@ class FactorAnalysisBase(BaseEstimator):
 
     @property
     def mean_supervector(self):
-        """
-        Returns the mean supervector
-        """
+        """Returns the mean supervector"""
         return self.ubm.means.flatten()
 
     @property
     def variance_supervector(self):
-        """
-        Returns the variance supervector
-        """
+        """Returns the variance supervector"""
         return self.ubm.variances.flatten()
 
     @property
@@ -199,10 +194,7 @@ class FactorAnalysisBase(BaseEstimator):
         self._V = np.array(value)
 
     def estimate_number_of_classes(self, y):
-        """
-        Estimates the number of classes given the labels
-        """
-
+        """Estimates the number of classes given the labels"""
         return len(unique_labels(y))
 
     def initialize_using_array(self, X):
@@ -279,6 +271,7 @@ class FactorAnalysisBase(BaseEstimator):
             D: (n_gaussians*feature_dimension) represents the client offset vector
 
         """
+
         if self.random_state is not None:
             np.random.seed(self.random_state)
 
@@ -319,6 +312,7 @@ class FactorAnalysisBase(BaseEstimator):
                 (n_classes, n_gaussians) representing the accumulated 0th order statistics
 
         """
+
         # 0th order stats
         n_acc = np.zeros((n_classes, self.ubm.n_gaussians), like=X[0].n)
 
@@ -380,12 +374,11 @@ class FactorAnalysisBase(BaseEstimator):
             i: int
                 Class id to return the statistics for
         """
+
         indices = np.where(np.array(y) == i)[0]
         return [X[i] for i in indices]
 
-    """
-    Estimating U and x
-    """
+    #  Estimating U and x  #
 
     def _compute_id_plus_u_prod_ih(self, x_i, UProd):
         """
@@ -430,6 +423,7 @@ class FactorAnalysisBase(BaseEstimator):
                 E[y_i] for class `i`
 
         """
+
         f_i = x_i.sum_px
         n_i = x_i.n
         n_ic = np.repeat(n_i, self.feature_dimension)
@@ -447,9 +441,8 @@ class FactorAnalysisBase(BaseEstimator):
                 self.mean_supervector + self._D * latent_z_i
             )
 
-        """
-        # JFA Part (eq 29)
-        """
+        #  JFA Part (eq 29)  #
+
         V_dot_v = V @ latent_y_i if latent_y_i is not None else 0
         fn_x_ih -= n_ic * V_dot_v if latent_y_i is not None else 0
 
@@ -545,6 +538,7 @@ class FactorAnalysisBase(BaseEstimator):
                 Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
+
         # Inverting A1 over the zero axis
         # https://stackoverflow.com/questions/11972102/is-there-a-way-to-efficiently-invert-an-array-of-matrices-with-numpy
         inv_A1 = np.linalg.inv(acc_U_A1)
@@ -568,6 +562,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         https://gitlab.idiap.ch/bob/bob.learn.em/-/blob/da92d0e5799d018f311f1bf5cdd5a80e19e142ca/bob/learn/em/cpp/FABaseTrainer.cpp#L325
         """
+
         # UProd = (self.ubm.n_gaussians, self.r_U, self.r_U)
 
         Uc = self._U.reshape(
@@ -662,9 +657,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return acc_U_A1, acc_U_A2
 
-    """
-    Estimating D and z
-    """
+    #  Estimating D and z  #
 
     def update_z(self, X, y, latent_x, latent_y, latent_z, n_acc, f_acc):
         """
@@ -878,6 +871,7 @@ class FactorAnalysisBase(BaseEstimator):
         latent_x = (n_classes, r_U, n_sessions)
 
         """
+
         kw = dict(like=like) if isinstance(like, dask.array.core.Array) else {}
 
         # x (Eq. 36)
@@ -897,9 +891,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         return latent_x, latent_y, latent_z
 
-    """
-     Estimating V and y
-    """
+    #  Estimating V and y  #
 
     def update_y(
         self,
@@ -948,6 +940,7 @@ class FactorAnalysisBase(BaseEstimator):
             Accumulated 1st order statistics for each class (math:`F_{i}`)
 
         """
+
         # V.T / sigma
         VTinvSigma = self._V.T / self.variance_supervector
 
@@ -1019,7 +1012,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         I = np.eye(self.r_V, self.r_V)  # noqa: E741
 
-        # TODO: make the invertion matrix function as a parameter
+        # TODO: make the inversion matrix function as a parameter
         return np.linalg.inv(I + (VProd * n_acc_i[:, None, None]).sum(axis=0))
 
     def _compute_vprod(self):
@@ -1176,17 +1169,15 @@ class FactorAnalysisBase(BaseEstimator):
         )  # Fn_yi = sum_{sessions h}(N_{i,h}*(o_{i,h} - m - D*z_{i})
 
         # Looping over the sessions of a ;ane;
-        for session_id in range(len(X_i)):
-            n_i = X_i[session_id].n
+        for session_id, x_i_s in enumerate(X_i):
+            n_i = x_i_s[session_id].n
             U_dot_x = U @ latent_x_i[:, session_id]
             tmp_CD = np.repeat(n_i, self.feature_dimension)
             fn_y_i -= tmp_CD * U_dot_x
 
         return fn_y_i
 
-    """
-     Scoring
-    """
+    #  Scoring  #
 
     def estimate_x(self, X):
 
@@ -1212,6 +1203,7 @@ class FactorAnalysisBase(BaseEstimator):
             X_i: list of :py:class:`bob.learn.em.GMMStats`
                 List of statistics for a class
         """
+
         I = np.eye(self.r_U, self.r_U)  # noqa: E741
 
         Uc = self._U.reshape(
@@ -1319,10 +1311,11 @@ class FactorAnalysisBase(BaseEstimator):
             z
 
         """
+
         return self.enroll([self.ubm.acc_stats(X)])
 
     def _prepare_dask_input(self, X, y):
-        """Perpare the input for the fit method"""
+        """Prepare the input for the fit method"""
         logger.info(
             "Rechunking bag of stats to delayed list of stats per class. If your worker runs "
             "out of memory in this training step, you have to use workers with more memory."
@@ -1406,9 +1399,7 @@ class ISVMachine(FactorAnalysisBase):
         )
 
     def e_step(self, X, y, n_samples_per_class, n_acc, f_acc):
-        """
-        E-step of the EM algorithm
-        """
+        """E-step of the EM algorithm."""
         # self.initialize_XYZ(y)
         UProd = self._compute_uprod()
         _, _, latent_z = self.initialize_XYZ(
@@ -1452,6 +1443,7 @@ class ISVMachine(FactorAnalysisBase):
                 Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
+
         acc_U_A1 = [acc[0] for acc in acc_U_A1_acc_U_A2_list]
         acc_U_A2 = [acc[1] for acc in acc_U_A1_acc_U_A2_list]
 
@@ -1476,6 +1468,7 @@ class ISVMachine(FactorAnalysisBase):
             Returns self.
 
         """
+
         if isinstance(X, dask.bag.Bag):
             X, y = self._prepare_dask_input(X, y)
 
@@ -1535,6 +1528,7 @@ class ISVMachine(FactorAnalysisBase):
             z
 
         """
+
         iterations = self.enroll_iterations
         # We have only one class for enrollment
         y = list(np.zeros(len(X), dtype=np.int32))
@@ -1584,6 +1578,7 @@ class ISVMachine(FactorAnalysisBase):
             z
 
         """
+
         return self.enroll([self.ubm.acc_stats(X)])
 
     def score(self, latent_z, data):
@@ -1596,7 +1591,7 @@ class ISVMachine(FactorAnalysisBase):
             Latent representation of the client (E[z_i])
 
         data : list of :py:class:`bob.learn.em.GMMStats`
-            List of statistics to be scored
+            List of statistics of one probe template to be scored
 
         Returns
         -------
@@ -1604,7 +1599,14 @@ class ISVMachine(FactorAnalysisBase):
             The linear scored
 
         """
-        x = self.estimate_x(data)
+
+        template_data = data[0]
+
+        if len(data) > 1:
+            for d in data[1:]:
+                template_data += d
+
+        x = self.estimate_x(template_data)
         Ux = self._U @ x
 
         # TODO: I don't know why this is not the enrolled model
@@ -1615,10 +1617,10 @@ class ISVMachine(FactorAnalysisBase):
         return linear_scoring(
             z.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             self.ubm,
-            data,
+            template_data,
             Ux.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             frame_length_normalization=True,
-        )[0]
+        )[0][0]
 
 
 class JFAMachine(FactorAnalysisBase):
@@ -1759,6 +1761,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for V_A2(n_gaussians* feature_dimension, r_V)
 
         """
+
         acc_V_A1 = [acc[0] for acc in acc_V_A1_acc_V_A2_list]
         acc_V_A2 = [acc[1] for acc in acc_V_A1_acc_V_A2_list]
 
@@ -1807,6 +1810,7 @@ class JFAMachine(FactorAnalysisBase):
                 E[y]
 
         """
+
         VProd = self._compute_vprod()
 
         latent_x, latent_y, latent_z = self.initialize_XYZ(
@@ -1856,6 +1860,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for U_A2(n_gaussians* feature_dimension, r_U)
 
         """
+
         # self.initialize_XYZ(y)
         UProd = self._compute_uprod()
         latent_x, _, latent_z = self.initialize_XYZ(
@@ -1897,6 +1902,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for V_A2(n_gaussians* feature_dimension, r_V)
 
         """
+
         acc_U_A1 = [acc[0] for acc in acc_U_A1_acc_U_A2_list]
         acc_U_A2 = [acc[1] for acc in acc_U_A1_acc_U_A2_list]
 
@@ -1995,6 +2001,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for D_A2(n_gaussians* feature_dimension, )
 
         """
+
         _, _, latent_z = self.initialize_XYZ(
             n_samples_per_class=n_samples_per_class
         )
@@ -2030,6 +2037,7 @@ class JFAMachine(FactorAnalysisBase):
                 Accumulated statistics for D_A2(n_gaussians* feature_dimension, )
 
         """
+
         acc_D_A1 = [acc[0] for acc in acc_D_A1_acc_D_A2_list]
         acc_D_A2 = [acc[1] for acc in acc_D_A1_acc_D_A2_list]
 
@@ -2055,6 +2063,7 @@ class JFAMachine(FactorAnalysisBase):
             z, y latent variables
 
         """
+
         iterations = self.enroll_iterations
         # We have only one class for enrollment
         y = list(np.zeros(len(X), dtype=np.int32))
@@ -2118,6 +2127,7 @@ class JFAMachine(FactorAnalysisBase):
             Returns self.
 
         """
+
         if isinstance(X, dask.bag.Bag):
             X, y = self._prepare_dask_input(X, y)
 
@@ -2240,8 +2250,15 @@ class JFAMachine(FactorAnalysisBase):
             The linear scored
 
         """
+
         latent_y = model[0]
         latent_z = model[1]
+
+        template_data = data[0]
+
+        if len(data > 1):
+            for d in data[1:]:
+                template_data += d
 
         x = self.estimate_x(data)
         Ux = self._U @ x
