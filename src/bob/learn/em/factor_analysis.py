@@ -15,7 +15,7 @@ from sklearn.base import BaseEstimator
 from sklearn.utils import check_consistent_length
 from sklearn.utils.multiclass import unique_labels
 
-from .gmm import GMMMachine
+from .gmm import GMMMachine, GMMStats
 from .linear_scoring import linear_scoring
 from .utils import check_and_persist_dask_input
 
@@ -764,8 +764,8 @@ class FactorAnalysisBase(BaseEstimator):
         fn_z_i = np.array(fn_z_i, like=X_i[0].n)
 
         # Looping over the sessions
-        for session_id in range(len(X_i)):
-            n_i = X_i[session_id].n
+        for session_id, x_i_s in enumerate(X_i):
+            n_i = x_i_s.n
             tmp_CD = np.repeat(n_i, self.feature_dimension)
             x_i_h = latent_x_i[:, session_id]
 
@@ -1170,7 +1170,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         # Looping over the sessions of a ;ane;
         for session_id, x_i_s in enumerate(X_i):
-            n_i = x_i_s[session_id].n
+            n_i = x_i_s.n
             U_dot_x = U @ latent_x_i[:, session_id]
             tmp_CD = np.repeat(n_i, self.feature_dimension)
             fn_y_i -= tmp_CD * U_dot_x
@@ -1214,7 +1214,9 @@ class FactorAnalysisBase(BaseEstimator):
 
         sigma_c = self.ubm.variances[:, np.newaxis]
 
-        n_i_c = np.expand_dims(X_i.n[:, np.newaxis], axis=2)
+        n_sum = sum(x_i_s.n for x_i_s in X_i)
+
+        n_i_c = np.expand_dims(n_sum[:, np.newaxis], axis=2)
 
         id_plus_us_prod_inv = I + (((UcT / sigma_c) @ Uc) * n_i_c).sum(axis=0)
         id_plus_us_prod_inv = np.linalg.inv(id_plus_us_prod_inv)
@@ -1233,8 +1235,11 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        n = X_i.n[:, np.newaxis]
-        f = X_i.sum_px
+        n_sum = sum(x_i_s.n for x_i_s in X_i)
+        sum_px_sum = sum(x_i_s.sum_px for x_i_s in X_i)
+
+        n = n_sum[:, np.newaxis]
+        f = sum_px_sum
 
         fn_x = f - self.ubm.means * n
 
@@ -1259,7 +1264,7 @@ class FactorAnalysisBase(BaseEstimator):
 
         """
 
-        return self.score(model, self.ubm.acc_stats(data))
+        return self.score(model, [self.ubm.acc_stats(d) for d in data])
 
     def fit_using_array(self, X, y):
         """Fits the model using a numpy array or a dask array as input
@@ -1600,13 +1605,7 @@ class ISVMachine(FactorAnalysisBase):
 
         """
 
-        template_data = data[0]
-
-        if len(data) > 1:
-            for d in data[1:]:
-                template_data += d
-
-        x = self.estimate_x(template_data)
+        x = self.estimate_x(data)
         Ux = self._U @ x
 
         # TODO: I don't know why this is not the enrolled model
@@ -1614,13 +1613,26 @@ class ISVMachine(FactorAnalysisBase):
         # m + Dz
         z = self.D * latent_z + self.mean_supervector
 
+        # Support a probe template and a list of probe templates.
+        if isinstance(data[0], GMMStats) and len(data) > 1:
+            data_sum = sum(data[1:], start=data[0])
+        elif not isinstance(data[0], GMMStats):
+            data_sum = []
+            for d in data:
+                if len(d) > 1:
+                    data_sum.append(sum(d[1:], start=d[0]))
+                else:
+                    data_sum.append(d[0])
+        else:
+            data_sum = data
+
         return linear_scoring(
             z.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             self.ubm,
-            template_data,
+            data_sum,
             Ux.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             frame_length_normalization=True,
-        )[0][0]
+        )[0]
 
 
 class JFAMachine(FactorAnalysisBase):
@@ -2254,12 +2266,6 @@ class JFAMachine(FactorAnalysisBase):
         latent_y = model[0]
         latent_z = model[1]
 
-        template_data = data[0]
-
-        if len(data > 1):
-            for d in data[1:]:
-                template_data += d
-
         x = self.estimate_x(data)
         Ux = self._U @ x
 
@@ -2268,10 +2274,23 @@ class JFAMachine(FactorAnalysisBase):
         # m + Vy + Dz
         zy = self.V @ latent_y + self.D * latent_z + self.mean_supervector
 
+        # Support a probe template and a list of probe templates.
+        if isinstance(data[0], GMMStats) and len(data) > 1:
+            data_sum = sum(data[1:], start=data[0])
+        elif not isinstance(data[0], GMMStats):
+            data_sum = []
+            for d in data:
+                if len(d) > 1:
+                    data_sum.append(sum(d[1:], start=d[0]))
+                else:
+                    data_sum.append(d[0])
+        else:
+            data_sum = data
+
         return linear_scoring(
             zy.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             self.ubm,
-            data,
+            data_sum,
             Ux.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             frame_length_normalization=True,
         )[0]

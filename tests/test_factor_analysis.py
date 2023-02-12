@@ -114,7 +114,7 @@ M_y = [y1, y2]
 M_x = [x1, x2]
 
 
-def test_JFATrainAndEnrol():
+def test_JFA_train_and_enroll():
     # Train and enroll a JFAMachine
 
     # Calls the train function
@@ -213,7 +213,7 @@ def test_JFATrainAndEnrol():
     np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
-def test_ISVTrainAndEnrol():
+def test_ISV_train_and_enroll():
     # Train and enroll an 'ISVMachine'
 
     eps = 1e-10
@@ -253,9 +253,8 @@ def test_ISVTrainAndEnrol():
         "float64",
     )
 
-    """
-    Calls the train function
-    """
+    # Calls the train function
+
     ubm = GMMMachine(2, 3)
     ubm.means = UBM_MEAN.reshape((2, 3))
     ubm.variances = UBM_VAR.reshape((2, 3))
@@ -274,9 +273,7 @@ def test_ISVTrainAndEnrol():
     np.testing.assert_allclose(it.D, d_ref, rtol=eps, atol=1e-8)
     np.testing.assert_allclose(it.U, u_ref, rtol=eps, atol=1e-8)
 
-    """
-    Calls the enroll function
-    """
+    # Calls the enroll function
 
     Ne = np.array([0.1579, 0.9245, 0.1323, 0.2458]).reshape((2, 2))
     Fe = np.array(
@@ -307,7 +304,7 @@ def test_ISVTrainAndEnrol():
     np.testing.assert_allclose(latent_z, z_ref, rtol=eps, atol=1e-8)
 
 
-def test_JFATrainInitialize():
+def test_JFA_train_initialize():
     # Check that the initialization is consistent and using the rng (cf. issue #118)
 
     eps = 1e-10
@@ -338,7 +335,7 @@ def test_JFATrainInitialize():
     np.testing.assert_allclose(d1, d2, rtol=eps, atol=1e-8)
 
 
-def test_ISVTrainInitialize():
+def test_ISV_train_initialize():
 
     # Check that the initialization is consistent and using the rng (cf. issue #118)
     eps = 1e-10
@@ -398,14 +395,14 @@ def test_JFAMachine():
     model = [y, z]
 
     score_ref = -2.111577181208289
-    score = m.score(model, gs)
+    score = m.score(model, [gs])
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
     # Scoring with numpy array
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = 2.028009315286946
-    score = m.score_using_array(model, X)
+    score = m.score_using_array(model, [X])
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
@@ -437,7 +434,7 @@ def test_ISVMachine():
 
     # Enrolled model
     latent_z = np.array([3, 4, 1, 2, 0, 1], "float64")
-    score = isv_machine.score(latent_z, gs)
+    score = isv_machine.score(latent_z, [gs])
     score_ref = -3.280498193082100
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
@@ -445,7 +442,7 @@ def test_ISVMachine():
     np.random.seed(0)
     X = np.random.normal(loc=0.0, scale=1.0, size=(50, 3))
     score_ref = -1.2343813195374242
-    score = isv_machine.score_using_array(latent_z, X)
+    score = isv_machine.score_using_array(latent_z, [X])
     np.testing.assert_allclose(score, score_ref, atol=eps)
 
 
@@ -547,7 +544,7 @@ def test_ISV_JFA_fit():
             if prior is None:
                 ubm = None
                 # we still provide an initial UBM because KMeans training is not
-                # determenistic depending on inputting numpy or dask arrays
+                # deterministic depending on inputting numpy or dask arrays
                 ubm_kwargs = dict(n_gaussians=2, ubm=_create_ubm_prior(means))
             else:
                 ubm = _create_ubm_prior(means)
