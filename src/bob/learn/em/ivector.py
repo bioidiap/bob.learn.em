@@ -287,8 +287,13 @@ class IVectorMachine(BaseEstimator):
         )
         self.sigma = copy.deepcopy(self.ubm.variances)
 
+        logger.info("Training I-Vector...")
         for step in range(self.max_iterations):
+            logger.info(
+                f"IVector step {step+1:{len(str(self.max_iterations))}d}/{self.max_iterations}."
+            )
             if chunky:
+                # Compute the IVectorStats of each chunk
                 stats = [
                     dask.delayed(e_step)(
                         machine=self,
@@ -300,27 +305,27 @@ class IVectorMachine(BaseEstimator):
                 # Workaround to prevent memory issues at compute with too many chunks.
                 # This adds pairs of stats together instead of sending all the stats to
                 # one worker.
-                while (l := len(stats)) > 1:
+                while (length := len(stats)) > 1:
                     last = stats[-1]
                     stats = [
-                        dask.delayed(operator.add)(stats[i], stats[l // 2 + i])
-                        for i in range(l // 2)
+                        dask.delayed(operator.add)(
+                            stats[i], stats[length // 2 + i]
+                        )
+                        for i in range(length // 2)
                     ]
-                    if l % 2 != 0:
+                    if length % 2 != 0:
                         stats.append(last)
-
                 stats_sum = stats[0]
+
+                # Update the machine parameters with the aggregated stats
                 new_machine = dask.compute(
                     dask.delayed(m_step)(self, stats_sum)
                 )[0]
                 for attr in ["T", "sigma"]:
                     setattr(self, attr, getattr(new_machine, attr))
-            else:
+            else:  # Working directly on numpy array, not dask.Bags
                 stats = e_step(machine=self, data=X)
                 _ = m_step(self, stats)
-            logger.info(
-                f"IVector step {step+1:{len(str(self.max_iterations))}d}/{self.max_iterations}."
-            )
         logger.info(f"Reached {step+1} steps.")
         return self
 
