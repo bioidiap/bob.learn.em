@@ -1632,7 +1632,7 @@ class ISVMachine(FactorAnalysisBase):
             data_sum,
             Ux.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             frame_length_normalization=True,
-        )[0]
+        )[0][0]
 
 
 class JFAMachine(FactorAnalysisBase):
@@ -2293,4 +2293,4 @@ class JFAMachine(FactorAnalysisBase):
             data_sum,
             Ux.reshape((self.ubm.n_gaussians, self.feature_dimension)),
             frame_length_normalization=True,
-        )[0]
+        )[0][0]
