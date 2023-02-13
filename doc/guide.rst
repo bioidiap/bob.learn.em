@@ -346,8 +346,8 @@ The snippet bellow shows how to:
    >>> # Probing
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
    >>> score = isv_machine.score_using_array(model, probe_data)
-   >>> print(score)
-     [2.754]
+   >>> print(round(score, 3))
+     2.754
 
 
 
@@ -407,8 +407,8 @@ such session variability model.
 
    >>> probe_data = np.array([[1.2, 0.1, 1.4], [0.5, 0.2, 0.3]])
    >>> score = jfa_machine.score_using_array(model, probe_data)
-   >>> print(score)
-     [0.471]
+   >>> print(round(score, 3))
+     0.471
 
 
 
