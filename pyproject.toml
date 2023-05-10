@@ -58,8 +58,7 @@
     package-dir = {"" = "src"}
 
 [tool.setuptools.dynamic]
-    readme = {file = "README.rst"}
-
+    readme = {file = "README.md", content-type = "text/markdown"}
 
 [tool.distutils.bdist_wheel]
     universal = true
