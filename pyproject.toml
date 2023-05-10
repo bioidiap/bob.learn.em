@@ -58,7 +58,7 @@
     package-dir = {"" = "src"}
 
 [tool.setuptools.dynamic]
-    readme = {file = "README.rst"}
+    readme = {file = "README.md"}
 
 
 [tool.distutils.bdist_wheel]
