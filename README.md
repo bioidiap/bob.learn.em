@@ -1,5 +1,5 @@
 
-[![badge latest doc](https://img.shields.io/badge/docs-latest-orange.svg)](https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/master/sphinx/index.html)
+[![badge doc](https://img.shields.io/badge/docs-latest-orange.svg)](https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/master/sphinx/index.html)
 [![badge pipeline](https://gitlab.idiap.ch/bob/bob.learn.em/badges/master/pipeline.svg)](https://gitlab.idiap.ch/bob/bob.learn.em/commits/master)
 [![badge coverage](https://gitlab.idiap.ch/bob/bob.learn.em/badges/master/coverage.svg)](https://www.idiap.ch/software/bob/docs/bob/bob.learn.em/master/coverage)
 [![badge gitlab](https://img.shields.io/badge/gitlab-project-0000c0.svg)](https://gitlab.idiap.ch/bob/bob.learn.em)
