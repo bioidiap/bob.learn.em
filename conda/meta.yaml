@@ -21,19 +21,20 @@ requirements:
     - python {{ python }}
     - setuptools {{ setuptools }}
     - pip {{ pip }}
-    - numpy {{ numpy }}
+    - bob
     - dask {{ dask }}
     - dask-ml {{ dask_ml }}
     - h5py {{ h5py }}
-    - h5py >=3
+    - numpy {{ numpy }}
     - scikit-learn {{ scikit_learn }}
   run:
     - python
     - setuptools
-    - {{ pin_compatible('numpy') }}
+    - bob
     - {{ pin_compatible('dask') }}
     - {{ pin_compatible('dask-ml') }}
     - {{ pin_compatible('h5py') }}
+    - {{ pin_compatible('numpy') }}
     - {{ pin_compatible('scikit-learn') }}
 
 test:
