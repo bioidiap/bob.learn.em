@@ -25,10 +25,10 @@
         "Topic :: Software Development :: Libraries :: Python Modules",
     ]
     dependencies = [
-        "setuptools",
+        "bob",
         "dask",
         "dask-ml",
-        "h5py >= 3",
+        "h5py",
         "scikit-learn",
     ]
 
